@@ -1,0 +1,51 @@
+/* 为经理视图添加Sage颜色系列 */
+:root {
+  --sage-50: #f7f9f8;
+  --sage-100: #edf1ef;
+  --sage-200: #d8e2dd;
+  --sage-300: #bcd0c7;
+  --sage-400: #9ab9ac;
+  --sage-500: #7ea090;
+  --sage-600: #638274;
+  --sage-700: #516a5f;
+  --sage-800: #3f534a;
+  --sage-900: #2e3e37;
+  --sage-950: #172019;
+}
+
+/* 添加对应的Tailwind类 */
+.bg-sage-50 { background-color: var(--sage-50); }
+.bg-sage-100 { background-color: var(--sage-100); }
+.bg-sage-200 { background-color: var(--sage-200); }
+.bg-sage-300 { background-color: var(--sage-300); }
+.bg-sage-400 { background-color: var(--sage-400); }
+.bg-sage-500 { background-color: var(--sage-500); }
+.bg-sage-600 { background-color: var(--sage-600); }
+.bg-sage-700 { background-color: var(--sage-700); }
+.bg-sage-800 { background-color: var(--sage-800); }
+.bg-sage-900 { background-color: var(--sage-900); }
+.bg-sage-950 { background-color: var(--sage-950); }
+
+.text-sage-50 { color: var(--sage-50); }
+.text-sage-100 { color: var(--sage-100); }
+.text-sage-200 { color: var(--sage-200); }
+.text-sage-300 { color: var(--sage-300); }
+.text-sage-400 { color: var(--sage-400); }
+.text-sage-500 { color: var(--sage-500); }
+.text-sage-600 { color: var(--sage-600); }
+.text-sage-700 { color: var(--sage-700); }
+.text-sage-800 { color: var(--sage-800); }
+.text-sage-900 { color: var(--sage-900); }
+.text-sage-950 { color: var(--sage-950); }
+
+.border-sage-50 { border-color: var(--sage-50); }
+.border-sage-100 { border-color: var(--sage-100); }
+.border-sage-200 { border-color: var(--sage-200); }
+.border-sage-300 { border-color: var(--sage-300); }
+.border-sage-400 { border-color: var(--sage-400); }
+.border-sage-500 { border-color: var(--sage-500); }
+.border-sage-600 { border-color: var(--sage-600); }
+.border-sage-700 { border-color: var(--sage-700); }
+.border-sage-800 { border-color: var(--sage-800); }
+.border-sage-900 { border-color: var(--sage-900); }
+.border-sage-950 { border-color: var(--sage-950); }
