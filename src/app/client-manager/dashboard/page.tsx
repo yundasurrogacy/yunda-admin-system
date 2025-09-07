@@ -5,423 +5,330 @@ import { useRouter } from 'next/navigation'
 import ManagerLayout from '@/components/manager-layout'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Activity, 
-  FileText, 
-  MessageSquare, 
-  RefreshCw, 
-  Briefcase,
-  CheckSquare,
-  Users,
-  ChevronRight,
-  PlusCircle,
-  Search,
-  UserPlus,
-  FileCheck,
-  Filter,
-} from 'lucide-react'
-import { getHasuraClient } from '@/config-lib/hasura-graphql-client/hasura-graphql-client'
-import { 
-  DashboardStats, 
-  Activity as DashboardActivity,
-  CasesStatsResponse,
-  TasksCountResponse,
-  ActivityRecord,
-  ClientCountResponse,
-  SurrogateCountResponse
-} from '@/types/dashboard'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
-export default function ManagerDashboard() {
+interface WeeklyUpdate {
+  name: string
+  type: 'Client' | 'Surrogate'
+  dueDate: string
+  notes: string
+}
+
+interface LatestUpdate {
+  id: number
+  name: string
+  date: string
+}
+
+interface Case {
+  id: string
+  clientName: string
+  surrogateId?: string
+  surrogateName?: string
+  status: 'ongoing' | 'completed' | 'pending'
+  lastUpdate: string
+  ivfStatus?: string
+  medicalReport?: string
+  contractStatus?: string
+  nextAppointment?: string
+}
+
+export default function DashboardPage() {
   const router = useRouter()
-  const [stats, setStats] = useState<DashboardStats>({
-    totalCases: 0,
-    activeCases: 0,
-    pendingTasks: 0,
-    clientCount: 0,
-    surrogateCount: 0,
-    recentActivities: []
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  
+  // 状态管理
+  const [cases, setCases] = useState<Case[]>([])
+  const [filterStatus, setFilterStatus] = useState<Case['status'] | 'all'>('all')
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedCase, setSelectedCase] = useState<string | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const refreshData = () => {
-    fetchDashboardData()
+  // 刷新数据
+  const refreshData = async () => {
+    setIsRefreshing(true)
+    await fetchCases()
+    setIsRefreshing(false)
   }
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
+  // 处理案例点击
+  const handleCaseClick = (caseId: string) => {
+    setSelectedCase(caseId)
+    router.push(`/client-manager/my-cases/${caseId}`)
+  }
 
-  const fetchDashboardData = async () => {
+  // 处理文档上传
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
     try {
-      setLoading(true)
-      setError(null)
+      const formData = new FormData()
+      formData.append('file', file)
       
-      const hasuraClient = getHasuraClient()
-      
-      try {
-        // 获取案例统计数据
-        const casesStats = await hasuraClient.datas<CasesStatsResponse>({
-          table: 'cases',
-          args: {
-            where: { manager_id: { _eq: 'current_manager_id' } }
-          },
-          datas_fields: [
-            'aggregate { count { total: count(*), active: count(status=\'进行中\') } }'
-          ]
-        })
+      // TODO: 实现文件上传 API
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
 
-        // 获取待办任务数
-        const tasksCount = await hasuraClient.datas<TasksCountResponse>({
-          table: 'tasks',
-          args: {
-            where: { 
-              manager_id: { _eq: 'current_manager_id' },
-              status: { _eq: 'pending' }
-            }
-          },
-          datas_fields: [
-            'aggregate { count { count: count(*) } }'
-          ]
-        })
-        
-        // 获取客户数量
-        const clientCount = await hasuraClient.datas<ClientCountResponse>({
-          table: 'clients',
-          args: {
-            where: { manager_id: { _eq: 'current_manager_id' } }
-          },
-          datas_fields: [
-            'aggregate { count { count: count(*) } }'
-          ]
-        })
-        
-        // 获取代孕妈妈数量
-        const surrogateCount = await hasuraClient.datas<SurrogateCountResponse>({
-          table: 'surrogates',
-          args: {
-            where: { status: { _in: ['可配对', '已配对'] } }
-          },
-          datas_fields: [
-            'aggregate { count { count: count(*) } }'
-          ]
-        })
-
-        // 获取最近活动
-        const activitiesResponse = await hasuraClient.datas<ActivityRecord[]>({
-          table: 'activities',
-          args: {
-            where: { manager_id: { _eq: 'current_manager_id' } },
-            order_by: { created_at: () => 'desc' },
-            limit: 10
-          },
-          datas_fields: [
-            'data { id type description created_at related_id }'
-          ]
-        })
-
-        const activities = (Array.isArray(activitiesResponse[0]) ? activitiesResponse[0] : []) as ActivityRecord[];
-        
-        setStats({
-          totalCases: casesStats[0]?.total || 0,
-          activeCases: casesStats[0]?.active || 0,
-          pendingTasks: tasksCount[0]?.count || 0,
-          clientCount: clientCount[0]?.count || 0,
-          surrogateCount: surrogateCount[0]?.count || 0,
-          recentActivities: activities.map(activity => ({
-            id: activity.id,
-            type: activity.type,
-            description: activity.description,
-            date: new Date(activity.created_at).toLocaleString('zh-CN')
-          }))
-        })
-      } catch (apiError) {
-        console.warn('API请求失败，使用模拟数据:', apiError)
-        // 使用模拟数据
-        const { mockDashboardData } = await import('@/mock/dashboard')
-        setStats({
-          totalCases: mockDashboardData.casesStats.total,
-          activeCases: mockDashboardData.casesStats.active,
-          pendingTasks: mockDashboardData.tasksCount.count,
-          clientCount: mockDashboardData.clientCount?.count || 18,
-          surrogateCount: mockDashboardData.surrogateCount?.count || 24,
-          recentActivities: mockDashboardData.activities.map(activity => ({
-            id: activity.id,
-            type: activity.type,
-            description: activity.description,
-            date: new Date(activity.created_at).toLocaleString('zh-CN')
-          }))
-        })
+      if (!response.ok) {
+        throw new Error('Upload failed')
       }
-    } catch (err) {
-      console.error('获取仪表盘数据失败:', err)
-      setError('获取数据失败，请稍后重试')
+
+      refreshData()
+    } catch (error) {
+      console.error('Failed to upload file:', error)
+      // TODO: 显示错误提示
+    }
+  }
+
+  // 处理报告导出
+  const handleExport = async () => {
+    try {
+      setIsLoading(true)
+      // TODO: 实现导出 API
+      const response = await fetch('/api/export', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: filterStatus,
+          date: new Date().toISOString()
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `cases-report-${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Failed to export report:', error)
+      // TODO: 显示错误提示
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
-  const handleActivityClick = (type: string) => {
-    switch (type) {
-      case 'case':
-        router.push('/client-manager/my-cases')
-        break
-      case 'task':
-        router.push('/client-manager/daily-tasks')
-        break
-      case 'document':
-        router.push('/client-manager/documents')
-        break
-      default:
-        break
+  // 获取案例数据
+  const fetchCases = async () => {
+    try {
+      setIsLoading(true)
+      // TODO: 替换为实际的 API 调用
+      const mockData: Case[] = [
+        {
+          id: '1',
+          clientName: 'John Doe',
+          status: 'ongoing',
+          lastUpdate: '2025-09-07',
+          ivfStatus: 'In Progress',
+          medicalReport: 'Updated',
+          contractStatus: 'Signed',
+          nextAppointment: '2025-09-10'
+        },
+        {
+          id: '2',
+          clientName: 'Jane Smith',
+          surrogateId: 'S001',
+          surrogateName: 'Mary Johnson',
+          status: 'pending',
+          lastUpdate: '2025-09-06',
+          ivfStatus: 'Scheduled',
+          medicalReport: 'Pending',
+          contractStatus: 'In Review'
+        },
+        // 添加更多模拟数据...
+      ]
+      
+      setCases(mockData)
+    } catch (error) {
+      console.error('Failed to fetch cases:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  if (error) {
-    return (
-      <ManagerLayout>
-        <div className="text-red-500">加载失败: {error}</div>
-      </ManagerLayout>
-    )
-  }
+  // 获取案例数据
+  // const fetchCases = async () => {
+  //   try {
+  //     setIsLoading(true)
+  //     // TODO: 替换为实际的 API 调用
+  //     const response = await fetch('/api/cases')
+  //     const data = await response.json()
+  //     setCases(data)
+  //   } catch (error) {
+  //     console.error('Failed to fetch cases:', error)
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
+
+  // 初始加载数据
+  useEffect(() => {
+    fetchCases()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const [weeklyUpdates] = useState<WeeklyUpdate[]>([
+    { name: 'John Doe', type: 'Client', dueDate: 'May 12', notes: 'None' },
+    { name: 'Mary Hill', type: 'Surrogate', dueDate: 'May 13', notes: 'Further assistant needed' },
+    { name: 'Siren Far', type: 'Client', dueDate: 'May 14', notes: 'None' }
+  ])
+
+  const [latestUpdates] = useState<LatestUpdate[]>(
+    Array(5).fill(null).map((_, i) => ({
+      id: i + 1,
+      name: 'John Doe',
+      date: `May ${12 + i}`
+    }))
+  )
 
   return (
     <ManagerLayout>
-      <div className="space-y-8">
-        {/* 页面标题和操作区 */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">仪表盘</h1>
-            <p className="text-gray-500">欢迎回来，这里是您的管理概览</p>
+      <div className="p-8 min-h-screen" style={{ background: "#FBF0DA40" }}>
+        <h1 className="text-2xl font-semibold mb-8 font-serif text-[#271F18]">DASHBOARD</h1>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white font-serif text-[#271F18]"
+            onClick={() => router.push('/client-manager/my-cases')}
+          >
+            <h2 className="text-lg font-medium mb-4 font-serif text-[#271F18]">Today's Task</h2>
+            <div className="text-4xl font-bold font-serif text-[#271F18]">
+              {isLoading ? '...' : cases.filter(c => c.nextAppointment === new Date().toISOString().split('T')[0]).length}
+            </div>
+          </Card>
+          <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white font-serif text-[#271F18]"
+            onClick={() => router.push('/client-manager/documents?status=pending')}
+          >
+            <div className="flex justify-between mb-4">
+              <h2 className="text-lg font-medium font-serif text-[#271F18]">Pending Documents</h2>
+              <span className="text-sm font-serif text-[#271F18] opacity-60">1 Due in 2 Days</span>
+            </div>
+            <div className="text-4xl font-bold font-serif text-[#271F18]">3</div>
+            <div className="mt-2 text-sm font-serif text-[#271F18] opacity-60">Action Needed</div>
+          </Card>
+          <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white font-serif text-[#271F18]"
+            onClick={() => router.push('/client-manager/documents?type=contract')}
+          >
+            <h2 className="text-lg font-medium mb-4 font-serif text-[#271F18]">Contract Status</h2>
+            <div className="text-4xl font-bold font-serif text-[#271F18]">
+              {isLoading ? '...' : cases.filter(c => c.contractStatus === 'pending').length}
+            </div>
+            <div className="mt-2 text-sm font-serif text-[#271F18] opacity-60">Pending Review</div>
+          </Card>
+        </div>
+        {/* Updates Needed Table */}
+        <Card className="mb-8 rounded-xl bg-white font-serif text-[#271F18]">
+          <div className="p-6">
+            <h2 className="text-lg font-medium mb-4 font-serif text-[#271F18]">Updates Needed (Weekly)</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full border-separate border-spacing-y-2 font-serif text-[#271F18]">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-4 font-semibold">Name</th>
+                    <th className="text-left py-2 px-4 font-semibold">Type</th>
+                    <th className="text-left py-2 px-4 font-semibold">Due Date</th>
+                    <th className="text-left py-2 px-4 font-semibold">Notes</th>
+                    <th className="py-2 px-4"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {weeklyUpdates.map((row, idx) => (
+                    <tr key={idx} className="border-b last:border-none">
+                      <td className="py-2 px-4">{row.name}</td>
+                      <td className="py-2 px-4">{row.type}</td>
+                      <td className="py-2 px-4">{row.dueDate}</td>
+                      <td className="py-2 px-4">{row.notes}</td>
+                      <td className="py-2 px-4">
+                        <Button className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-4 py-1 text-sm shadow-none"
+                          onClick={() => router.push(`/client-manager/my-cases?name=${row.name}`)}
+                        >View Details</Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="default"
-              onClick={() => router.push('/client-manager/my-cases/new')}
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              创建新案例
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={refreshData}
-              disabled={loading}
-              title="刷新数据"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+        </Card>
+        {/* Latest Updates */}
+        <Card className="rounded-xl bg-white font-serif text-[#271F18]">
+          <div className="p-6">
+            <h2 className="text-lg font-medium mb-6 font-serif text-[#271F18]">Latest Update</h2>
+            <div className="relative">
+              <div className="flex space-x-4 overflow-hidden">
+                {latestUpdates.map((update) => (
+                  <div key={update.id} className="flex-none w-48">
+                    <div className="bg-[#F8F9FC] rounded-lg p-4 text-center font-serif text-[#271F18]">
+                      <Avatar className="w-12 h-12 mx-auto mb-3">
+                        <AvatarFallback className="bg-[#E2E8F0] font-serif text-[#271F18]">
+                          {update.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="font-medium font-serif text-[#271F18]">{update.name}</p>
+                      <p className="text-sm font-serif text-[#271F18] opacity-60 mb-3">{update.date}</p>
+                      <Button 
+                        className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-4 py-1 text-sm shadow-none"
+                        onClick={() => router.push(`/client-manager/my-cases?name=${update.name}`)}
+                      >View Details</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* 统计卡片区域 */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => router.push('/client-manager/my-cases')}>
-            <div className="p-6">
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Briefcase className="h-4 w-4 text-blue-600" />
-                </div>
-                <h3 className="text-sm font-medium text-gray-600">全部案例</h3>
-              </div>
-              <div className="mt-4">
-                <p className="text-2xl font-bold">{loading ? '...' : stats.totalCases}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-gray-500">点击查看全部</p>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => router.push('/client-manager/my-cases?status=进行中')}>
-            <div className="p-6">
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <Activity className="h-4 w-4 text-green-600" />
-                </div>
-                <h3 className="text-sm font-medium text-gray-600">进行中案例</h3>
-              </div>
-              <div className="mt-4">
-                <p className="text-2xl font-bold">{loading ? '...' : stats.activeCases}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-gray-500">需要持续跟进</p>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => router.push('/client-manager/client-profiles')}>
-            <div className="p-6">
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-purple-600" />
-                </div>
-                <h3 className="text-sm font-medium text-gray-600">客户档案</h3>
-              </div>
-              <div className="mt-4">
-                <p className="text-2xl font-bold">{loading ? '...' : stats.clientCount || 18}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-gray-500">客户信息管理</p>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-md transition-all" onClick={() => router.push('/client-manager/surrogate-profiles')}>
-            <div className="p-6">
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center">
-                  <UserPlus className="h-4 w-4 text-pink-600" />
-                </div>
-                <h3 className="text-sm font-medium text-gray-600">代孕妈妈档案</h3>
-              </div>
-              <div className="mt-4">
-                <p className="text-2xl font-bold">{loading ? '...' : stats.surrogateCount || 24}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-gray-500">代孕资源管理</p>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* 快速操作区域 */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* 创建新案例 */}
-          <Card className="cursor-pointer hover:shadow-md transition-all">
-            <div className="p-6 flex flex-col items-center justify-center text-center" 
-                 onClick={() => router.push('/client-manager/my-cases/new')}>
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                <PlusCircle className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">创建新案例</h3>
-              <p className="text-sm text-gray-500">添加新的客户案例，开始代孕流程</p>
-            </div>
-          </Card>
-          
-          {/* 按客户搜索 */}
-          <Card className="cursor-pointer hover:shadow-md transition-all">
-            <div className="p-6 flex flex-col items-center justify-center text-center"
-                 onClick={() => router.push('/client-manager/client-search')}>
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <Search className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">档案查询</h3>
-              <p className="text-sm text-gray-500">按名称或内容搜索客户与代孕妈妈信息</p>
-            </div>
-          </Card>
-          
-          {/* 添加新档案 */}
-          <Card className="cursor-pointer hover:shadow-md transition-all">
-            <div className="p-6 flex flex-col items-center justify-center text-center"
-                 onClick={() => router.push('/client-manager/new-profile')}>
-              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mb-4">
-                <FileCheck className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">添加新档案</h3>
-              <p className="text-sm text-gray-500">创建客户资料与代孕妈妈资料</p>
-            </div>
-          </Card>
-        </div>
-
-        {/* 最近活动区域 */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          {/* 活动时间线 */}
-          <Card className="col-span-full lg:col-span-4">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">最近活动</h2>
-                <Button variant="ghost" size="sm" onClick={() => router.push('/client-manager/notifications')}>
-                  查看全部
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-              <div className="space-y-4">
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="animate-pulse flex space-x-4">
-                      <div className="rounded-full bg-gray-200 h-10 w-10" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-3/4" />
-                        <div className="h-4 bg-gray-200 rounded w-1/2" />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  stats.recentActivities.slice(0, 5).map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-start space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => handleActivityClick(activity.type)}
-                    >
-                      <div className={`rounded-full p-2 ${
-                        activity.type === 'case' ? 'bg-blue-100' :
-                        activity.type === 'task' ? 'bg-yellow-100' : 'bg-purple-100'
-                      }`}>
-                        {activity.type === 'case' && <Briefcase className="h-4 w-4 text-blue-600" />}
-                        {activity.type === 'task' && <CheckSquare className="h-4 w-4 text-yellow-600" />}
-                        {activity.type === 'document' && <FileText className="h-4 w-4 text-purple-600" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{activity.description}</p>
-                        <p className="text-xs text-gray-500">{activity.date}</p>
-                      </div>
-                      <ChevronRight className="h-5 w-5 text-gray-400" />
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* 待办任务卡片 */}
-          <Card className="col-span-full lg:col-span-3">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">待办任务</h2>
-                <Button variant="ghost" size="sm" onClick={() => router.push('/client-manager/daily-tasks')}>
-                  查看全部
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-              <div className="space-y-4">
-                {loading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="animate-pulse flex space-x-4">
-                      <div className="rounded bg-gray-200 h-6 w-6" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded" />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  stats.recentActivities
-                    .filter(activity => activity.type === 'task')
-                    .slice(0, 5)
-                    .map((task) => (
-                      <div
-                        key={task.id}
-                        className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => router.push('/client-manager/daily-tasks')}
-                      >
-                        <div className="h-2 w-2 rounded-full bg-yellow-400" />
-                        <span className="flex-1 text-sm">{task.description}</span>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
-                      </div>
-                    ))
-                )}
-              </div>
-              {stats.recentActivities.filter(activity => activity.type === 'task').length === 0 && !loading && (
-                <div className="text-center py-6 text-gray-500">
-                  暂无待办任务
-                </div>
-              )}
-            </div>
-          </Card>
+        </Card>
+        {/* Action Buttons */}
+        <div className="mt-8 flex gap-4">
+          <Button 
+            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            onClick={() => router.push('/client-manager/client-profiles/new')}
+          >
+            Add New Client
+          </Button>
+          <Button 
+            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            onClick={() => router.push('/client-manager/documents/upload')}
+          >
+            Upload File
+          </Button>
+          <Button 
+            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            onClick={() => {
+              // TODO: 实现导出报告功能
+              alert('Export functionality will be implemented soon')
+            }}
+          >
+            Export Report
+          </Button>
+          <Button 
+            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            onClick={() => router.push('/client-manager/notifications')}
+          >
+            Notifications
+          </Button>
+          <Button 
+            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            onClick={() => router.push('/client-manager/client-portal')}
+          >
+            Client Portal
+          </Button>
+          <Button 
+            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            onClick={() => router.push('/client-manager/surrogate-portal')}
+          >
+            Surrogate Portal
+          </Button>
         </div>
       </div>
     </ManagerLayout>
