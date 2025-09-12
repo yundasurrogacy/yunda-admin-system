@@ -81,6 +81,354 @@ input String_comparison_exp {
   _similar: String
 }
 
+"""申请表"""
+type applications {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data(
+    """JSON select path"""
+    path: String
+  ): jsonb!
+
+  """类型可选：1.intended_parent 2. surrogate_mother"""
+  application_type: String!
+  created_at: timestamptz!
+  id: bigint!
+
+  """状态可选：1.pending 2.approved 3.rejected,"""
+  status: String!
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "applications"
+"""
+type applications_aggregate {
+  aggregate: applications_aggregate_fields
+  nodes: [applications!]!
+}
+
+"""
+aggregate fields of "applications"
+"""
+type applications_aggregate_fields {
+  avg: applications_avg_fields
+  count(columns: [applications_select_column!], distinct: Boolean): Int!
+  max: applications_max_fields
+  min: applications_min_fields
+  stddev: applications_stddev_fields
+  stddev_pop: applications_stddev_pop_fields
+  stddev_samp: applications_stddev_samp_fields
+  sum: applications_sum_fields
+  var_pop: applications_var_pop_fields
+  var_samp: applications_var_samp_fields
+  variance: applications_variance_fields
+}
+
+"""append existing jsonb value of filtered columns with new jsonb value"""
+input applications_append_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: jsonb
+}
+
+"""aggregate avg on columns"""
+type applications_avg_fields {
+  id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "applications". All fields are combined with a logical 'AND'.
+"""
+input applications_bool_exp {
+  _and: [applications_bool_exp!]
+  _not: applications_bool_exp
+  _or: [applications_bool_exp!]
+  application_data: jsonb_comparison_exp
+  application_type: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  status: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "applications"
+"""
+enum applications_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  applications_pkey
+}
+
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input applications_delete_at_path_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: [String!]
+}
+
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input applications_delete_elem_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: Int
+}
+
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input applications_delete_key_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: String
+}
+
+"""
+input type for incrementing numeric columns in table "applications"
+"""
+input applications_inc_input {
+  id: bigint
+}
+
+"""
+input type for inserting data into table "applications"
+"""
+input applications_insert_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: jsonb
+
+  """类型可选：1.intended_parent 2. surrogate_mother"""
+  application_type: String
+  created_at: timestamptz
+  id: bigint
+
+  """状态可选：1.pending 2.approved 3.rejected,"""
+  status: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type applications_max_fields {
+  """类型可选：1.intended_parent 2. surrogate_mother"""
+  application_type: String
+  created_at: timestamptz
+  id: bigint
+
+  """状态可选：1.pending 2.approved 3.rejected,"""
+  status: String
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type applications_min_fields {
+  """类型可选：1.intended_parent 2. surrogate_mother"""
+  application_type: String
+  created_at: timestamptz
+  id: bigint
+
+  """状态可选：1.pending 2.approved 3.rejected,"""
+  status: String
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "applications"
+"""
+type applications_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [applications!]!
+}
+
+"""
+on_conflict condition type for table "applications"
+"""
+input applications_on_conflict {
+  constraint: applications_constraint!
+  update_columns: [applications_update_column!]! = []
+  where: applications_bool_exp
+}
+
+"""Ordering options when selecting data from "applications"."""
+input applications_order_by {
+  application_data: order_by
+  application_type: order_by
+  created_at: order_by
+  id: order_by
+  status: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: applications"""
+input applications_pk_columns_input {
+  id: bigint!
+}
+
+"""prepend existing jsonb value of filtered columns with new jsonb value"""
+input applications_prepend_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: jsonb
+}
+
+"""
+select columns of table "applications"
+"""
+enum applications_select_column {
+  """column name"""
+  application_data
+
+  """column name"""
+  application_type
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  status
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "applications"
+"""
+input applications_set_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: jsonb
+
+  """类型可选：1.intended_parent 2. surrogate_mother"""
+  application_type: String
+  created_at: timestamptz
+  id: bigint
+
+  """状态可选：1.pending 2.approved 3.rejected,"""
+  status: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type applications_stddev_fields {
+  id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type applications_stddev_pop_fields {
+  id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type applications_stddev_samp_fields {
+  id: Float
+}
+
+"""
+Streaming cursor of the table "applications"
+"""
+input applications_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: applications_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input applications_stream_cursor_value_input {
+  """数据结构和surrogate_mother或者intended_parents数据表结构一致"""
+  application_data: jsonb
+
+  """类型可选：1.intended_parent 2. surrogate_mother"""
+  application_type: String
+  created_at: timestamptz
+  id: bigint
+
+  """状态可选：1.pending 2.approved 3.rejected,"""
+  status: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type applications_sum_fields {
+  id: bigint
+}
+
+"""
+update columns of table "applications"
+"""
+enum applications_update_column {
+  """column name"""
+  application_data
+
+  """column name"""
+  application_type
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  status
+
+  """column name"""
+  updated_at
+}
+
+input applications_updates {
+  """append existing jsonb value of filtered columns with new jsonb value"""
+  _append: applications_append_input
+
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: applications_delete_at_path_input
+
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: applications_delete_elem_input
+
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: applications_delete_key_input
+
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: applications_inc_input
+
+  """prepend existing jsonb value of filtered columns with new jsonb value"""
+  _prepend: applications_prepend_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: applications_set_input
+
+  """filter the rows which have to be updated"""
+  where: applications_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type applications_var_pop_fields {
+  id: Float
+}
+
+"""aggregate var_samp on columns"""
+type applications_var_samp_fields {
+  id: Float
+}
+
+"""aggregate variance on columns"""
+type applications_variance_fields {
+  id: Float
+}
+
 scalar bigint
 
 """
@@ -98,6 +446,267 @@ input bigint_comparison_exp {
   _nin: [bigint!]
 }
 
+"""
+columns and relationships of "cases"
+"""
+type cases {
+  content: String
+  created_at: timestamptz!
+  id: bigint!
+  updated_at: timestamptz!
+  user_id: bigint
+}
+
+"""
+aggregated selection of "cases"
+"""
+type cases_aggregate {
+  aggregate: cases_aggregate_fields
+  nodes: [cases!]!
+}
+
+"""
+aggregate fields of "cases"
+"""
+type cases_aggregate_fields {
+  avg: cases_avg_fields
+  count(columns: [cases_select_column!], distinct: Boolean): Int!
+  max: cases_max_fields
+  min: cases_min_fields
+  stddev: cases_stddev_fields
+  stddev_pop: cases_stddev_pop_fields
+  stddev_samp: cases_stddev_samp_fields
+  sum: cases_sum_fields
+  var_pop: cases_var_pop_fields
+  var_samp: cases_var_samp_fields
+  variance: cases_variance_fields
+}
+
+"""aggregate avg on columns"""
+type cases_avg_fields {
+  id: Float
+  user_id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "cases". All fields are combined with a logical 'AND'.
+"""
+input cases_bool_exp {
+  _and: [cases_bool_exp!]
+  _not: cases_bool_exp
+  _or: [cases_bool_exp!]
+  content: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  updated_at: timestamptz_comparison_exp
+  user_id: bigint_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "cases"
+"""
+enum cases_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  cases_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "cases"
+"""
+input cases_inc_input {
+  id: bigint
+  user_id: bigint
+}
+
+"""
+input type for inserting data into table "cases"
+"""
+input cases_insert_input {
+  content: String
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+  user_id: bigint
+}
+
+"""aggregate max on columns"""
+type cases_max_fields {
+  content: String
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+  user_id: bigint
+}
+
+"""aggregate min on columns"""
+type cases_min_fields {
+  content: String
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+  user_id: bigint
+}
+
+"""
+response of any mutation on the table "cases"
+"""
+type cases_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [cases!]!
+}
+
+"""
+on_conflict condition type for table "cases"
+"""
+input cases_on_conflict {
+  constraint: cases_constraint!
+  update_columns: [cases_update_column!]! = []
+  where: cases_bool_exp
+}
+
+"""Ordering options when selecting data from "cases"."""
+input cases_order_by {
+  content: order_by
+  created_at: order_by
+  id: order_by
+  updated_at: order_by
+  user_id: order_by
+}
+
+"""primary key columns input for table: cases"""
+input cases_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "cases"
+"""
+enum cases_select_column {
+  """column name"""
+  content
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  updated_at
+
+  """column name"""
+  user_id
+}
+
+"""
+input type for updating data in table "cases"
+"""
+input cases_set_input {
+  content: String
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+  user_id: bigint
+}
+
+"""aggregate stddev on columns"""
+type cases_stddev_fields {
+  id: Float
+  user_id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type cases_stddev_pop_fields {
+  id: Float
+  user_id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type cases_stddev_samp_fields {
+  id: Float
+  user_id: Float
+}
+
+"""
+Streaming cursor of the table "cases"
+"""
+input cases_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: cases_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input cases_stream_cursor_value_input {
+  content: String
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+  user_id: bigint
+}
+
+"""aggregate sum on columns"""
+type cases_sum_fields {
+  id: bigint
+  user_id: bigint
+}
+
+"""
+update columns of table "cases"
+"""
+enum cases_update_column {
+  """column name"""
+  content
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  updated_at
+
+  """column name"""
+  user_id
+}
+
+input cases_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: cases_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: cases_set_input
+
+  """filter the rows which have to be updated"""
+  where: cases_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type cases_var_pop_fields {
+  id: Float
+  user_id: Float
+}
+
+"""aggregate var_samp on columns"""
+type cases_var_samp_fields {
+  id: Float
+  user_id: Float
+}
+
+"""aggregate variance on columns"""
+type cases_variance_fields {
+  id: Float
+  user_id: Float
+}
+
 """ordering argument of a cursor"""
 enum cursor_ordering {
   """ascending ordering of the cursor"""
@@ -107,8 +716,547 @@ enum cursor_ordering {
   DESC
 }
 
+"""准父母表"""
+type intended_parents {
+  """基本信息"""
+  basic_information(
+    """JSON select path"""
+    path: String
+  ): jsonb
+
+  """联系信息"""
+  contact_information(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  created_at: timestamptz!
+
+  """家庭资料"""
+  family_profile(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  id: bigint!
+
+  """项目意向"""
+  program_interests(
+    """JSON select path"""
+    path: String
+  ): jsonb
+
+  """渠道及初步沟通"""
+  referral(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "intended_parents"
+"""
+type intended_parents_aggregate {
+  aggregate: intended_parents_aggregate_fields
+  nodes: [intended_parents!]!
+}
+
+"""
+aggregate fields of "intended_parents"
+"""
+type intended_parents_aggregate_fields {
+  avg: intended_parents_avg_fields
+  count(columns: [intended_parents_select_column!], distinct: Boolean): Int!
+  max: intended_parents_max_fields
+  min: intended_parents_min_fields
+  stddev: intended_parents_stddev_fields
+  stddev_pop: intended_parents_stddev_pop_fields
+  stddev_samp: intended_parents_stddev_samp_fields
+  sum: intended_parents_sum_fields
+  var_pop: intended_parents_var_pop_fields
+  var_samp: intended_parents_var_samp_fields
+  variance: intended_parents_variance_fields
+}
+
+"""append existing jsonb value of filtered columns with new jsonb value"""
+input intended_parents_append_input {
+  """基本信息"""
+  basic_information: jsonb
+
+  """联系信息"""
+  contact_information: jsonb
+
+  """家庭资料"""
+  family_profile: jsonb
+
+  """项目意向"""
+  program_interests: jsonb
+
+  """渠道及初步沟通"""
+  referral: jsonb
+}
+
+"""aggregate avg on columns"""
+type intended_parents_avg_fields {
+  id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "intended_parents". All fields are combined with a logical 'AND'.
+"""
+input intended_parents_bool_exp {
+  _and: [intended_parents_bool_exp!]
+  _not: intended_parents_bool_exp
+  _or: [intended_parents_bool_exp!]
+  basic_information: jsonb_comparison_exp
+  contact_information: jsonb_comparison_exp
+  created_at: timestamptz_comparison_exp
+  family_profile: jsonb_comparison_exp
+  id: bigint_comparison_exp
+  program_interests: jsonb_comparison_exp
+  referral: jsonb_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "intended_parents"
+"""
+enum intended_parents_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  intended_parents_pkey
+}
+
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input intended_parents_delete_at_path_input {
+  """基本信息"""
+  basic_information: [String!]
+
+  """联系信息"""
+  contact_information: [String!]
+
+  """家庭资料"""
+  family_profile: [String!]
+
+  """项目意向"""
+  program_interests: [String!]
+
+  """渠道及初步沟通"""
+  referral: [String!]
+}
+
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input intended_parents_delete_elem_input {
+  """基本信息"""
+  basic_information: Int
+
+  """联系信息"""
+  contact_information: Int
+
+  """家庭资料"""
+  family_profile: Int
+
+  """项目意向"""
+  program_interests: Int
+
+  """渠道及初步沟通"""
+  referral: Int
+}
+
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input intended_parents_delete_key_input {
+  """基本信息"""
+  basic_information: String
+
+  """联系信息"""
+  contact_information: String
+
+  """家庭资料"""
+  family_profile: String
+
+  """项目意向"""
+  program_interests: String
+
+  """渠道及初步沟通"""
+  referral: String
+}
+
+"""
+input type for incrementing numeric columns in table "intended_parents"
+"""
+input intended_parents_inc_input {
+  id: bigint
+}
+
+"""
+input type for inserting data into table "intended_parents"
+"""
+input intended_parents_insert_input {
+  """基本信息"""
+  basic_information: jsonb
+
+  """联系信息"""
+  contact_information: jsonb
+  created_at: timestamptz
+
+  """家庭资料"""
+  family_profile: jsonb
+  id: bigint
+
+  """项目意向"""
+  program_interests: jsonb
+
+  """渠道及初步沟通"""
+  referral: jsonb
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type intended_parents_max_fields {
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type intended_parents_min_fields {
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "intended_parents"
+"""
+type intended_parents_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [intended_parents!]!
+}
+
+"""
+on_conflict condition type for table "intended_parents"
+"""
+input intended_parents_on_conflict {
+  constraint: intended_parents_constraint!
+  update_columns: [intended_parents_update_column!]! = []
+  where: intended_parents_bool_exp
+}
+
+"""Ordering options when selecting data from "intended_parents"."""
+input intended_parents_order_by {
+  basic_information: order_by
+  contact_information: order_by
+  created_at: order_by
+  family_profile: order_by
+  id: order_by
+  program_interests: order_by
+  referral: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: intended_parents"""
+input intended_parents_pk_columns_input {
+  id: bigint!
+}
+
+"""prepend existing jsonb value of filtered columns with new jsonb value"""
+input intended_parents_prepend_input {
+  """基本信息"""
+  basic_information: jsonb
+
+  """联系信息"""
+  contact_information: jsonb
+
+  """家庭资料"""
+  family_profile: jsonb
+
+  """项目意向"""
+  program_interests: jsonb
+
+  """渠道及初步沟通"""
+  referral: jsonb
+}
+
+"""
+select columns of table "intended_parents"
+"""
+enum intended_parents_select_column {
+  """column name"""
+  basic_information
+
+  """column name"""
+  contact_information
+
+  """column name"""
+  created_at
+
+  """column name"""
+  family_profile
+
+  """column name"""
+  id
+
+  """column name"""
+  program_interests
+
+  """column name"""
+  referral
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "intended_parents"
+"""
+input intended_parents_set_input {
+  """基本信息"""
+  basic_information: jsonb
+
+  """联系信息"""
+  contact_information: jsonb
+  created_at: timestamptz
+
+  """家庭资料"""
+  family_profile: jsonb
+  id: bigint
+
+  """项目意向"""
+  program_interests: jsonb
+
+  """渠道及初步沟通"""
+  referral: jsonb
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type intended_parents_stddev_fields {
+  id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type intended_parents_stddev_pop_fields {
+  id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type intended_parents_stddev_samp_fields {
+  id: Float
+}
+
+"""
+Streaming cursor of the table "intended_parents"
+"""
+input intended_parents_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: intended_parents_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input intended_parents_stream_cursor_value_input {
+  """基本信息"""
+  basic_information: jsonb
+
+  """联系信息"""
+  contact_information: jsonb
+  created_at: timestamptz
+
+  """家庭资料"""
+  family_profile: jsonb
+  id: bigint
+
+  """项目意向"""
+  program_interests: jsonb
+
+  """渠道及初步沟通"""
+  referral: jsonb
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type intended_parents_sum_fields {
+  id: bigint
+}
+
+"""
+update columns of table "intended_parents"
+"""
+enum intended_parents_update_column {
+  """column name"""
+  basic_information
+
+  """column name"""
+  contact_information
+
+  """column name"""
+  created_at
+
+  """column name"""
+  family_profile
+
+  """column name"""
+  id
+
+  """column name"""
+  program_interests
+
+  """column name"""
+  referral
+
+  """column name"""
+  updated_at
+}
+
+input intended_parents_updates {
+  """append existing jsonb value of filtered columns with new jsonb value"""
+  _append: intended_parents_append_input
+
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: intended_parents_delete_at_path_input
+
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: intended_parents_delete_elem_input
+
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: intended_parents_delete_key_input
+
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: intended_parents_inc_input
+
+  """prepend existing jsonb value of filtered columns with new jsonb value"""
+  _prepend: intended_parents_prepend_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: intended_parents_set_input
+
+  """filter the rows which have to be updated"""
+  where: intended_parents_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type intended_parents_var_pop_fields {
+  id: Float
+}
+
+"""aggregate var_samp on columns"""
+type intended_parents_var_samp_fields {
+  id: Float
+}
+
+"""aggregate variance on columns"""
+type intended_parents_variance_fields {
+  id: Float
+}
+
+scalar jsonb
+
+input jsonb_cast_exp {
+  String: String_comparison_exp
+}
+
+"""
+Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
+"""
+input jsonb_comparison_exp {
+  _cast: jsonb_cast_exp
+
+  """is the column contained in the given json value"""
+  _contained_in: jsonb
+
+  """does the column contain the given json value at the top level"""
+  _contains: jsonb
+  _eq: jsonb
+  _gt: jsonb
+  _gte: jsonb
+
+  """does the string exist as a top-level key in the column"""
+  _has_key: String
+
+  """do all of these strings exist as top-level keys in the column"""
+  _has_keys_all: [String!]
+
+  """do any of these strings exist as top-level keys in the column"""
+  _has_keys_any: [String!]
+  _in: [jsonb!]
+  _is_null: Boolean
+  _lt: jsonb
+  _lte: jsonb
+  _neq: jsonb
+  _nin: [jsonb!]
+}
+
 """mutation root"""
 type mutation_root {
+  """
+  delete data from the table: "applications"
+  """
+  delete_applications(
+    """filter the rows which have to be deleted"""
+    where: applications_bool_exp!
+  ): applications_mutation_response
+
+  """
+  delete single row from the table: "applications"
+  """
+  delete_applications_by_pk(id: bigint!): applications
+
+  """
+  delete data from the table: "cases"
+  """
+  delete_cases(
+    """filter the rows which have to be deleted"""
+    where: cases_bool_exp!
+  ): cases_mutation_response
+
+  """
+  delete single row from the table: "cases"
+  """
+  delete_cases_by_pk(id: bigint!): cases
+
+  """
+  delete data from the table: "intended_parents"
+  """
+  delete_intended_parents(
+    """filter the rows which have to be deleted"""
+    where: intended_parents_bool_exp!
+  ): intended_parents_mutation_response
+
+  """
+  delete single row from the table: "intended_parents"
+  """
+  delete_intended_parents_by_pk(id: bigint!): intended_parents
+
+  """
+  delete data from the table: "surrogate_mothers"
+  """
+  delete_surrogate_mothers(
+    """filter the rows which have to be deleted"""
+    where: surrogate_mothers_bool_exp!
+  ): surrogate_mothers_mutation_response
+
+  """
+  delete single row from the table: "surrogate_mothers"
+  """
+  delete_surrogate_mothers_by_pk(id: bigint!): surrogate_mothers
+
   """
   delete data from the table: "user_notifications"
   """
@@ -134,6 +1282,94 @@ type mutation_root {
   delete single row from the table: "users"
   """
   delete_users_by_pk(id: bigint!): users
+
+  """
+  insert data into the table: "applications"
+  """
+  insert_applications(
+    """the rows to be inserted"""
+    objects: [applications_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: applications_on_conflict
+  ): applications_mutation_response
+
+  """
+  insert a single row into the table: "applications"
+  """
+  insert_applications_one(
+    """the row to be inserted"""
+    object: applications_insert_input!
+
+    """upsert condition"""
+    on_conflict: applications_on_conflict
+  ): applications
+
+  """
+  insert data into the table: "cases"
+  """
+  insert_cases(
+    """the rows to be inserted"""
+    objects: [cases_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: cases_on_conflict
+  ): cases_mutation_response
+
+  """
+  insert a single row into the table: "cases"
+  """
+  insert_cases_one(
+    """the row to be inserted"""
+    object: cases_insert_input!
+
+    """upsert condition"""
+    on_conflict: cases_on_conflict
+  ): cases
+
+  """
+  insert data into the table: "intended_parents"
+  """
+  insert_intended_parents(
+    """the rows to be inserted"""
+    objects: [intended_parents_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: intended_parents_on_conflict
+  ): intended_parents_mutation_response
+
+  """
+  insert a single row into the table: "intended_parents"
+  """
+  insert_intended_parents_one(
+    """the row to be inserted"""
+    object: intended_parents_insert_input!
+
+    """upsert condition"""
+    on_conflict: intended_parents_on_conflict
+  ): intended_parents
+
+  """
+  insert data into the table: "surrogate_mothers"
+  """
+  insert_surrogate_mothers(
+    """the rows to be inserted"""
+    objects: [surrogate_mothers_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: surrogate_mothers_on_conflict
+  ): surrogate_mothers_mutation_response
+
+  """
+  insert a single row into the table: "surrogate_mothers"
+  """
+  insert_surrogate_mothers_one(
+    """the row to be inserted"""
+    object: surrogate_mothers_insert_input!
+
+    """upsert condition"""
+    on_conflict: surrogate_mothers_on_conflict
+  ): surrogate_mothers
 
   """
   insert data into the table: "user_notifications"
@@ -178,6 +1414,268 @@ type mutation_root {
     """upsert condition"""
     on_conflict: users_on_conflict
   ): users
+
+  """
+  update data of the table: "applications"
+  """
+  update_applications(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: applications_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: applications_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: applications_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: applications_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: applications_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: applications_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: applications_set_input
+
+    """filter the rows which have to be updated"""
+    where: applications_bool_exp!
+  ): applications_mutation_response
+
+  """
+  update single row of the table: "applications"
+  """
+  update_applications_by_pk(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: applications_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: applications_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: applications_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: applications_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: applications_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: applications_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: applications_set_input
+    pk_columns: applications_pk_columns_input!
+  ): applications
+
+  """
+  update multiples rows of table: "applications"
+  """
+  update_applications_many(
+    """updates to execute, in order"""
+    updates: [applications_updates!]!
+  ): [applications_mutation_response]
+
+  """
+  update data of the table: "cases"
+  """
+  update_cases(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: cases_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: cases_set_input
+
+    """filter the rows which have to be updated"""
+    where: cases_bool_exp!
+  ): cases_mutation_response
+
+  """
+  update single row of the table: "cases"
+  """
+  update_cases_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: cases_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: cases_set_input
+    pk_columns: cases_pk_columns_input!
+  ): cases
+
+  """
+  update multiples rows of table: "cases"
+  """
+  update_cases_many(
+    """updates to execute, in order"""
+    updates: [cases_updates!]!
+  ): [cases_mutation_response]
+
+  """
+  update data of the table: "intended_parents"
+  """
+  update_intended_parents(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: intended_parents_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: intended_parents_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: intended_parents_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: intended_parents_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: intended_parents_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: intended_parents_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: intended_parents_set_input
+
+    """filter the rows which have to be updated"""
+    where: intended_parents_bool_exp!
+  ): intended_parents_mutation_response
+
+  """
+  update single row of the table: "intended_parents"
+  """
+  update_intended_parents_by_pk(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: intended_parents_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: intended_parents_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: intended_parents_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: intended_parents_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: intended_parents_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: intended_parents_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: intended_parents_set_input
+    pk_columns: intended_parents_pk_columns_input!
+  ): intended_parents
+
+  """
+  update multiples rows of table: "intended_parents"
+  """
+  update_intended_parents_many(
+    """updates to execute, in order"""
+    updates: [intended_parents_updates!]!
+  ): [intended_parents_mutation_response]
+
+  """
+  update data of the table: "surrogate_mothers"
+  """
+  update_surrogate_mothers(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: surrogate_mothers_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: surrogate_mothers_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: surrogate_mothers_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: surrogate_mothers_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: surrogate_mothers_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: surrogate_mothers_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: surrogate_mothers_set_input
+
+    """filter the rows which have to be updated"""
+    where: surrogate_mothers_bool_exp!
+  ): surrogate_mothers_mutation_response
+
+  """
+  update single row of the table: "surrogate_mothers"
+  """
+  update_surrogate_mothers_by_pk(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: surrogate_mothers_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: surrogate_mothers_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: surrogate_mothers_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: surrogate_mothers_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: surrogate_mothers_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: surrogate_mothers_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: surrogate_mothers_set_input
+    pk_columns: surrogate_mothers_pk_columns_input!
+  ): surrogate_mothers
+
+  """
+  update multiples rows of table: "surrogate_mothers"
+  """
+  update_surrogate_mothers_many(
+    """updates to execute, in order"""
+    updates: [surrogate_mothers_updates!]!
+  ): [surrogate_mothers_mutation_response]
 
   """
   update data of the table: "user_notifications"
@@ -270,6 +1768,182 @@ enum order_by {
 }
 
 type query_root {
+  """
+  fetch data from the table: "applications"
+  """
+  applications(
+    """distinct select on columns"""
+    distinct_on: [applications_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [applications_order_by!]
+
+    """filter the rows returned"""
+    where: applications_bool_exp
+  ): [applications!]!
+
+  """
+  fetch aggregated fields from the table: "applications"
+  """
+  applications_aggregate(
+    """distinct select on columns"""
+    distinct_on: [applications_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [applications_order_by!]
+
+    """filter the rows returned"""
+    where: applications_bool_exp
+  ): applications_aggregate!
+
+  """fetch data from the table: "applications" using primary key columns"""
+  applications_by_pk(id: bigint!): applications
+
+  """
+  fetch data from the table: "cases"
+  """
+  cases(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): [cases!]!
+
+  """
+  fetch aggregated fields from the table: "cases"
+  """
+  cases_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): cases_aggregate!
+
+  """fetch data from the table: "cases" using primary key columns"""
+  cases_by_pk(id: bigint!): cases
+
+  """
+  fetch data from the table: "intended_parents"
+  """
+  intended_parents(
+    """distinct select on columns"""
+    distinct_on: [intended_parents_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [intended_parents_order_by!]
+
+    """filter the rows returned"""
+    where: intended_parents_bool_exp
+  ): [intended_parents!]!
+
+  """
+  fetch aggregated fields from the table: "intended_parents"
+  """
+  intended_parents_aggregate(
+    """distinct select on columns"""
+    distinct_on: [intended_parents_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [intended_parents_order_by!]
+
+    """filter the rows returned"""
+    where: intended_parents_bool_exp
+  ): intended_parents_aggregate!
+
+  """
+  fetch data from the table: "intended_parents" using primary key columns
+  """
+  intended_parents_by_pk(id: bigint!): intended_parents
+
+  """
+  fetch data from the table: "surrogate_mothers"
+  """
+  surrogate_mothers(
+    """distinct select on columns"""
+    distinct_on: [surrogate_mothers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [surrogate_mothers_order_by!]
+
+    """filter the rows returned"""
+    where: surrogate_mothers_bool_exp
+  ): [surrogate_mothers!]!
+
+  """
+  fetch aggregated fields from the table: "surrogate_mothers"
+  """
+  surrogate_mothers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [surrogate_mothers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [surrogate_mothers_order_by!]
+
+    """filter the rows returned"""
+    where: surrogate_mothers_bool_exp
+  ): surrogate_mothers_aggregate!
+
+  """
+  fetch data from the table: "surrogate_mothers" using primary key columns
+  """
+  surrogate_mothers_by_pk(id: bigint!): surrogate_mothers
+
   """An array relationship"""
   user_notifications(
     """distinct select on columns"""
@@ -356,6 +2030,238 @@ type query_root {
 }
 
 type subscription_root {
+  """
+  fetch data from the table: "applications"
+  """
+  applications(
+    """distinct select on columns"""
+    distinct_on: [applications_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [applications_order_by!]
+
+    """filter the rows returned"""
+    where: applications_bool_exp
+  ): [applications!]!
+
+  """
+  fetch aggregated fields from the table: "applications"
+  """
+  applications_aggregate(
+    """distinct select on columns"""
+    distinct_on: [applications_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [applications_order_by!]
+
+    """filter the rows returned"""
+    where: applications_bool_exp
+  ): applications_aggregate!
+
+  """fetch data from the table: "applications" using primary key columns"""
+  applications_by_pk(id: bigint!): applications
+
+  """
+  fetch data from the table in a streaming manner: "applications"
+  """
+  applications_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [applications_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: applications_bool_exp
+  ): [applications!]!
+
+  """
+  fetch data from the table: "cases"
+  """
+  cases(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): [cases!]!
+
+  """
+  fetch aggregated fields from the table: "cases"
+  """
+  cases_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): cases_aggregate!
+
+  """fetch data from the table: "cases" using primary key columns"""
+  cases_by_pk(id: bigint!): cases
+
+  """
+  fetch data from the table in a streaming manner: "cases"
+  """
+  cases_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [cases_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): [cases!]!
+
+  """
+  fetch data from the table: "intended_parents"
+  """
+  intended_parents(
+    """distinct select on columns"""
+    distinct_on: [intended_parents_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [intended_parents_order_by!]
+
+    """filter the rows returned"""
+    where: intended_parents_bool_exp
+  ): [intended_parents!]!
+
+  """
+  fetch aggregated fields from the table: "intended_parents"
+  """
+  intended_parents_aggregate(
+    """distinct select on columns"""
+    distinct_on: [intended_parents_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [intended_parents_order_by!]
+
+    """filter the rows returned"""
+    where: intended_parents_bool_exp
+  ): intended_parents_aggregate!
+
+  """
+  fetch data from the table: "intended_parents" using primary key columns
+  """
+  intended_parents_by_pk(id: bigint!): intended_parents
+
+  """
+  fetch data from the table in a streaming manner: "intended_parents"
+  """
+  intended_parents_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [intended_parents_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: intended_parents_bool_exp
+  ): [intended_parents!]!
+
+  """
+  fetch data from the table: "surrogate_mothers"
+  """
+  surrogate_mothers(
+    """distinct select on columns"""
+    distinct_on: [surrogate_mothers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [surrogate_mothers_order_by!]
+
+    """filter the rows returned"""
+    where: surrogate_mothers_bool_exp
+  ): [surrogate_mothers!]!
+
+  """
+  fetch aggregated fields from the table: "surrogate_mothers"
+  """
+  surrogate_mothers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [surrogate_mothers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [surrogate_mothers_order_by!]
+
+    """filter the rows returned"""
+    where: surrogate_mothers_bool_exp
+  ): surrogate_mothers_aggregate!
+
+  """
+  fetch data from the table: "surrogate_mothers" using primary key columns
+  """
+  surrogate_mothers_by_pk(id: bigint!): surrogate_mothers
+
+  """
+  fetch data from the table in a streaming manner: "surrogate_mothers"
+  """
+  surrogate_mothers_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [surrogate_mothers_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: surrogate_mothers_bool_exp
+  ): [surrogate_mothers!]!
+
   """An array relationship"""
   user_notifications(
     """distinct select on columns"""
@@ -467,6 +2373,436 @@ type subscription_root {
     """filter the rows returned"""
     where: users_bool_exp
   ): [users!]!
+}
+
+"""代孕母表"""
+type surrogate_mothers {
+  """关于你自己"""
+  about_you(
+    """JSON select path"""
+    path: String
+  ): jsonb
+
+  """联系方式"""
+  contact_information(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  created_at: timestamptz!
+  id: bigint!
+
+  """准生育与健康经历"""
+  pregnancy_and_health(
+    """JSON select path"""
+    path: String
+  ): jsonb
+  updated_at: timestamptz!
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos(
+    """JSON select path"""
+    path: String
+  ): jsonb
+}
+
+"""
+aggregated selection of "surrogate_mothers"
+"""
+type surrogate_mothers_aggregate {
+  aggregate: surrogate_mothers_aggregate_fields
+  nodes: [surrogate_mothers!]!
+}
+
+"""
+aggregate fields of "surrogate_mothers"
+"""
+type surrogate_mothers_aggregate_fields {
+  avg: surrogate_mothers_avg_fields
+  count(columns: [surrogate_mothers_select_column!], distinct: Boolean): Int!
+  max: surrogate_mothers_max_fields
+  min: surrogate_mothers_min_fields
+  stddev: surrogate_mothers_stddev_fields
+  stddev_pop: surrogate_mothers_stddev_pop_fields
+  stddev_samp: surrogate_mothers_stddev_samp_fields
+  sum: surrogate_mothers_sum_fields
+  var_pop: surrogate_mothers_var_pop_fields
+  var_samp: surrogate_mothers_var_samp_fields
+  variance: surrogate_mothers_variance_fields
+}
+
+"""append existing jsonb value of filtered columns with new jsonb value"""
+input surrogate_mothers_append_input {
+  """关于你自己"""
+  about_you: jsonb
+
+  """联系方式"""
+  contact_information: jsonb
+
+  """准生育与健康经历"""
+  pregnancy_and_health: jsonb
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: jsonb
+}
+
+"""aggregate avg on columns"""
+type surrogate_mothers_avg_fields {
+  id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "surrogate_mothers". All fields are combined with a logical 'AND'.
+"""
+input surrogate_mothers_bool_exp {
+  _and: [surrogate_mothers_bool_exp!]
+  _not: surrogate_mothers_bool_exp
+  _or: [surrogate_mothers_bool_exp!]
+  about_you: jsonb_comparison_exp
+  contact_information: jsonb_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  pregnancy_and_health: jsonb_comparison_exp
+  updated_at: timestamptz_comparison_exp
+  upload_photos: jsonb_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "surrogate_mothers"
+"""
+enum surrogate_mothers_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  surrogate_mothers_pkey
+}
+
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input surrogate_mothers_delete_at_path_input {
+  """关于你自己"""
+  about_you: [String!]
+
+  """联系方式"""
+  contact_information: [String!]
+
+  """准生育与健康经历"""
+  pregnancy_and_health: [String!]
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: [String!]
+}
+
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input surrogate_mothers_delete_elem_input {
+  """关于你自己"""
+  about_you: Int
+
+  """联系方式"""
+  contact_information: Int
+
+  """准生育与健康经历"""
+  pregnancy_and_health: Int
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: Int
+}
+
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input surrogate_mothers_delete_key_input {
+  """关于你自己"""
+  about_you: String
+
+  """联系方式"""
+  contact_information: String
+
+  """准生育与健康经历"""
+  pregnancy_and_health: String
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: String
+}
+
+"""
+input type for incrementing numeric columns in table "surrogate_mothers"
+"""
+input surrogate_mothers_inc_input {
+  id: bigint
+}
+
+"""
+input type for inserting data into table "surrogate_mothers"
+"""
+input surrogate_mothers_insert_input {
+  """关于你自己"""
+  about_you: jsonb
+
+  """联系方式"""
+  contact_information: jsonb
+  created_at: timestamptz
+  id: bigint
+
+  """准生育与健康经历"""
+  pregnancy_and_health: jsonb
+  updated_at: timestamptz
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: jsonb
+}
+
+"""aggregate max on columns"""
+type surrogate_mothers_max_fields {
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type surrogate_mothers_min_fields {
+  created_at: timestamptz
+  id: bigint
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "surrogate_mothers"
+"""
+type surrogate_mothers_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [surrogate_mothers!]!
+}
+
+"""
+on_conflict condition type for table "surrogate_mothers"
+"""
+input surrogate_mothers_on_conflict {
+  constraint: surrogate_mothers_constraint!
+  update_columns: [surrogate_mothers_update_column!]! = []
+  where: surrogate_mothers_bool_exp
+}
+
+"""Ordering options when selecting data from "surrogate_mothers"."""
+input surrogate_mothers_order_by {
+  about_you: order_by
+  contact_information: order_by
+  created_at: order_by
+  id: order_by
+  pregnancy_and_health: order_by
+  updated_at: order_by
+  upload_photos: order_by
+}
+
+"""primary key columns input for table: surrogate_mothers"""
+input surrogate_mothers_pk_columns_input {
+  id: bigint!
+}
+
+"""prepend existing jsonb value of filtered columns with new jsonb value"""
+input surrogate_mothers_prepend_input {
+  """关于你自己"""
+  about_you: jsonb
+
+  """联系方式"""
+  contact_information: jsonb
+
+  """准生育与健康经历"""
+  pregnancy_and_health: jsonb
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: jsonb
+}
+
+"""
+select columns of table "surrogate_mothers"
+"""
+enum surrogate_mothers_select_column {
+  """column name"""
+  about_you
+
+  """column name"""
+  contact_information
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  pregnancy_and_health
+
+  """column name"""
+  updated_at
+
+  """column name"""
+  upload_photos
+}
+
+"""
+input type for updating data in table "surrogate_mothers"
+"""
+input surrogate_mothers_set_input {
+  """关于你自己"""
+  about_you: jsonb
+
+  """联系方式"""
+  contact_information: jsonb
+  created_at: timestamptz
+  id: bigint
+
+  """准生育与健康经历"""
+  pregnancy_and_health: jsonb
+  updated_at: timestamptz
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: jsonb
+}
+
+"""aggregate stddev on columns"""
+type surrogate_mothers_stddev_fields {
+  id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type surrogate_mothers_stddev_pop_fields {
+  id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type surrogate_mothers_stddev_samp_fields {
+  id: Float
+}
+
+"""
+Streaming cursor of the table "surrogate_mothers"
+"""
+input surrogate_mothers_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: surrogate_mothers_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input surrogate_mothers_stream_cursor_value_input {
+  """关于你自己"""
+  about_you: jsonb
+
+  """联系方式"""
+  contact_information: jsonb
+  created_at: timestamptz
+  id: bigint
+
+  """准生育与健康经历"""
+  pregnancy_and_health: jsonb
+  updated_at: timestamptz
+
+  """
+  上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}]
+  """
+  upload_photos: jsonb
+}
+
+"""aggregate sum on columns"""
+type surrogate_mothers_sum_fields {
+  id: bigint
+}
+
+"""
+update columns of table "surrogate_mothers"
+"""
+enum surrogate_mothers_update_column {
+  """column name"""
+  about_you
+
+  """column name"""
+  contact_information
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  pregnancy_and_health
+
+  """column name"""
+  updated_at
+
+  """column name"""
+  upload_photos
+}
+
+input surrogate_mothers_updates {
+  """append existing jsonb value of filtered columns with new jsonb value"""
+  _append: surrogate_mothers_append_input
+
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: surrogate_mothers_delete_at_path_input
+
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: surrogate_mothers_delete_elem_input
+
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: surrogate_mothers_delete_key_input
+
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: surrogate_mothers_inc_input
+
+  """prepend existing jsonb value of filtered columns with new jsonb value"""
+  _prepend: surrogate_mothers_prepend_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: surrogate_mothers_set_input
+
+  """filter the rows which have to be updated"""
+  where: surrogate_mothers_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type surrogate_mothers_var_pop_fields {
+  id: Float
+}
+
+"""aggregate var_samp on columns"""
+type surrogate_mothers_var_samp_fields {
+  id: Float
+}
+
+"""aggregate variance on columns"""
+type surrogate_mothers_variance_fields {
+  id: Float
 }
 
 scalar timestamptz
