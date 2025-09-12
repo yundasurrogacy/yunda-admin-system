@@ -9,12 +9,16 @@ export interface PersonalIdentity {
     lastName: string
     fullLegalName: string
     dateOfBirth: string
-    genderIdentity: string
+    genderIdentity: 'male' | 'female' | 'non-binary' | 'other'
     genderSelfDescribe?: string
-    pronouns: string
+    pronouns: 'he/him' | 'she/her' | 'they/them' | 'other'
     pronounsSelfDescribe?: string
-    sexualOrientation: string
+    sexualOrientation: 'heterosexual' | 'homosexual' | 'bisexual' | 'pansexual' | 'asexual' | 'other'
     sexualOrientationSelfDescribe?: string
+    maritalStatus: 'single' | 'married' | 'divorced' | 'widowed' | 'partnered'
+    partnerName?: string
+    partnerGender?: 'male' | 'female' | 'non-binary' | 'other'
+    partnerDateOfBirth?: string
   }
   
   // 种族和语言信息
@@ -23,6 +27,8 @@ export interface PersonalIdentity {
     ethnicitySelfDescribe?: string
     languages: string[]
     otherLanguage?: string
+    primaryLanguage: string
+    englishProficiency: 'native' | 'fluent' | 'conversational' | 'basic' | 'none'
   }
   
   // 地址信息
@@ -30,6 +36,18 @@ export interface PersonalIdentity {
     city: string
     country: string
     stateProvince: string
+    zipCode?: string
+    timeZone?: string
+  }
+  
+  // 职业和教育信息
+  export interface ProfessionalInfo {
+    occupation: string
+    employer?: string
+    workSchedule: 'full-time' | 'part-time' | 'flexible' | 'unemployed' | 'retired'
+    educationLevel: 'high-school' | 'associate' | 'bachelor' | 'master' | 'doctorate' | 'other'
+    annualIncome?: number
+    incomeCurrency?: string
   }
   
   // 基本信息组合
@@ -37,6 +55,7 @@ export interface PersonalIdentity {
     personalIdentity: PersonalIdentity
     ethnicityAndLanguage: EthnicityAndLanguage
     addressInfo: AddressInfo
+    professionalInfo?: ProfessionalInfo
   }
   
   // ========== 联系信息相关类型 ==========
@@ -46,23 +65,50 @@ export interface PersonalIdentity {
     email: string
     phoneNumber: string
     countryCode: string
-    preferredContactMethod?: 'email' | 'phone' | 'sms'
-    timeZone?: string
+    alternateEmail?: string
+    alternatePhone?: string
+    preferredContactMethod: 'email' | 'phone' | 'sms' | 'whatsapp'
+    preferredContactTime: 'morning' | 'afternoon' | 'evening' | 'anytime'
+    timeZone: string
+    emergencyContactName?: string
+    emergencyContactPhone?: string
+    emergencyContactRelationship?: string
   }
   
   // 详细地址
   export interface DetailedAddress {
     street: string
+    apartment?: string
     city: string
     state: string
     zipCode: string
     country: string
+    isCurrentAddress: boolean
+    previousAddresses?: {
+      street: string
+      city: string
+      state: string
+      zipCode: string
+      country: string
+      livedFrom: string
+      livedTo: string
+    }[]
+  }
+  
+  // 社交媒体信息
+  export interface SocialMedia {
+    facebook?: string
+    instagram?: string
+    linkedin?: string
+    twitter?: string
+    other?: string
   }
   
   // 联系信息组合
   export interface ContactInformation {
     contactDetails: ContactDetails
     address: DetailedAddress
+    socialMedia?: SocialMedia
   }
   
   // ========== 家庭资料相关类型 ==========
