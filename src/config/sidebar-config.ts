@@ -36,25 +36,11 @@ export const adminSidebarConfig = [
   {
     items: [
       { label: "DASHBOARD", href: "/admin/dashboard", icon: LayoutDashboard },
-      { label: "MY CASE", href: "/admin/my-cases", icon: Briefcase },
-      { label: "ALL CASES", href: "/admin/all-cases", icon: Briefcase },
-      { label: "CASE ASSIGNMENT", href: "/admin/case-assignment", icon: Briefcase },
-      { label: "TEAM OVERVIEW", href: "/admin/team-overview", icon: UserCircle },
-    ]
-  },
-  {
-    items: [
+      { label: "PARENTS APPLICATIONS", href: "/admin/parents-applications", icon: UserCircle },
+      { label: "SURROGATES APPLICATIONS", href: "/admin/surrogates-applications", icon: HeartPulse },
       { label: "CLIENT PROFILES", href: "/admin/client-profiles", icon: UserCircle },
       { label: "SURROGATE PROFILES", href: "/admin/surrogate-profiles", icon: HeartPulse },
-      { label: "DOCUMENTS", href: "/admin/documents", icon: FolderOpen },
-      { label: "MEDICAL RECORDS", href: "/admin/medical-records", icon: Stethoscope },
-      { label: "COMMUNICATION LOGS", href: "/admin/communication-logs", icon: MessageCircle },
-    ]
-  },
-  {
-    items: [
-      { label: "DAILY TASKS", href: "/admin/daily-tasks", icon: Bell },
-      { label: "NOTIFICATIONS", href: "/admin/notifications", icon: Bell },
+      { label: "ALL CASES", href: "/admin/all-cases", icon: Briefcase },
     ]
   }
 ]
