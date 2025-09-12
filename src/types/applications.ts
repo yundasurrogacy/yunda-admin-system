@@ -29,34 +29,3 @@ export interface CreateApplicationInput {
   application_data: ApplicationData
   status?: ApplicationStatus
 }
-
-// 申请表更新输入
-export interface UpdateApplicationInput {
-  id: number
-  status?: ApplicationStatus
-  application_data?: Partial<ApplicationData>
-}
-
-// 申请表筛选条件
-export interface ApplicationFilters {
-  application_type?: ApplicationType
-  status?: ApplicationStatus
-  search?: string
-  createdAfter?: string
-  createdBefore?: string
-}
-
-// 申请表列表响应
-export interface ApplicationListResponse {
-  data: Application[]
-  total: number
-  page: number
-  limit: number
-}
-
-// 申请表详情响应
-export interface ApplicationDetailResponse {
-  data: Application
-  reviewHistory?: any[] // 审核历史
-  communicationHistory?: any[] // 沟通历史
-}

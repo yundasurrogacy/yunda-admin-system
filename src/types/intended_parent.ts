@@ -1,339 +1,89 @@
 // 准父母相关类型定义
-// 基于 GraphQL schema 中的 intended_parents 表结构
 
-// ========== 基本信息相关类型 ==========
+// 基本信息
+export interface BasicInformation {
+  firstName: string; //名字
+  lastName: string; //姓氏
+  pronouns: string; //代词(he/him, she/her, they/them(ta), other)
+  pronouns_selected_key: string; //代词选择键,一般是多语言的key,用于回显
+  gender_identity: string; //性别认同(male, female, transgender/trans man, transgender/trans woman, non-binary/genderqueer, prefer to self-describe)
+  gender_identity_selected_key: string; //性别认同选择键,一般是多语言的key,用于回显
+  date_of_birth: string; //出生日期
+  ethnicity: string; //族裔(asian, white, black, hispanic, middle eastern, native american, pacific islander, mixed race, prefer not to say, other)
+  ethnicity_selected_key: string; //族裔选择键,一般是多语言的key,用于回显
+}
 
-// 个人身份信息
-export interface PersonalIdentity {
-    firstName: string
-    lastName: string
-    fullLegalName: string
-    dateOfBirth: string
-    genderIdentity: 'male' | 'female' | 'non-binary' | 'other'
-    genderSelfDescribe?: string
-    pronouns: 'he/him' | 'she/her' | 'they/them' | 'other'
-    pronounsSelfDescribe?: string
-    sexualOrientation: 'heterosexual' | 'homosexual' | 'bisexual' | 'pansexual' | 'asexual' | 'other'
-    sexualOrientationSelfDescribe?: string
-    maritalStatus: 'single' | 'married' | 'divorced' | 'widowed' | 'partnered'
-    partnerName?: string
-    partnerGender?: 'male' | 'female' | 'non-binary' | 'other'
-    partnerDateOfBirth?: string
-  }
-  
-  // 种族和语言信息
-  export interface EthnicityAndLanguage {
-    ethnicities: string[]
-    ethnicitySelfDescribe?: string
-    languages: string[]
-    otherLanguage?: string
-    primaryLanguage: string
-    englishProficiency: 'native' | 'fluent' | 'conversational' | 'basic' | 'none'
-  }
-  
-  // 地址信息
-  export interface AddressInfo {
-    city: string
-    country: string
-    stateProvince: string
-    zipCode?: string
-    timeZone?: string
-  }
-  
-  // 职业和教育信息
-  export interface ProfessionalInfo {
-    occupation: string
-    employer?: string
-    workSchedule: 'full-time' | 'part-time' | 'flexible' | 'unemployed' | 'retired'
-    educationLevel: 'high-school' | 'associate' | 'bachelor' | 'master' | 'doctorate' | 'other'
-    annualIncome?: number
-    incomeCurrency?: string
-  }
-  
-  // 基本信息组合
-  export interface BasicInformation {
-    personalIdentity: PersonalIdentity
-    ethnicityAndLanguage: EthnicityAndLanguage
-    addressInfo: AddressInfo
-    professionalInfo?: ProfessionalInfo
-  }
-  
-  // ========== 联系信息相关类型 ==========
-  
-  // 联系方式
-  export interface ContactDetails {
-    email: string
-    phoneNumber: string
-    countryCode: string
-    alternateEmail?: string
-    alternatePhone?: string
-    preferredContactMethod: 'email' | 'phone' | 'sms' | 'whatsapp'
-    preferredContactTime: 'morning' | 'afternoon' | 'evening' | 'anytime'
-    timeZone: string
-    emergencyContactName?: string
-    emergencyContactPhone?: string
-    emergencyContactRelationship?: string
-  }
-  
-  // 详细地址
-  export interface DetailedAddress {
-    street: string
-    apartment?: string
-    city: string
-    state: string
-    zipCode: string
-    country: string
-    isCurrentAddress: boolean
-    previousAddresses?: {
-      street: string
-      city: string
-      state: string
-      zipCode: string
-      country: string
-      livedFrom: string
-      livedTo: string
-    }[]
-  }
-  
-  // 社交媒体信息
-  export interface SocialMedia {
-    facebook?: string
-    instagram?: string
-    linkedin?: string
-    twitter?: string
-    other?: string
-  }
-  
-  // 联系信息组合
-  export interface ContactInformation {
-    contactDetails: ContactDetails
-    address: DetailedAddress
-    socialMedia?: SocialMedia
-  }
-  
-  // ========== 家庭资料相关类型 ==========
-  
-  // 婚姻状况
-  export interface MaritalStatus {
-    status: 'single' | 'married' | 'divorced' | 'widowed' | 'partnered'
-    partnerName?: string
-    partnerSupport?: 'supportive' | 'neutral' | 'unsupportive'
-  }
-  
-  // 现有子女信息
-  export interface ExistingChildren {
-    count: number
-    ages: number[]
-    biological: boolean
-  }
-  
-  // 家庭背景
-  export interface FamilyBackground {
-    parentsSupport: 'supportive' | 'neutral' | 'unsupportive'
-    siblingsSupport: 'supportive' | 'neutral' | 'unsupportive'
-    extendedFamilyAwareness: boolean
-  }
-  
-  // 生活方式
-  export interface Lifestyle {
-    workSchedule: string
-    hobbies: string[]
-    travelFrequency: 'frequent' | 'occasional' | 'rare'
-  }
-  
-  // 家庭资料组合
-  export interface FamilyProfile {
-    maritalStatus: MaritalStatus
-    existingChildren?: ExistingChildren
-    familyBackground?: FamilyBackground
-    lifestyle?: Lifestyle
-  }
-  
-  // ========== 项目意向相关类型 ==========
-  
-  // 基本意向
-  export interface BasicIntentions {
-    desiredChildrenCount: '1' | '2' | '3' | '4+' | 'open'
-    journeyStartTiming: 'immediately' | 'within-3-months' | 'within-6-months' | 'within-1-year' | 'flexible'
-    programInterests: string[]
-    initialQuestions?: string
-  }
-  
-  // 预算信息
-  export interface BudgetInfo {
-    min: number
-    max: number
-    currency: string
-  }
-  
-  // 代孕母偏好
-  export interface SurrogatePreferences {
-    ageRange: {
-      min: number
-      max: number
-    }
-    location: string[]
-    healthRequirements: string[]
-    experienceLevel: 'first-time' | 'experienced' | 'any'
-    personalityTraits: string[]
-  }
-  
-  // 项目意向组合
-  export interface ProgramInterests {
-    basicIntentions: BasicIntentions
-    budgetRange?: BudgetInfo
-    specialRequirements?: string[]
-    surrogatePreferences?: SurrogatePreferences
-  }
-  
-  // ========== 渠道及初步沟通相关类型 ==========
-  
-  // 推荐来源
-  export interface ReferralSource {
-    source: 'website' | 'social-media' | 'referral' | 'advertisement' | 'other'
-    otherDescription?: string
-  }
-  
-  // 沟通记录
-  export interface CommunicationRecord {
-    date: string
-    method: 'phone' | 'email' | 'video-call' | 'in-person'
-    notes: string
-    followUpRequired: boolean
-    nextContactDate?: string
-  }
-  
-  // 营销信息
-  export interface MarketingInfo {
-    heardAboutUs: string
-    interestedIn: string[]
-    concerns: string[]
-  }
-  
-  // 渠道及初步沟通组合
-  export interface Referral {
-    referralSource: ReferralSource
-    initialCommunication?: CommunicationRecord[]
-    marketingInfo?: MarketingInfo
-  }
-  
-  // ========== 申请表 application_data 类型 ==========
-  
-  // 准父母申请数据（用于 applications 表的 application_data 字段）
-  export interface IntendedParentApplicationData {
-    // 基本信息
-    accountId: number
-    firstName: string
-    lastName: string
-    fullLegalName: string
-    email: string
-    phoneNumber: string
-    countryCode: string
-    dateOfBirth: string
-    city: string
-    country: string
-    stateProvince: string
-    
-    // 身份信息
-    genderIdentity: string
-    genderSelfDescribe?: string
-    pronouns: string
-    pronounsSelfDescribe?: string
-    sexualOrientation: string
-    sexualOrientationSelfDescribe?: string
-    
-    // 种族和语言
-    ethnicities: string[]
-    ethnicitySelfDescribe?: string
-    languages: string[]
-    otherLanguage?: string
-    
-    // 项目意向
-    desiredChildrenCount: string
-    journeyStartTiming: string
-    programInterests: string[]
-    initialQuestions?: string
-    
-    // 联系来源
-    referralSource?: string
-    
-    // 同意条款
-    consentAgreement: boolean
-    consentSMS: boolean
-  }
-  
-  // ========== 完整表结构类型 ==========
-  
-  // 准父母完整记录（对应 intended_parents 表）
-  export interface IntendedParent {
-    id: number
-    created_at: string
-    updated_at: string
-    basic_information?: BasicInformation
-    contact_information?: ContactInformation
-    family_profile?: FamilyProfile
-    program_interests?: ProgramInterests
-    referral?: Referral
-  }
-  
-  // ========== 筛选和操作相关类型 ==========
-  
-  // 准父母筛选条件
-  export interface IntendedParentFilters {
-    search?: string
-    status?: string
-    country?: string
-    stateProvince?: string
-    genderIdentity?: string
-    maritalStatus?: string
-    desiredChildrenCount?: string
-    journeyStartTiming?: string
-    referralSource?: string
-    createdAfter?: string
-    createdBefore?: string
-  }
-  
-  // 准父母状态枚举
-  export type IntendedParentStatus = 
-    | 'pending'           // 待处理
-    | 'under_review'      // 审核中
-    | 'approved'          // 已通过
-    | 'rejected'          // 已拒绝
-    | 'on_hold'           // 暂停
-    | 'active'            // 活跃
-    | 'inactive'          // 非活跃
-    | 'completed'         // 已完成
-  
-  // 准父母创建输入
-  export interface CreateIntendedParentInput {
-    basic_information: BasicInformation
-    contact_information: ContactInformation
-    family_profile?: FamilyProfile
-    program_interests: ProgramInterests
-    referral?: Referral
-  }
-  
-  // 准父母更新输入
-  export interface UpdateIntendedParentInput {
-    id: number
-    basic_information?: Partial<BasicInformation>
-    contact_information?: Partial<ContactInformation>
-    family_profile?: Partial<FamilyProfile>
-    program_interests?: Partial<ProgramInterests>
-    referral?: Partial<Referral>
-  }
-  
-  // 准父母列表响应
-  export interface IntendedParentListResponse {
-    data: IntendedParent[]
-    total: number
-    page: number
-    limit: number
-  }
-  
-  // 准父母详情响应
-  export interface IntendedParentDetailResponse {
-    data: IntendedParent
-    relatedCases?: any[] // 相关案例
-    communicationHistory?: any[] // 沟通历史
-  }
+// 联系信息组合
+export interface ContactInformation {
+  cell_phone_country_code: string; //国际区号
+  cell_phone: string; //手机号
+  is_agree_cell_phone_receive_messages: boolean; //是否同意接收手机短信
+  email_address: string; //邮箱地址
+  primary_languages: string[]; //主要语言(english, mandarin, cantonese, spanish, french, korean, japanese, hindi, vietnamese, russian, arabic, portuguese, tagalog, german, italian, other)
+  primary_languages_selected_keys: string[]; //主要语言选择键,一般是多语言的key,用于回显
+}
+
+// 家庭资料组合
+export interface FamilyProfile {
+  sexual_orientation: string; //性取向(heterosexual, homosexual, bisexual, pansexual, asexual, other)
+  sexual_orientation_selected_key: string; //性取向选择键,一般是多语言的key,用于回显
+
+  city: string; //城市
+  country: string; //国家
+  country_selected_key: string; //国家选择键,一般是多语言的key,用于回显
+  state_or_province: string; //州/省
+  state_or_province_selected_key: string; //州/省选择键,一般是多语言的key,用于回显
+}
+
+// 项目意向组合
+export interface ProgramInterests {
+  // 您可能需要哪些服务？
+  interested_services: string; //感兴趣的服务(surrogacyEggDonor, surrogacyOnly, eggDonorOnly, thirdPartySurrogate, bringYourOwnSurrogate, bringYourOwnSurrogateEgg, notSure)
+  interested_services_selected_keys: string; //感兴趣的服务选择键,一般是多语言的key,用于回显
+  // 您希望何时开始您的旅程？
+  journey_start_timing: string; //旅程开始时间(immediately, within-3-months, within-6-months, within-1-year, flexible)
+  journey_start_timing_selected_key: string; //旅程开始时间选择键,一般是多语言的key,用于回显
+  // 您希望通过本计划迎来几个孩子？
+  desired_children_count: string; //期望孩子数量(one, two, three, four, open)
+  desired_children_count_selected_key: string; //期望孩子数量选择键,一般是多语言的key,用于回显
+}
+
+// 渠道及初步沟通组合
+export interface Referral {
+  // 您是通过什么渠道了解到我们公司的？
+  referral_source: string; //推荐来源(website, social-media, referral, advertisement, other)
+  referral_source_selected_key: string; //推荐来源选择键,一般是多语言的key,用于回显
+  // 您有任何想进一步了解的问题或话题吗？
+  initial_questions: string; //初步问题
+  initial_questions_selected_key: string; //初步问题选择键,一般是多语言的key,用于回显
+}
+
+// ========== 申请表 application_data 类型 ==========
+
+// 准父母申请数据（用于 applications 表的 application_data 字段）
+export interface IntendedParentApplicationData {
+  // 基本信息
+  basic_information?: BasicInformation;
+  // 联系信息
+  contact_information?: ContactInformation;
+  // 家庭资料
+  family_profile?: FamilyProfile;
+  // 项目意向
+  program_interests?: ProgramInterests;
+  // 渠道及初步沟通
+  referral?: Referral;
+}
+
+// ========== 完整表结构类型 ==========
+
+// 准父母完整记录（对应 intended_parents 表）
+export interface IntendedParent {
+  id: number;
+  created_at: string;
+  updated_at: string;
+  basic_information?: BasicInformation;
+  contact_information?: ContactInformation;
+  family_profile?: FamilyProfile;
+  program_interests?: ProgramInterests;
+  referral?: Referral;
+}
