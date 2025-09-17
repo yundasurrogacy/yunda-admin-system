@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useDebounce } from "@/hooks/use-debounce"
-import { getHasuraClient } from "@/config-lib/hasura-graphql-client"
+import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
 import ManagerLayout from "@/components/manager-layout"
 
 interface ClientProfile {
