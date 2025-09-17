@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
         status: 400,
         headers: {
           'Content-Type': 'application/json',
-          // 'Access-Control-Allow-Origin': 'https://www.yundasurrogacy.com',
-          // 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       });
     }
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        // 'Access-Control-Allow-Origin': 'https://www.yundasurrogacy.com',
-        // 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
   } catch (error) {
@@ -46,21 +46,24 @@ export async function POST(request: NextRequest) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
   }
 }
 
 
+
 // 处理预检请求（OPTIONS 方法）
-// export async function OPTIONS(request: NextRequest) {
-//   return new NextResponse(null, {
-//     status: 204,
-//     headers: {
-//       'Access-Control-Allow-Origin': 'https://www.yundasurrogacy.com',
-//       'Access-Control-Allow-Methods': 'POST,OPTIONS',
-//       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-//       'Access-Control-Max-Age': '86400',
-//     },
-//   });
-// }
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
