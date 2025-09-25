@@ -19,7 +19,7 @@ export default function ManagerLayout({
       <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
-        theme="blue"
+        // theme="blue"
         groups={managerSidebarConfig as any}
         // title="YUNDA MANAGER"
         type="manager"
@@ -31,8 +31,8 @@ export default function ManagerLayout({
           showMenuButton={true} 
           onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
           isLoggedIn={true} 
-          theme="blue"
-          title="YUNDA MANAGER"
+          // theme="blue"
+          // title="YUNDA MANAGER"
           type="client-manager"
         />
         <main className={cn(

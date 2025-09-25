@@ -1,6 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { Dialog } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { AdminLayout } from "../../../components/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Button } from "../../../components/ui/button"
@@ -49,13 +52,75 @@ export default function DashboardPage() {
   ]
 
   // Sample data for active cases
-  const activeCases = [
-    { name: "John Doe", caseNumber: 3 },
-    { name: "Mary Hill", caseNumber: 8 },
-    { name: "Siren Far", caseNumber: 3 },
-  ]
+  const [activeCases, setActiveCases] = useState<Case[]>([
+    {
+      name: "John Doe",
+      center: "Lincoln Surrogacy Center",
+      stage: "Matching",
+      status: "Legal",
+      progress: 20,
+      review: "Surrogacy agreement signed/preparing account",
+      notice: "Agreement upload needed",
+      messages: [
+        { user: "John", content: "I have reviewed the draft. Please let me know if...", time: "2 hours ago" },
+      ],
+    },
+    // 可添加更多案例
+  ])
+
+  // 最新案件模拟数据
+  const [latestCases, setLatestCases] = useState([
+    { name: "John Doe", date: "May 12" },
+    { name: "Mary Hill", date: "May 13" },
+    { name: "Siren Far", date: "May 14" },
+  ])
+
+  // 新增案子类型定义
+  interface Case {
+    name: string;
+    center: string;
+    stage: string;
+    status: string;
+    progress: number;
+    review: string;
+    notice: string;
+    messages: { user: string; content: string; time: string }[];
+  }
+
+  // 新增案子表单初始值
+  const initialForm: Case = {
+    name: "",
+    center: "",
+    stage: "Matching",
+    status: "Legal",
+    progress: 0,
+    review: "",
+    notice: "",
+    messages: [],
+  };
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [form, setForm] = useState<Case>(initialForm);
+  const [addLoading, setAddLoading] = useState(false);
+
+  // 新增案子表单提交
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddLoading(true);
+    try {
+      setActiveCases(cases => [form, ...cases]);
+      setAddOpen(false);
+      setForm(initialForm);
+    } finally {
+      setAddLoading(false);
+    }
+  };
 
   const chartColors = ["#e8e2d5", "#c4a484", "#8b6f47"]
+
+  // 阶段筛选按钮
+  const stages = ["Matching", "Legal Stage", "Cycle Prep", "Pregnant", "Transferred"];
+  const [selectedStage, setSelectedStage] = useState<string>("Matching");
 
   return (
     <AdminLayout>
@@ -109,6 +174,22 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+        {/* 最新案件区块 */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-base font-normal text-sage-700 mb-4">Latest Update</h2>
+          <div className="flex gap-4 overflow-x-auto">
+            {latestCases.map((item, idx) => (
+              <div key={idx} className="bg-sage-50 rounded-lg p-4 min-w-[160px] flex flex-col items-center">
+                <div className="w-10 h-10 rounded-full bg-sage-200 flex items-center justify-center mb-2">
+                  <span className="text-sage-700 font-bold text-lg">{item.name[0]}</span>
+                </div>
+                <div className="text-sage-800 font-medium mb-1">{item.name}</div>
+                <div className="text-xs text-sage-500 mb-2">{item.date}</div>
+                <Button variant="outline" size="sm">View Details</Button>
+              </div>
+            ))}
+          </div>
+        </div>
         <Card className="bg-white border-sage-200 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-base font-normal text-sage-700">{text[language].activeCasesByManager}</CardTitle>
@@ -129,7 +210,7 @@ export default function DashboardPage() {
                   className="grid grid-cols-3 gap-4 items-center py-3 border-b border-sage-100 last:border-b-0"
                 >
                   <div className="text-sm text-sage-800">{caseItem.name}</div>
-                  <div className="text-sm text-sage-800">{caseItem.caseNumber}</div>
+                  <div className="text-sm text-sage-800">{index + 1}</div>
                   <div className="flex justify-end">
                     <Button
                       variant="outline"
@@ -156,6 +237,40 @@ export default function DashboardPage() {
             </Alert>
           </CardContent>
         </Card>
+      {/* 底部操作按钮 */}
+      <div className="flex gap-4 justify-end mt-8">
+        <Button onClick={() => setAddOpen(true)} variant="default">Add New Client</Button>
+        <Button variant="outline">Upload File</Button>
+        <Button variant="outline">Export Report</Button>
+      </div>
+      {/* 新增案子弹窗表单 */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <form onSubmit={handleAdd} className="space-y-4 p-4 w-96">
+          <h2 className="text-lg font-bold mb-2">新增案例</h2>
+          <Label>姓名<Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required /></Label>
+          <Label>机构<Input value={form.center} onChange={e => setForm(f => ({ ...f, center: e.target.value }))} required /></Label>
+          <Label>阶段
+            <select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value }))} className="border rounded px-2 py-1 ml-2">
+              <option value="Matching">Matching</option>
+              <option value="Legal Stage">Legal Stage</option>
+              <option value="Cycle Prep">Cycle Prep</option>
+              <option value="Pregnant">Pregnant</option>
+              <option value="Transferred">Transferred</option>
+            </select>
+          </Label>
+          <Label>状态<Input value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} required /></Label>
+          <Label>进度
+            <input type="number" min={0} max={100} value={form.progress} onChange={e => setForm(f => ({ ...f, progress: Number(e.target.value) }))} className="border rounded px-2 py-1 ml-2 w-20" required />%
+          </Label>
+          <Label>审核<Input value={form.review} onChange={e => setForm(f => ({ ...f, review: e.target.value }))} /></Label>
+          <Label>通知<Input value={form.notice} onChange={e => setForm(f => ({ ...f, notice: e.target.value }))} /></Label>
+          <div className="flex gap-2 mt-2">
+            <Button type="submit" disabled={addLoading}>提交</Button>
+            <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>取消</Button>
+          </div>
+        </form>
+      </Dialog>
+
       </div>
     </AdminLayout>
   )

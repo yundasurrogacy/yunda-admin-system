@@ -15,7 +15,7 @@ export default function AdminLoginLayout({ children }: { children: React.ReactNo
       <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
-        theme="purple"
+        // theme="purple"
         groups={adminSidebarConfig}
         // title="管理员"
       />
@@ -25,7 +25,7 @@ export default function AdminLoginLayout({ children }: { children: React.ReactNo
         showMenuButton={true}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         isLoggedIn={false}
-        theme="purple"
+        // theme="purple"
         // title="YUNDA 管理员"
         type="admin"
       />

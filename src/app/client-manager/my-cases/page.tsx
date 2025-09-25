@@ -1,229 +1,166 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import ManagerLayout from '@/components/manager-layout'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import ManagerLayout from '@/components/manager-layout';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 
-interface CaseCard {
-  id: string
-  clientName: string
-  center: string
-  legalStatus: {
-    status: string
-    progress: number
-  }
-  reviewStatus: string
-  notice: string
-  messages: {
-    sender: string
-    content: string
-    time: string
-    status: 'edited' | 'sent'
-  }[]
+interface CaseItem {
+  id: string;
+  surrogate_mother: { id: string; email?: string; contact_information?: string } | null;
+  intended_parent: { id: string; email?: string; contact_information?: string } | null;
+  cases_files: { id: string; file_url?: string; category?: string; created_at: string }[];
+  ivf_clinics: { id: string; type?: string; created_at: string; data?: string }[];
+  process_status: string;
 }
 
-export default function MyCasesPage() {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'matching' | 'legal' | 'cycle' | 'pregnant' | 'transferred'>('matching')
-  const [isLoading, setIsLoading] = useState(true)
-  const [cases, setCases] = useState<CaseCard[]>([])
+const MyCasesPage = () => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [cases, setCases] = useState<CaseItem[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('Matching');
 
   // 获取案例数据
-  const fetchCases = async (status: string) => {
+  const fetchCases = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true)
-      // TODO: 替换为实际的 API 调用
-      const mockData: CaseCard[] = [
-        {
-          id: '1',
-          clientName: 'John Doe',
-          center: 'Lincon Surrogacy Center',
-          legalStatus: {
-            status: 'Legal',
-            progress: 20
-          },
-          reviewStatus: 'Surrogacy agreement signed;preparing account',
-          notice: 'Agreement upload needed',
-          messages: [
-            {
-              sender: 'John',
-              content: 'I have reviewed the draft. Please let me know if there are any changes needed.',
-              time: '2 hours ago',
-              status: 'edited'
-            }
-          ]
-        },
-        {
-          id: '2',
-          clientName: 'John Doe',
-          center: 'Lincon Surrogacy Center',
-          legalStatus: {
-            status: 'Legal',
-            progress: 20
-          },
-          reviewStatus: 'Surrogacy agreement signed;preparing account',
-          notice: 'Agreement upload needed',
-          messages: [
-            {
-              sender: 'John',
-              content: 'I have reviewed the draft. Please let me know if there are any changes needed.',
-              time: '2 hours ago',
-              status: 'sent'
-            }
-          ]
-        }
-      ]
-      setCases(mockData.filter(c => c.legalStatus.status.toLowerCase() === status.toLowerCase()))
+      const managerId = localStorage.getItem('managerId');
+      if (!managerId) {
+        setCases([]);
+        setIsLoading(false);
+        return;
+      }
+      const res = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
+      const data = await res.json();
+      setCases(data);
     } catch (error) {
-      console.error('Failed to fetch cases:', error)
+      console.error('Failed to fetch cases:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-  
+  };
+
   useEffect(() => {
-    fetchCases('matching')
-  }, [])
+    fetchCases();
+  }, []);
 
-  const refreshCases = () => {
-    const statusMap = {
-      matching: 'matching',
-      legal: 'legal',
-      cycle: 'cycle',
-      pregnant: 'pregnant',
-      transferred: 'transferred'
-    }
-    fetchCases(statusMap[activeTab])
-  }
-
+  // 跳转详情页
   const handleViewDetails = (caseId: string) => {
-    router.push(`/client-manager/my-cases/${caseId}`)
-  }
+    router.push(`/client-manager/my-cases/${caseId}`);
+  };
 
-  const handleViewDocuments = (caseId: string) => {
-    router.push(`/client-manager/documents?caseId=${caseId}`)
-  }
+  // 跳转代孕母详情页
+  const handleSurrogateDetail = (id: string) => {
+    router.push(`/client-manager/surrogate-profiles/${id}`);
+  };
 
-  const handleTabChange = (tab: typeof activeTab) => {
-    setActiveTab(tab)
-    const statusMap = {
-      matching: 'matching',
-      legal: 'legal',
-      cycle: 'cycle',
-      pregnant: 'pregnant',
-      transferred: 'transferred'
-    }
-    fetchCases(statusMap[tab])
-  }
+  // 跳转准父母详情页
+  const handleParentDetail = (id: string) => {
+    router.push(`/client-manager/client-profiles/${id}`);
+  };
+
+  // 新增 journey（cases_files）
+  // 新增 journey（cases_files）
+  const handleAddJourney = (caseId: string) => {
+  // 跳转到新增 Journey 页面，带上 caseId（去掉问号前的斜杠）
+  router.push(`/client-manager/my-cases/add-journey?caseId=${caseId}`);
+  };
+
+  // 新增 ivf_clinic
+  const handleAddIvfClinic = (caseId: string) => {
+    // 跳转到新增 IVF Clinic 页面，带上 caseId
+    router.push(`/client-manager/my-cases/add-ivf-clinic?caseId=${caseId}`);
+  };
 
   return (
     <ManagerLayout>
       <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-8">My Cases</h1>
-        
-        {/* Status Tabs */}
-        <div className="flex gap-4 mb-8">
-          <Button 
-            variant={activeTab === 'matching' ? 'default' : 'secondary'}
-            className={activeTab === 'matching' ? 'bg-[#FDF6E3]' : ''}
-            onClick={() => handleTabChange('matching')}
-          >
-            Matching
-          </Button>
-          <Button 
-            variant={activeTab === 'legal' ? 'default' : 'secondary'}
-            onClick={() => handleTabChange('legal')}
-          >
-            Legal Stage
-          </Button>
-          <Button 
-            variant={activeTab === 'cycle' ? 'default' : 'secondary'}
-            onClick={() => handleTabChange('cycle')}
-          >
-            Cycle Prep
-          </Button>
-          <Button 
-            variant={activeTab === 'pregnant' ? 'default' : 'secondary'}
-            onClick={() => handleTabChange('pregnant')}
-          >
-            Pregnant
-          </Button>
-          <Button 
-            variant={activeTab === 'transferred' ? 'default' : 'secondary'}
-            onClick={() => handleTabChange('transferred')}
-          >
-            Transferred
-          </Button>
-        </div>
-
-        {/* Case Cards */}
+        <h1 className="text-2xl font-semibold mb-8">我的案子</h1>
+        {/* 列表 */}
         <div className="grid grid-cols-2 gap-6">
           {isLoading ? (
-            <div>Loading...</div>
+            <div>加载中...</div>
           ) : cases.length === 0 ? (
-            <div>No cases found</div>
+            <div>暂无案子</div>
           ) : (
-            cases.map(caseItem => (
-              <Card key={caseItem.id} className="p-6">
-                <div className="flex justify-between items-start mb-6">
+            cases.map((item) => (
+              <Card key={item.id} className="p-6">
+                <div className="flex justify-between items-center mb-4">
                   <div>
-                    <h3 className="font-semibold mb-1">{caseItem.clientName}</h3>
-                    <p className="text-sm text-gray-500">{caseItem.center}</p>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-[#64748B]"
-                    onClick={() => router.push(`/client-manager/my-cases/${caseItem.id}`)}
-                  >
-                    Matching
-                  </Button>
-                </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">STATUS:</span>
-                      <span className="text-sm text-gray-500">{caseItem.legalStatus.progress}%</span>
+                    <div className="font-semibold">
+                      代孕母：
+                      {item.surrogate_mother && item.surrogate_mother.id ? (
+                        <Button
+                          variant="link"
+                          onClick={() => {
+                            if (item.surrogate_mother && item.surrogate_mother.id) {
+                              handleSurrogateDetail(item.surrogate_mother.id);
+                            }
+                          }}
+                        >
+                          {item.surrogate_mother?.contact_information || item.surrogate_mother?.email}
+                        </Button>
+                      ) : '未分配'}
                     </div>
-                    <Progress value={caseItem.legalStatus.progress} className="h-2" />
+                    <div className="font-semibold">
+                      准父母：
+                      {item.intended_parent && item.intended_parent.id ? (
+                        <Button
+                          variant="link"
+                          onClick={() => handleParentDetail(item.intended_parent ? item.intended_parent.id : '')}
+                        >
+                          {item.intended_parent.contact_information || item.intended_parent.email}
+                        </Button>
+                      ) : '未分配'}
+                    </div>
                   </div>
-
                   <div>
-                    <p className="text-sm font-medium mb-1">REVIEW:</p>
-                    <p className="text-sm text-gray-500">{caseItem.reviewStatus}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-1">NOTICE:</p>
-                    <p className="text-sm text-gray-500">{caseItem.notice}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2">MESSAGES:</p>
-                    {caseItem.messages.map((message, index) => (
-                      <div key={index} className="flex items-start gap-2">
-                        <span className="text-sm font-medium">{message.sender}</span>
-                        <span className="text-sm text-gray-500">{message.status === 'edited' ? 'edited' : 'sent'}</span>
-                        <span className="text-sm text-gray-500">{message.time}</span>
-                      </div>
-                    ))}
-                    <p className="text-sm text-gray-500 mt-1">{caseItem.messages[0].content}</p>
+                    <Button variant="secondary" size="sm" onClick={() => handleViewDetails(item.id)}>
+                      详情
+                    </Button>
                   </div>
                 </div>
-
-                <div className="mt-6">
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => router.push(`/client-manager/my-cases/${caseItem.id}`)}
-                  >
-                    View Profile
+                <div className="mb-2">
+                  <span className="text-sm">状态：</span>
+                  <span className="text-sm font-bold">{item.process_status || '-'}</span>
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Button variant="outline" size="sm" onClick={() => handleAddJourney(item.id)}>
+                    新增 Journey
                   </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleAddIvfClinic(item.id)}>
+                    新增 IVF Clinic
+                  </Button>
+                </div>
+                <div className="mt-4">
+                  <div className="font-medium mb-1">Journey 列表：</div>
+                  {item.cases_files.length === 0 ? (
+                    <div className="text-sm text-gray-400">暂无 Journey</div>
+                  ) : (
+                    item.cases_files.map((f) => (
+                      <div key={f.id} className="text-sm text-gray-700">
+                        {f.file_url ? (
+                          <a href={f.file_url} target="_blank" rel="noopener noreferrer">{f.category || f.file_url}</a>
+                        ) : (f.category || '未知文件')}
+                        {' '}({new Date(f.created_at).toLocaleDateString()})
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="mt-4">
+                  <div className="font-medium mb-1">IVF Clinics：</div>
+                  {item.ivf_clinics.length === 0 ? (
+                    <div className="text-sm text-gray-400">暂无 IVF Clinic</div>
+                  ) : (
+                    item.ivf_clinics.map((c) => (
+                      <div key={c.id} className="text-sm text-gray-700">
+                        {c.data || c.type || '未知诊所'}
+                        {' '}({new Date(c.created_at).toLocaleDateString()})
+                      </div>
+                    ))
+                  )}
                 </div>
               </Card>
             ))
@@ -231,5 +168,7 @@ export default function MyCasesPage() {
         </div>
       </div>
     </ManagerLayout>
-  )
-}
+  );
+};
+
+export default MyCasesPage;

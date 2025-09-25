@@ -35,8 +35,8 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
             showMenuButton={true} 
             onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
             isLoggedIn={isLoggedIn} 
-            theme="purple"
-            title="YUNDA ADMIN"
+            // theme="purple"
+            // title="YUNDA ADMIN"
             type="admin"
           />
         )}

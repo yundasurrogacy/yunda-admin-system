@@ -1,62 +1,102 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { LoginForm } from "@/components/common/login-form"
+import { LoginCard } from "@/components/common/login-card"
+import { useTranslation } from "react-i18next"
 import { useToast } from "@/hooks/useToast"
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
 
 export default function SurrogacyLoginPage() {
+  // 计算header高度
+  const [headerHeight, setHeaderHeight] = useState(80)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+  const { t } = useTranslation('common')
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (window.innerWidth >= 768) {
+        setHeaderHeight(100)
+      } else {
+        setHeaderHeight(80)
+      }
+    }
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [])
 
   const handleLogin = async (username: string, password: string) => {
     setLoading(true)
     try {
-      const hasuraClient = getHasuraClient()
-      const users = await hasuraClient.datas({
-        table: "users",
-        args: { where: { email: { _eq: username }, password: { _eq: password } } },
-        datas_fields: ["id", "email", "nickname"],
-      })
-      if (users && users.length > 0) {
-        localStorage.setItem("userRole", "surrogacy")
-        localStorage.setItem("userEmail", username)
-        router.push("/surrogacy/dashboard")
-        return
+      const res = await fetch("/api/surrogate-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.surrogate) {
+        console.log("Surrogate login successful:", data);
+        localStorage.setItem('surrogateId', data.surrogate.id);
+        localStorage.setItem("userRole", "surrogacy");
+        localStorage.setItem("userEmail", username);
+        router.push("/surrogacy/dashboard");
+        return;
       }
-      throw new Error("账号或密码错误")
+      throw new Error(data.error || t('loginError'));
     } catch (error) {
-      localStorage.setItem("isAuthenticated", "true")
-      localStorage.setItem("userRole", "surrogacy")
-      localStorage.setItem("userEmail", username)
-      router.push("/surrogacy/dashboard ")
       toast({
-        title: "接口异常，已模拟登录",
-        description: "请检查网络或账号密码",
+        title: t('loginFailed'),
+        description: t('loginErrorDesc'),
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-purple-50">
-      <LoginForm
-        title="欢迎登录YUNDA Surrogacy"
-        onSubmit={handleLogin}
-        loading={loading}
-        forgotPasswordLink="/surrogacy/forgot-password"
-      />
-      <div className="text-center mt-4">
-        <p className="text-xs text-purple-600">
-          演示账号: surrogate@yunda.com / surrogate123
-        </p>
-        <p className="text-sm text-purple-600 mt-4">
-          需要帮助? 请联系您的个案经理
-        </p>
+    <div style={{
+      minHeight: `calc(100vh - ${headerHeight}px)`,
+      background: 'rgba(251, 240, 218, 0.25)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      boxSizing: 'border-box',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        margin: 'auto',
+      }}>
+        <h1 className="text-5xl font-serif italic text-[#3C2B1C] tracking-wide">{t('surrogacyTitle', { defaultValue: 'SURROGACY' })}</h1>
+      </div>
+      <div style={{
+        width: '100%',
+        maxWidth: 1080,
+        margin: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxSizing: 'border-box',
+        maxHeight: `calc(100vh - ${headerHeight}px - 80px)`
+      }}>
+        <LoginCard
+          title={t('surrogacyTitle', { defaultValue: 'SURROGACY' })}
+          subtitle={t('loginSubtitle')}
+          emailLabel={t('emailLabel')}
+          passwordLabel={t('passwordLabel')}
+          forgotPassword={t('forgotPassword')}
+          loginButton={t('loginButton')}
+          loggingIn={t('loggingIn')}
+          loading={loading}
+          onLogin={handleLogin}
+        />
       </div>
     </div>
   )

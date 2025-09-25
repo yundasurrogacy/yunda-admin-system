@@ -14,12 +14,103 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { getParentsApplications, updateApplicationStatus } from '@/lib/graphql/applications'
+import { getParentsApplications, updateApplicationStatus, insertIntendedParent } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
 
+import { Dialog } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+
+// import { Input } from '@/components/ui/input'
+// import { Button } from '@/components/ui/button'
+
+interface AddIntendedParentDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
+}
+
+type FormType = {
+  basic_information: {
+    firstName: string;
+    lastName: string;
+    date_of_birth: string;
+  };
+  contact_information: {
+    email_address: string;
+    cell_phone: string;
+  };
+  family_profile: {
+    city: string;
+    country: string;
+  };
+  program_interests: {
+    interested_services: string;
+    journey_start_timing: string;
+    desired_children_count: string;
+  };
+  referral: {
+    referral_source: string;
+    initial_questions: string;
+  };
+};
+
+function AddIntendedParentDialog({ open, onOpenChange, onSuccess }: AddIntendedParentDialogProps) {
+  const [form, setForm] = useState<FormType>({
+    basic_information: { firstName: "", lastName: "", date_of_birth: "" },
+    contact_information: { email_address: "", cell_phone: "" },
+    family_profile: { city: "", country: "" },
+    program_interests: { interested_services: "", journey_start_timing: "", desired_children_count: "" },
+    referral: { referral_source: "", initial_questions: "" }
+  })
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (group: keyof FormType, key: string, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      [group]: { ...prev[group], [key]: value }
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await insertIntendedParent(form)
+      onSuccess()
+      onOpenChange(false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <form onSubmit={handleSubmit}>
+        <h2 className="text-lg font-bold mb-4">添加准父母用户</h2>
+        <Label>名字<Input value={form.basic_information.firstName} onChange={e => handleChange("basic_information", "firstName", e.target.value)} /></Label>
+        <Label>姓氏<Input value={form.basic_information.lastName} onChange={e => handleChange("basic_information", "lastName", e.target.value)} /></Label>
+        <Label>出生日期<Input type="date" value={form.basic_information.date_of_birth} onChange={e => handleChange("basic_information", "date_of_birth", e.target.value)} /></Label>
+        <Label>邮箱<Input value={form.contact_information.email_address} onChange={e => handleChange("contact_information", "email_address", e.target.value)} /></Label>
+        <Label>手机号<Input value={form.contact_information.cell_phone} onChange={e => handleChange("contact_information", "cell_phone", e.target.value)} /></Label>
+        <Label>城市<Input value={form.family_profile.city} onChange={e => handleChange("family_profile", "city", e.target.value)} /></Label>
+        <Label>国家<Input value={form.family_profile.country} onChange={e => handleChange("family_profile", "country", e.target.value)} /></Label>
+        <Label>服务需求<Input value={form.program_interests.interested_services} onChange={e => handleChange("program_interests", "interested_services", e.target.value)} /></Label>
+        <Label>旅程开始时间<Input value={form.program_interests.journey_start_timing} onChange={e => handleChange("program_interests", "journey_start_timing", e.target.value)} /></Label>
+        <Label>期望孩子数量<Input value={form.program_interests.desired_children_count} onChange={e => handleChange("program_interests", "desired_children_count", e.target.value)} /></Label>
+        <Label>推荐来源<Input value={form.referral.referral_source} onChange={e => handleChange("referral", "referral_source", e.target.value)} /></Label>
+        <Label>初步问题<Input value={form.referral.initial_questions} onChange={e => handleChange("referral", "initial_questions", e.target.value)} /></Label>
+        <div className="mt-4 flex gap-2">
+          <Button type="submit" disabled={loading}>提交</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
+        </div>
+      </form>
+    </Dialog>
+  )
+}
 export default function ParentsApplicationsPage() {
   const router = useRouter()
   const [language, setLanguage] = useState<"en" | "cn">("en")
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -92,17 +183,27 @@ export default function ParentsApplicationsPage() {
 
   const filteredApplications = applications.filter(app => {
     if (!searchTerm) return true
-    
     const searchLower = searchTerm.toLowerCase()
     const appData = app.application_data as any
     const basicInfo = appData?.basic_information || {}
     const contactInfo = appData?.contact_information || {}
-    
+    const familyProfile = appData?.family_profile || {}
+    const programInterests = appData?.program_interests || {}
+    const referral = appData?.referral || {}
+    // 支持更多字段搜索
     return (
       basicInfo.firstName?.toLowerCase().includes(searchLower) ||
       basicInfo.lastName?.toLowerCase().includes(searchLower) ||
       contactInfo.email_address?.toLowerCase().includes(searchLower) ||
-      contactInfo.cell_phone?.includes(searchTerm)
+      contactInfo.cell_phone?.includes(searchTerm) ||
+      familyProfile.city?.toLowerCase().includes(searchLower) ||
+      familyProfile.country?.toLowerCase().includes(searchLower) ||
+      familyProfile.state_or_province?.toLowerCase().includes(searchLower) ||
+      basicInfo.gender_identity?.toLowerCase().includes(searchLower) ||
+      basicInfo.ethnicity?.toLowerCase().includes(searchLower) ||
+      contactInfo.primary_languages?.join(',').toLowerCase().includes(searchLower) ||
+      programInterests.interested_services?.toLowerCase().includes(searchLower) ||
+      referral.referral_source?.toLowerCase().includes(searchLower)
     )
   })
 
@@ -152,7 +253,7 @@ export default function ParentsApplicationsPage() {
           rightContent={
             <div className="flex items-center gap-4">
               <Button
-                onClick={() => {}}
+                onClick={() => setAddDialogOpen(true)}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -197,95 +298,105 @@ export default function ParentsApplicationsPage() {
         </div>
 
         {/* Applications Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '32px',
+            alignItems: 'stretch',
+          }}
+        >
           {filteredApplications.map((app) => {
             const appData = app.application_data as any
             const basicInfo = appData?.basic_information || {}
             const contactInfo = appData?.contact_information || {}
             const familyProfile = appData?.family_profile || {}
             const programInterests = appData?.program_interests || {}
-            
+            const referral = appData?.referral || {}
+            // 格式化多选项
+            const languages = Array.isArray(contactInfo.primary_languages) ? contactInfo.primary_languages.join(', ') : (contactInfo.primary_languages || 'N/A')
+            const ethnicity = Array.isArray(basicInfo.ethnicity) ? basicInfo.ethnicity.join(', ') : (basicInfo.ethnicity || 'N/A')
             return (
-              <div key={app.id} className="bg-white rounded-lg border border-sage-200 p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-sage-600" />
+              <div key={app.id} className="bg-white rounded-xl border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full" style={{minWidth: '0'}}>
+                <div>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-sage-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sage-800 font-medium text-lg truncate">
+                          {basicInfo.firstName} {basicInfo.lastName}
+                        </h3>
+                        <span className="text-sm text-sage-500">#{app.id}</span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sage-800 font-medium">
-                        {basicInfo.firstName} {basicInfo.lastName}
-                      </h3>
-                      <span className="text-sm text-sage-500">#{app.id}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(app.status)}`}>{text[language][app.status]}</span>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm text-sage-600 truncate">
+                      <Mail className="w-4 h-4" />
+                      <span className="truncate">{contactInfo.email_address || 'N/A'}</span>
                     </div>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(app.status)}`}>
-                    {text[language][app.status]}
-                  </span>
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <Mail className="w-4 h-4" />
-                    <span>{contactInfo.email_address || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <MapPin className="w-4 h-4" />
-                    <span>{familyProfile.city}, {familyProfile.state_or_province || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>DOB: {basicInfo.date_of_birth || 'N/A'}</span>
-                  </div>
-                </div>
-
-                <div className="mb-4 p-3 bg-sage-50 rounded-lg">
-                  <div className="text-sm text-sage-700">
-                    <div className="font-medium mb-1">服务需求:</div>
-                    <div className="text-sage-600">
-                      {programInterests.interested_services === 'surrogacyOnly' && '代孕服务'}
-                      {programInterests.interested_services === 'surrogacyEggDonor' && '代孕+捐卵服务'}
-                      {programInterests.interested_services === 'eggDonorOnly' && '捐卵服务'}
-                      {programInterests.interested_services === 'thirdPartySurrogate' && '第三方代孕'}
-                      {programInterests.interested_services === 'bringYourOwnSurrogate' && '自带代孕者'}
-                      {programInterests.interested_services === 'bringYourOwnSurrogateEgg' && '自带代孕者+捐卵'}
-                      {programInterests.interested_services === 'notSure' && '不确定'}
+                    <div className="flex items-center gap-2 text-sm text-sage-600">
+                      <Phone className="w-4 h-4" />
+                      <span>{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
                     </div>
-                    <div className="text-xs text-sage-500 mt-1">
-                      期望孩子数量: {programInterests.desired_children_count || 'N/A'} | 
-                      开始时间: {programInterests.journey_start_timing || 'N/A'}
+                    <div className="flex items-center gap-2 text-sm text-sage-600">
+                      <MapPin className="w-4 h-4" />
+                      <span className="truncate">{familyProfile.city || 'N/A'}, {familyProfile.state_or_province || 'N/A'}, {familyProfile.country || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-sage-600">
+                      <Calendar className="w-4 h-4" />
+                      <span>DOB: {basicInfo.date_of_birth || 'N/A'}</span>
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-sage-500">性别认同:</span>
+                      <span className="text-sage-600 truncate">{basicInfo.gender_identity || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-sage-500">族裔:</span>
+                      <span className="text-sage-600 truncate">{ethnicity}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-sage-500">性取向:</span>
+                      <span className="text-sage-600 truncate">{familyProfile.sexual_orientation || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-sage-500">语言:</span>
+                      <span className="text-sage-600 truncate">{languages}</span>
+                    </div>
+                  </div>
+                  <div className="mb-4 p-3 bg-sage-50 rounded-lg">
+                    <div className="text-sm text-sage-700">
+                      <div className="font-medium mb-1">服务需求:</div>
+                      <div className="text-sage-600">
+                        {programInterests.interested_services === 'surrogacyOnly' && '代孕服务'}
+                        {programInterests.interested_services === 'surrogacyEggDonor' && '代孕+捐卵服务'}
+                        {programInterests.interested_services === 'eggDonorOnly' && '捐卵服务'}
+                        {programInterests.interested_services === 'thirdPartySurrogate' && '第三方代孕'}
+                        {programInterests.interested_services === 'bringYourOwnSurrogate' && '自带代孕者'}
+                        {programInterests.interested_services === 'bringYourOwnSurrogateEgg' && '自带代孕者+捐卵'}
+                        {programInterests.interested_services === 'notSure' && '不确定'}
+                      </div>
+                      <div className="text-xs text-sage-500 mt-1">
+                        期望孩子数量: {programInterests.desired_children_count || 'N/A'} | 
+                        开始时间: {programInterests.journey_start_timing || 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mb-2 text-sm text-sage-700">
+                    推荐来源: {referral.referral_source || 'N/A'}<br />
+                    初步问题: {referral.initial_questions || 'N/A'}
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">性别认同:</span>
-                    <span className="text-sage-600">{basicInfo.gender_identity || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">族裔:</span>
-                    <span className="text-sage-600">{basicInfo.ethnicity || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">性取向:</span>
-                    <span className="text-sage-600">{familyProfile.sexual_orientation || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">语言:</span>
-                    <span className="text-sage-600">{contactInfo.primary_languages?.join(', ') || 'N/A'}</span>
-                  </div>
-                </div>
-
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
                   <span className="text-sm text-sage-500">
                     {text[language].applicationDate}: {new Date(app.created_at).toLocaleDateString('zh-CN')}
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
                       <>
                         <Button 
@@ -327,7 +438,8 @@ export default function ParentsApplicationsPage() {
             {text[language].noApplications}
           </div>
         )}
-      </PageContent>
+  </PageContent>
+  <AddIntendedParentDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} onSuccess={loadApplications} />
     </AdminLayout>
   )
 }

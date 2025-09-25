@@ -17,6 +17,7 @@ export const clientSidebarConfig = [
     items: [
       { label: "DASHBOARD", href: "/client/dashboard", icon: LayoutDashboard },
       { label: "MY PROFILE", href: "/client/profile", icon: UserCircle },
+      { label: "MY CASES", href: "/client/my-cases", icon: Briefcase },
       { label: "JOURNEY", href: "/client/journey", icon: Briefcase },
       { label: "IVF clinic", href: "/client/ivf-clinic", icon: Stethoscope },
     ]
@@ -41,6 +42,8 @@ export const adminSidebarConfig = [
       { label: "CLIENT PROFILES", href: "/admin/client-profiles", icon: UserCircle },
       { label: "SURROGATE PROFILES", href: "/admin/surrogate-profiles", icon: HeartPulse },
       { label: "ALL CASES", href: "/admin/all-cases", icon: Briefcase },
+      { label: "CLIENT MANAGERS", href: "/admin/client-manager", icon: Briefcase },
+      { label: "MANAGERS", href: "/admin/managers", icon: Briefcase },
     ]
   }
 ]
@@ -51,6 +54,7 @@ export const surrogacySidebarConfig = [
     items: [
       { label: "DASHBOARD", href: "/surrogacy/dashboard", icon: LayoutDashboard },
       { label: "MY PROFILE", href: "/surrogacy/profile", icon: UserCircle },
+      { label: "MY CASES", href: "/surrogacy/my-cases", icon: Briefcase },
       { label: "MY INTENDED PARENTS", href: "/surrogacy/intended-parents", icon: UserCircle },
     ]
   },

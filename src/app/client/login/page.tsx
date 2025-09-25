@@ -1,53 +1,108 @@
+
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { LoginForm } from "@/components/common/login-form"
+import { LoginCard } from '@/components/common/login-card'
 import { useToast } from "@/hooks/useToast"
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
+import { useTranslation } from 'react-i18next'
 
 export default function ClientLoginPage() {
+  // 计算header高度
+  const [headerHeight, setHeaderHeight] = useState(80)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
-
-  const handleLogin = async (username: string, password: string) => {
-    setLoading(true)
-    try {
-      const hasuraClient = getHasuraClient()
-      const users = await hasuraClient.datas({
-        table: "users",
-        args: { where: { email: { _eq: username }, password: { _eq: password } } },
-        datas_fields: ["id", "email", "nickname"],
-      })
-      if (users && users.length > 0) {
-        localStorage.setItem("userRole", "client")
-        localStorage.setItem("userEmail", username)
-        router.push("/client/dashboard")
-        return
+  const { t } = useTranslation('common')
+  
+  // 响应式 header 高度
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (window.innerWidth >= 768) {
+        setHeaderHeight(100)
+      } else {
+        setHeaderHeight(80)
       }
-      throw new Error("账号或密码错误")
-    } catch (error) {
-      localStorage.setItem("isAuthenticated", "true")
-      localStorage.setItem("userRole", "client")
-      localStorage.setItem("userEmail", username)
-      router.push("/client/dashboard")
-      toast({
-        title: "接口异常，已模拟登录",
-        description: "请检查网络或账号密码",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
     }
-  }
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+    return () => window.removeEventListener('resize', updateHeaderHeight)
+  }, [])
+
+  const [error, setError] = useState('');
+  const handleLogin = async (username: string, password: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/intended-parent-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: username, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.parent) {
+        localStorage.setItem('parentId', data.parent.id);
+        localStorage.setItem('userRole', 'client');
+        localStorage.setItem('userEmail', username);
+        router.push('/client/dashboard');
+        return;
+      }
+      throw new Error(data.error || t('loginError'));
+    } catch (error) {
+      setError('登录失败');
+      toast({
+        title: t('loginFailed'),
+        description: t('loginErrorDesc'),
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <LoginForm
-      title="欢迎登录YUNDA Client"
-      onSubmit={handleLogin}
-      loading={loading}
-      forgotPasswordLink="/client/forgot-password"
-    />
+    <div style={{
+      minHeight: `calc(100vh - ${headerHeight}px)`,
+      background: 'rgba(251, 240, 218, 0.25)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      boxSizing: 'border-box',
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        margin: 'auto',
+      }}>
+        <h1 className="text-5xl font-serif italic text-[#3C2B1C] tracking-wide">{t('clientTitle', { defaultValue: 'CLIENT' })}</h1>
+      </div>
+      <div style={{
+        width: '100%',
+        maxWidth: 1080,
+        margin: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxSizing: 'border-box',
+        maxHeight: `calc(100vh - ${headerHeight}px - 80px)`
+      }}>
+        <LoginCard
+          title={t('clientTitle', { defaultValue: 'CLIENT' })}
+          subtitle={t('loginSubtitle')}
+          emailLabel={t('emailLabel')}
+          passwordLabel={t('passwordLabel')}
+          forgotPassword={t('forgotPassword')}
+          loginButton={t('loginButton')}
+          loggingIn={t('loggingIn')}
+          loading={loading}
+          onLogin={handleLogin}
+        />
+      </div>
+    </div>
   )
 }

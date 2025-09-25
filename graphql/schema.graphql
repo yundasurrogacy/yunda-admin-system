@@ -450,11 +450,140 @@ input bigint_comparison_exp {
 columns and relationships of "cases"
 """
 type cases {
-  content: String
+  """An array relationship"""
+  cases_files(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): [cases_files!]!
+
+  """An aggregate relationship"""
+  cases_files_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): cases_files_aggregate!
+
+  """An object relationship"""
+  client_manager: client_managers
+
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   created_at: timestamptz!
   id: bigint!
+
+  """An object relationship"""
+  intended_parent: intended_parents
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """An array relationship"""
+  ivf_clinics(
+    """distinct select on columns"""
+    distinct_on: [ivf_clinics_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [ivf_clinics_order_by!]
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): [ivf_clinics!]!
+
+  """An aggregate relationship"""
+  ivf_clinics_aggregate(
+    """distinct select on columns"""
+    distinct_on: [ivf_clinics_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [ivf_clinics_order_by!]
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): ivf_clinics_aggregate!
+
+  """An array relationship"""
+  posts(
+    """distinct select on columns"""
+    distinct_on: [posts_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [posts_order_by!]
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): [posts!]!
+
+  """An aggregate relationship"""
+  posts_aggregate(
+    """distinct select on columns"""
+    distinct_on: [posts_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [posts_order_by!]
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): posts_aggregate!
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: String
+
+  """An object relationship"""
+  surrogate_mother: surrogate_mothers
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric!
   updated_at: timestamptz!
-  user_id: bigint
 }
 
 """
@@ -463,6 +592,17 @@ aggregated selection of "cases"
 type cases_aggregate {
   aggregate: cases_aggregate_fields
   nodes: [cases!]!
+}
+
+input cases_aggregate_bool_exp {
+  count: cases_aggregate_bool_exp_count
+}
+
+input cases_aggregate_bool_exp_count {
+  arguments: [cases_select_column!]
+  distinct: Boolean
+  filter: cases_bool_exp
+  predicate: Int_comparison_exp!
 }
 
 """
@@ -482,10 +622,65 @@ type cases_aggregate_fields {
   variance: cases_variance_fields
 }
 
+"""
+order by aggregate values of table "cases"
+"""
+input cases_aggregate_order_by {
+  avg: cases_avg_order_by
+  count: order_by
+  max: cases_max_order_by
+  min: cases_min_order_by
+  stddev: cases_stddev_order_by
+  stddev_pop: cases_stddev_pop_order_by
+  stddev_samp: cases_stddev_samp_order_by
+  sum: cases_sum_order_by
+  var_pop: cases_var_pop_order_by
+  var_samp: cases_var_samp_order_by
+  variance: cases_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "cases"
+"""
+input cases_arr_rel_insert_input {
+  data: [cases_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: cases_on_conflict
+}
+
 """aggregate avg on columns"""
 type cases_avg_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by avg() on columns of table "cases"
+"""
+input cases_avg_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """
@@ -495,11 +690,23 @@ input cases_bool_exp {
   _and: [cases_bool_exp!]
   _not: cases_bool_exp
   _or: [cases_bool_exp!]
-  content: String_comparison_exp
+  cases_files: cases_files_bool_exp
+  cases_files_aggregate: cases_files_aggregate_bool_exp
+  client_manager: client_managers_bool_exp
+  client_manager_client_managers: bigint_comparison_exp
   created_at: timestamptz_comparison_exp
   id: bigint_comparison_exp
+  intended_parent: intended_parents_bool_exp
+  intended_parent_intended_parents: bigint_comparison_exp
+  ivf_clinics: ivf_clinics_bool_exp
+  ivf_clinics_aggregate: ivf_clinics_aggregate_bool_exp
+  posts: posts_bool_exp
+  posts_aggregate: posts_aggregate_bool_exp
+  process_status: String_comparison_exp
+  surrogate_mother: surrogate_mothers_bool_exp
+  surrogate_mother_surrogate_mothers: bigint_comparison_exp
+  trust_account_balance: numeric_comparison_exp
   updated_at: timestamptz_comparison_exp
-  user_id: bigint_comparison_exp
 }
 
 """
@@ -510,43 +717,731 @@ enum cases_constraint {
   unique or primary key constraint on columns "id"
   """
   cases_pkey
+
+  """
+  unique or primary key constraint on columns "intended_parent_intended_parents", "surrogate_mother_surrogate_mothers"
+  """
+  cases_surrogate_mother_surrogate_mothers_intended_parent_intend
+}
+
+"""案子的相关文件"""
+type cases_files {
+  """An object relationship"""
+  case: cases
+
+  """外键，关联cases"""
+  case_cases: bigint
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: String!
+  created_at: timestamptz!
+
+  """文件类型"""
+  file_type: String
+
+  """文件地址"""
+  file_url: String
+  id: bigint!
+
+  """An object relationship"""
+  journey: journeys
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "cases_files"
+"""
+type cases_files_aggregate {
+  aggregate: cases_files_aggregate_fields
+  nodes: [cases_files!]!
+}
+
+input cases_files_aggregate_bool_exp {
+  count: cases_files_aggregate_bool_exp_count
+}
+
+input cases_files_aggregate_bool_exp_count {
+  arguments: [cases_files_select_column!]
+  distinct: Boolean
+  filter: cases_files_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "cases_files"
+"""
+type cases_files_aggregate_fields {
+  avg: cases_files_avg_fields
+  count(columns: [cases_files_select_column!], distinct: Boolean): Int!
+  max: cases_files_max_fields
+  min: cases_files_min_fields
+  stddev: cases_files_stddev_fields
+  stddev_pop: cases_files_stddev_pop_fields
+  stddev_samp: cases_files_stddev_samp_fields
+  sum: cases_files_sum_fields
+  var_pop: cases_files_var_pop_fields
+  var_samp: cases_files_var_samp_fields
+  variance: cases_files_variance_fields
+}
+
+"""
+order by aggregate values of table "cases_files"
+"""
+input cases_files_aggregate_order_by {
+  avg: cases_files_avg_order_by
+  count: order_by
+  max: cases_files_max_order_by
+  min: cases_files_min_order_by
+  stddev: cases_files_stddev_order_by
+  stddev_pop: cases_files_stddev_pop_order_by
+  stddev_samp: cases_files_stddev_samp_order_by
+  sum: cases_files_sum_order_by
+  var_pop: cases_files_var_pop_order_by
+  var_samp: cases_files_var_samp_order_by
+  variance: cases_files_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "cases_files"
+"""
+input cases_files_arr_rel_insert_input {
+  data: [cases_files_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: cases_files_on_conflict
+}
+
+"""aggregate avg on columns"""
+type cases_files_avg_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by avg() on columns of table "cases_files"
+"""
+input cases_files_avg_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "cases_files". All fields are combined with a logical 'AND'.
+"""
+input cases_files_bool_exp {
+  _and: [cases_files_bool_exp!]
+  _not: cases_files_bool_exp
+  _or: [cases_files_bool_exp!]
+  case: cases_bool_exp
+  case_cases: bigint_comparison_exp
+  category: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  file_type: String_comparison_exp
+  file_url: String_comparison_exp
+  id: bigint_comparison_exp
+  journey: journeys_bool_exp
+  journey_journeys: bigint_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "cases_files"
+"""
+enum cases_files_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  cases_files_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "cases_files"
+"""
+input cases_files_inc_input {
+  """外键，关联cases"""
+  case_cases: bigint
+  id: bigint
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+}
+
+"""
+input type for inserting data into table "cases_files"
+"""
+input cases_files_insert_input {
+  case: cases_obj_rel_insert_input
+
+  """外键，关联cases"""
+  case_cases: bigint
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: String
+  created_at: timestamptz
+
+  """文件类型"""
+  file_type: String
+
+  """文件地址"""
+  file_url: String
+  id: bigint
+  journey: journeys_obj_rel_insert_input
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type cases_files_max_fields {
+  """外键，关联cases"""
+  case_cases: bigint
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: String
+  created_at: timestamptz
+
+  """文件类型"""
+  file_type: String
+
+  """文件地址"""
+  file_url: String
+  id: bigint
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+  updated_at: timestamptz
+}
+
+"""
+order by max() on columns of table "cases_files"
+"""
+input cases_files_max_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: order_by
+  created_at: order_by
+
+  """文件类型"""
+  file_type: order_by
+
+  """文件地址"""
+  file_url: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+  updated_at: order_by
+}
+
+"""aggregate min on columns"""
+type cases_files_min_fields {
+  """外键，关联cases"""
+  case_cases: bigint
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: String
+  created_at: timestamptz
+
+  """文件类型"""
+  file_type: String
+
+  """文件地址"""
+  file_url: String
+  id: bigint
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+  updated_at: timestamptz
+}
+
+"""
+order by min() on columns of table "cases_files"
+"""
+input cases_files_min_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: order_by
+  created_at: order_by
+
+  """文件类型"""
+  file_type: order_by
+
+  """文件地址"""
+  file_url: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+  updated_at: order_by
+}
+
+"""
+response of any mutation on the table "cases_files"
+"""
+type cases_files_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [cases_files!]!
+}
+
+"""
+on_conflict condition type for table "cases_files"
+"""
+input cases_files_on_conflict {
+  constraint: cases_files_constraint!
+  update_columns: [cases_files_update_column!]! = []
+  where: cases_files_bool_exp
+}
+
+"""Ordering options when selecting data from "cases_files"."""
+input cases_files_order_by {
+  case: cases_order_by
+  case_cases: order_by
+  category: order_by
+  created_at: order_by
+  file_type: order_by
+  file_url: order_by
+  id: order_by
+  journey: journeys_order_by
+  journey_journeys: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: cases_files"""
+input cases_files_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "cases_files"
+"""
+enum cases_files_select_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  category
+
+  """column name"""
+  created_at
+
+  """column name"""
+  file_type
+
+  """column name"""
+  file_url
+
+  """column name"""
+  id
+
+  """column name"""
+  journey_journeys
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "cases_files"
+"""
+input cases_files_set_input {
+  """外键，关联cases"""
+  case_cases: bigint
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: String
+  created_at: timestamptz
+
+  """文件类型"""
+  file_type: String
+
+  """文件地址"""
+  file_url: String
+  id: bigint
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type cases_files_stddev_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by stddev() on columns of table "cases_files"
+"""
+input cases_files_stddev_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type cases_files_stddev_pop_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by stddev_pop() on columns of table "cases_files"
+"""
+input cases_files_stddev_pop_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type cases_files_stddev_samp_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by stddev_samp() on columns of table "cases_files"
+"""
+input cases_files_stddev_samp_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""
+Streaming cursor of the table "cases_files"
+"""
+input cases_files_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: cases_files_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input cases_files_stream_cursor_value_input {
+  """外键，关联cases"""
+  case_cases: bigint
+
+  """文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other"""
+  category: String
+  created_at: timestamptz
+
+  """文件类型"""
+  file_type: String
+
+  """文件地址"""
+  file_url: String
+  id: bigint
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type cases_files_sum_fields {
+  """外键，关联cases"""
+  case_cases: bigint
+  id: bigint
+
+  """和journey相关的文件"""
+  journey_journeys: bigint
+}
+
+"""
+order by sum() on columns of table "cases_files"
+"""
+input cases_files_sum_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""
+update columns of table "cases_files"
+"""
+enum cases_files_update_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  category
+
+  """column name"""
+  created_at
+
+  """column name"""
+  file_type
+
+  """column name"""
+  file_url
+
+  """column name"""
+  id
+
+  """column name"""
+  journey_journeys
+
+  """column name"""
+  updated_at
+}
+
+input cases_files_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: cases_files_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: cases_files_set_input
+
+  """filter the rows which have to be updated"""
+  where: cases_files_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type cases_files_var_pop_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by var_pop() on columns of table "cases_files"
+"""
+input cases_files_var_pop_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""aggregate var_samp on columns"""
+type cases_files_var_samp_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by var_samp() on columns of table "cases_files"
+"""
+input cases_files_var_samp_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
+}
+
+"""aggregate variance on columns"""
+type cases_files_variance_fields {
+  """外键，关联cases"""
+  case_cases: Float
+  id: Float
+
+  """和journey相关的文件"""
+  journey_journeys: Float
+}
+
+"""
+order by variance() on columns of table "cases_files"
+"""
+input cases_files_variance_order_by {
+  """外键，关联cases"""
+  case_cases: order_by
+  id: order_by
+
+  """和journey相关的文件"""
+  journey_journeys: order_by
 }
 
 """
 input type for incrementing numeric columns in table "cases"
 """
 input cases_inc_input {
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   id: bigint
-  user_id: bigint
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
 }
 
 """
 input type for inserting data into table "cases"
 """
 input cases_insert_input {
-  content: String
+  cases_files: cases_files_arr_rel_insert_input
+  client_manager: client_managers_obj_rel_insert_input
+
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   created_at: timestamptz
   id: bigint
+  intended_parent: intended_parents_obj_rel_insert_input
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+  ivf_clinics: ivf_clinics_arr_rel_insert_input
+  posts: posts_arr_rel_insert_input
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: String
+  surrogate_mother: surrogate_mothers_obj_rel_insert_input
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
-  user_id: bigint
 }
 
 """aggregate max on columns"""
 type cases_max_fields {
-  content: String
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   created_at: timestamptz
   id: bigint
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: String
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
-  user_id: bigint
+}
+
+"""
+order by max() on columns of table "cases"
+"""
+input cases_max_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  created_at: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
+  updated_at: order_by
 }
 
 """aggregate min on columns"""
 type cases_min_fields {
-  content: String
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   created_at: timestamptz
   id: bigint
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: String
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
-  user_id: bigint
+}
+
+"""
+order by min() on columns of table "cases"
+"""
+input cases_min_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  created_at: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
+  updated_at: order_by
 }
 
 """
@@ -561,6 +1456,16 @@ type cases_mutation_response {
 }
 
 """
+input type for inserting object relation for remote table "cases"
+"""
+input cases_obj_rel_insert_input {
+  data: cases_insert_input!
+
+  """upsert condition"""
+  on_conflict: cases_on_conflict
+}
+
+"""
 on_conflict condition type for table "cases"
 """
 input cases_on_conflict {
@@ -571,11 +1476,20 @@ input cases_on_conflict {
 
 """Ordering options when selecting data from "cases"."""
 input cases_order_by {
-  content: order_by
+  cases_files_aggregate: cases_files_aggregate_order_by
+  client_manager: client_managers_order_by
+  client_manager_client_managers: order_by
   created_at: order_by
   id: order_by
+  intended_parent: intended_parents_order_by
+  intended_parent_intended_parents: order_by
+  ivf_clinics_aggregate: ivf_clinics_aggregate_order_by
+  posts_aggregate: posts_aggregate_order_by
+  process_status: order_by
+  surrogate_mother: surrogate_mothers_order_by
+  surrogate_mother_surrogate_mothers: order_by
+  trust_account_balance: order_by
   updated_at: order_by
-  user_id: order_by
 }
 
 """primary key columns input for table: cases"""
@@ -588,7 +1502,7 @@ select columns of table "cases"
 """
 enum cases_select_column {
   """column name"""
-  content
+  client_manager_client_managers
 
   """column name"""
   created_at
@@ -597,39 +1511,144 @@ enum cases_select_column {
   id
 
   """column name"""
-  updated_at
+  intended_parent_intended_parents
 
   """column name"""
-  user_id
+  process_status
+
+  """column name"""
+  surrogate_mother_surrogate_mothers
+
+  """column name"""
+  trust_account_balance
+
+  """column name"""
+  updated_at
 }
 
 """
 input type for updating data in table "cases"
 """
 input cases_set_input {
-  content: String
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   created_at: timestamptz
   id: bigint
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: String
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
-  user_id: bigint
 }
 
 """aggregate stddev on columns"""
 type cases_stddev_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by stddev() on columns of table "cases"
+"""
+input cases_stddev_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """aggregate stddev_pop on columns"""
 type cases_stddev_pop_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by stddev_pop() on columns of table "cases"
+"""
+input cases_stddev_pop_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """aggregate stddev_samp on columns"""
 type cases_stddev_samp_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by stddev_samp() on columns of table "cases"
+"""
+input cases_stddev_samp_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """
@@ -645,17 +1664,57 @@ input cases_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input cases_stream_cursor_value_input {
-  content: String
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   created_at: timestamptz
   id: bigint
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
+  process_status: String
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
-  user_id: bigint
 }
 
 """aggregate sum on columns"""
 type cases_sum_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: bigint
   id: bigint
-  user_id: bigint
+
+  """外键，准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: bigint
+
+  """当前case的信托账户余额"""
+  trust_account_balance: numeric
+}
+
+"""
+order by sum() on columns of table "cases"
+"""
+input cases_sum_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """
@@ -663,7 +1722,7 @@ update columns of table "cases"
 """
 enum cases_update_column {
   """column name"""
-  content
+  client_manager_client_managers
 
   """column name"""
   created_at
@@ -672,10 +1731,19 @@ enum cases_update_column {
   id
 
   """column name"""
-  updated_at
+  intended_parent_intended_parents
 
   """column name"""
-  user_id
+  process_status
+
+  """column name"""
+  surrogate_mother_surrogate_mothers
+
+  """column name"""
+  trust_account_balance
+
+  """column name"""
+  updated_at
 }
 
 input cases_updates {
@@ -691,20 +1759,408 @@ input cases_updates {
 
 """aggregate var_pop on columns"""
 type cases_var_pop_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by var_pop() on columns of table "cases"
+"""
+input cases_var_pop_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """aggregate var_samp on columns"""
 type cases_var_samp_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by var_samp() on columns of table "cases"
+"""
+input cases_var_samp_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
 }
 
 """aggregate variance on columns"""
 type cases_variance_fields {
+  """外键，客户经理"""
+  client_manager_client_managers: Float
   id: Float
-  user_id: Float
+
+  """外键，准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: Float
+
+  """当前case的信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""
+order by variance() on columns of table "cases"
+"""
+input cases_variance_order_by {
+  """外键，客户经理"""
+  client_manager_client_managers: order_by
+  id: order_by
+
+  """外键，准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，代孕妈妈"""
+  surrogate_mother_surrogate_mothers: order_by
+
+  """当前case的信托账户余额"""
+  trust_account_balance: order_by
+}
+
+"""客户经理"""
+type client_managers {
+  """An array relationship"""
+  cases(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): [cases!]!
+
+  """An aggregate relationship"""
+  cases_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): cases_aggregate!
+  created_at: timestamptz!
+  email: String!
+  id: bigint!
+  password: String!
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "client_managers"
+"""
+type client_managers_aggregate {
+  aggregate: client_managers_aggregate_fields
+  nodes: [client_managers!]!
+}
+
+"""
+aggregate fields of "client_managers"
+"""
+type client_managers_aggregate_fields {
+  avg: client_managers_avg_fields
+  count(columns: [client_managers_select_column!], distinct: Boolean): Int!
+  max: client_managers_max_fields
+  min: client_managers_min_fields
+  stddev: client_managers_stddev_fields
+  stddev_pop: client_managers_stddev_pop_fields
+  stddev_samp: client_managers_stddev_samp_fields
+  sum: client_managers_sum_fields
+  var_pop: client_managers_var_pop_fields
+  var_samp: client_managers_var_samp_fields
+  variance: client_managers_variance_fields
+}
+
+"""aggregate avg on columns"""
+type client_managers_avg_fields {
+  id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "client_managers". All fields are combined with a logical 'AND'.
+"""
+input client_managers_bool_exp {
+  _and: [client_managers_bool_exp!]
+  _not: client_managers_bool_exp
+  _or: [client_managers_bool_exp!]
+  cases: cases_bool_exp
+  cases_aggregate: cases_aggregate_bool_exp
+  created_at: timestamptz_comparison_exp
+  email: String_comparison_exp
+  id: bigint_comparison_exp
+  password: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "client_managers"
+"""
+enum client_managers_constraint {
+  """
+  unique or primary key constraint on columns "email"
+  """
+  client_managers_email_key
+
+  """
+  unique or primary key constraint on columns "id"
+  """
+  client_managers_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "client_managers"
+"""
+input client_managers_inc_input {
+  id: bigint
+}
+
+"""
+input type for inserting data into table "client_managers"
+"""
+input client_managers_insert_input {
+  cases: cases_arr_rel_insert_input
+  created_at: timestamptz
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type client_managers_max_fields {
+  created_at: timestamptz
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type client_managers_min_fields {
+  created_at: timestamptz
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "client_managers"
+"""
+type client_managers_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [client_managers!]!
+}
+
+"""
+input type for inserting object relation for remote table "client_managers"
+"""
+input client_managers_obj_rel_insert_input {
+  data: client_managers_insert_input!
+
+  """upsert condition"""
+  on_conflict: client_managers_on_conflict
+}
+
+"""
+on_conflict condition type for table "client_managers"
+"""
+input client_managers_on_conflict {
+  constraint: client_managers_constraint!
+  update_columns: [client_managers_update_column!]! = []
+  where: client_managers_bool_exp
+}
+
+"""Ordering options when selecting data from "client_managers"."""
+input client_managers_order_by {
+  cases_aggregate: cases_aggregate_order_by
+  created_at: order_by
+  email: order_by
+  id: order_by
+  password: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: client_managers"""
+input client_managers_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "client_managers"
+"""
+enum client_managers_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  email
+
+  """column name"""
+  id
+
+  """column name"""
+  password
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "client_managers"
+"""
+input client_managers_set_input {
+  created_at: timestamptz
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type client_managers_stddev_fields {
+  id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type client_managers_stddev_pop_fields {
+  id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type client_managers_stddev_samp_fields {
+  id: Float
+}
+
+"""
+Streaming cursor of the table "client_managers"
+"""
+input client_managers_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: client_managers_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input client_managers_stream_cursor_value_input {
+  created_at: timestamptz
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type client_managers_sum_fields {
+  id: bigint
+}
+
+"""
+update columns of table "client_managers"
+"""
+enum client_managers_update_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  email
+
+  """column name"""
+  id
+
+  """column name"""
+  password
+
+  """column name"""
+  updated_at
+}
+
+input client_managers_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: client_managers_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: client_managers_set_input
+
+  """filter the rows which have to be updated"""
+  where: client_managers_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type client_managers_var_pop_fields {
+  id: Float
+}
+
+"""aggregate var_samp on columns"""
+type client_managers_var_samp_fields {
+  id: Float
+}
+
+"""aggregate variance on columns"""
+type client_managers_variance_fields {
+  id: Float
 }
 
 """ordering argument of a cursor"""
@@ -724,6 +2180,42 @@ type intended_parents {
     path: String
   ): jsonb
 
+  """An array relationship"""
+  cases(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): [cases!]!
+
+  """An aggregate relationship"""
+  cases_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): cases_aggregate!
+
   """联系信息"""
   contact_information(
     """JSON select path"""
@@ -731,12 +2223,54 @@ type intended_parents {
   ): jsonb
   created_at: timestamptz!
 
+  """准父母邮箱，作为登录的邮箱"""
+  email: String!
+
   """家庭资料"""
   family_profile(
     """JSON select path"""
     path: String
   ): jsonb
   id: bigint!
+
+  """登录密码"""
+  password: String
+
+  """An array relationship"""
+  post_comments(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): [post_comments!]!
+
+  """An aggregate relationship"""
+  post_comments_aggregate(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): post_comments_aggregate!
 
   """项目意向"""
   program_interests(
@@ -749,6 +2283,45 @@ type intended_parents {
     """JSON select path"""
     path: String
   ): jsonb
+
+  """信托账户余额"""
+  trust_account_balance: numeric!
+
+  """An array relationship"""
+  trust_account_balance_changes(
+    """distinct select on columns"""
+    distinct_on: [trust_account_balance_changes_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [trust_account_balance_changes_order_by!]
+
+    """filter the rows returned"""
+    where: trust_account_balance_changes_bool_exp
+  ): [trust_account_balance_changes!]!
+
+  """An aggregate relationship"""
+  trust_account_balance_changes_aggregate(
+    """distinct select on columns"""
+    distinct_on: [trust_account_balance_changes_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [trust_account_balance_changes_order_by!]
+
+    """filter the rows returned"""
+    where: trust_account_balance_changes_bool_exp
+  ): trust_account_balance_changes_aggregate!
   updated_at: timestamptz!
 }
 
@@ -798,6 +2371,9 @@ input intended_parents_append_input {
 """aggregate avg on columns"""
 type intended_parents_avg_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
 }
 
 """
@@ -808,12 +2384,21 @@ input intended_parents_bool_exp {
   _not: intended_parents_bool_exp
   _or: [intended_parents_bool_exp!]
   basic_information: jsonb_comparison_exp
+  cases: cases_bool_exp
+  cases_aggregate: cases_aggregate_bool_exp
   contact_information: jsonb_comparison_exp
   created_at: timestamptz_comparison_exp
+  email: String_comparison_exp
   family_profile: jsonb_comparison_exp
   id: bigint_comparison_exp
+  password: String_comparison_exp
+  post_comments: post_comments_bool_exp
+  post_comments_aggregate: post_comments_aggregate_bool_exp
   program_interests: jsonb_comparison_exp
   referral: jsonb_comparison_exp
+  trust_account_balance: numeric_comparison_exp
+  trust_account_balance_changes: trust_account_balance_changes_bool_exp
+  trust_account_balance_changes_aggregate: trust_account_balance_changes_aggregate_bool_exp
   updated_at: timestamptz_comparison_exp
 }
 
@@ -821,6 +2406,11 @@ input intended_parents_bool_exp {
 unique or primary key constraints on table "intended_parents"
 """
 enum intended_parents_constraint {
+  """
+  unique or primary key constraint on columns "email"
+  """
+  intended_parents_email_key
+
   """
   unique or primary key constraint on columns "id"
   """
@@ -892,6 +2482,9 @@ input type for incrementing numeric columns in table "intended_parents"
 """
 input intended_parents_inc_input {
   id: bigint
+
+  """信托账户余额"""
+  trust_account_balance: numeric
 }
 
 """
@@ -900,34 +2493,64 @@ input type for inserting data into table "intended_parents"
 input intended_parents_insert_input {
   """基本信息"""
   basic_information: jsonb
+  cases: cases_arr_rel_insert_input
 
   """联系信息"""
   contact_information: jsonb
   created_at: timestamptz
 
+  """准父母邮箱，作为登录的邮箱"""
+  email: String
+
   """家庭资料"""
   family_profile: jsonb
   id: bigint
+
+  """登录密码"""
+  password: String
+  post_comments: post_comments_arr_rel_insert_input
 
   """项目意向"""
   program_interests: jsonb
 
   """渠道及初步沟通"""
   referral: jsonb
+
+  """信托账户余额"""
+  trust_account_balance: numeric
+  trust_account_balance_changes: trust_account_balance_changes_arr_rel_insert_input
   updated_at: timestamptz
 }
 
 """aggregate max on columns"""
 type intended_parents_max_fields {
   created_at: timestamptz
+
+  """准父母邮箱，作为登录的邮箱"""
+  email: String
   id: bigint
+
+  """登录密码"""
+  password: String
+
+  """信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
 }
 
 """aggregate min on columns"""
 type intended_parents_min_fields {
   created_at: timestamptz
+
+  """准父母邮箱，作为登录的邮箱"""
+  email: String
   id: bigint
+
+  """登录密码"""
+  password: String
+
+  """信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
 }
 
@@ -943,6 +2566,16 @@ type intended_parents_mutation_response {
 }
 
 """
+input type for inserting object relation for remote table "intended_parents"
+"""
+input intended_parents_obj_rel_insert_input {
+  data: intended_parents_insert_input!
+
+  """upsert condition"""
+  on_conflict: intended_parents_on_conflict
+}
+
+"""
 on_conflict condition type for table "intended_parents"
 """
 input intended_parents_on_conflict {
@@ -954,12 +2587,18 @@ input intended_parents_on_conflict {
 """Ordering options when selecting data from "intended_parents"."""
 input intended_parents_order_by {
   basic_information: order_by
+  cases_aggregate: cases_aggregate_order_by
   contact_information: order_by
   created_at: order_by
+  email: order_by
   family_profile: order_by
   id: order_by
+  password: order_by
+  post_comments_aggregate: post_comments_aggregate_order_by
   program_interests: order_by
   referral: order_by
+  trust_account_balance: order_by
+  trust_account_balance_changes_aggregate: trust_account_balance_changes_aggregate_order_by
   updated_at: order_by
 }
 
@@ -1000,16 +2639,25 @@ enum intended_parents_select_column {
   created_at
 
   """column name"""
+  email
+
+  """column name"""
   family_profile
 
   """column name"""
   id
 
   """column name"""
+  password
+
+  """column name"""
   program_interests
 
   """column name"""
   referral
+
+  """column name"""
+  trust_account_balance
 
   """column name"""
   updated_at
@@ -1026,31 +2674,49 @@ input intended_parents_set_input {
   contact_information: jsonb
   created_at: timestamptz
 
+  """准父母邮箱，作为登录的邮箱"""
+  email: String
+
   """家庭资料"""
   family_profile: jsonb
   id: bigint
+
+  """登录密码"""
+  password: String
 
   """项目意向"""
   program_interests: jsonb
 
   """渠道及初步沟通"""
   referral: jsonb
+
+  """信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
 }
 
 """aggregate stddev on columns"""
 type intended_parents_stddev_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
 }
 
 """aggregate stddev_pop on columns"""
 type intended_parents_stddev_pop_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
 }
 
 """aggregate stddev_samp on columns"""
 type intended_parents_stddev_samp_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
 }
 
 """
@@ -1073,21 +2739,33 @@ input intended_parents_stream_cursor_value_input {
   contact_information: jsonb
   created_at: timestamptz
 
+  """准父母邮箱，作为登录的邮箱"""
+  email: String
+
   """家庭资料"""
   family_profile: jsonb
   id: bigint
+
+  """登录密码"""
+  password: String
 
   """项目意向"""
   program_interests: jsonb
 
   """渠道及初步沟通"""
   referral: jsonb
+
+  """信托账户余额"""
+  trust_account_balance: numeric
   updated_at: timestamptz
 }
 
 """aggregate sum on columns"""
 type intended_parents_sum_fields {
   id: bigint
+
+  """信托账户余额"""
+  trust_account_balance: numeric
 }
 
 """
@@ -1104,16 +2782,25 @@ enum intended_parents_update_column {
   created_at
 
   """column name"""
+  email
+
+  """column name"""
   family_profile
 
   """column name"""
   id
 
   """column name"""
+  password
+
+  """column name"""
   program_interests
 
   """column name"""
   referral
+
+  """column name"""
+  trust_account_balance
 
   """column name"""
   updated_at
@@ -1154,16 +2841,941 @@ input intended_parents_updates {
 """aggregate var_pop on columns"""
 type intended_parents_var_pop_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
 }
 
 """aggregate var_samp on columns"""
 type intended_parents_var_samp_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
 }
 
 """aggregate variance on columns"""
 type intended_parents_variance_fields {
   id: Float
+
+  """信托账户余额"""
+  trust_account_balance: Float
+}
+
+"""体外受精诊所记录信息"""
+type ivf_clinics {
+  """An object relationship"""
+  case: cases
+
+  """外键，关联cases表"""
+  case_cases: bigint
+  created_at: timestamptz!
+
+  """根据不同的type，有不同的数据结构"""
+  data(
+    """JSON select path"""
+    path: String
+  ): jsonb!
+  id: bigint!
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: String!
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "ivf_clinics"
+"""
+type ivf_clinics_aggregate {
+  aggregate: ivf_clinics_aggregate_fields
+  nodes: [ivf_clinics!]!
+}
+
+input ivf_clinics_aggregate_bool_exp {
+  count: ivf_clinics_aggregate_bool_exp_count
+}
+
+input ivf_clinics_aggregate_bool_exp_count {
+  arguments: [ivf_clinics_select_column!]
+  distinct: Boolean
+  filter: ivf_clinics_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "ivf_clinics"
+"""
+type ivf_clinics_aggregate_fields {
+  avg: ivf_clinics_avg_fields
+  count(columns: [ivf_clinics_select_column!], distinct: Boolean): Int!
+  max: ivf_clinics_max_fields
+  min: ivf_clinics_min_fields
+  stddev: ivf_clinics_stddev_fields
+  stddev_pop: ivf_clinics_stddev_pop_fields
+  stddev_samp: ivf_clinics_stddev_samp_fields
+  sum: ivf_clinics_sum_fields
+  var_pop: ivf_clinics_var_pop_fields
+  var_samp: ivf_clinics_var_samp_fields
+  variance: ivf_clinics_variance_fields
+}
+
+"""
+order by aggregate values of table "ivf_clinics"
+"""
+input ivf_clinics_aggregate_order_by {
+  avg: ivf_clinics_avg_order_by
+  count: order_by
+  max: ivf_clinics_max_order_by
+  min: ivf_clinics_min_order_by
+  stddev: ivf_clinics_stddev_order_by
+  stddev_pop: ivf_clinics_stddev_pop_order_by
+  stddev_samp: ivf_clinics_stddev_samp_order_by
+  sum: ivf_clinics_sum_order_by
+  var_pop: ivf_clinics_var_pop_order_by
+  var_samp: ivf_clinics_var_samp_order_by
+  variance: ivf_clinics_variance_order_by
+}
+
+"""append existing jsonb value of filtered columns with new jsonb value"""
+input ivf_clinics_append_input {
+  """根据不同的type，有不同的数据结构"""
+  data: jsonb
+}
+
+"""
+input type for inserting array relation for remote table "ivf_clinics"
+"""
+input ivf_clinics_arr_rel_insert_input {
+  data: [ivf_clinics_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: ivf_clinics_on_conflict
+}
+
+"""aggregate avg on columns"""
+type ivf_clinics_avg_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by avg() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_avg_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "ivf_clinics". All fields are combined with a logical 'AND'.
+"""
+input ivf_clinics_bool_exp {
+  _and: [ivf_clinics_bool_exp!]
+  _not: ivf_clinics_bool_exp
+  _or: [ivf_clinics_bool_exp!]
+  case: cases_bool_exp
+  case_cases: bigint_comparison_exp
+  created_at: timestamptz_comparison_exp
+  data: jsonb_comparison_exp
+  id: bigint_comparison_exp
+  type: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "ivf_clinics"
+"""
+enum ivf_clinics_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  ivf_clinics_pkey
+}
+
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input ivf_clinics_delete_at_path_input {
+  """根据不同的type，有不同的数据结构"""
+  data: [String!]
+}
+
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input ivf_clinics_delete_elem_input {
+  """根据不同的type，有不同的数据结构"""
+  data: Int
+}
+
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input ivf_clinics_delete_key_input {
+  """根据不同的type，有不同的数据结构"""
+  data: String
+}
+
+"""
+input type for incrementing numeric columns in table "ivf_clinics"
+"""
+input ivf_clinics_inc_input {
+  """外键，关联cases表"""
+  case_cases: bigint
+  id: bigint
+}
+
+"""
+input type for inserting data into table "ivf_clinics"
+"""
+input ivf_clinics_insert_input {
+  case: cases_obj_rel_insert_input
+
+  """外键，关联cases表"""
+  case_cases: bigint
+  created_at: timestamptz
+
+  """根据不同的type，有不同的数据结构"""
+  data: jsonb
+  id: bigint
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type ivf_clinics_max_fields {
+  """外键，关联cases表"""
+  case_cases: bigint
+  created_at: timestamptz
+  id: bigint
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: String
+  updated_at: timestamptz
+}
+
+"""
+order by max() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_max_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  created_at: order_by
+  id: order_by
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: order_by
+  updated_at: order_by
+}
+
+"""aggregate min on columns"""
+type ivf_clinics_min_fields {
+  """外键，关联cases表"""
+  case_cases: bigint
+  created_at: timestamptz
+  id: bigint
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: String
+  updated_at: timestamptz
+}
+
+"""
+order by min() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_min_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  created_at: order_by
+  id: order_by
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: order_by
+  updated_at: order_by
+}
+
+"""
+response of any mutation on the table "ivf_clinics"
+"""
+type ivf_clinics_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [ivf_clinics!]!
+}
+
+"""
+on_conflict condition type for table "ivf_clinics"
+"""
+input ivf_clinics_on_conflict {
+  constraint: ivf_clinics_constraint!
+  update_columns: [ivf_clinics_update_column!]! = []
+  where: ivf_clinics_bool_exp
+}
+
+"""Ordering options when selecting data from "ivf_clinics"."""
+input ivf_clinics_order_by {
+  case: cases_order_by
+  case_cases: order_by
+  created_at: order_by
+  data: order_by
+  id: order_by
+  type: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: ivf_clinics"""
+input ivf_clinics_pk_columns_input {
+  id: bigint!
+}
+
+"""prepend existing jsonb value of filtered columns with new jsonb value"""
+input ivf_clinics_prepend_input {
+  """根据不同的type，有不同的数据结构"""
+  data: jsonb
+}
+
+"""
+select columns of table "ivf_clinics"
+"""
+enum ivf_clinics_select_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  created_at
+
+  """column name"""
+  data
+
+  """column name"""
+  id
+
+  """column name"""
+  type
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "ivf_clinics"
+"""
+input ivf_clinics_set_input {
+  """外键，关联cases表"""
+  case_cases: bigint
+  created_at: timestamptz
+
+  """根据不同的type，有不同的数据结构"""
+  data: jsonb
+  id: bigint
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type ivf_clinics_stddev_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by stddev() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_stddev_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type ivf_clinics_stddev_pop_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by stddev_pop() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_stddev_pop_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type ivf_clinics_stddev_samp_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by stddev_samp() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_stddev_samp_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""
+Streaming cursor of the table "ivf_clinics"
+"""
+input ivf_clinics_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: ivf_clinics_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input ivf_clinics_stream_cursor_value_input {
+  """外键，关联cases表"""
+  case_cases: bigint
+  created_at: timestamptz
+
+  """根据不同的type，有不同的数据结构"""
+  data: jsonb
+  id: bigint
+
+  """
+  可选值：1.ClinicOverview 2.EmbryoJourney 3.SurrogateAppointments 4.MedicationTracker 5.DoctorNotes
+  """
+  type: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type ivf_clinics_sum_fields {
+  """外键，关联cases表"""
+  case_cases: bigint
+  id: bigint
+}
+
+"""
+order by sum() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_sum_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""
+update columns of table "ivf_clinics"
+"""
+enum ivf_clinics_update_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  created_at
+
+  """column name"""
+  data
+
+  """column name"""
+  id
+
+  """column name"""
+  type
+
+  """column name"""
+  updated_at
+}
+
+input ivf_clinics_updates {
+  """append existing jsonb value of filtered columns with new jsonb value"""
+  _append: ivf_clinics_append_input
+
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: ivf_clinics_delete_at_path_input
+
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: ivf_clinics_delete_elem_input
+
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: ivf_clinics_delete_key_input
+
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: ivf_clinics_inc_input
+
+  """prepend existing jsonb value of filtered columns with new jsonb value"""
+  _prepend: ivf_clinics_prepend_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: ivf_clinics_set_input
+
+  """filter the rows which have to be updated"""
+  where: ivf_clinics_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type ivf_clinics_var_pop_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by var_pop() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_var_pop_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate var_samp on columns"""
+type ivf_clinics_var_samp_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by var_samp() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_var_samp_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate variance on columns"""
+type ivf_clinics_variance_fields {
+  """外键，关联cases表"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by variance() on columns of table "ivf_clinics"
+"""
+input ivf_clinics_variance_order_by {
+  """外键，关联cases表"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""代孕旅程"""
+type journeys {
+  """关联外键，cases"""
+  case_cases: bigint
+
+  """An array relationship"""
+  cases_files(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): [cases_files!]!
+
+  """An aggregate relationship"""
+  cases_files_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): cases_files_aggregate!
+  created_at: timestamptz!
+  id: bigint!
+
+  """步骤序号：1-7"""
+  stage: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "journeys"
+"""
+type journeys_aggregate {
+  aggregate: journeys_aggregate_fields
+  nodes: [journeys!]!
+}
+
+"""
+aggregate fields of "journeys"
+"""
+type journeys_aggregate_fields {
+  avg: journeys_avg_fields
+  count(columns: [journeys_select_column!], distinct: Boolean): Int!
+  max: journeys_max_fields
+  min: journeys_min_fields
+  stddev: journeys_stddev_fields
+  stddev_pop: journeys_stddev_pop_fields
+  stddev_samp: journeys_stddev_samp_fields
+  sum: journeys_sum_fields
+  var_pop: journeys_var_pop_fields
+  var_samp: journeys_var_samp_fields
+  variance: journeys_variance_fields
+}
+
+"""aggregate avg on columns"""
+type journeys_avg_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
+}
+
+"""
+Boolean expression to filter rows from the table "journeys". All fields are combined with a logical 'AND'.
+"""
+input journeys_bool_exp {
+  _and: [journeys_bool_exp!]
+  _not: journeys_bool_exp
+  _or: [journeys_bool_exp!]
+  case_cases: bigint_comparison_exp
+  cases_files: cases_files_bool_exp
+  cases_files_aggregate: cases_files_aggregate_bool_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  stage: bigint_comparison_exp
+  title: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "journeys"
+"""
+enum journeys_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  journeys_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "journeys"
+"""
+input journeys_inc_input {
+  """关联外键，cases"""
+  case_cases: bigint
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+}
+
+"""
+input type for inserting data into table "journeys"
+"""
+input journeys_insert_input {
+  """关联外键，cases"""
+  case_cases: bigint
+  cases_files: cases_files_arr_rel_insert_input
+  created_at: timestamptz
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type journeys_max_fields {
+  """关联外键，cases"""
+  case_cases: bigint
+  created_at: timestamptz
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type journeys_min_fields {
+  """关联外键，cases"""
+  case_cases: bigint
+  created_at: timestamptz
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "journeys"
+"""
+type journeys_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [journeys!]!
+}
+
+"""
+input type for inserting object relation for remote table "journeys"
+"""
+input journeys_obj_rel_insert_input {
+  data: journeys_insert_input!
+
+  """upsert condition"""
+  on_conflict: journeys_on_conflict
+}
+
+"""
+on_conflict condition type for table "journeys"
+"""
+input journeys_on_conflict {
+  constraint: journeys_constraint!
+  update_columns: [journeys_update_column!]! = []
+  where: journeys_bool_exp
+}
+
+"""Ordering options when selecting data from "journeys"."""
+input journeys_order_by {
+  case_cases: order_by
+  cases_files_aggregate: cases_files_aggregate_order_by
+  created_at: order_by
+  id: order_by
+  stage: order_by
+  title: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: journeys"""
+input journeys_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "journeys"
+"""
+enum journeys_select_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  stage
+
+  """column name"""
+  title
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "journeys"
+"""
+input journeys_set_input {
+  """关联外键，cases"""
+  case_cases: bigint
+  created_at: timestamptz
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type journeys_stddev_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type journeys_stddev_pop_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type journeys_stddev_samp_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
+}
+
+"""
+Streaming cursor of the table "journeys"
+"""
+input journeys_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: journeys_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input journeys_stream_cursor_value_input {
+  """关联外键，cases"""
+  case_cases: bigint
+  created_at: timestamptz
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type journeys_sum_fields {
+  """关联外键，cases"""
+  case_cases: bigint
+  id: bigint
+
+  """步骤序号：1-7"""
+  stage: bigint
+}
+
+"""
+update columns of table "journeys"
+"""
+enum journeys_update_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  stage
+
+  """column name"""
+  title
+
+  """column name"""
+  updated_at
+}
+
+input journeys_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: journeys_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: journeys_set_input
+
+  """filter the rows which have to be updated"""
+  where: journeys_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type journeys_var_pop_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
+}
+
+"""aggregate var_samp on columns"""
+type journeys_var_samp_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
+}
+
+"""aggregate variance on columns"""
+type journeys_variance_fields {
+  """关联外键，cases"""
+  case_cases: Float
+  id: Float
+
+  """步骤序号：1-7"""
+  stage: Float
 }
 
 scalar jsonb
@@ -1203,6 +3815,273 @@ input jsonb_comparison_exp {
   _nin: [jsonb!]
 }
 
+"""管理员"""
+type managers {
+  created_at: timestamptz!
+
+  """登录的邮箱"""
+  email: String!
+  id: bigint!
+  password: String!
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "managers"
+"""
+type managers_aggregate {
+  aggregate: managers_aggregate_fields
+  nodes: [managers!]!
+}
+
+"""
+aggregate fields of "managers"
+"""
+type managers_aggregate_fields {
+  avg: managers_avg_fields
+  count(columns: [managers_select_column!], distinct: Boolean): Int!
+  max: managers_max_fields
+  min: managers_min_fields
+  stddev: managers_stddev_fields
+  stddev_pop: managers_stddev_pop_fields
+  stddev_samp: managers_stddev_samp_fields
+  sum: managers_sum_fields
+  var_pop: managers_var_pop_fields
+  var_samp: managers_var_samp_fields
+  variance: managers_variance_fields
+}
+
+"""aggregate avg on columns"""
+type managers_avg_fields {
+  id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "managers". All fields are combined with a logical 'AND'.
+"""
+input managers_bool_exp {
+  _and: [managers_bool_exp!]
+  _not: managers_bool_exp
+  _or: [managers_bool_exp!]
+  created_at: timestamptz_comparison_exp
+  email: String_comparison_exp
+  id: bigint_comparison_exp
+  password: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "managers"
+"""
+enum managers_constraint {
+  """
+  unique or primary key constraint on columns "email"
+  """
+  managers_email_key
+
+  """
+  unique or primary key constraint on columns "id"
+  """
+  managers_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "managers"
+"""
+input managers_inc_input {
+  id: bigint
+}
+
+"""
+input type for inserting data into table "managers"
+"""
+input managers_insert_input {
+  created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type managers_max_fields {
+  created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type managers_min_fields {
+  created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "managers"
+"""
+type managers_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [managers!]!
+}
+
+"""
+on_conflict condition type for table "managers"
+"""
+input managers_on_conflict {
+  constraint: managers_constraint!
+  update_columns: [managers_update_column!]! = []
+  where: managers_bool_exp
+}
+
+"""Ordering options when selecting data from "managers"."""
+input managers_order_by {
+  created_at: order_by
+  email: order_by
+  id: order_by
+  password: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: managers"""
+input managers_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "managers"
+"""
+enum managers_select_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  email
+
+  """column name"""
+  id
+
+  """column name"""
+  password
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "managers"
+"""
+input managers_set_input {
+  created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type managers_stddev_fields {
+  id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type managers_stddev_pop_fields {
+  id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type managers_stddev_samp_fields {
+  id: Float
+}
+
+"""
+Streaming cursor of the table "managers"
+"""
+input managers_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: managers_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input managers_stream_cursor_value_input {
+  created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
+  id: bigint
+  password: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type managers_sum_fields {
+  id: bigint
+}
+
+"""
+update columns of table "managers"
+"""
+enum managers_update_column {
+  """column name"""
+  created_at
+
+  """column name"""
+  email
+
+  """column name"""
+  id
+
+  """column name"""
+  password
+
+  """column name"""
+  updated_at
+}
+
+input managers_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: managers_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: managers_set_input
+
+  """filter the rows which have to be updated"""
+  where: managers_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type managers_var_pop_fields {
+  id: Float
+}
+
+"""aggregate var_samp on columns"""
+type managers_var_samp_fields {
+  id: Float
+}
+
+"""aggregate variance on columns"""
+type managers_variance_fields {
+  id: Float
+}
+
 """mutation root"""
 type mutation_root {
   """
@@ -1232,6 +4111,32 @@ type mutation_root {
   delete_cases_by_pk(id: bigint!): cases
 
   """
+  delete data from the table: "cases_files"
+  """
+  delete_cases_files(
+    """filter the rows which have to be deleted"""
+    where: cases_files_bool_exp!
+  ): cases_files_mutation_response
+
+  """
+  delete single row from the table: "cases_files"
+  """
+  delete_cases_files_by_pk(id: bigint!): cases_files
+
+  """
+  delete data from the table: "client_managers"
+  """
+  delete_client_managers(
+    """filter the rows which have to be deleted"""
+    where: client_managers_bool_exp!
+  ): client_managers_mutation_response
+
+  """
+  delete single row from the table: "client_managers"
+  """
+  delete_client_managers_by_pk(id: bigint!): client_managers
+
+  """
   delete data from the table: "intended_parents"
   """
   delete_intended_parents(
@@ -1243,6 +4148,71 @@ type mutation_root {
   delete single row from the table: "intended_parents"
   """
   delete_intended_parents_by_pk(id: bigint!): intended_parents
+
+  """
+  delete data from the table: "ivf_clinics"
+  """
+  delete_ivf_clinics(
+    """filter the rows which have to be deleted"""
+    where: ivf_clinics_bool_exp!
+  ): ivf_clinics_mutation_response
+
+  """
+  delete single row from the table: "ivf_clinics"
+  """
+  delete_ivf_clinics_by_pk(id: bigint!): ivf_clinics
+
+  """
+  delete data from the table: "journeys"
+  """
+  delete_journeys(
+    """filter the rows which have to be deleted"""
+    where: journeys_bool_exp!
+  ): journeys_mutation_response
+
+  """
+  delete single row from the table: "journeys"
+  """
+  delete_journeys_by_pk(id: bigint!): journeys
+
+  """
+  delete data from the table: "managers"
+  """
+  delete_managers(
+    """filter the rows which have to be deleted"""
+    where: managers_bool_exp!
+  ): managers_mutation_response
+
+  """
+  delete single row from the table: "managers"
+  """
+  delete_managers_by_pk(id: bigint!): managers
+
+  """
+  delete data from the table: "post_comments"
+  """
+  delete_post_comments(
+    """filter the rows which have to be deleted"""
+    where: post_comments_bool_exp!
+  ): post_comments_mutation_response
+
+  """
+  delete single row from the table: "post_comments"
+  """
+  delete_post_comments_by_pk(id: bigint!): post_comments
+
+  """
+  delete data from the table: "posts"
+  """
+  delete_posts(
+    """filter the rows which have to be deleted"""
+    where: posts_bool_exp!
+  ): posts_mutation_response
+
+  """
+  delete single row from the table: "posts"
+  """
+  delete_posts_by_pk(id: bigint!): posts
 
   """
   delete data from the table: "surrogate_mothers"
@@ -1258,30 +4228,17 @@ type mutation_root {
   delete_surrogate_mothers_by_pk(id: bigint!): surrogate_mothers
 
   """
-  delete data from the table: "user_notifications"
+  delete data from the table: "trust_account_balance_changes"
   """
-  delete_user_notifications(
+  delete_trust_account_balance_changes(
     """filter the rows which have to be deleted"""
-    where: user_notifications_bool_exp!
-  ): user_notifications_mutation_response
+    where: trust_account_balance_changes_bool_exp!
+  ): trust_account_balance_changes_mutation_response
 
   """
-  delete single row from the table: "user_notifications"
+  delete single row from the table: "trust_account_balance_changes"
   """
-  delete_user_notifications_by_pk(id: bigint!): user_notifications
-
-  """
-  delete data from the table: "users"
-  """
-  delete_users(
-    """filter the rows which have to be deleted"""
-    where: users_bool_exp!
-  ): users_mutation_response
-
-  """
-  delete single row from the table: "users"
-  """
-  delete_users_by_pk(id: bigint!): users
+  delete_trust_account_balance_changes_by_pk(id: bigint!): trust_account_balance_changes
 
   """
   insert data into the table: "applications"
@@ -1317,6 +4274,28 @@ type mutation_root {
   ): cases_mutation_response
 
   """
+  insert data into the table: "cases_files"
+  """
+  insert_cases_files(
+    """the rows to be inserted"""
+    objects: [cases_files_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: cases_files_on_conflict
+  ): cases_files_mutation_response
+
+  """
+  insert a single row into the table: "cases_files"
+  """
+  insert_cases_files_one(
+    """the row to be inserted"""
+    object: cases_files_insert_input!
+
+    """upsert condition"""
+    on_conflict: cases_files_on_conflict
+  ): cases_files
+
+  """
   insert a single row into the table: "cases"
   """
   insert_cases_one(
@@ -1326,6 +4305,28 @@ type mutation_root {
     """upsert condition"""
     on_conflict: cases_on_conflict
   ): cases
+
+  """
+  insert data into the table: "client_managers"
+  """
+  insert_client_managers(
+    """the rows to be inserted"""
+    objects: [client_managers_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: client_managers_on_conflict
+  ): client_managers_mutation_response
+
+  """
+  insert a single row into the table: "client_managers"
+  """
+  insert_client_managers_one(
+    """the row to be inserted"""
+    object: client_managers_insert_input!
+
+    """upsert condition"""
+    on_conflict: client_managers_on_conflict
+  ): client_managers
 
   """
   insert data into the table: "intended_parents"
@@ -1350,6 +4351,116 @@ type mutation_root {
   ): intended_parents
 
   """
+  insert data into the table: "ivf_clinics"
+  """
+  insert_ivf_clinics(
+    """the rows to be inserted"""
+    objects: [ivf_clinics_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: ivf_clinics_on_conflict
+  ): ivf_clinics_mutation_response
+
+  """
+  insert a single row into the table: "ivf_clinics"
+  """
+  insert_ivf_clinics_one(
+    """the row to be inserted"""
+    object: ivf_clinics_insert_input!
+
+    """upsert condition"""
+    on_conflict: ivf_clinics_on_conflict
+  ): ivf_clinics
+
+  """
+  insert data into the table: "journeys"
+  """
+  insert_journeys(
+    """the rows to be inserted"""
+    objects: [journeys_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: journeys_on_conflict
+  ): journeys_mutation_response
+
+  """
+  insert a single row into the table: "journeys"
+  """
+  insert_journeys_one(
+    """the row to be inserted"""
+    object: journeys_insert_input!
+
+    """upsert condition"""
+    on_conflict: journeys_on_conflict
+  ): journeys
+
+  """
+  insert data into the table: "managers"
+  """
+  insert_managers(
+    """the rows to be inserted"""
+    objects: [managers_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: managers_on_conflict
+  ): managers_mutation_response
+
+  """
+  insert a single row into the table: "managers"
+  """
+  insert_managers_one(
+    """the row to be inserted"""
+    object: managers_insert_input!
+
+    """upsert condition"""
+    on_conflict: managers_on_conflict
+  ): managers
+
+  """
+  insert data into the table: "post_comments"
+  """
+  insert_post_comments(
+    """the rows to be inserted"""
+    objects: [post_comments_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: post_comments_on_conflict
+  ): post_comments_mutation_response
+
+  """
+  insert a single row into the table: "post_comments"
+  """
+  insert_post_comments_one(
+    """the row to be inserted"""
+    object: post_comments_insert_input!
+
+    """upsert condition"""
+    on_conflict: post_comments_on_conflict
+  ): post_comments
+
+  """
+  insert data into the table: "posts"
+  """
+  insert_posts(
+    """the rows to be inserted"""
+    objects: [posts_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: posts_on_conflict
+  ): posts_mutation_response
+
+  """
+  insert a single row into the table: "posts"
+  """
+  insert_posts_one(
+    """the row to be inserted"""
+    object: posts_insert_input!
+
+    """upsert condition"""
+    on_conflict: posts_on_conflict
+  ): posts
+
+  """
   insert data into the table: "surrogate_mothers"
   """
   insert_surrogate_mothers(
@@ -1372,48 +4483,26 @@ type mutation_root {
   ): surrogate_mothers
 
   """
-  insert data into the table: "user_notifications"
+  insert data into the table: "trust_account_balance_changes"
   """
-  insert_user_notifications(
+  insert_trust_account_balance_changes(
     """the rows to be inserted"""
-    objects: [user_notifications_insert_input!]!
+    objects: [trust_account_balance_changes_insert_input!]!
 
     """upsert condition"""
-    on_conflict: user_notifications_on_conflict
-  ): user_notifications_mutation_response
+    on_conflict: trust_account_balance_changes_on_conflict
+  ): trust_account_balance_changes_mutation_response
 
   """
-  insert a single row into the table: "user_notifications"
+  insert a single row into the table: "trust_account_balance_changes"
   """
-  insert_user_notifications_one(
+  insert_trust_account_balance_changes_one(
     """the row to be inserted"""
-    object: user_notifications_insert_input!
+    object: trust_account_balance_changes_insert_input!
 
     """upsert condition"""
-    on_conflict: user_notifications_on_conflict
-  ): user_notifications
-
-  """
-  insert data into the table: "users"
-  """
-  insert_users(
-    """the rows to be inserted"""
-    objects: [users_insert_input!]!
-
-    """upsert condition"""
-    on_conflict: users_on_conflict
-  ): users_mutation_response
-
-  """
-  insert a single row into the table: "users"
-  """
-  insert_users_one(
-    """the row to be inserted"""
-    object: users_insert_input!
-
-    """upsert condition"""
-    on_conflict: users_on_conflict
-  ): users
+    on_conflict: trust_account_balance_changes_on_conflict
+  ): trust_account_balance_changes
 
   """
   update data of the table: "applications"
@@ -1518,12 +4607,80 @@ type mutation_root {
   ): cases
 
   """
+  update data of the table: "cases_files"
+  """
+  update_cases_files(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: cases_files_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: cases_files_set_input
+
+    """filter the rows which have to be updated"""
+    where: cases_files_bool_exp!
+  ): cases_files_mutation_response
+
+  """
+  update single row of the table: "cases_files"
+  """
+  update_cases_files_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: cases_files_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: cases_files_set_input
+    pk_columns: cases_files_pk_columns_input!
+  ): cases_files
+
+  """
+  update multiples rows of table: "cases_files"
+  """
+  update_cases_files_many(
+    """updates to execute, in order"""
+    updates: [cases_files_updates!]!
+  ): [cases_files_mutation_response]
+
+  """
   update multiples rows of table: "cases"
   """
   update_cases_many(
     """updates to execute, in order"""
     updates: [cases_updates!]!
   ): [cases_mutation_response]
+
+  """
+  update data of the table: "client_managers"
+  """
+  update_client_managers(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: client_managers_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: client_managers_set_input
+
+    """filter the rows which have to be updated"""
+    where: client_managers_bool_exp!
+  ): client_managers_mutation_response
+
+  """
+  update single row of the table: "client_managers"
+  """
+  update_client_managers_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: client_managers_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: client_managers_set_input
+    pk_columns: client_managers_pk_columns_input!
+  ): client_managers
+
+  """
+  update multiples rows of table: "client_managers"
+  """
+  update_client_managers_many(
+    """updates to execute, in order"""
+    updates: [client_managers_updates!]!
+  ): [client_managers_mutation_response]
 
   """
   update data of the table: "intended_parents"
@@ -1602,6 +4759,218 @@ type mutation_root {
   ): [intended_parents_mutation_response]
 
   """
+  update data of the table: "ivf_clinics"
+  """
+  update_ivf_clinics(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: ivf_clinics_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: ivf_clinics_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: ivf_clinics_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: ivf_clinics_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: ivf_clinics_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: ivf_clinics_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: ivf_clinics_set_input
+
+    """filter the rows which have to be updated"""
+    where: ivf_clinics_bool_exp!
+  ): ivf_clinics_mutation_response
+
+  """
+  update single row of the table: "ivf_clinics"
+  """
+  update_ivf_clinics_by_pk(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: ivf_clinics_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: ivf_clinics_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: ivf_clinics_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: ivf_clinics_delete_key_input
+
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: ivf_clinics_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: ivf_clinics_prepend_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: ivf_clinics_set_input
+    pk_columns: ivf_clinics_pk_columns_input!
+  ): ivf_clinics
+
+  """
+  update multiples rows of table: "ivf_clinics"
+  """
+  update_ivf_clinics_many(
+    """updates to execute, in order"""
+    updates: [ivf_clinics_updates!]!
+  ): [ivf_clinics_mutation_response]
+
+  """
+  update data of the table: "journeys"
+  """
+  update_journeys(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: journeys_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: journeys_set_input
+
+    """filter the rows which have to be updated"""
+    where: journeys_bool_exp!
+  ): journeys_mutation_response
+
+  """
+  update single row of the table: "journeys"
+  """
+  update_journeys_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: journeys_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: journeys_set_input
+    pk_columns: journeys_pk_columns_input!
+  ): journeys
+
+  """
+  update multiples rows of table: "journeys"
+  """
+  update_journeys_many(
+    """updates to execute, in order"""
+    updates: [journeys_updates!]!
+  ): [journeys_mutation_response]
+
+  """
+  update data of the table: "managers"
+  """
+  update_managers(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: managers_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: managers_set_input
+
+    """filter the rows which have to be updated"""
+    where: managers_bool_exp!
+  ): managers_mutation_response
+
+  """
+  update single row of the table: "managers"
+  """
+  update_managers_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: managers_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: managers_set_input
+    pk_columns: managers_pk_columns_input!
+  ): managers
+
+  """
+  update multiples rows of table: "managers"
+  """
+  update_managers_many(
+    """updates to execute, in order"""
+    updates: [managers_updates!]!
+  ): [managers_mutation_response]
+
+  """
+  update data of the table: "post_comments"
+  """
+  update_post_comments(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: post_comments_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: post_comments_set_input
+
+    """filter the rows which have to be updated"""
+    where: post_comments_bool_exp!
+  ): post_comments_mutation_response
+
+  """
+  update single row of the table: "post_comments"
+  """
+  update_post_comments_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: post_comments_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: post_comments_set_input
+    pk_columns: post_comments_pk_columns_input!
+  ): post_comments
+
+  """
+  update multiples rows of table: "post_comments"
+  """
+  update_post_comments_many(
+    """updates to execute, in order"""
+    updates: [post_comments_updates!]!
+  ): [post_comments_mutation_response]
+
+  """
+  update data of the table: "posts"
+  """
+  update_posts(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: posts_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: posts_set_input
+
+    """filter the rows which have to be updated"""
+    where: posts_bool_exp!
+  ): posts_mutation_response
+
+  """
+  update single row of the table: "posts"
+  """
+  update_posts_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: posts_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: posts_set_input
+    pk_columns: posts_pk_columns_input!
+  ): posts
+
+  """
+  update multiples rows of table: "posts"
+  """
+  update_posts_many(
+    """updates to execute, in order"""
+    updates: [posts_updates!]!
+  ): [posts_mutation_response]
+
+  """
   update data of the table: "surrogate_mothers"
   """
   update_surrogate_mothers(
@@ -1678,72 +5047,55 @@ type mutation_root {
   ): [surrogate_mothers_mutation_response]
 
   """
-  update data of the table: "user_notifications"
+  update data of the table: "trust_account_balance_changes"
   """
-  update_user_notifications(
+  update_trust_account_balance_changes(
     """increments the numeric columns with given value of the filtered values"""
-    _inc: user_notifications_inc_input
+    _inc: trust_account_balance_changes_inc_input
 
     """sets the columns of the filtered rows to the given values"""
-    _set: user_notifications_set_input
+    _set: trust_account_balance_changes_set_input
 
     """filter the rows which have to be updated"""
-    where: user_notifications_bool_exp!
-  ): user_notifications_mutation_response
+    where: trust_account_balance_changes_bool_exp!
+  ): trust_account_balance_changes_mutation_response
 
   """
-  update single row of the table: "user_notifications"
+  update single row of the table: "trust_account_balance_changes"
   """
-  update_user_notifications_by_pk(
+  update_trust_account_balance_changes_by_pk(
     """increments the numeric columns with given value of the filtered values"""
-    _inc: user_notifications_inc_input
+    _inc: trust_account_balance_changes_inc_input
 
     """sets the columns of the filtered rows to the given values"""
-    _set: user_notifications_set_input
-    pk_columns: user_notifications_pk_columns_input!
-  ): user_notifications
+    _set: trust_account_balance_changes_set_input
+    pk_columns: trust_account_balance_changes_pk_columns_input!
+  ): trust_account_balance_changes
 
   """
-  update multiples rows of table: "user_notifications"
+  update multiples rows of table: "trust_account_balance_changes"
   """
-  update_user_notifications_many(
+  update_trust_account_balance_changes_many(
     """updates to execute, in order"""
-    updates: [user_notifications_updates!]!
-  ): [user_notifications_mutation_response]
+    updates: [trust_account_balance_changes_updates!]!
+  ): [trust_account_balance_changes_mutation_response]
+}
 
-  """
-  update data of the table: "users"
-  """
-  update_users(
-    """increments the numeric columns with given value of the filtered values"""
-    _inc: users_inc_input
+scalar numeric
 
-    """sets the columns of the filtered rows to the given values"""
-    _set: users_set_input
-
-    """filter the rows which have to be updated"""
-    where: users_bool_exp!
-  ): users_mutation_response
-
-  """
-  update single row of the table: "users"
-  """
-  update_users_by_pk(
-    """increments the numeric columns with given value of the filtered values"""
-    _inc: users_inc_input
-
-    """sets the columns of the filtered rows to the given values"""
-    _set: users_set_input
-    pk_columns: users_pk_columns_input!
-  ): users
-
-  """
-  update multiples rows of table: "users"
-  """
-  update_users_many(
-    """updates to execute, in order"""
-    updates: [users_updates!]!
-  ): [users_mutation_response]
+"""
+Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'.
+"""
+input numeric_comparison_exp {
+  _eq: numeric
+  _gt: numeric
+  _gte: numeric
+  _in: [numeric!]
+  _is_null: Boolean
+  _lt: numeric
+  _lte: numeric
+  _neq: numeric
+  _nin: [numeric!]
 }
 
 """column ordering options"""
@@ -1765,6 +5117,1176 @@ enum order_by {
 
   """in descending order, nulls last"""
   desc_nulls_last
+}
+
+"""动态评论"""
+type post_comments {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: String
+
+  """评论的内容"""
+  content: String!
+  created_at: timestamptz!
+  id: bigint!
+
+  """An object relationship"""
+  intended_parent: intended_parents
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """An object relationship"""
+  post: posts
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """An object relationship"""
+  surrogate_mother: surrogate_mothers
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "post_comments"
+"""
+type post_comments_aggregate {
+  aggregate: post_comments_aggregate_fields
+  nodes: [post_comments!]!
+}
+
+input post_comments_aggregate_bool_exp {
+  count: post_comments_aggregate_bool_exp_count
+}
+
+input post_comments_aggregate_bool_exp_count {
+  arguments: [post_comments_select_column!]
+  distinct: Boolean
+  filter: post_comments_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "post_comments"
+"""
+type post_comments_aggregate_fields {
+  avg: post_comments_avg_fields
+  count(columns: [post_comments_select_column!], distinct: Boolean): Int!
+  max: post_comments_max_fields
+  min: post_comments_min_fields
+  stddev: post_comments_stddev_fields
+  stddev_pop: post_comments_stddev_pop_fields
+  stddev_samp: post_comments_stddev_samp_fields
+  sum: post_comments_sum_fields
+  var_pop: post_comments_var_pop_fields
+  var_samp: post_comments_var_samp_fields
+  variance: post_comments_variance_fields
+}
+
+"""
+order by aggregate values of table "post_comments"
+"""
+input post_comments_aggregate_order_by {
+  avg: post_comments_avg_order_by
+  count: order_by
+  max: post_comments_max_order_by
+  min: post_comments_min_order_by
+  stddev: post_comments_stddev_order_by
+  stddev_pop: post_comments_stddev_pop_order_by
+  stddev_samp: post_comments_stddev_samp_order_by
+  sum: post_comments_sum_order_by
+  var_pop: post_comments_var_pop_order_by
+  var_samp: post_comments_var_samp_order_by
+  variance: post_comments_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "post_comments"
+"""
+input post_comments_arr_rel_insert_input {
+  data: [post_comments_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: post_comments_on_conflict
+}
+
+"""aggregate avg on columns"""
+type post_comments_avg_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by avg() on columns of table "post_comments"
+"""
+input post_comments_avg_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "post_comments". All fields are combined with a logical 'AND'.
+"""
+input post_comments_bool_exp {
+  _and: [post_comments_bool_exp!]
+  _not: post_comments_bool_exp
+  _or: [post_comments_bool_exp!]
+  comment_role: String_comparison_exp
+  content: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  intended_parent: intended_parents_bool_exp
+  intended_parent_intended_parents: bigint_comparison_exp
+  post: posts_bool_exp
+  post_posts: bigint_comparison_exp
+  surrogate_mother: surrogate_mothers_bool_exp
+  surrogate_mother_surrogate_mothers: bigint_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "post_comments"
+"""
+enum post_comments_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  post_comments_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "post_comments"
+"""
+input post_comments_inc_input {
+  id: bigint
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+}
+
+"""
+input type for inserting data into table "post_comments"
+"""
+input post_comments_insert_input {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: String
+
+  """评论的内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+  intended_parent: intended_parents_obj_rel_insert_input
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+  post: posts_obj_rel_insert_input
+
+  """外键，关联帖子"""
+  post_posts: bigint
+  surrogate_mother: surrogate_mothers_obj_rel_insert_input
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type post_comments_max_fields {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: String
+
+  """评论的内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+  updated_at: timestamptz
+}
+
+"""
+order by max() on columns of table "post_comments"
+"""
+input post_comments_max_order_by {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: order_by
+
+  """评论的内容"""
+  content: order_by
+  created_at: order_by
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+  updated_at: order_by
+}
+
+"""aggregate min on columns"""
+type post_comments_min_fields {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: String
+
+  """评论的内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+  updated_at: timestamptz
+}
+
+"""
+order by min() on columns of table "post_comments"
+"""
+input post_comments_min_order_by {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: order_by
+
+  """评论的内容"""
+  content: order_by
+  created_at: order_by
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+  updated_at: order_by
+}
+
+"""
+response of any mutation on the table "post_comments"
+"""
+type post_comments_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [post_comments!]!
+}
+
+"""
+on_conflict condition type for table "post_comments"
+"""
+input post_comments_on_conflict {
+  constraint: post_comments_constraint!
+  update_columns: [post_comments_update_column!]! = []
+  where: post_comments_bool_exp
+}
+
+"""Ordering options when selecting data from "post_comments"."""
+input post_comments_order_by {
+  comment_role: order_by
+  content: order_by
+  created_at: order_by
+  id: order_by
+  intended_parent: intended_parents_order_by
+  intended_parent_intended_parents: order_by
+  post: posts_order_by
+  post_posts: order_by
+  surrogate_mother: surrogate_mothers_order_by
+  surrogate_mother_surrogate_mothers: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: post_comments"""
+input post_comments_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "post_comments"
+"""
+enum post_comments_select_column {
+  """column name"""
+  comment_role
+
+  """column name"""
+  content
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  intended_parent_intended_parents
+
+  """column name"""
+  post_posts
+
+  """column name"""
+  surrogate_mother_surrogate_mothers
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "post_comments"
+"""
+input post_comments_set_input {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: String
+
+  """评论的内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type post_comments_stddev_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by stddev() on columns of table "post_comments"
+"""
+input post_comments_stddev_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type post_comments_stddev_pop_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by stddev_pop() on columns of table "post_comments"
+"""
+input post_comments_stddev_pop_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type post_comments_stddev_samp_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by stddev_samp() on columns of table "post_comments"
+"""
+input post_comments_stddev_samp_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""
+Streaming cursor of the table "post_comments"
+"""
+input post_comments_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: post_comments_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input post_comments_stream_cursor_value_input {
+  """评论的角色：1.intended_parent 2.surrogate_mother"""
+  comment_role: String
+
+  """评论的内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type post_comments_sum_fields {
+  id: bigint
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """外键，关联帖子"""
+  post_posts: bigint
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: bigint
+}
+
+"""
+order by sum() on columns of table "post_comments"
+"""
+input post_comments_sum_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""
+update columns of table "post_comments"
+"""
+enum post_comments_update_column {
+  """column name"""
+  comment_role
+
+  """column name"""
+  content
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  intended_parent_intended_parents
+
+  """column name"""
+  post_posts
+
+  """column name"""
+  surrogate_mother_surrogate_mothers
+
+  """column name"""
+  updated_at
+}
+
+input post_comments_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: post_comments_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: post_comments_set_input
+
+  """filter the rows which have to be updated"""
+  where: post_comments_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type post_comments_var_pop_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by var_pop() on columns of table "post_comments"
+"""
+input post_comments_var_pop_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""aggregate var_samp on columns"""
+type post_comments_var_samp_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by var_samp() on columns of table "post_comments"
+"""
+input post_comments_var_samp_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""aggregate variance on columns"""
+type post_comments_variance_fields {
+  id: Float
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: Float
+
+  """外键，关联帖子"""
+  post_posts: Float
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: Float
+}
+
+"""
+order by variance() on columns of table "post_comments"
+"""
+input post_comments_variance_order_by {
+  id: order_by
+
+  """外键，comment_role为intended_parent时关联的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """外键，关联帖子"""
+  post_posts: order_by
+
+  """外键，comment_role为surrogate_mother时关联的代孕母"""
+  surrogate_mother_surrogate_mothers: order_by
+}
+
+"""动态"""
+type posts {
+  """An object relationship"""
+  case: cases
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """内容"""
+  content: String!
+  created_at: timestamptz!
+  id: bigint!
+
+  """An array relationship"""
+  post_comments(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): [post_comments!]!
+
+  """An aggregate relationship"""
+  post_comments_aggregate(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): post_comments_aggregate!
+
+  """标题"""
+  title: String!
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "posts"
+"""
+type posts_aggregate {
+  aggregate: posts_aggregate_fields
+  nodes: [posts!]!
+}
+
+input posts_aggregate_bool_exp {
+  count: posts_aggregate_bool_exp_count
+}
+
+input posts_aggregate_bool_exp_count {
+  arguments: [posts_select_column!]
+  distinct: Boolean
+  filter: posts_bool_exp
+  predicate: Int_comparison_exp!
+}
+
+"""
+aggregate fields of "posts"
+"""
+type posts_aggregate_fields {
+  avg: posts_avg_fields
+  count(columns: [posts_select_column!], distinct: Boolean): Int!
+  max: posts_max_fields
+  min: posts_min_fields
+  stddev: posts_stddev_fields
+  stddev_pop: posts_stddev_pop_fields
+  stddev_samp: posts_stddev_samp_fields
+  sum: posts_sum_fields
+  var_pop: posts_var_pop_fields
+  var_samp: posts_var_samp_fields
+  variance: posts_variance_fields
+}
+
+"""
+order by aggregate values of table "posts"
+"""
+input posts_aggregate_order_by {
+  avg: posts_avg_order_by
+  count: order_by
+  max: posts_max_order_by
+  min: posts_min_order_by
+  stddev: posts_stddev_order_by
+  stddev_pop: posts_stddev_pop_order_by
+  stddev_samp: posts_stddev_samp_order_by
+  sum: posts_sum_order_by
+  var_pop: posts_var_pop_order_by
+  var_samp: posts_var_samp_order_by
+  variance: posts_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "posts"
+"""
+input posts_arr_rel_insert_input {
+  data: [posts_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: posts_on_conflict
+}
+
+"""aggregate avg on columns"""
+type posts_avg_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by avg() on columns of table "posts"
+"""
+input posts_avg_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "posts". All fields are combined with a logical 'AND'.
+"""
+input posts_bool_exp {
+  _and: [posts_bool_exp!]
+  _not: posts_bool_exp
+  _or: [posts_bool_exp!]
+  case: cases_bool_exp
+  case_cases: bigint_comparison_exp
+  content: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  post_comments: post_comments_bool_exp
+  post_comments_aggregate: post_comments_aggregate_bool_exp
+  title: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "posts"
+"""
+enum posts_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  posts_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "posts"
+"""
+input posts_inc_input {
+  """外键，关联case"""
+  case_cases: bigint
+  id: bigint
+}
+
+"""
+input type for inserting data into table "posts"
+"""
+input posts_insert_input {
+  case: cases_obj_rel_insert_input
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+  post_comments: post_comments_arr_rel_insert_input
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type posts_max_fields {
+  """外键，关联case"""
+  case_cases: bigint
+
+  """内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""
+order by max() on columns of table "posts"
+"""
+input posts_max_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+
+  """内容"""
+  content: order_by
+  created_at: order_by
+  id: order_by
+
+  """标题"""
+  title: order_by
+  updated_at: order_by
+}
+
+"""aggregate min on columns"""
+type posts_min_fields {
+  """外键，关联case"""
+  case_cases: bigint
+
+  """内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""
+order by min() on columns of table "posts"
+"""
+input posts_min_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+
+  """内容"""
+  content: order_by
+  created_at: order_by
+  id: order_by
+
+  """标题"""
+  title: order_by
+  updated_at: order_by
+}
+
+"""
+response of any mutation on the table "posts"
+"""
+type posts_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [posts!]!
+}
+
+"""
+input type for inserting object relation for remote table "posts"
+"""
+input posts_obj_rel_insert_input {
+  data: posts_insert_input!
+
+  """upsert condition"""
+  on_conflict: posts_on_conflict
+}
+
+"""
+on_conflict condition type for table "posts"
+"""
+input posts_on_conflict {
+  constraint: posts_constraint!
+  update_columns: [posts_update_column!]! = []
+  where: posts_bool_exp
+}
+
+"""Ordering options when selecting data from "posts"."""
+input posts_order_by {
+  case: cases_order_by
+  case_cases: order_by
+  content: order_by
+  created_at: order_by
+  id: order_by
+  post_comments_aggregate: post_comments_aggregate_order_by
+  title: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: posts"""
+input posts_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "posts"
+"""
+enum posts_select_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  content
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  title
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "posts"
+"""
+input posts_set_input {
+  """外键，关联case"""
+  case_cases: bigint
+
+  """内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type posts_stddev_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by stddev() on columns of table "posts"
+"""
+input posts_stddev_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate stddev_pop on columns"""
+type posts_stddev_pop_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by stddev_pop() on columns of table "posts"
+"""
+input posts_stddev_pop_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate stddev_samp on columns"""
+type posts_stddev_samp_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by stddev_samp() on columns of table "posts"
+"""
+input posts_stddev_samp_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""
+Streaming cursor of the table "posts"
+"""
+input posts_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: posts_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input posts_stream_cursor_value_input {
+  """外键，关联case"""
+  case_cases: bigint
+
+  """内容"""
+  content: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type posts_sum_fields {
+  """外键，关联case"""
+  case_cases: bigint
+  id: bigint
+}
+
+"""
+order by sum() on columns of table "posts"
+"""
+input posts_sum_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""
+update columns of table "posts"
+"""
+enum posts_update_column {
+  """column name"""
+  case_cases
+
+  """column name"""
+  content
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  title
+
+  """column name"""
+  updated_at
+}
+
+input posts_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: posts_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: posts_set_input
+
+  """filter the rows which have to be updated"""
+  where: posts_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type posts_var_pop_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by var_pop() on columns of table "posts"
+"""
+input posts_var_pop_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate var_samp on columns"""
+type posts_var_samp_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by var_samp() on columns of table "posts"
+"""
+input posts_var_samp_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
+}
+
+"""aggregate variance on columns"""
+type posts_variance_fields {
+  """外键，关联case"""
+  case_cases: Float
+  id: Float
+}
+
+"""
+order by variance() on columns of table "posts"
+"""
+input posts_variance_order_by {
+  """外键，关联case"""
+  case_cases: order_by
+  id: order_by
 }
 
 type query_root {
@@ -1811,9 +6333,7 @@ type query_root {
   """fetch data from the table: "applications" using primary key columns"""
   applications_by_pk(id: bigint!): applications
 
-  """
-  fetch data from the table: "cases"
-  """
+  """An array relationship"""
   cases(
     """distinct select on columns"""
     distinct_on: [cases_select_column!]
@@ -1831,9 +6351,7 @@ type query_root {
     where: cases_bool_exp
   ): [cases!]!
 
-  """
-  fetch aggregated fields from the table: "cases"
-  """
+  """An aggregate relationship"""
   cases_aggregate(
     """distinct select on columns"""
     distinct_on: [cases_select_column!]
@@ -1853,6 +6371,88 @@ type query_root {
 
   """fetch data from the table: "cases" using primary key columns"""
   cases_by_pk(id: bigint!): cases
+
+  """An array relationship"""
+  cases_files(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): [cases_files!]!
+
+  """An aggregate relationship"""
+  cases_files_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): cases_files_aggregate!
+
+  """fetch data from the table: "cases_files" using primary key columns"""
+  cases_files_by_pk(id: bigint!): cases_files
+
+  """
+  fetch data from the table: "client_managers"
+  """
+  client_managers(
+    """distinct select on columns"""
+    distinct_on: [client_managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [client_managers_order_by!]
+
+    """filter the rows returned"""
+    where: client_managers_bool_exp
+  ): [client_managers!]!
+
+  """
+  fetch aggregated fields from the table: "client_managers"
+  """
+  client_managers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [client_managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [client_managers_order_by!]
+
+    """filter the rows returned"""
+    where: client_managers_bool_exp
+  ): client_managers_aggregate!
+
+  """fetch data from the table: "client_managers" using primary key columns"""
+  client_managers_by_pk(id: bigint!): client_managers
 
   """
   fetch data from the table: "intended_parents"
@@ -1898,6 +6498,209 @@ type query_root {
   fetch data from the table: "intended_parents" using primary key columns
   """
   intended_parents_by_pk(id: bigint!): intended_parents
+
+  """An array relationship"""
+  ivf_clinics(
+    """distinct select on columns"""
+    distinct_on: [ivf_clinics_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [ivf_clinics_order_by!]
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): [ivf_clinics!]!
+
+  """An aggregate relationship"""
+  ivf_clinics_aggregate(
+    """distinct select on columns"""
+    distinct_on: [ivf_clinics_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [ivf_clinics_order_by!]
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): ivf_clinics_aggregate!
+
+  """fetch data from the table: "ivf_clinics" using primary key columns"""
+  ivf_clinics_by_pk(id: bigint!): ivf_clinics
+
+  """
+  fetch data from the table: "journeys"
+  """
+  journeys(
+    """distinct select on columns"""
+    distinct_on: [journeys_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [journeys_order_by!]
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): [journeys!]!
+
+  """
+  fetch aggregated fields from the table: "journeys"
+  """
+  journeys_aggregate(
+    """distinct select on columns"""
+    distinct_on: [journeys_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [journeys_order_by!]
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): journeys_aggregate!
+
+  """fetch data from the table: "journeys" using primary key columns"""
+  journeys_by_pk(id: bigint!): journeys
+
+  """
+  fetch data from the table: "managers"
+  """
+  managers(
+    """distinct select on columns"""
+    distinct_on: [managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [managers_order_by!]
+
+    """filter the rows returned"""
+    where: managers_bool_exp
+  ): [managers!]!
+
+  """
+  fetch aggregated fields from the table: "managers"
+  """
+  managers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [managers_order_by!]
+
+    """filter the rows returned"""
+    where: managers_bool_exp
+  ): managers_aggregate!
+
+  """fetch data from the table: "managers" using primary key columns"""
+  managers_by_pk(id: bigint!): managers
+
+  """An array relationship"""
+  post_comments(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): [post_comments!]!
+
+  """An aggregate relationship"""
+  post_comments_aggregate(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): post_comments_aggregate!
+
+  """fetch data from the table: "post_comments" using primary key columns"""
+  post_comments_by_pk(id: bigint!): post_comments
+
+  """An array relationship"""
+  posts(
+    """distinct select on columns"""
+    distinct_on: [posts_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [posts_order_by!]
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): [posts!]!
+
+  """An aggregate relationship"""
+  posts_aggregate(
+    """distinct select on columns"""
+    distinct_on: [posts_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [posts_order_by!]
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): posts_aggregate!
+
+  """fetch data from the table: "posts" using primary key columns"""
+  posts_by_pk(id: bigint!): posts
 
   """
   fetch data from the table: "surrogate_mothers"
@@ -1945,9 +6748,9 @@ type query_root {
   surrogate_mothers_by_pk(id: bigint!): surrogate_mothers
 
   """An array relationship"""
-  user_notifications(
+  trust_account_balance_changes(
     """distinct select on columns"""
-    distinct_on: [user_notifications_select_column!]
+    distinct_on: [trust_account_balance_changes_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1956,16 +6759,16 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [user_notifications_order_by!]
+    order_by: [trust_account_balance_changes_order_by!]
 
     """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): [user_notifications!]!
+    where: trust_account_balance_changes_bool_exp
+  ): [trust_account_balance_changes!]!
 
   """An aggregate relationship"""
-  user_notifications_aggregate(
+  trust_account_balance_changes_aggregate(
     """distinct select on columns"""
-    distinct_on: [user_notifications_select_column!]
+    distinct_on: [trust_account_balance_changes_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1974,59 +6777,16 @@ type query_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [user_notifications_order_by!]
+    order_by: [trust_account_balance_changes_order_by!]
 
     """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): user_notifications_aggregate!
+    where: trust_account_balance_changes_bool_exp
+  ): trust_account_balance_changes_aggregate!
 
   """
-  fetch data from the table: "user_notifications" using primary key columns
+  fetch data from the table: "trust_account_balance_changes" using primary key columns
   """
-  user_notifications_by_pk(id: bigint!): user_notifications
-
-  """
-  fetch data from the table: "users"
-  """
-  users(
-    """distinct select on columns"""
-    distinct_on: [users_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [users_order_by!]
-
-    """filter the rows returned"""
-    where: users_bool_exp
-  ): [users!]!
-
-  """
-  fetch aggregated fields from the table: "users"
-  """
-  users_aggregate(
-    """distinct select on columns"""
-    distinct_on: [users_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [users_order_by!]
-
-    """filter the rows returned"""
-    where: users_bool_exp
-  ): users_aggregate!
-
-  """fetch data from the table: "users" using primary key columns"""
-  users_by_pk(id: bigint!): users
+  trust_account_balance_changes_by_pk(id: bigint!): trust_account_balance_changes
 }
 
 type subscription_root {
@@ -2087,9 +6847,7 @@ type subscription_root {
     where: applications_bool_exp
   ): [applications!]!
 
-  """
-  fetch data from the table: "cases"
-  """
+  """An array relationship"""
   cases(
     """distinct select on columns"""
     distinct_on: [cases_select_column!]
@@ -2107,9 +6865,7 @@ type subscription_root {
     where: cases_bool_exp
   ): [cases!]!
 
-  """
-  fetch aggregated fields from the table: "cases"
-  """
+  """An aggregate relationship"""
   cases_aggregate(
     """distinct select on columns"""
     distinct_on: [cases_select_column!]
@@ -2130,6 +6886,59 @@ type subscription_root {
   """fetch data from the table: "cases" using primary key columns"""
   cases_by_pk(id: bigint!): cases
 
+  """An array relationship"""
+  cases_files(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): [cases_files!]!
+
+  """An aggregate relationship"""
+  cases_files_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_files_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_files_order_by!]
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): cases_files_aggregate!
+
+  """fetch data from the table: "cases_files" using primary key columns"""
+  cases_files_by_pk(id: bigint!): cases_files
+
+  """
+  fetch data from the table in a streaming manner: "cases_files"
+  """
+  cases_files_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [cases_files_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: cases_files_bool_exp
+  ): [cases_files!]!
+
   """
   fetch data from the table in a streaming manner: "cases"
   """
@@ -2143,6 +6952,63 @@ type subscription_root {
     """filter the rows returned"""
     where: cases_bool_exp
   ): [cases!]!
+
+  """
+  fetch data from the table: "client_managers"
+  """
+  client_managers(
+    """distinct select on columns"""
+    distinct_on: [client_managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [client_managers_order_by!]
+
+    """filter the rows returned"""
+    where: client_managers_bool_exp
+  ): [client_managers!]!
+
+  """
+  fetch aggregated fields from the table: "client_managers"
+  """
+  client_managers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [client_managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [client_managers_order_by!]
+
+    """filter the rows returned"""
+    where: client_managers_bool_exp
+  ): client_managers_aggregate!
+
+  """fetch data from the table: "client_managers" using primary key columns"""
+  client_managers_by_pk(id: bigint!): client_managers
+
+  """
+  fetch data from the table in a streaming manner: "client_managers"
+  """
+  client_managers_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [client_managers_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: client_managers_bool_exp
+  ): [client_managers!]!
 
   """
   fetch data from the table: "intended_parents"
@@ -2202,6 +7068,279 @@ type subscription_root {
     """filter the rows returned"""
     where: intended_parents_bool_exp
   ): [intended_parents!]!
+
+  """An array relationship"""
+  ivf_clinics(
+    """distinct select on columns"""
+    distinct_on: [ivf_clinics_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [ivf_clinics_order_by!]
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): [ivf_clinics!]!
+
+  """An aggregate relationship"""
+  ivf_clinics_aggregate(
+    """distinct select on columns"""
+    distinct_on: [ivf_clinics_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [ivf_clinics_order_by!]
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): ivf_clinics_aggregate!
+
+  """fetch data from the table: "ivf_clinics" using primary key columns"""
+  ivf_clinics_by_pk(id: bigint!): ivf_clinics
+
+  """
+  fetch data from the table in a streaming manner: "ivf_clinics"
+  """
+  ivf_clinics_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [ivf_clinics_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: ivf_clinics_bool_exp
+  ): [ivf_clinics!]!
+
+  """
+  fetch data from the table: "journeys"
+  """
+  journeys(
+    """distinct select on columns"""
+    distinct_on: [journeys_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [journeys_order_by!]
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): [journeys!]!
+
+  """
+  fetch aggregated fields from the table: "journeys"
+  """
+  journeys_aggregate(
+    """distinct select on columns"""
+    distinct_on: [journeys_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [journeys_order_by!]
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): journeys_aggregate!
+
+  """fetch data from the table: "journeys" using primary key columns"""
+  journeys_by_pk(id: bigint!): journeys
+
+  """
+  fetch data from the table in a streaming manner: "journeys"
+  """
+  journeys_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [journeys_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): [journeys!]!
+
+  """
+  fetch data from the table: "managers"
+  """
+  managers(
+    """distinct select on columns"""
+    distinct_on: [managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [managers_order_by!]
+
+    """filter the rows returned"""
+    where: managers_bool_exp
+  ): [managers!]!
+
+  """
+  fetch aggregated fields from the table: "managers"
+  """
+  managers_aggregate(
+    """distinct select on columns"""
+    distinct_on: [managers_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [managers_order_by!]
+
+    """filter the rows returned"""
+    where: managers_bool_exp
+  ): managers_aggregate!
+
+  """fetch data from the table: "managers" using primary key columns"""
+  managers_by_pk(id: bigint!): managers
+
+  """
+  fetch data from the table in a streaming manner: "managers"
+  """
+  managers_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [managers_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: managers_bool_exp
+  ): [managers!]!
+
+  """An array relationship"""
+  post_comments(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): [post_comments!]!
+
+  """An aggregate relationship"""
+  post_comments_aggregate(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): post_comments_aggregate!
+
+  """fetch data from the table: "post_comments" using primary key columns"""
+  post_comments_by_pk(id: bigint!): post_comments
+
+  """
+  fetch data from the table in a streaming manner: "post_comments"
+  """
+  post_comments_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [post_comments_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): [post_comments!]!
+
+  """An array relationship"""
+  posts(
+    """distinct select on columns"""
+    distinct_on: [posts_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [posts_order_by!]
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): [posts!]!
+
+  """An aggregate relationship"""
+  posts_aggregate(
+    """distinct select on columns"""
+    distinct_on: [posts_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [posts_order_by!]
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): posts_aggregate!
+
+  """fetch data from the table: "posts" using primary key columns"""
+  posts_by_pk(id: bigint!): posts
+
+  """
+  fetch data from the table in a streaming manner: "posts"
+  """
+  posts_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [posts_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: posts_bool_exp
+  ): [posts!]!
 
   """
   fetch data from the table: "surrogate_mothers"
@@ -2263,9 +7402,9 @@ type subscription_root {
   ): [surrogate_mothers!]!
 
   """An array relationship"""
-  user_notifications(
+  trust_account_balance_changes(
     """distinct select on columns"""
-    distinct_on: [user_notifications_select_column!]
+    distinct_on: [trust_account_balance_changes_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2274,16 +7413,16 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [user_notifications_order_by!]
+    order_by: [trust_account_balance_changes_order_by!]
 
     """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): [user_notifications!]!
+    where: trust_account_balance_changes_bool_exp
+  ): [trust_account_balance_changes!]!
 
   """An aggregate relationship"""
-  user_notifications_aggregate(
+  trust_account_balance_changes_aggregate(
     """distinct select on columns"""
-    distinct_on: [user_notifications_select_column!]
+    distinct_on: [trust_account_balance_changes_select_column!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -2292,87 +7431,30 @@ type subscription_root {
     offset: Int
 
     """sort the rows by one or more columns"""
-    order_by: [user_notifications_order_by!]
+    order_by: [trust_account_balance_changes_order_by!]
 
     """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): user_notifications_aggregate!
+    where: trust_account_balance_changes_bool_exp
+  ): trust_account_balance_changes_aggregate!
 
   """
-  fetch data from the table: "user_notifications" using primary key columns
+  fetch data from the table: "trust_account_balance_changes" using primary key columns
   """
-  user_notifications_by_pk(id: bigint!): user_notifications
+  trust_account_balance_changes_by_pk(id: bigint!): trust_account_balance_changes
 
   """
-  fetch data from the table in a streaming manner: "user_notifications"
+  fetch data from the table in a streaming manner: "trust_account_balance_changes"
   """
-  user_notifications_stream(
+  trust_account_balance_changes_stream(
     """maximum number of rows returned in a single batch"""
     batch_size: Int!
 
     """cursor to stream the results returned by the query"""
-    cursor: [user_notifications_stream_cursor_input]!
+    cursor: [trust_account_balance_changes_stream_cursor_input]!
 
     """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): [user_notifications!]!
-
-  """
-  fetch data from the table: "users"
-  """
-  users(
-    """distinct select on columns"""
-    distinct_on: [users_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [users_order_by!]
-
-    """filter the rows returned"""
-    where: users_bool_exp
-  ): [users!]!
-
-  """
-  fetch aggregated fields from the table: "users"
-  """
-  users_aggregate(
-    """distinct select on columns"""
-    distinct_on: [users_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [users_order_by!]
-
-    """filter the rows returned"""
-    where: users_bool_exp
-  ): users_aggregate!
-
-  """fetch data from the table: "users" using primary key columns"""
-  users_by_pk(id: bigint!): users
-
-  """
-  fetch data from the table in a streaming manner: "users"
-  """
-  users_stream(
-    """maximum number of rows returned in a single batch"""
-    batch_size: Int!
-
-    """cursor to stream the results returned by the query"""
-    cursor: [users_stream_cursor_input]!
-
-    """filter the rows returned"""
-    where: users_bool_exp
-  ): [users!]!
+    where: trust_account_balance_changes_bool_exp
+  ): [trust_account_balance_changes!]!
 }
 
 """代孕母表"""
@@ -2383,13 +7465,91 @@ type surrogate_mothers {
     path: String
   ): jsonb
 
+  """An array relationship"""
+  cases(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): [cases!]!
+
+  """An aggregate relationship"""
+  cases_aggregate(
+    """distinct select on columns"""
+    distinct_on: [cases_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [cases_order_by!]
+
+    """filter the rows returned"""
+    where: cases_bool_exp
+  ): cases_aggregate!
+
   """联系方式"""
   contact_information(
     """JSON select path"""
     path: String
   ): jsonb
   created_at: timestamptz!
+
+  """登录的邮箱"""
+  email: String!
   id: bigint!
+
+  """密码"""
+  password: String
+
+  """An array relationship"""
+  post_comments(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): [post_comments!]!
+
+  """An aggregate relationship"""
+  post_comments_aggregate(
+    """distinct select on columns"""
+    distinct_on: [post_comments_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [post_comments_order_by!]
+
+    """filter the rows returned"""
+    where: post_comments_bool_exp
+  ): post_comments_aggregate!
 
   """准生育与健康经历"""
   pregnancy_and_health(
@@ -2462,9 +7622,15 @@ input surrogate_mothers_bool_exp {
   _not: surrogate_mothers_bool_exp
   _or: [surrogate_mothers_bool_exp!]
   about_you: jsonb_comparison_exp
+  cases: cases_bool_exp
+  cases_aggregate: cases_aggregate_bool_exp
   contact_information: jsonb_comparison_exp
   created_at: timestamptz_comparison_exp
+  email: String_comparison_exp
   id: bigint_comparison_exp
+  password: String_comparison_exp
+  post_comments: post_comments_bool_exp
+  post_comments_aggregate: post_comments_aggregate_bool_exp
   pregnancy_and_health: jsonb_comparison_exp
   updated_at: timestamptz_comparison_exp
   upload_photos: jsonb_comparison_exp
@@ -2474,6 +7640,11 @@ input surrogate_mothers_bool_exp {
 unique or primary key constraints on table "surrogate_mothers"
 """
 enum surrogate_mothers_constraint {
+  """
+  unique or primary key constraint on columns "email"
+  """
+  surrogate_mothers_email_key
+
   """
   unique or primary key constraint on columns "id"
   """
@@ -2550,11 +7721,19 @@ input type for inserting data into table "surrogate_mothers"
 input surrogate_mothers_insert_input {
   """关于你自己"""
   about_you: jsonb
+  cases: cases_arr_rel_insert_input
 
   """联系方式"""
   contact_information: jsonb
   created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
   id: bigint
+
+  """密码"""
+  password: String
+  post_comments: post_comments_arr_rel_insert_input
 
   """准生育与健康经历"""
   pregnancy_and_health: jsonb
@@ -2569,14 +7748,26 @@ input surrogate_mothers_insert_input {
 """aggregate max on columns"""
 type surrogate_mothers_max_fields {
   created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
   id: bigint
+
+  """密码"""
+  password: String
   updated_at: timestamptz
 }
 
 """aggregate min on columns"""
 type surrogate_mothers_min_fields {
   created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
   id: bigint
+
+  """密码"""
+  password: String
   updated_at: timestamptz
 }
 
@@ -2592,6 +7783,16 @@ type surrogate_mothers_mutation_response {
 }
 
 """
+input type for inserting object relation for remote table "surrogate_mothers"
+"""
+input surrogate_mothers_obj_rel_insert_input {
+  data: surrogate_mothers_insert_input!
+
+  """upsert condition"""
+  on_conflict: surrogate_mothers_on_conflict
+}
+
+"""
 on_conflict condition type for table "surrogate_mothers"
 """
 input surrogate_mothers_on_conflict {
@@ -2603,9 +7804,13 @@ input surrogate_mothers_on_conflict {
 """Ordering options when selecting data from "surrogate_mothers"."""
 input surrogate_mothers_order_by {
   about_you: order_by
+  cases_aggregate: cases_aggregate_order_by
   contact_information: order_by
   created_at: order_by
+  email: order_by
   id: order_by
+  password: order_by
+  post_comments_aggregate: post_comments_aggregate_order_by
   pregnancy_and_health: order_by
   updated_at: order_by
   upload_photos: order_by
@@ -2647,7 +7852,13 @@ enum surrogate_mothers_select_column {
   created_at
 
   """column name"""
+  email
+
+  """column name"""
   id
+
+  """column name"""
+  password
 
   """column name"""
   pregnancy_and_health
@@ -2669,7 +7880,13 @@ input surrogate_mothers_set_input {
   """联系方式"""
   contact_information: jsonb
   created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
   id: bigint
+
+  """密码"""
+  password: String
 
   """准生育与健康经历"""
   pregnancy_and_health: jsonb
@@ -2715,7 +7932,13 @@ input surrogate_mothers_stream_cursor_value_input {
   """联系方式"""
   contact_information: jsonb
   created_at: timestamptz
+
+  """登录的邮箱"""
+  email: String
   id: bigint
+
+  """密码"""
+  password: String
 
   """准生育与健康经历"""
   pregnancy_and_health: jsonb
@@ -2746,7 +7969,13 @@ enum surrogate_mothers_update_column {
   created_at
 
   """column name"""
+  email
+
+  """column name"""
   id
+
+  """column name"""
+  password
 
   """column name"""
   pregnancy_and_health
@@ -2822,221 +8051,392 @@ input timestamptz_comparison_exp {
   _nin: [timestamptz!]
 }
 
-"""用户通知"""
-type user_notifications {
-  content: String
+"""信托账户余额变动记录"""
+type trust_account_balance_changes {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint!
+
+  """变动金额"""
+  change_amount: numeric!
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: String!
   created_at: timestamptz!
   id: bigint!
-  updated_at: timestamptz!
 
   """An object relationship"""
-  user: users
-  user_users: bigint
+  intended_parent: intended_parents!
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint!
+
+  """备注"""
+  remark: String
+  updated_at: timestamptz!
 }
 
 """
-aggregated selection of "user_notifications"
+aggregated selection of "trust_account_balance_changes"
 """
-type user_notifications_aggregate {
-  aggregate: user_notifications_aggregate_fields
-  nodes: [user_notifications!]!
+type trust_account_balance_changes_aggregate {
+  aggregate: trust_account_balance_changes_aggregate_fields
+  nodes: [trust_account_balance_changes!]!
 }
 
-input user_notifications_aggregate_bool_exp {
-  count: user_notifications_aggregate_bool_exp_count
+input trust_account_balance_changes_aggregate_bool_exp {
+  count: trust_account_balance_changes_aggregate_bool_exp_count
 }
 
-input user_notifications_aggregate_bool_exp_count {
-  arguments: [user_notifications_select_column!]
+input trust_account_balance_changes_aggregate_bool_exp_count {
+  arguments: [trust_account_balance_changes_select_column!]
   distinct: Boolean
-  filter: user_notifications_bool_exp
+  filter: trust_account_balance_changes_bool_exp
   predicate: Int_comparison_exp!
 }
 
 """
-aggregate fields of "user_notifications"
+aggregate fields of "trust_account_balance_changes"
 """
-type user_notifications_aggregate_fields {
-  avg: user_notifications_avg_fields
-  count(columns: [user_notifications_select_column!], distinct: Boolean): Int!
-  max: user_notifications_max_fields
-  min: user_notifications_min_fields
-  stddev: user_notifications_stddev_fields
-  stddev_pop: user_notifications_stddev_pop_fields
-  stddev_samp: user_notifications_stddev_samp_fields
-  sum: user_notifications_sum_fields
-  var_pop: user_notifications_var_pop_fields
-  var_samp: user_notifications_var_samp_fields
-  variance: user_notifications_variance_fields
+type trust_account_balance_changes_aggregate_fields {
+  avg: trust_account_balance_changes_avg_fields
+  count(columns: [trust_account_balance_changes_select_column!], distinct: Boolean): Int!
+  max: trust_account_balance_changes_max_fields
+  min: trust_account_balance_changes_min_fields
+  stddev: trust_account_balance_changes_stddev_fields
+  stddev_pop: trust_account_balance_changes_stddev_pop_fields
+  stddev_samp: trust_account_balance_changes_stddev_samp_fields
+  sum: trust_account_balance_changes_sum_fields
+  var_pop: trust_account_balance_changes_var_pop_fields
+  var_samp: trust_account_balance_changes_var_samp_fields
+  variance: trust_account_balance_changes_variance_fields
 }
 
 """
-order by aggregate values of table "user_notifications"
+order by aggregate values of table "trust_account_balance_changes"
 """
-input user_notifications_aggregate_order_by {
-  avg: user_notifications_avg_order_by
+input trust_account_balance_changes_aggregate_order_by {
+  avg: trust_account_balance_changes_avg_order_by
   count: order_by
-  max: user_notifications_max_order_by
-  min: user_notifications_min_order_by
-  stddev: user_notifications_stddev_order_by
-  stddev_pop: user_notifications_stddev_pop_order_by
-  stddev_samp: user_notifications_stddev_samp_order_by
-  sum: user_notifications_sum_order_by
-  var_pop: user_notifications_var_pop_order_by
-  var_samp: user_notifications_var_samp_order_by
-  variance: user_notifications_variance_order_by
+  max: trust_account_balance_changes_max_order_by
+  min: trust_account_balance_changes_min_order_by
+  stddev: trust_account_balance_changes_stddev_order_by
+  stddev_pop: trust_account_balance_changes_stddev_pop_order_by
+  stddev_samp: trust_account_balance_changes_stddev_samp_order_by
+  sum: trust_account_balance_changes_sum_order_by
+  var_pop: trust_account_balance_changes_var_pop_order_by
+  var_samp: trust_account_balance_changes_var_samp_order_by
+  variance: trust_account_balance_changes_variance_order_by
 }
 
 """
-input type for inserting array relation for remote table "user_notifications"
+input type for inserting array relation for remote table "trust_account_balance_changes"
 """
-input user_notifications_arr_rel_insert_input {
-  data: [user_notifications_insert_input!]!
+input trust_account_balance_changes_arr_rel_insert_input {
+  data: [trust_account_balance_changes_insert_input!]!
 
   """upsert condition"""
-  on_conflict: user_notifications_on_conflict
+  on_conflict: trust_account_balance_changes_on_conflict
 }
 
 """aggregate avg on columns"""
-type user_notifications_avg_fields {
+type trust_account_balance_changes_avg_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
-  user_users: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
 }
 
 """
-order by avg() on columns of table "user_notifications"
+order by avg() on columns of table "trust_account_balance_changes"
 """
-input user_notifications_avg_order_by {
+input trust_account_balance_changes_avg_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
   id: order_by
-  user_users: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }
 
 """
-Boolean expression to filter rows from the table "user_notifications". All fields are combined with a logical 'AND'.
+Boolean expression to filter rows from the table "trust_account_balance_changes". All fields are combined with a logical 'AND'.
 """
-input user_notifications_bool_exp {
-  _and: [user_notifications_bool_exp!]
-  _not: user_notifications_bool_exp
-  _or: [user_notifications_bool_exp!]
-  content: String_comparison_exp
+input trust_account_balance_changes_bool_exp {
+  _and: [trust_account_balance_changes_bool_exp!]
+  _not: trust_account_balance_changes_bool_exp
+  _or: [trust_account_balance_changes_bool_exp!]
+  balance_after: numeric_comparison_exp
+  balance_before: numeric_comparison_exp
+  case_cases: bigint_comparison_exp
+  change_amount: numeric_comparison_exp
+  change_type: String_comparison_exp
   created_at: timestamptz_comparison_exp
   id: bigint_comparison_exp
+  intended_parent: intended_parents_bool_exp
+  intended_parent_intended_parents: bigint_comparison_exp
+  remark: String_comparison_exp
   updated_at: timestamptz_comparison_exp
-  user: users_bool_exp
-  user_users: bigint_comparison_exp
 }
 
 """
-unique or primary key constraints on table "user_notifications"
+unique or primary key constraints on table "trust_account_balance_changes"
 """
-enum user_notifications_constraint {
+enum trust_account_balance_changes_constraint {
   """
   unique or primary key constraint on columns "id"
   """
-  user_notifications_pkey
+  trust_account_balance_changes_pkey
 }
 
 """
-input type for incrementing numeric columns in table "user_notifications"
+input type for incrementing numeric columns in table "trust_account_balance_changes"
 """
-input user_notifications_inc_input {
+input trust_account_balance_changes_inc_input {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
   id: bigint
-  user_users: bigint
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
 }
 
 """
-input type for inserting data into table "user_notifications"
+input type for inserting data into table "trust_account_balance_changes"
 """
-input user_notifications_insert_input {
-  content: String
+input trust_account_balance_changes_insert_input {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: String
   created_at: timestamptz
   id: bigint
+  intended_parent: intended_parents_obj_rel_insert_input
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """备注"""
+  remark: String
   updated_at: timestamptz
-  user: users_obj_rel_insert_input
-  user_users: bigint
 }
 
 """aggregate max on columns"""
-type user_notifications_max_fields {
-  content: String
+type trust_account_balance_changes_max_fields {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: String
   created_at: timestamptz
   id: bigint
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """备注"""
+  remark: String
   updated_at: timestamptz
-  user_users: bigint
 }
 
 """
-order by max() on columns of table "user_notifications"
+order by max() on columns of table "trust_account_balance_changes"
 """
-input user_notifications_max_order_by {
-  content: order_by
+input trust_account_balance_changes_max_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: order_by
   created_at: order_by
   id: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """备注"""
+  remark: order_by
   updated_at: order_by
-  user_users: order_by
 }
 
 """aggregate min on columns"""
-type user_notifications_min_fields {
-  content: String
+type trust_account_balance_changes_min_fields {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: String
   created_at: timestamptz
   id: bigint
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """备注"""
+  remark: String
   updated_at: timestamptz
-  user_users: bigint
 }
 
 """
-order by min() on columns of table "user_notifications"
+order by min() on columns of table "trust_account_balance_changes"
 """
-input user_notifications_min_order_by {
-  content: order_by
+input trust_account_balance_changes_min_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: order_by
   created_at: order_by
   id: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
+
+  """备注"""
+  remark: order_by
   updated_at: order_by
-  user_users: order_by
 }
 
 """
-response of any mutation on the table "user_notifications"
+response of any mutation on the table "trust_account_balance_changes"
 """
-type user_notifications_mutation_response {
+type trust_account_balance_changes_mutation_response {
   """number of rows affected by the mutation"""
   affected_rows: Int!
 
   """data from the rows affected by the mutation"""
-  returning: [user_notifications!]!
+  returning: [trust_account_balance_changes!]!
 }
 
 """
-on_conflict condition type for table "user_notifications"
+on_conflict condition type for table "trust_account_balance_changes"
 """
-input user_notifications_on_conflict {
-  constraint: user_notifications_constraint!
-  update_columns: [user_notifications_update_column!]! = []
-  where: user_notifications_bool_exp
+input trust_account_balance_changes_on_conflict {
+  constraint: trust_account_balance_changes_constraint!
+  update_columns: [trust_account_balance_changes_update_column!]! = []
+  where: trust_account_balance_changes_bool_exp
 }
 
-"""Ordering options when selecting data from "user_notifications"."""
-input user_notifications_order_by {
-  content: order_by
+"""
+Ordering options when selecting data from "trust_account_balance_changes".
+"""
+input trust_account_balance_changes_order_by {
+  balance_after: order_by
+  balance_before: order_by
+  case_cases: order_by
+  change_amount: order_by
+  change_type: order_by
   created_at: order_by
   id: order_by
+  intended_parent: intended_parents_order_by
+  intended_parent_intended_parents: order_by
+  remark: order_by
   updated_at: order_by
-  user: users_order_by
-  user_users: order_by
 }
 
-"""primary key columns input for table: user_notifications"""
-input user_notifications_pk_columns_input {
+"""primary key columns input for table: trust_account_balance_changes"""
+input trust_account_balance_changes_pk_columns_input {
   id: bigint!
 }
 
 """
-select columns of table "user_notifications"
+select columns of table "trust_account_balance_changes"
 """
-enum user_notifications_select_column {
+enum trust_account_balance_changes_select_column {
   """column name"""
-  content
+  balance_after
+
+  """column name"""
+  balance_before
+
+  """column name"""
+  case_cases
+
+  """column name"""
+  change_amount
+
+  """column name"""
+  change_type
 
   """column name"""
   created_at
@@ -3045,499 +8445,404 @@ enum user_notifications_select_column {
   id
 
   """column name"""
-  updated_at
+  intended_parent_intended_parents
 
   """column name"""
-  user_users
+  remark
+
+  """column name"""
+  updated_at
 }
 
 """
-input type for updating data in table "user_notifications"
+input type for updating data in table "trust_account_balance_changes"
 """
-input user_notifications_set_input {
-  content: String
+input trust_account_balance_changes_set_input {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: String
   created_at: timestamptz
   id: bigint
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
+
+  """备注"""
+  remark: String
   updated_at: timestamptz
-  user_users: bigint
 }
 
 """aggregate stddev on columns"""
-type user_notifications_stddev_fields {
+type trust_account_balance_changes_stddev_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
-  user_users: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
 }
 
 """
-order by stddev() on columns of table "user_notifications"
+order by stddev() on columns of table "trust_account_balance_changes"
 """
-input user_notifications_stddev_order_by {
+input trust_account_balance_changes_stddev_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
   id: order_by
-  user_users: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }
 
 """aggregate stddev_pop on columns"""
-type user_notifications_stddev_pop_fields {
+type trust_account_balance_changes_stddev_pop_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
-  user_users: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
 }
 
 """
-order by stddev_pop() on columns of table "user_notifications"
+order by stddev_pop() on columns of table "trust_account_balance_changes"
 """
-input user_notifications_stddev_pop_order_by {
+input trust_account_balance_changes_stddev_pop_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
   id: order_by
-  user_users: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }
 
 """aggregate stddev_samp on columns"""
-type user_notifications_stddev_samp_fields {
+type trust_account_balance_changes_stddev_samp_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
-  user_users: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
 }
 
 """
-order by stddev_samp() on columns of table "user_notifications"
+order by stddev_samp() on columns of table "trust_account_balance_changes"
 """
-input user_notifications_stddev_samp_order_by {
+input trust_account_balance_changes_stddev_samp_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
   id: order_by
-  user_users: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }
 
 """
-Streaming cursor of the table "user_notifications"
+Streaming cursor of the table "trust_account_balance_changes"
 """
-input user_notifications_stream_cursor_input {
+input trust_account_balance_changes_stream_cursor_input {
   """Stream column input with initial value"""
-  initial_value: user_notifications_stream_cursor_value_input!
+  initial_value: trust_account_balance_changes_stream_cursor_value_input!
 
   """cursor ordering"""
   ordering: cursor_ordering
 }
 
 """Initial value of the column from where the streaming should start"""
-input user_notifications_stream_cursor_value_input {
-  content: String
+input trust_account_balance_changes_stream_cursor_value_input {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
+
+  """变动类型：1. RECHARGE 2. CONSUMPTION 3. OTHER"""
+  change_type: String
   created_at: timestamptz
   id: bigint
-  updated_at: timestamptz
-  user_users: bigint
-}
 
-"""aggregate sum on columns"""
-type user_notifications_sum_fields {
-  id: bigint
-  user_users: bigint
-}
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
 
-"""
-order by sum() on columns of table "user_notifications"
-"""
-input user_notifications_sum_order_by {
-  id: order_by
-  user_users: order_by
-}
-
-"""
-update columns of table "user_notifications"
-"""
-enum user_notifications_update_column {
-  """column name"""
-  content
-
-  """column name"""
-  created_at
-
-  """column name"""
-  id
-
-  """column name"""
-  updated_at
-
-  """column name"""
-  user_users
-}
-
-input user_notifications_updates {
-  """increments the numeric columns with given value of the filtered values"""
-  _inc: user_notifications_inc_input
-
-  """sets the columns of the filtered rows to the given values"""
-  _set: user_notifications_set_input
-
-  """filter the rows which have to be updated"""
-  where: user_notifications_bool_exp!
-}
-
-"""aggregate var_pop on columns"""
-type user_notifications_var_pop_fields {
-  id: Float
-  user_users: Float
-}
-
-"""
-order by var_pop() on columns of table "user_notifications"
-"""
-input user_notifications_var_pop_order_by {
-  id: order_by
-  user_users: order_by
-}
-
-"""aggregate var_samp on columns"""
-type user_notifications_var_samp_fields {
-  id: Float
-  user_users: Float
-}
-
-"""
-order by var_samp() on columns of table "user_notifications"
-"""
-input user_notifications_var_samp_order_by {
-  id: order_by
-  user_users: order_by
-}
-
-"""aggregate variance on columns"""
-type user_notifications_variance_fields {
-  id: Float
-  user_users: Float
-}
-
-"""
-order by variance() on columns of table "user_notifications"
-"""
-input user_notifications_variance_order_by {
-  id: order_by
-  user_users: order_by
-}
-
-"""用户表"""
-type users {
-  created_at: timestamptz!
-
-  """邮箱"""
-  email: String!
-  id: bigint!
-  nickname: String
-  phone: String
-  updated_at: timestamptz!
-
-  """An array relationship"""
-  user_notifications(
-    """distinct select on columns"""
-    distinct_on: [user_notifications_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [user_notifications_order_by!]
-
-    """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): [user_notifications!]!
-
-  """An aggregate relationship"""
-  user_notifications_aggregate(
-    """distinct select on columns"""
-    distinct_on: [user_notifications_select_column!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    order_by: [user_notifications_order_by!]
-
-    """filter the rows returned"""
-    where: user_notifications_bool_exp
-  ): user_notifications_aggregate!
-}
-
-"""
-aggregated selection of "users"
-"""
-type users_aggregate {
-  aggregate: users_aggregate_fields
-  nodes: [users!]!
-}
-
-"""
-aggregate fields of "users"
-"""
-type users_aggregate_fields {
-  avg: users_avg_fields
-  count(columns: [users_select_column!], distinct: Boolean): Int!
-  max: users_max_fields
-  min: users_min_fields
-  stddev: users_stddev_fields
-  stddev_pop: users_stddev_pop_fields
-  stddev_samp: users_stddev_samp_fields
-  sum: users_sum_fields
-  var_pop: users_var_pop_fields
-  var_samp: users_var_samp_fields
-  variance: users_variance_fields
-}
-
-"""aggregate avg on columns"""
-type users_avg_fields {
-  id: Float
-}
-
-"""
-Boolean expression to filter rows from the table "users". All fields are combined with a logical 'AND'.
-"""
-input users_bool_exp {
-  _and: [users_bool_exp!]
-  _not: users_bool_exp
-  _or: [users_bool_exp!]
-  created_at: timestamptz_comparison_exp
-  email: String_comparison_exp
-  id: bigint_comparison_exp
-  nickname: String_comparison_exp
-  phone: String_comparison_exp
-  updated_at: timestamptz_comparison_exp
-  user_notifications: user_notifications_bool_exp
-  user_notifications_aggregate: user_notifications_aggregate_bool_exp
-}
-
-"""
-unique or primary key constraints on table "users"
-"""
-enum users_constraint {
-  """
-  unique or primary key constraint on columns "email"
-  """
-  users_email_key
-
-  """
-  unique or primary key constraint on columns "id"
-  """
-  users_pkey
-}
-
-"""
-input type for incrementing numeric columns in table "users"
-"""
-input users_inc_input {
-  id: bigint
-}
-
-"""
-input type for inserting data into table "users"
-"""
-input users_insert_input {
-  created_at: timestamptz
-
-  """邮箱"""
-  email: String
-  id: bigint
-  nickname: String
-  phone: String
-  updated_at: timestamptz
-  user_notifications: user_notifications_arr_rel_insert_input
-}
-
-"""aggregate max on columns"""
-type users_max_fields {
-  created_at: timestamptz
-
-  """邮箱"""
-  email: String
-  id: bigint
-  nickname: String
-  phone: String
-  updated_at: timestamptz
-}
-
-"""aggregate min on columns"""
-type users_min_fields {
-  created_at: timestamptz
-
-  """邮箱"""
-  email: String
-  id: bigint
-  nickname: String
-  phone: String
-  updated_at: timestamptz
-}
-
-"""
-response of any mutation on the table "users"
-"""
-type users_mutation_response {
-  """number of rows affected by the mutation"""
-  affected_rows: Int!
-
-  """data from the rows affected by the mutation"""
-  returning: [users!]!
-}
-
-"""
-input type for inserting object relation for remote table "users"
-"""
-input users_obj_rel_insert_input {
-  data: users_insert_input!
-
-  """upsert condition"""
-  on_conflict: users_on_conflict
-}
-
-"""
-on_conflict condition type for table "users"
-"""
-input users_on_conflict {
-  constraint: users_constraint!
-  update_columns: [users_update_column!]! = []
-  where: users_bool_exp
-}
-
-"""Ordering options when selecting data from "users"."""
-input users_order_by {
-  created_at: order_by
-  email: order_by
-  id: order_by
-  nickname: order_by
-  phone: order_by
-  updated_at: order_by
-  user_notifications_aggregate: user_notifications_aggregate_order_by
-}
-
-"""primary key columns input for table: users"""
-input users_pk_columns_input {
-  id: bigint!
-}
-
-"""
-select columns of table "users"
-"""
-enum users_select_column {
-  """column name"""
-  created_at
-
-  """column name"""
-  email
-
-  """column name"""
-  id
-
-  """column name"""
-  nickname
-
-  """column name"""
-  phone
-
-  """column name"""
-  updated_at
-}
-
-"""
-input type for updating data in table "users"
-"""
-input users_set_input {
-  created_at: timestamptz
-
-  """邮箱"""
-  email: String
-  id: bigint
-  nickname: String
-  phone: String
-  updated_at: timestamptz
-}
-
-"""aggregate stddev on columns"""
-type users_stddev_fields {
-  id: Float
-}
-
-"""aggregate stddev_pop on columns"""
-type users_stddev_pop_fields {
-  id: Float
-}
-
-"""aggregate stddev_samp on columns"""
-type users_stddev_samp_fields {
-  id: Float
-}
-
-"""
-Streaming cursor of the table "users"
-"""
-input users_stream_cursor_input {
-  """Stream column input with initial value"""
-  initial_value: users_stream_cursor_value_input!
-
-  """cursor ordering"""
-  ordering: cursor_ordering
-}
-
-"""Initial value of the column from where the streaming should start"""
-input users_stream_cursor_value_input {
-  created_at: timestamptz
-
-  """邮箱"""
-  email: String
-  id: bigint
-  nickname: String
-  phone: String
+  """备注"""
+  remark: String
   updated_at: timestamptz
 }
 
 """aggregate sum on columns"""
-type users_sum_fields {
+type trust_account_balance_changes_sum_fields {
+  """变动后的余额"""
+  balance_after: numeric
+
+  """变动前的余额"""
+  balance_before: numeric
+
+  """外键，关联case"""
+  case_cases: bigint
+
+  """变动金额"""
+  change_amount: numeric
   id: bigint
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: bigint
 }
 
 """
-update columns of table "users"
+order by sum() on columns of table "trust_account_balance_changes"
 """
-enum users_update_column {
+input trust_account_balance_changes_sum_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
+  id: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
+}
+
+"""
+update columns of table "trust_account_balance_changes"
+"""
+enum trust_account_balance_changes_update_column {
   """column name"""
-  created_at
+  balance_after
 
   """column name"""
-  email
+  balance_before
+
+  """column name"""
+  case_cases
+
+  """column name"""
+  change_amount
+
+  """column name"""
+  change_type
+
+  """column name"""
+  created_at
 
   """column name"""
   id
 
   """column name"""
-  nickname
+  intended_parent_intended_parents
 
   """column name"""
-  phone
+  remark
 
   """column name"""
   updated_at
 }
 
-input users_updates {
+input trust_account_balance_changes_updates {
   """increments the numeric columns with given value of the filtered values"""
-  _inc: users_inc_input
+  _inc: trust_account_balance_changes_inc_input
 
   """sets the columns of the filtered rows to the given values"""
-  _set: users_set_input
+  _set: trust_account_balance_changes_set_input
 
   """filter the rows which have to be updated"""
-  where: users_bool_exp!
+  where: trust_account_balance_changes_bool_exp!
 }
 
 """aggregate var_pop on columns"""
-type users_var_pop_fields {
+type trust_account_balance_changes_var_pop_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
+}
+
+"""
+order by var_pop() on columns of table "trust_account_balance_changes"
+"""
+input trust_account_balance_changes_var_pop_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
+  id: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }
 
 """aggregate var_samp on columns"""
-type users_var_samp_fields {
+type trust_account_balance_changes_var_samp_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
+}
+
+"""
+order by var_samp() on columns of table "trust_account_balance_changes"
+"""
+input trust_account_balance_changes_var_samp_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
+  id: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }
 
 """aggregate variance on columns"""
-type users_variance_fields {
+type trust_account_balance_changes_variance_fields {
+  """变动后的余额"""
+  balance_after: Float
+
+  """变动前的余额"""
+  balance_before: Float
+
+  """外键，关联case"""
+  case_cases: Float
+
+  """变动金额"""
+  change_amount: Float
   id: Float
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: Float
+}
+
+"""
+order by variance() on columns of table "trust_account_balance_changes"
+"""
+input trust_account_balance_changes_variance_order_by {
+  """变动后的余额"""
+  balance_after: order_by
+
+  """变动前的余额"""
+  balance_before: order_by
+
+  """外键，关联case"""
+  case_cases: order_by
+
+  """变动金额"""
+  change_amount: order_by
+  id: order_by
+
+  """关联外键，对应的准父母"""
+  intended_parent_intended_parents: order_by
 }

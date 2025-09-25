@@ -1,0 +1,54 @@
+/* Vertical Scroll Animation Styles */
+.scroll-animate-init {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 500ms ease-out, transform 500ms ease-out;
+}
+
+.scroll-animate.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Horizontal Slide Animation Styles */
+.slide-left-init {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 600ms ease-out, transform 600ms ease-out;
+}
+
+.slide-right-init {
+  opacity: 0;
+  transform: translateX(50px);
+  transition: opacity 600ms ease-out, transform 600ms ease-out;
+}
+
+.slide-left.animate-in,
+.slide-right.animate-in {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Delay classes for staggered animations */
+.scroll-animate-delay-100,
+.slide-delay-100 {
+  transition-delay: 100ms;
+}
+
+.scroll-animate-delay-200,
+.slide-delay-200 {
+  transition-delay: 200ms;
+}
+
+.scroll-animate-delay-300,
+.slide-delay-300 {
+  transition-delay: 300ms;
+}
+
+.slide-delay-400 {
+  transition-delay: 400ms;
+}
+
+.slide-delay-500 {
+  transition-delay: 500ms;
+}

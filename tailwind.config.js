@@ -10,6 +10,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'main-bg': '#FBF0DA', // 统一背景色
         sage: {
           50: '#F3F5F1',
           100: '#E7EBE3',

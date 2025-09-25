@@ -1,0 +1,18 @@
+{
+  "hello": "Hello, world!",
+  "welcome": "Welcome to Yunda Admin System",
+  "menu": "MENU",
+  "logOut": "LOG OUT",
+  "logOutAction": "Log out",
+  "logIn": "LOG IN",
+  "adminTitle": "ADMIN",
+  "loginSubtitle": "Log in using your email address",
+  "emailLabel": "Email Address",
+  "passwordLabel": "Password",
+  "forgotPassword": "FORGOT PASSWORD?",
+  "loginButton": "LOG IN",
+  "loggingIn": "LOGGING IN...",
+  "loginError": "Incorrect email or password.",
+  "loginFailed": "Login failed",
+  "loginErrorDesc": "Please check your credentials and try again."
+}

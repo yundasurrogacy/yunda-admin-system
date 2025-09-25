@@ -1,0 +1,18 @@
+{
+  "hello": "你好，世界！",
+  "welcome": "欢迎来到云达管理系统",
+  "menu": "菜单",
+  "logOut": "登出",
+  "logOutAction": "登出",
+  "logIn": "登录",
+  "adminTitle": "管理员",
+  "loginSubtitle": "使用您的邮箱地址登录",
+  "emailLabel": "邮箱地址",
+  "passwordLabel": "密码",
+  "forgotPassword": "忘记密码？",
+  "loginButton": "登录",
+  "loggingIn": "登录中...",
+  "loginError": "邮箱或密码错误。",
+  "loginFailed": "登录失败",
+  "loginErrorDesc": "请检查您的账号和密码后重试。"
+}

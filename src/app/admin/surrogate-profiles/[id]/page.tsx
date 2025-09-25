@@ -1,6 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import { getSurrogateMotherById } from "@/lib/graphql/applications"
+import type { SurrogateMother } from "@/types/surrogate_mother"
 import { ChevronRight, User, MessageSquare, FileText, Calendar } from "lucide-react"
 import { Button } from "../../../../components/ui/button"
 import { Label } from "../../../../components/ui/label"
@@ -9,94 +12,43 @@ import { Badge } from "../../../../components/ui/badge"
 import { AdminLayout } from "../../../../components/admin-layout"
 
 export default function SurrogateProfileDetailPage() {
+  const params = useParams<{ id: string }>()
   const [language, setLanguage] = useState<"EN" | "CN">("EN")
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    medicalRecord: false,
-  })
+  const [surrogate, setSurrogate] = useState<SurrogateMother | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }))
+  useEffect(() => {
+    async function fetchData() {
+      if (params?.id) {
+        const data = await getSurrogateMotherById(Number(params.id))
+        setSurrogate(data)
+      }
+      setLoading(false)
+    }
+    fetchData()
+  }, [params?.id])
+
+  if (loading) {
+    return <div className="p-8 text-sage-600">加载中...</div>
   }
 
-  const text = {
-    EN: {
-      title: "Surrogate Profile",
-      basicInfo: "Basic Information",
-      matchingStatus: "Matching Status",
-      messages: "Messages",
-      journalUpdates: "Journal Updates",
-      medicalRecord: "Medical Record",
-      name: "Name",
-      phone: "Phone",
-      email: "Email",
-      language: "Language",
-      maritalStatus: "Marital Status",
-      birthHistory: "Birth History",
-      healthCondition: "Health Condition",
-      address: "Address",
-      matched: "Matched",
-      married: "Married",
-      kids: "3 Kids",
-      underMedicalTreatment: "Under Medical Treatment",
-      springfieldAddress: "123 Main Street, Springfield, IL, USA",
-      johnAndSarah: "John & Sarah",
-      unreadMessages: "You have 2 unread message",
-      may12: "May 12",
-      addedPhoto: "Added Photo",
-      viewAll: "View All",
-      passport: "Passport",
-      agreement: "Agreement",
-      authorization: "Authorization",
-      preBirthOrder: "Pre-Birth Order",
-      complete: "Complete",
-      pending: "Pending",
-    },
-    CN: {
-      title: "代孕者档案",
-      basicInfo: "基本信息",
-      matchingStatus: "匹配状态",
-      messages: "消息",
-      journalUpdates: "日志更新",
-      medicalRecord: "医疗记录",
-      name: "姓名",
-      phone: "电话",
-      email: "邮箱",
-      language: "语言",
-      maritalStatus: "婚姻状况",
-      birthHistory: "生育史",
-      healthCondition: "健康状况",
-      address: "地址",
-      matched: "已匹配",
-      married: "已婚",
-      kids: "3个孩子",
-      underMedicalTreatment: "医疗治疗中",
-      springfieldAddress: "美国伊利诺伊州斯普林菲尔德主街123号",
-      johnAndSarah: "约翰和莎拉",
-      unreadMessages: "您有2条未读消息",
-      may12: "5月12日",
-      addedPhoto: "添加了照片",
-      viewAll: "查看全部",
-      passport: "护照",
-      agreement: "协议",
-      authorization: "授权",
-      preBirthOrder: "出生前令",
-      complete: "完成",
-      pending: "待处理",
-    },
+  if (!surrogate) {
+    return <div className="p-8 text-red-600">未找到该代孕母信息</div>
   }
+
+  const ci = surrogate.contact_information
+  const ph = surrogate.pregnancy_and_health
+  const ay = surrogate.about_you
+  const interview = surrogate.gestational_surrogacy_interview
 
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-3xl font-light text-sage-800 tracking-wide">{text[language].title}</h1>
-
+        <h1 className="text-3xl font-light text-sage-800 tracking-wide">Surrogate Profile</h1>
         {/* Basic Information */}
         <Card className="bg-white border-sage-200 animate-slide-in-up">
           <CardHeader className="pb-4">
-            <CardTitle className="text-sage-800 text-lg font-medium">{text[language].basicInfo}</CardTitle>
+            <CardTitle className="text-sage-800 text-lg font-medium">Basic Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-start gap-4">
@@ -106,36 +58,72 @@ export default function SurrogateProfileDetailPage() {
               <div className="flex-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].name}:</Label>
-                    <p className="font-medium text-sage-800">John Doe</p>
+                    <Label className="text-sage-600 text-sm">Name:</Label>
+                    <p className="font-medium text-sage-800">{ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : surrogate.id}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].maritalStatus}:</Label>
-                    <p className="font-medium text-sage-800">{text[language].married}</p>
+                    <Label className="text-sage-600 text-sm">Date of Birth:</Label>
+                    <p className="font-medium text-sage-800">{ci?.date_of_birth ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].phone}:</Label>
-                    <p className="font-medium text-sage-800">(123) 456-7890</p>
+                    <Label className="text-sage-600 text-sm">Phone:</Label>
+                    <p className="font-medium text-sage-800">{ci?.cell_phone_country_code ? `+${ci.cell_phone_country_code} ` : ""}{ci?.cell_phone ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].birthHistory}:</Label>
-                    <p className="font-medium text-sage-800">{text[language].kids}</p>
+                    <Label className="text-sage-600 text-sm">Email:</Label>
+                    <p className="font-medium text-sage-800">{ci?.email_address ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].email}:</Label>
-                    <p className="font-medium text-sage-800">john@email.com</p>
+                    <Label className="text-sage-600 text-sm">City:</Label>
+                    <p className="font-medium text-sage-800">{ci?.city ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].healthCondition}:</Label>
-                    <p className="font-medium text-sage-800">{text[language].underMedicalTreatment}</p>
+                    <Label className="text-sage-600 text-sm">State/Province:</Label>
+                    <p className="font-medium text-sage-800">{ci?.state_or_province ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].language}:</Label>
-                    <p className="font-medium text-sage-800">English</p>
+                    <Label className="text-sage-600 text-sm">Country:</Label>
+                    <p className="font-medium text-sage-800">{ci?.country ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-sage-600 text-sm">{text[language].address}:</Label>
-                    <p className="font-medium text-sage-800">{text[language].springfieldAddress}</p>
+                    <Label className="text-sage-600 text-sm">Zip Code:</Label>
+                    <p className="font-medium text-sage-800">{ci?.zip_code ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Height:</Label>
+                    <p className="font-medium text-sage-800">{ci?.height ?? "-"} cm</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Weight:</Label>
+                    <p className="font-medium text-sage-800">{ci?.weight ?? "-"} kg</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">BMI:</Label>
+                    <p className="font-medium text-sage-800">{ci?.bmi ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Ethnicity:</Label>
+                    <p className="font-medium text-sage-800">{ci?.ethnicity_selected_key ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Surrogacy Experience:</Label>
+                    <p className="font-medium text-sage-800">{ci?.surrogacy_experience_count ?? "-"} times</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Education:</Label>
+                    <p className="font-medium text-sage-800">{ay?.education_level_selected_key ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Marital Status:</Label>
+                    <p className="font-medium text-sage-800">{ay?.marital_status_selected_key ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Partner Support:</Label>
+                    <p className="font-medium text-sage-800">{ay?.partner_support_selected_key ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Household Income:</Label>
+                    <p className="font-medium text-sage-800">{ay?.household_income_selected_key ?? "-"}</p>
                   </div>
                 </div>
               </div>
@@ -144,72 +132,87 @@ export default function SurrogateProfileDetailPage() {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Matching Status */}
+          {/* Pregnancy & Health */}
           <Card className="bg-white border-sage-200 animate-slide-in-left">
             <CardHeader className="pb-4">
-              <CardTitle className="text-sage-800 text-lg font-medium">{text[language].matchingStatus}</CardTitle>
+              <CardTitle className="text-sage-800 text-lg font-medium">Pregnancy & Health</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-sage-800">{text[language].johnAndSarah}</span>
-                <Badge className="bg-sage-200 text-sage-800 hover:bg-sage-200">{text[language].matched}</Badge>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-sage-600 text-sm">Has Given Birth:</Label>
+                  <p className="font-medium text-sage-800">{ph?.has_given_birth ? "Yes" : "No"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Is Currently Pregnant:</Label>
+                  <p className="font-medium text-sage-800">{ph?.is_currently_pregnant ? "Yes" : "No"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Is Breastfeeding:</Label>
+                  <p className="font-medium text-sage-800">{ph?.is_breastfeeding ? "Yes" : "No"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Has Stillbirth:</Label>
+                  <p className="font-medium text-sage-800">{ph?.has_stillbirth ? "Yes" : "No"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Medical Conditions:</Label>
+                  <p className="font-medium text-sage-800">{ph?.medical_conditions_selected_keys?.join(", ") ?? "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Is Taking Medications:</Label>
+                  <p className="font-medium text-sage-800">{ph?.is_taking_medications ? "Yes" : "No"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Medications List:</Label>
+                  <p className="font-medium text-sage-800">{ph?.medications_list ?? "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">Background Check Status:</Label>
+                  <p className="font-medium text-sage-800">{ph?.background_check_status_selected_key ?? "-"}</p>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-sage-600" />
-                    <span className="text-sm font-medium">{text[language].passport}</span>
-                  </div>
-                  <Badge className="bg-sage-200 text-sage-800 hover:bg-sage-200">{text[language].complete}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-sage-600" />
-                    <span className="text-sm font-medium">{text[language].agreement}</span>
-                  </div>
-                  <Badge className="bg-sage-200 text-sage-800 hover:bg-sage-200">{text[language].complete}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-sage-600" />
-                    <span className="text-sm font-medium">{text[language].authorization}</span>
-                  </div>
-                  <Badge className="bg-sage-200 text-sage-800 hover:bg-sage-200">{text[language].complete}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-sage-600" />
-                    <span className="text-sm font-medium">{text[language].preBirthOrder}</span>
-                  </div>
-                  <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50">
-                    {text[language].pending}
-                  </Badge>
-                </div>
+              <div className="mt-4">
+                <Label className="text-sage-600 text-sm">Pregnancy Histories:</Label>
+                <ul className="list-disc ml-6">
+                  {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
+                    <li key={idx} className="text-sage-600 text-sm">
+                      {h.delivery_date} | {h.delivery_method} | {h.number_of_babies} babies | {h.birth_weight}kg
+                    </li>
+                  )) : <li className="text-sage-600 text-sm">-</li>}
+                </ul>
               </div>
             </CardContent>
           </Card>
 
-          {/* Messages and Journal Updates */}
+          {/* Interview & Other Info */}
           <div className="space-y-6">
             <Card className="bg-white border-sage-200 animate-slide-in-right">
               <CardHeader className="pb-4">
                 <CardTitle className="text-sage-800 text-lg font-medium flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  {text[language].messages}
+                  Interview
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <span className="text-sage-800">{text[language].unreadMessages}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-sage-300 text-sage-700 bg-transparent hover:bg-sage-50"
-                  >
-                    {text[language].viewAll}
-                  </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-sage-600 text-sm">Languages Spoken:</Label>
+                    <p className="font-medium text-sage-800">{interview?.languages_spoken ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Motivation:</Label>
+                    <p className="font-medium text-sage-800">{interview?.motivation ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Self Introduction:</Label>
+                    <p className="font-medium text-sage-800">{interview?.self_introduction ?? "-"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sage-600 text-sm">Contact Preference:</Label>
+                    <p className="font-medium text-sage-800">{interview?.contact_preference ?? "-"}</p>
+                  </div>
                 </div>
-                <p className="text-sm text-sage-600 mt-2">{text[language].may12}</p>
               </CardContent>
             </Card>
 
@@ -217,38 +220,23 @@ export default function SurrogateProfileDetailPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-sage-800 text-lg font-medium flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  {text[language].journalUpdates}
+                  Upload Photos
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <span className="text-sage-800">{text[language].addedPhoto}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-sage-300 text-sage-700 bg-transparent hover:bg-sage-50"
-                  >
-                    {text[language].viewAll}
-                  </Button>
+                <div className="flex flex-wrap gap-4">
+                  {surrogate.upload_photos?.length ? surrogate.upload_photos.map((photo, idx) => (
+                    <div key={idx} className="w-24 h-24 rounded-lg overflow-hidden border border-sage-200 flex items-center justify-center bg-sage-50">
+                      <img src={photo.url} alt={photo.name} className="object-cover w-full h-full" />
+                    </div>
+                  )) : <span className="text-sage-600">No photos uploaded</span>}
                 </div>
-                <p className="text-sm text-sage-600 mt-2">{text[language].may12}</p>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Medical Record */}
-        <Card className="bg-white border-sage-200 animate-slide-in-up" style={{ animationDelay: "400ms" }}>
-          <CardHeader className="pb-4">
-            <CardTitle
-              className="text-sage-800 text-lg font-medium flex items-center justify-between cursor-pointer hover:text-sage-600 transition-colors"
-              onClick={() => toggleSection("medicalRecord")}
-            >
-              {text[language].medicalRecord}
-              <ChevronRight className="h-5 w-5" />
-            </CardTitle>
-          </CardHeader>
-        </Card>
+        {/* Medical Record 可扩展区块，可补充更多健康相关内容 */}
       </div>
     </AdminLayout>
   )

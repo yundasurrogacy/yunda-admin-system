@@ -201,6 +201,9 @@ export default function ParentApplicationDetailPage() {
   const familyProfile = appData?.family_profile || {}
   const programInterests = appData?.program_interests || {}
   const referral = appData?.referral || {}
+  // 格式化多选项
+  const languages = Array.isArray(contactInfo.primary_languages) ? contactInfo.primary_languages.join(', ') : (contactInfo.primary_languages || 'N/A')
+  const ethnicity = Array.isArray(basicInfo.ethnicity) ? basicInfo.ethnicity.join(', ') : (basicInfo.ethnicity || 'N/A')
 
   return (
     <AdminLayout>
@@ -289,7 +292,7 @@ export default function ParentApplicationDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500">{text[language].ethnicity}:</span>
-                    <span className="text-sage-800">{basicInfo.ethnicity || 'N/A'}</span>
+                    <span className="text-sage-800">{ethnicity}</span>
                   </div>
                 </div>
               </div>
@@ -310,7 +313,7 @@ export default function ParentApplicationDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500">{text[language].languages}:</span>
-                    <span className="text-sage-800">{contactInfo.primary_languages?.join(', ') || 'N/A'}</span>
+                    <span className="text-sage-800">{languages}</span>
                   </div>
                 </div>
               </div>

@@ -4,7 +4,8 @@
 @import "./client-manager/colors.css";
 
 :root {
-  --background: #ffffff;
+  /* --background: #ffffff; */
+  --background: #FBF0DA25;
   --foreground: #271F18;
   --font-serif: 'Source Serif 4', serif;
 }

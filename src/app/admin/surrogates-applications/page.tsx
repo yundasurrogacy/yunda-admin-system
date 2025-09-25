@@ -213,14 +213,20 @@ export default function SurrogatesApplicationsPage() {
           />
         </div>
 
-        {/* Applications Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Applications Grid - 弹性布局美化 */}
+        <div
+          className="grid w-full"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '32px',
+            alignItems: 'stretch',
+          }}
+        >
           {filteredApplications.map((app) => {
             const appData = app.application_data as any
             const contactInfo = appData?.contact_information || {}
             const aboutYou = appData?.about_you || {}
             const pregnancyHealth = appData?.pregnancy_and_health || {}
-            
             // 计算年龄
             const calculateAge = (dateOfBirth: string) => {
               if (!dateOfBirth) return 'N/A'
@@ -233,105 +239,92 @@ export default function SurrogatesApplicationsPage() {
               }
               return age
             }
-            
             const age = calculateAge(contactInfo.date_of_birth)
-            
             return (
-              <div key={app.id} className="bg-white rounded-lg border border-sage-200 p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-sage-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-sage-800 font-medium">
-                        {contactInfo.first_name} {contactInfo.last_name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-sage-500">#{app.id}</span>
-                        <span className="text-sm text-sage-500">•</span>
-                        <span className="text-sm text-sage-500">{age} years</span>
-                      </div>
-                    </div>
+              <div
+                key={app.id}
+                className="bg-white rounded-xl border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full"
+                style={{ minWidth: '0' }}
+              >
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="h-7 w-7 text-sage-400" />
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(app.status)}`}>
-                    {text[language][app.status]}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-lg text-sage-800 truncate">{contactInfo.first_name} {contactInfo.last_name}</div>
+                    <div className="text-sage-500 text-sm truncate">#{app.id} • {age} years</div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>{text[language][app.status]}</span>
                 </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <Mail className="w-4 h-4" />
-                    <span>{contactInfo.email_address || 'N/A'}</span>
+                <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+                  <div className="flex items-center gap-2 truncate">
+                    <Mail className="w-4 h-4 text-sage-400" />
+                    <span className="truncate">{contactInfo.email_address || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <Phone className="w-4 h-4 text-sage-400" />
+                    <span className="truncate">{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-sage-600">
-                    <MapPin className="w-4 h-4" />
-                    <span>{contactInfo.city}, {contactInfo.state_or_province || 'N/A'}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <MapPin className="w-4 h-4 text-sage-400" />
+                    <span className="truncate">{contactInfo.city}, {contactInfo.state_or_province || 'N/A'}</span>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="flex items-center gap-2 text-sm">
                     <Heart className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">{pregnancyHealth.birth_details || 'No births'}</span>
+                    <span className="text-sage-600 truncate">{pregnancyHealth.birth_details || 'No births'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Activity className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">BMI: {contactInfo.bmi || 'N/A'}</span>
+                    <span className="text-sage-600 truncate">BMI: {contactInfo.bmi || 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">DOB: {contactInfo.date_of_birth || 'N/A'}</span>
+                    <span className="text-sage-600 truncate">DOB: {contactInfo.date_of_birth || 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <User className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">{aboutYou.occupation || 'N/A'}</span>
+                    <span className="text-sage-600 truncate">{aboutYou.occupation || 'N/A'}</span>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-sage-500">种族:</span>
-                    <span className="text-sage-600">{contactInfo.ethnicity || 'N/A'}</span>
+                    <span className="text-sage-600 truncate">{contactInfo.ethnicity || 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-sage-500">教育:</span>
-                    <span className="text-sage-600">{aboutYou.education_level || 'N/A'}</span>
+                    <span className="text-sage-600 truncate">{aboutYou.education_level || 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-sage-500">身高体重:</span>
-                    <span className="text-sage-600">{contactInfo.height} / {contactInfo.weight}</span>
+                    <span className="text-sage-600 truncate">{contactInfo.height} / {contactInfo.weight}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-sage-500">身份:</span>
-                    <span className="text-sage-600">{contactInfo.us_citizen_or_visa_status || 'N/A'}</span>
+                    <span className="text-sage-600 truncate">{contactInfo.us_citizen_or_visa_status || 'N/A'}</span>
                   </div>
                 </div>
-
                 <div className="mb-4 p-3 bg-sage-50 rounded-lg">
                   <div className="text-sm text-sage-700">
                     <div className="font-medium mb-1">代孕经验:</div>
-                    <div className="text-sage-600">
+                    <div className="text-sage-600 truncate">
                       {aboutYou.is_former_surrogate ? '有经验' : '首次代孕'}
                       {contactInfo.surrogacy_experience_count > 0 && ` (${contactInfo.surrogacy_experience_count}次)`}
                     </div>
                     {aboutYou.surrogate_experience && (
-                      <div className="text-xs text-sage-500 mt-1">
+                      <div className="text-xs text-sage-500 mt-1 truncate">
                         {aboutYou.surrogate_experience}
                       </div>
                     )}
                   </div>
                 </div>
-
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
                   <span className="text-sm text-sage-500">
                     {text[language].applicationDate}: {new Date(app.created_at).toLocaleDateString('zh-CN')}
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
                       <>
                         <Button 

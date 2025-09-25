@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import ManagerLayout from '@/components/manager-layout'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CaseDetail } from '@/types/case-detail'
 import { caseService } from '@/services/case-service'
 
@@ -13,6 +13,7 @@ export default function CaseDetailPage() {
   const router = useRouter()
   const params = useParams()
   const caseId = params?.id as string
+  const isValidCaseId = caseId && !isNaN(Number(caseId));
 
   const [caseDetail, setCaseDetail] = useState<CaseDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -32,17 +33,24 @@ export default function CaseDetailPage() {
   }
 
   useEffect(() => {
-    if (caseId) {
+    if (isValidCaseId) {
       fetchCaseDetail()
     }
   }, [caseId])
 
   if (isLoading || !caseDetail) {
+    if (!isValidCaseId) {
+      return (
+        <ManagerLayout>
+          <div className="p-8 text-red-500">参数 id 缺失或非法</div>
+        </ManagerLayout>
+      );
+    }
     return (
       <ManagerLayout>
         <div className="p-8">Loading...</div>
       </ManagerLayout>
-    )
+    );
   }
 
   return (
@@ -54,11 +62,19 @@ export default function CaseDetailPage() {
             <div className="flex items-center gap-4 mb-4">
               <Avatar className="h-12 w-12">
                 <AvatarFallback className="bg-[#E2E8F0]">
-                  {caseDetail.clientName.split(' ').map(n => n[0]).join('')}
+                  {(() => {
+                    const name = caseDetail.clientName || caseDetail.id || '未知';
+                    if (typeof name === 'string') {
+                      return name.split(' ').map(n => n[0]).join('');
+                    }
+                    return '未知';
+                  })()}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-semibold">{caseDetail.clientName}</h1>
+                <h1 className="text-2xl font-semibold">
+                  {caseDetail.clientName || caseDetail.id || '未知'}
+                </h1>
                 <p className="text-gray-500">Case ID: {caseDetail.id}</p>
               </div>
             </div>
@@ -138,7 +154,7 @@ export default function CaseDetailPage() {
               <div className="p-6">
                 <h2 className="text-lg font-medium mb-4">Recent Documents</h2>
                 <div className="space-y-4">
-                  {caseDetail.documents.slice(0, 3).map(doc => (
+                  {(Array.isArray(caseDetail.documents) ? caseDetail.documents.slice(0, 3) : []).map(doc => (
                     <div key={doc.id} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">{doc.name}</p>
@@ -156,7 +172,7 @@ export default function CaseDetailPage() {
               <div className="p-6">
                 <h2 className="text-lg font-medium mb-4">Recent Timeline</h2>
                 <div className="space-y-4">
-                  {caseDetail.timeline.slice(0, 3).map((event, index) => (
+                  {(Array.isArray(caseDetail.timeline) ? caseDetail.timeline.slice(0, 3) : []).map((event, index) => (
                     <div key={index} className="flex gap-4">
                       <div className="w-32 shrink-0 text-sm text-gray-500">{event.date}</div>
                       <div>

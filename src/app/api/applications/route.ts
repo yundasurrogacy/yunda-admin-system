@@ -15,7 +15,13 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "申请类型和申请数据为必填项",
         },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        }
       );
     }
 
@@ -28,7 +34,13 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "无效的申请类型",
         },
-        { status: 400 }
+        {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        }
       );
     }
 
@@ -56,11 +68,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "申请表提交成功",
-      data: result?.insert_applications_one,
-    });
+    // return new NextResponse(
+    return NextResponse.json(
+      {
+        success: true,
+        message: "申请表提交成功",
+        data: result?.insert_applications_one,
+      },
+      {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
+    );
   } catch (error) {
     console.error("提交申请表失败:", error);
     return NextResponse.json(
@@ -68,7 +90,27 @@ export async function POST(request: NextRequest) {
         success: false,
         message: error instanceof Error ? error.message : "提交申请表失败",
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
     );
   }
+}
+
+
+// 处理预检请求（OPTIONS 方法）
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }
