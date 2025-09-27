@@ -17,8 +17,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useTranslation } from "react-i18next"
 
 export default function SurrogateProfilesPage() {
+  const { t, i18n } = useTranslation("common")
   const [language, setLanguage] = useState<"en" | "cn">("en")
   const [view, setView] = useState<"grid" | "list">("grid")
   const [showDialog, setShowDialog] = useState(false)
@@ -80,6 +82,7 @@ export default function SurrogateProfilesPage() {
   }
 
   const [surrogates, setSurrogates] = useState<SurrogateMother[]>([])
+  const [searchValue, setSearchValue] = useState("")
   const router = useRouter()
   useEffect(() => {
     async function fetchSurrogates() {
@@ -232,42 +235,43 @@ export default function SurrogateProfilesPage() {
 
   return (
     <AdminLayout>
+      {/* header 已存在，无需重复插入 CommonHeader */}
       <PageContent>
         <PageHeader 
-          title={text[language].title}
-          rightContent={
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={handleAddNewSurrogate}
-                className="bg-sage-200 text-sage-800 hover:bg-sage-250"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {text[language].addNew}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white">
-                    <Filter className="w-4 h-4 mr-2" />
-                    {text[language].filterBy}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem>
-                    {text[language].status}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    {text[language].age}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    {text[language].location}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    {text[language].experience}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          }
+          title={t('surrogateProfiles')}
+            // rightContent={
+            //   <div className="flex items-center gap-4">
+            //     <Button
+            //       onClick={handleAddNewSurrogate}
+            //       className="bg-sage-200 text-sage-800 hover:bg-sage-250"
+            //     >
+            //       <Plus className="w-4 h-4 mr-2" />
+            //       {t('addNewSurrogate')}
+            //     </Button>
+            //     <DropdownMenu>
+            //       <DropdownMenuTrigger asChild>
+            //         <Button variant="outline" className="bg-white">
+            //           <Filter className="w-4 h-4 mr-2" />
+            //           {t('filterBy')}
+            //         </Button>
+            //       </DropdownMenuTrigger>
+            //       <DropdownMenuContent align="end" className="w-48">
+            //         <DropdownMenuItem>
+            //           {t('status')}
+            //         </DropdownMenuItem>
+            //         <DropdownMenuItem>
+            //           {t('age')}
+            //         </DropdownMenuItem>
+            //         <DropdownMenuItem>
+            //           {t('location')}
+            //         </DropdownMenuItem>
+            //         <DropdownMenuItem>
+            //           {t('experience')}
+            //         </DropdownMenuItem>
+            //       </DropdownMenuContent>
+            //     </DropdownMenu>
+            //   </div>
+            // }
         />
 
         {/* Search Bar */}
@@ -275,8 +279,10 @@ export default function SurrogateProfilesPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 w-5 h-5" />
           <Input 
             type="text"
-            placeholder={text[language].searchPlaceholder}
+            placeholder={t('searchSurrogates')}
             className="pl-10 bg-white"
+            value={searchValue}
+            onChange={e => setSearchValue(e.target.value)}
           />
         </div>
 
@@ -289,7 +295,24 @@ export default function SurrogateProfilesPage() {
             alignItems: 'stretch',
           }}
         >
-          {surrogates.map((surrogate) => {
+          {surrogates
+            .filter(surrogate => {
+              const ci = surrogate.contact_information
+              const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+              const city = ci?.city || ''
+              const country = ci?.country || ''
+              const id = String(surrogate.id)
+              // 搜索内容匹配姓名、城市、国家、ID
+              const keyword = searchValue.trim().toLowerCase()
+              return (
+                !keyword ||
+                name.toLowerCase().includes(keyword) ||
+                city.toLowerCase().includes(keyword) ||
+                country.toLowerCase().includes(keyword) ||
+                id.includes(keyword)
+              )
+            })
+            .map((surrogate) => {
             const ci = surrogate.contact_information
             const ph = surrogate.pregnancy_and_health
             // 计算年龄
@@ -317,7 +340,7 @@ export default function SurrogateProfilesPage() {
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-sm text-sage-500">ID: {surrogate.id}</span>
                         <span className="text-sm text-sage-500">•</span>
-                        <span className="text-sm text-sage-500">{age !== "-" ? `${age}岁` : "年龄未知"}</span>
+                        <span className="text-sm text-sage-500">{age !== "-" ? t('ageWithUnit', { age }) : t('unknownAge')}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-sm text-sage-500">{ci?.city || "-"}, {ci?.state_or_province || "-"}, {ci?.country || "-"}</span>
@@ -329,48 +352,48 @@ export default function SurrogateProfilesPage() {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">{ci?.country || "-"}</span>
+                    <span className="text-sage-600">{t('country')}: {ci?.country || '-'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Heart className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">{ph?.has_given_birth ? "有分娩经历" : "无分娩经历"}</span>
+                    <span className="text-sage-600">{ph?.has_given_birth ? t('hasBirthHistory') : t('noBirthHistory')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">最近更新: {surrogate.updated_at?.slice(0, 10) || "-"}</span>
+                    <span className="text-sage-600">{t('lastUpdate')}: {surrogate.updated_at?.slice(0, 10) || '-'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Activity className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600">BMI: {ci?.bmi ?? "-"}</span>
+                    <span className="text-sage-600">BMI: {ci?.bmi ?? '-'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-600">身高: {ci?.height ?? "-"}cm</span>
+                    <span className="text-sage-600">{t('height')}: {ci?.height ?? '-'}cm</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-600">体重: {ci?.weight ?? "-"}kg</span>
+                    <span className="text-sage-600">{t('weight')}: {ci?.weight ?? '-'}kg</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-600">种族: {ci?.ethnicity_selected_key ?? "-"}</span>
+                    <span className="text-sage-600">{t('ethnicity')}: {ci?.ethnicity_selected_key ?? '-'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-600">学历: {surrogate.about_you?.education_level_selected_key ?? "-"}</span>
+                    <span className="text-sage-600">{t('education')}: {surrogate.about_you?.education_level_selected_key ?? '-'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-600">婚姻: {surrogate.about_you?.marital_status_selected_key ?? "-"}</span>
+                    <span className="text-sage-600">{t('maritalStatus')}: {surrogate.about_you?.marital_status_selected_key ?? '-'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-600">代孕经验: {ci?.surrogacy_experience_count ?? "-"} 次</span>
+                    <span className="text-sage-600">{t('surrogacyExperience')}: {ci?.surrogacy_experience_count ?? '-'} {t('times')}</span>
                   </div>
                 </div>
 
                 <div className="mb-2">
-                  <span className="text-sage-600">健康状况: {ph?.medical_conditions_selected_keys?.join(", ") ?? "-"}</span>
+                  <span className="text-sage-600">{t('healthStatus')}: {ph?.medical_conditions_selected_keys?.join(', ') ?? '-'}</span>
                 </div>
                 <div className="mb-2">
-                  <span className="text-sage-600">背景调查: {ph?.background_check_status_selected_key ?? "-"}</span>
+                  <span className="text-sage-600">{t('backgroundCheck')}: {ph?.background_check_status_selected_key ?? '-'}</span>
                 </div>
                 <div className="mb-2">
-                  <span className="text-sage-600">分娩历史:</span>
+                  <span className="text-sage-600">{t('birthHistory')}:</span>
                   <ul className="list-disc ml-6">
                     {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
                       <li key={idx} className="text-sage-600 text-sm">
@@ -386,7 +409,7 @@ export default function SurrogateProfilesPage() {
                     className="text-sage-600 hover:text-sage-800"
                     onClick={() => router.push(`/admin/surrogate-profiles/${surrogate.id}`)}
                   >
-                    {text[language].viewProfile}
+                    {t('viewProfile')}
                   </Button>
                   <Button
                     variant="outline"
@@ -396,7 +419,7 @@ export default function SurrogateProfilesPage() {
                       setShowPasswordDialog(true)
                     }}
                   >
-                    设置/重置密码
+                    {t('setOrResetPassword')}
                   </Button>
                 </div>
               </div>
@@ -647,8 +670,8 @@ export default function SurrogateProfilesPage() {
                 </div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-2 md:gap-4 mt-8">
-                <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50" onClick={() => { setShowDialog(false); reset(); }}>取消</Button>
-                <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition">保存</Button>
+                <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50" onClick={() => { setShowDialog(false); reset(); }}>{t('cancel')}</Button>
+                <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition">{t('save')}</Button>
               </div>
             </form>
             <button className="absolute top-4 right-4 text-sage-400 hover:text-sage-600 text-xl" onClick={() => { setShowDialog(false); reset(); }}>&times;</button>
@@ -659,10 +682,10 @@ export default function SurrogateProfilesPage() {
       {/* 重置密码弹窗 */}
         <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
           <>
-            <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center tracking-wide">设置/重置密码</h2>
+            <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center tracking-wide">{t('setOrResetPassword')}</h2>
             <Input
               type="password"
-              placeholder="请输入新密码"
+              placeholder={t('pleaseEnterNewPassword')}
               value={passwordValue}
               onChange={e => setPasswordValue(e.target.value)}
               className="mb-6 px-4 py-3 border-2 border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition w-full text-lg"
@@ -670,10 +693,10 @@ export default function SurrogateProfilesPage() {
             {passwordError && <div className="text-red-500 text-sm mb-2 text-center w-full">{passwordError}</div>}
             <div className="flex justify-end gap-4 w-full mt-2">
               <Button variant="outline" className="px-6 py-2 rounded-lg text-base" onClick={() => { setShowPasswordDialog(false); setPasswordValue(""); setPasswordError(""); }}>
-                取消
+                {t('cancel')}
               </Button>
               <Button className="px-6 py-2 rounded-lg text-base bg-sage-600 text-white hover:bg-sage-700" onClick={handleResetPassword} disabled={passwordLoading}>
-                {passwordLoading ? "处理中..." : "确认"}
+                {passwordLoading ? t('processing') : t('confirmReset')}
               </Button>
             </div>
           </>

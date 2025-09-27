@@ -27,16 +27,7 @@ interface Filters {
   startDate: string;
 }
 
-const mockClients: ClientProfile[] = Array(12).fill(null).map((_, index) => ({
-  id: `${index + 1}`,
-  name: 'John Doe',
-  country: 'United States',
-  email: 'john@example.com',
-  phone: '+1 234 567 890',
-  status: index % 3 === 1 ? 'In Progress' : 'Matched',
-  created_at: '2024-01-15',
-  updated_at: '2024-01-15'
-}));
+
 
 
 export default function ClientProfilesPage() {
@@ -58,55 +49,41 @@ export default function ClientProfilesPage() {
 
   const debouncedSearch = useDebounce(filters.search, 500);
 
-  // 获取客户数据
+  // 获取所有case并批量获取准父母详情
   const fetchClients = async () => {
     setIsLoading(true);
     setError(null);
-    
-    let result: ClientProfile[] = [];
     try {
-      const hasuraClient = getHasuraClient();
-      
-      // 构建查询条件
-      const where: any = {};
-      if (filters.search) {
-        where._or = [
-          { name: { _ilike: `%${filters.search}%` } },
-          { email: { _ilike: `%${filters.search}%` } },
-          { phone: { _ilike: `%${filters.search}%` } }
-        ];
+      // 1. 获取当前经理id（localStorage 或默认值）
+      const managerId = typeof window !== 'undefined' ? localStorage.getItem('managerId') || '3' : '3';
+      // 2. 获取所有case
+      const caseRes = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
+      if (!caseRes.ok) throw new Error('获取案子失败');
+      const caseData = await caseRes.json();
+      const casesRaw = caseData.cases || caseData.data || caseData || [];
+      // 3. 提取所有准父母id
+      const parentIds = Array.isArray(casesRaw)
+        ? casesRaw.map((item: any) => item.intended_parent?.id).filter(Boolean)
+        : [];
+      // 4. 批量获取准父母详情
+      const parentDetails: ClientProfile[] = [];
+      for (const parentId of parentIds) {
+        const res = await fetch(`/api/intended-parent-detail?parentId=${parentId}`);
+        if (res.ok) {
+          const detail = await res.json();
+          parentDetails.push({
+            id: detail.id,
+            name: detail.basic_information?.firstName + ' ' + detail.basic_information?.lastName || detail.name || '',
+            country: detail.family_profile?.country || '',
+            email: detail.contact_information?.email_address || detail.email || '',
+            phone: detail.contact_information?.cell_phone || '',
+            status: detail.status || 'Matched',
+            created_at: detail.created_at || '',
+            updated_at: detail.updated_at || '',
+          });
+        }
       }
-      if (filters.status) {
-        where.status = { _eq: filters.status };
-      }
-      if (filters.startDate) {
-        where.created_at = { _gte: filters.startDate };
-      }
-
-      try {
-        result = await hasuraClient.datas<ClientProfile>({
-          table: 'client_profiles',
-          args: {
-            where,
-            order_by: { created_at: () => 'desc' }
-          },
-          datas_fields: [
-            'id',
-            'name',
-            'email',
-            'phone',
-            'status',
-            'country',
-            'created_at',
-            'updated_at'
-          ]
-        });
-      } catch (apiError) {
-        console.warn('API 请求失败，使用本地测试数据:', apiError);
-        result = mockClients;
-      }
-      
-      setClients(result);
+      setClients(parentDetails);
     } catch (err) {
       console.error('获取客户列表失败:', err);
       setError('获取客户列表失败，请稍后重试');
@@ -117,7 +94,7 @@ export default function ClientProfilesPage() {
 
   React.useEffect(() => {
     fetchClients();
-  }, [debouncedSearch, filters.status, filters.startDate]);
+  }, []);
 
   // 导航函数
   const handleViewDetails = (clientId: string) => {

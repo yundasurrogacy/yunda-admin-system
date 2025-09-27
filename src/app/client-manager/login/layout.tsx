@@ -16,7 +16,7 @@ export default function ManagerLoginLayout({ children }: { children: React.React
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         theme="blue"
-        groups={managerSidebarConfig}
+        groups={managerSidebarConfig()}
         title="客户经理"
       />
       

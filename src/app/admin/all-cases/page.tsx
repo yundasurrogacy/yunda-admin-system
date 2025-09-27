@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@/components/ui/dialog"
 // 不再使用mock hook，全部用API
@@ -11,8 +12,9 @@ import { Download, Plus, UserPlus } from "lucide-react"
 
 // ...existing code...
 export default function AllCasesPage() {
+  const { t, i18n } = useTranslation("common")
   // ...existing code...
-  const [language, setLanguage] = useState<"EN" | "CN">("EN")
+  // 国际化由 i18n 控制，无需本地 language 状态
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showAssignDialog, setShowAssignDialog] = useState(false)
   const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null)
@@ -64,41 +66,7 @@ export default function AllCasesPage() {
     console.log('managers:', managers);
   }, [cases, surrogates, clients, managers]);
 
-  // 多语言文本
-  const text = {
-    EN: {
-      allCases: "All Cases",
-      overview: "Overview (Exportable)",
-      name: "Name",
-      type: "Type",
-      stage: "Stage",
-      status: "Status",
-      viewDetails: "View Details",
-      allCase: "All Case",
-      client: "Client",
-      surrogate: "Surrogate",
-      matching: "Matching",
-      legalStage: "Legal Stage",
-      inProgress: "In Progress",
-      pending: "Pending",
-    },
-    CN: {
-      allCases: "所有案例",
-      overview: "概览（可导出）",
-      name: "姓名",
-      type: "类型",
-      stage: "阶段",
-      status: "状态",
-      viewDetails: "查看详情",
-      allCase: "所有案例",
-      client: "客户",
-      surrogate: "代理人",
-      matching: "匹配中",
-      legalStage: "法律阶段",
-      inProgress: "进行中",
-      pending: "待处理",
-    },
-  };
+  // ...existing code...
 
   // 刷新全部数据
   const fetchAllData = async () => {
@@ -124,14 +92,14 @@ export default function AllCasesPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-light tracking-wider text-foreground">{text[language].allCases}</h1>
+          <h1 className="text-3xl font-light tracking-wider text-foreground">{t('allCases')}</h1>
           <div className="flex gap-2">
             <Button onClick={() => setShowCreateDialog(true)} className="bg-sage-200 text-sage-800 hover:bg-sage-250">
-              <Plus className="w-4 h-4 mr-2" /> 新增案子
+              <Plus className="w-4 h-4 mr-2" />{t('addNewCase')}
             </Button>
-            <Button onClick={() => {}} variant="outline" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 border-border">
-              <Download className="mr-2 h-4 w-4" /> 导出
-            </Button>
+            {/* <Button onClick={() => {}} variant="outline" className="bg-secondary text-secondary-foreground hover:bg-secondary/90 border-border">
+              <Download className="mr-2 h-4 w-4" />{t('export')}
+            </Button> */}
           </div>
         </div>
         {/* Cases Card Grid */}
@@ -158,34 +126,34 @@ export default function AllCasesPage() {
                     <span className="text-sage-400 text-xl font-bold">{String(c.id).slice(-2)}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-lg text-sage-800 truncate">案子ID：{c.id}</div>
-                    <div className="text-sage-500 text-sm truncate">状态：{c.process_status || c.status || "-"}</div>
+                    <div className="font-semibold text-lg text-sage-800 truncate">{t('caseId')}{c.id}</div>
+                    <div className="text-sage-500 text-sm truncate">{t('status')}{c.process_status || c.status || "-"}</div>
                   </div>
                 </div>
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                   <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">代孕母：</span>
+                    <span className="font-mono text-xs text-sage-400">{t('surrogateMother')}：</span>
                     <span className="text-blue-600 cursor-pointer underline" onClick={() => router.push(`/admin/surrogate-profiles/${c.surrogate_mother?.id}`)}>{surrogateName}</span>
                   </div>
                   <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">准父母：</span>
+                    <span className="font-mono text-xs text-sage-400">{t('intendedParent')}：</span>
                     <span className="text-green-600 cursor-pointer underline" onClick={() => router.push(`/admin/client-profiles/${c.intended_parent?.id}`)}>{parentName}</span>
                   </div>
                   <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">客户经理：</span>
+                    <span className="font-mono text-xs text-sage-400">{t('clientManager')}：</span>
                     {managerName !== "-" ? (
                       <span>{managerName}</span>
                     ) : (
-                      <span className="text-gray-400">未分配</span>
+                      <span className="text-gray-400">{t('notAssigned')}</span>
                     )}
                   </div>
                 </div>
                 <hr className="my-3 border-sage-100" />
                 <div className="flex items-center justify-between">
-                  <span className="text-sage-500 text-sm">创建时间：{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
+                  <span className="text-sage-500 text-sm">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
                   {managerName === "-" && (
                     <Button size="sm" variant="outline" onClick={() => { setSelectedCaseId(c.id); setShowAssignDialog(true); }}>
-                      <UserPlus className="w-4 h-4 mr-1" />分配客户经理
+                      <UserPlus className="w-4 h-4 mr-1" />{t('assignClientManager')}
                     </Button>
                   )}
                 </div>
@@ -196,18 +164,18 @@ export default function AllCasesPage() {
         {/* 新增案子弹窗 */}
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <div className="p-6 bg-white rounded-xl shadow-xl w-full max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">新增案子</h2>
+            <h2 className="text-xl font-bold mb-4">{t('addNewCase')}</h2>
             <div className="mb-4">
-              <label className="block mb-2">选择代孕母</label>
+              <label className="block mb-2">{t('selectSurrogateMother')}</label>
               <select className="w-full border rounded px-2 py-1" value={selectedSurrogateId ?? ""} onChange={e => setSelectedSurrogateId(Number(e.target.value))}>
-                <option value="">请选择</option>
+                <option value="">{t('pleaseSelect')}</option>
                 {surrogates.map((s: any) => <option key={s.id} value={s.id}>{getFirstName(s.contact_information) || s.name}</option>)}
               </select>
             </div>
             <div className="mb-4">
-              <label className="block mb-2">选择准父母</label>
+              <label className="block mb-2">{t('selectIntendedParent')}</label>
               <select className="w-full border rounded px-2 py-1" value={selectedParentId ?? ""} onChange={e => setSelectedParentId(Number(e.target.value))}>
-                <option value="">请选择</option>
+                <option value="">{t('pleaseSelect')}</option>
                 {clients.map((p: any) => <option key={p.id} value={p.id}>{getFirstName(p.basic_information) || p.name}</option>)}
               </select>
             </div>
@@ -228,19 +196,19 @@ export default function AllCasesPage() {
                 setSelectedSurrogateId(null)
                 setSelectedParentId(null)
                 await fetchAllData()
-              }} disabled={loading} className="bg-sage-600 text-white">{loading ? "处理中..." : "确认新增"}</Button>
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>取消</Button>
+              }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAdd')}</Button>
+              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>{t('cancel')}</Button>
             </div>
           </div>
         </Dialog>
         {/* 分配客户经理弹窗 */}
         <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
           <div className="p-6 bg-white rounded-xl shadow-xl w-full max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">分配客户经理</h2>
+            <h2 className="text-xl font-bold mb-4">{t('assignClientManager')}</h2>
             <div className="mb-4">
-              <label className="block mb-2">选择客户经理</label>
+              <label className="block mb-2">{t('selectClientManager')}</label>
               <select className="w-full border rounded px-2 py-1" value={selectedManagerId ?? ""} onChange={e => setSelectedManagerId(Number(e.target.value))}>
-                <option value="">请选择</option>
+                <option value="">{t('pleaseSelect')}</option>
                 {managers.map((m: any) => <option key={m.id} value={m.id}>{m.name || m.email}</option>)}
               </select>
             </div>
@@ -258,8 +226,8 @@ export default function AllCasesPage() {
                 setSelectedCaseId(null)
                 setSelectedManagerId(null)
                 await fetchAllData()
-              }} disabled={loading} className="bg-sage-600 text-white">{loading ? "处理中..." : "确认分配"}</Button>
-              <Button variant="outline" onClick={() => setShowAssignDialog(false)}>取消</Button>
+              }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAssign')}</Button>
+              <Button variant="outline" onClick={() => setShowAssignDialog(false)}>{t('cancel')}</Button>
             </div>
           </div>
         </Dialog>

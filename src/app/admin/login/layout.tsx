@@ -4,7 +4,8 @@ import React from "react"
 import { useState } from "react"
 import { CommonHeader } from "@/components/common-header"
 import { CommonSidebar } from "@/components/common-sidebar"
-import { adminSidebarConfig } from "@/config/sidebar-config"
+// import { adminSidebarConfig } from "@/config/sidebar-config"
+import { getAdminSidebarConfig } from "@/config/sidebar-config";
 
 export default function AdminLoginLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -16,7 +17,8 @@ export default function AdminLoginLayout({ children }: { children: React.ReactNo
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         // theme="purple"
-        groups={adminSidebarConfig}
+        // groups={adminSidebarConfig}
+        groups={getAdminSidebarConfig()}
         // title="管理员"
       />
       

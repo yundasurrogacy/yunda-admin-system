@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from "react-i18next"
+// import i18n from '@/i18n'
+import i18n from '@/i18n'
 import { useRouter } from 'next/navigation'
 import { Search, Filter, User, Mail, Phone, MapPin, Plus, Eye, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react'
 import { AdminLayout } from '../../../components/admin-layout'
@@ -54,106 +57,25 @@ type FormType = {
   };
 };
 
-function AddIntendedParentDialog({ open, onOpenChange, onSuccess }: AddIntendedParentDialogProps) {
-  const [form, setForm] = useState<FormType>({
-    basic_information: { firstName: "", lastName: "", date_of_birth: "" },
-    contact_information: { email_address: "", cell_phone: "" },
-    family_profile: { city: "", country: "" },
-    program_interests: { interested_services: "", journey_start_timing: "", desired_children_count: "" },
-    referral: { referral_source: "", initial_questions: "" }
-  })
-  const [loading, setLoading] = useState(false)
-
-  const handleChange = (group: keyof FormType, key: string, value: string) => {
-    setForm(prev => ({
-      ...prev,
-      [group]: { ...prev[group], [key]: value }
-    }))
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      await insertIntendedParent(form)
-      onSuccess()
-      onOpenChange(false)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <form onSubmit={handleSubmit}>
-        <h2 className="text-lg font-bold mb-4">添加准父母用户</h2>
-        <Label>名字<Input value={form.basic_information.firstName} onChange={e => handleChange("basic_information", "firstName", e.target.value)} /></Label>
-        <Label>姓氏<Input value={form.basic_information.lastName} onChange={e => handleChange("basic_information", "lastName", e.target.value)} /></Label>
-        <Label>出生日期<Input type="date" value={form.basic_information.date_of_birth} onChange={e => handleChange("basic_information", "date_of_birth", e.target.value)} /></Label>
-        <Label>邮箱<Input value={form.contact_information.email_address} onChange={e => handleChange("contact_information", "email_address", e.target.value)} /></Label>
-        <Label>手机号<Input value={form.contact_information.cell_phone} onChange={e => handleChange("contact_information", "cell_phone", e.target.value)} /></Label>
-        <Label>城市<Input value={form.family_profile.city} onChange={e => handleChange("family_profile", "city", e.target.value)} /></Label>
-        <Label>国家<Input value={form.family_profile.country} onChange={e => handleChange("family_profile", "country", e.target.value)} /></Label>
-        <Label>服务需求<Input value={form.program_interests.interested_services} onChange={e => handleChange("program_interests", "interested_services", e.target.value)} /></Label>
-        <Label>旅程开始时间<Input value={form.program_interests.journey_start_timing} onChange={e => handleChange("program_interests", "journey_start_timing", e.target.value)} /></Label>
-        <Label>期望孩子数量<Input value={form.program_interests.desired_children_count} onChange={e => handleChange("program_interests", "desired_children_count", e.target.value)} /></Label>
-        <Label>推荐来源<Input value={form.referral.referral_source} onChange={e => handleChange("referral", "referral_source", e.target.value)} /></Label>
-        <Label>初步问题<Input value={form.referral.initial_questions} onChange={e => handleChange("referral", "initial_questions", e.target.value)} /></Label>
-        <div className="mt-4 flex gap-2">
-          <Button type="submit" disabled={loading}>提交</Button>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-        </div>
-      </form>
-    </Dialog>
-  )
-}
 export default function ParentsApplicationsPage() {
   const router = useRouter()
-  const [language, setLanguage] = useState<"en" | "cn">("en")
-  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [lang, setLang] = useState(i18n.language)
+  // 每次lang变化都重新获取t
+  const { t } = useTranslation("common")
+  // 弹窗逻辑已移除
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
-
-  const text = {
-    en: {
-      title: "Parents Applications",
-      searchPlaceholder: "Search applicants...",
-      addNew: "Add New Application",
-      filterBy: "Filter by",
-      status: "Status",
-      pending: "Pending",
-      approved: "Approved",
-      rejected: "Rejected",
-      all: "All Status",
-      viewProfile: "View Details",
-      approve: "Approve",
-      reject: "Reject",
-      lastUpdate: "Last Update",
-      applicationDate: "Application Date",
-      noApplications: "No applications found",
-      loading: "Loading...",
-    },
-    cn: {
-      title: "意向父母申请表",
-      searchPlaceholder: "搜索申请人...",
-      addNew: "添加新申请",
-      filterBy: "筛选",
-      status: "状态",
-      pending: "待审核",
-      approved: "已通过",
-      rejected: "已拒绝",
-      all: "全部状态",
-      viewProfile: "查看详情",
-      approve: "通过",
-      reject: "拒绝",
-      lastUpdate: "最后更新",
-      applicationDate: "申请时间",
-      noApplications: "暂无申请记录",
-      loading: "加载中...",
+  useEffect(() => {
+    console.log('页面 i18n.language:', i18n.language)
+    const handleLangChange = () => {
+      console.log('页面监听到语言切换:', i18n.language)
+      setLang(i18n.language)
     }
-  }
+    i18n.on("languageChanged", handleLangChange)
+    return () => i18n.off("languageChanged", handleLangChange)
+  }, [])
 
   useEffect(() => {
     loadApplications()
@@ -210,11 +132,11 @@ export default function ParentsApplicationsPage() {
   const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />{text[language].pending}</Badge>
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />{t('pending', { defaultValue: '待审核' })}</Badge>
       case 'approved':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />{text[language].approved}</Badge>
+        return <Badge variant="secondary" className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />{t('approved', { defaultValue: '已通过' })}</Badge>
       case 'rejected':
-        return <Badge variant="secondary" className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />{text[language].rejected}</Badge>
+        return <Badge variant="secondary" className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />{t('rejected', { defaultValue: '已拒绝' })}</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
@@ -234,50 +156,53 @@ export default function ParentsApplicationsPage() {
   }
 
   if (loading) {
+    // console.log('t(loading):', t('loading'));
     return (
-      <AdminLayout>
+      <AdminLayout key={lang}>
         <PageContent>
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg">{text[language].loading}</div>
+            <div className="text-lg">{t('loading', { defaultValue: '加载中...' })}</div>
+            {/* <div className="text-lg">{t('loading', { defaultValue: 'Loading...' })}</div> */}
           </div>
         </PageContent>
       </AdminLayout>
     )
   }
 
+
   return (
-    <AdminLayout>
+    <AdminLayout key={lang}>
       <PageContent>
         <PageHeader 
-          title={text[language].title}
+          title={t('parentsApplications', { defaultValue: '意向父母申请表' })}
           rightContent={
             <div className="flex items-center gap-4">
               <Button
-                onClick={() => setAddDialogOpen(true)}
+                onClick={() => window.open('https://www.yundasurrogacy.com/be-parents', '_blank')}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {text[language].addNew}
+                {t('addNewApplication', { defaultValue: '添加新申请' })}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-white">
                     <Filter className="w-4 h-4 mr-2" />
-                    {text[language].filterBy}
+                    {t('filterBy', { defaultValue: '筛选' })}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                    {text[language].all}
+                    {t('allStatus', { defaultValue: '全部状态' })}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('pending')}>
-                    {text[language].pending}
+                    {t('pending', { defaultValue: '待审核' })}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('approved')}>
-                    {text[language].approved}
+                    {t('approved', { defaultValue: '已通过' })}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('rejected')}>
-                    {text[language].rejected}
+                    {t('rejected', { defaultValue: '已拒绝' })}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -290,7 +215,7 @@ export default function ParentsApplicationsPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 w-5 h-5" />
           <Input 
             type="text"
-            placeholder={text[language].searchPlaceholder}
+            placeholder={t('searchApplicants', { defaultValue: '搜索申请人...' })}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-white"
@@ -314,8 +239,8 @@ export default function ParentsApplicationsPage() {
             const programInterests = appData?.program_interests || {}
             const referral = appData?.referral || {}
             // 格式化多选项
-            const languages = Array.isArray(contactInfo.primary_languages) ? contactInfo.primary_languages.join(', ') : (contactInfo.primary_languages || 'N/A')
-            const ethnicity = Array.isArray(basicInfo.ethnicity) ? basicInfo.ethnicity.join(', ') : (basicInfo.ethnicity || 'N/A')
+            const languages = Array.isArray(contactInfo.primary_languages) ? contactInfo.primary_languages.join(', ') : (contactInfo.primary_languages || t('notAvailable', { defaultValue: 'N/A' }))
+            const ethnicity = Array.isArray(basicInfo.ethnicity) ? basicInfo.ethnicity.join(', ') : (basicInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' }))
             return (
               <div key={app.id} className="bg-white rounded-xl border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full" style={{minWidth: '0'}}>
                 <div>
@@ -331,70 +256,70 @@ export default function ParentsApplicationsPage() {
                         <span className="text-sm text-sage-500">#{app.id}</span>
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(app.status)}`}>{text[language][app.status]}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(app.status)}`}>{t(app.status, { defaultValue: app.status })}</span>
                   </div>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2 text-sm text-sage-600 truncate">
                       <Mail className="w-4 h-4" />
-                      <span className="truncate">{contactInfo.email_address || 'N/A'}</span>
+                      <span className="truncate">{contactInfo.email_address || t('notAvailable', { defaultValue: 'N/A' })}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-sage-600">
                       <Phone className="w-4 h-4" />
-                      <span>{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
+                      <span>{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || t('notAvailable', { defaultValue: 'N/A' })}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-sage-600">
                       <MapPin className="w-4 h-4" />
-                      <span className="truncate">{familyProfile.city || 'N/A'}, {familyProfile.state_or_province || 'N/A'}, {familyProfile.country || 'N/A'}</span>
+                      <span className="truncate">{familyProfile.city || t('notAvailable', { defaultValue: 'N/A' })}, {familyProfile.state_or_province || t('notAvailable', { defaultValue: 'N/A' })}, {familyProfile.country || t('notAvailable', { defaultValue: 'N/A' })}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-sage-600">
                       <Calendar className="w-4 h-4" />
-                      <span>DOB: {basicInfo.date_of_birth || 'N/A'}</span>
+                      <span>{t('dob')}: {basicInfo.date_of_birth || t('notAvailable')}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-sage-500">性别认同:</span>
-                      <span className="text-sage-600 truncate">{basicInfo.gender_identity || 'N/A'}</span>
+                      <span className="text-sage-500">{t('genderIdentity')}:</span>
+                      <span className="text-sage-600 truncate">{basicInfo.gender_identity || t('notAvailable')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-sage-500">族裔:</span>
+                      <span className="text-sage-500">{t('ethnicity')}:</span>
                       <span className="text-sage-600 truncate">{ethnicity}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-sage-500">性取向:</span>
-                      <span className="text-sage-600 truncate">{familyProfile.sexual_orientation || 'N/A'}</span>
+                      <span className="text-sage-500">{t('sexualOrientation')}:</span>
+                      <span className="text-sage-600 truncate">{familyProfile.sexual_orientation || t('notAvailable')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="text-sage-500">语言:</span>
+                      <span className="text-sage-500">{t('languages')}:</span>
                       <span className="text-sage-600 truncate">{languages}</span>
                     </div>
                   </div>
                   <div className="mb-4 p-3 bg-sage-50 rounded-lg">
                     <div className="text-sm text-sage-700">
-                      <div className="font-medium mb-1">服务需求:</div>
+                      <div className="font-medium mb-1">{t('serviceNeeds')}:</div>
                       <div className="text-sage-600">
-                        {programInterests.interested_services === 'surrogacyOnly' && '代孕服务'}
-                        {programInterests.interested_services === 'surrogacyEggDonor' && '代孕+捐卵服务'}
-                        {programInterests.interested_services === 'eggDonorOnly' && '捐卵服务'}
-                        {programInterests.interested_services === 'thirdPartySurrogate' && '第三方代孕'}
-                        {programInterests.interested_services === 'bringYourOwnSurrogate' && '自带代孕者'}
-                        {programInterests.interested_services === 'bringYourOwnSurrogateEgg' && '自带代孕者+捐卵'}
-                        {programInterests.interested_services === 'notSure' && '不确定'}
+                        {programInterests.interested_services === 'surrogacyOnly' && t('surrogacyService', { defaultValue: '代孕服务' })}
+                        {programInterests.interested_services === 'surrogacyEggDonor' && t('surrogacyEggDonorService', { defaultValue: '代孕+捐卵服务' })}
+                        {programInterests.interested_services === 'eggDonorOnly' && t('eggDonorService', { defaultValue: '捐卵服务' })}
+                        {programInterests.interested_services === 'thirdPartySurrogate' && t('thirdPartySurrogate', { defaultValue: '第三方代孕' })}
+                        {programInterests.interested_services === 'bringYourOwnSurrogate' && t('bringYourOwnSurrogate', { defaultValue: '自带代孕者' })}
+                        {programInterests.interested_services === 'bringYourOwnSurrogateEgg' && t('bringYourOwnSurrogateEgg', { defaultValue: '自带代孕者+捐卵' })}
+                        {programInterests.interested_services === 'notSure' && t('notSure', { defaultValue: '不确定' })}
                       </div>
                       <div className="text-xs text-sage-500 mt-1">
-                        期望孩子数量: {programInterests.desired_children_count || 'N/A'} | 
-                        开始时间: {programInterests.journey_start_timing || 'N/A'}
+                        {t('desiredChildrenCount')}: {programInterests.desired_children_count || t('notAvailable')} | 
+                        {t('journeyStartTiming')}: {programInterests.journey_start_timing || t('notAvailable')}
                       </div>
                     </div>
                   </div>
                   <div className="mb-2 text-sm text-sage-700">
-                    推荐来源: {referral.referral_source || 'N/A'}<br />
-                    初步问题: {referral.initial_questions || 'N/A'}
+                    {t('referralSource')}: {referral.referral_source || t('notAvailable')}<br />
+                    {t('initialQuestions')}: {referral.initial_questions || t('notAvailable')}
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
                   <span className="text-sm text-sage-500">
-                    {text[language].applicationDate}: {new Date(app.created_at).toLocaleDateString('zh-CN')}
+                    {t('applicationDate', { defaultValue: '申请时间' })}: {new Date(app.created_at).toLocaleDateString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
                   </span>
                   <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
@@ -405,7 +330,7 @@ export default function ParentsApplicationsPage() {
                           onClick={() => handleStatusUpdate(app.id, 'approved')}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
-                          {text[language].approve}
+                          {t('approve', { defaultValue: '通过' })}
                         </Button>
                         <Button 
                           size="sm" 
@@ -414,7 +339,7 @@ export default function ParentsApplicationsPage() {
                           onClick={() => handleStatusUpdate(app.id, 'rejected')}
                         >
                           <XCircle className="w-3 h-3 mr-1" />
-                          {text[language].reject}
+                          {t('reject', { defaultValue: '拒绝' })}
                         </Button>
                       </>
                     )}
@@ -424,7 +349,7 @@ export default function ParentsApplicationsPage() {
                       onClick={() => router.push(`/admin/parents-applications/${app.id}`)}
                     >
                       <Eye className="w-4 h-4 mr-1" />
-                      {text[language].viewProfile}
+                      {t('viewDetails', { defaultValue: '查看详情' })}
                     </Button>
                   </div>
                 </div>
@@ -435,11 +360,11 @@ export default function ParentsApplicationsPage() {
 
         {filteredApplications.length === 0 && (
           <div className="text-center py-8 text-sage-500">
-            {text[language].noApplications}
+            {t('noApplications', { defaultValue: '暂无申请记录' })}
           </div>
         )}
   </PageContent>
-  <AddIntendedParentDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} onSuccess={loadApplications} />
+  {/* 弹窗已移除 */}
     </AdminLayout>
   )
 }

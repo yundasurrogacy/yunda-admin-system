@@ -1,7 +1,9 @@
 "use client"
 import { cn } from "../lib/utils"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 
 // 定义菜单项类型
 interface MenuItem {
@@ -28,11 +30,28 @@ export function CommonSidebar({
   isOpen, 
   onClose, 
   theme = "sage",
-  groups,
+  groups = [],
   title = "YUNDA",
   type = "client"
 }: CommonSidebarProps) {
+  const safeGroups = Array.isArray(groups) ? groups : [];
   const pathname = usePathname()
+
+    const router = useRouter();
+
+    // 菜单点击统一处理，未登录跳转登录页
+    const [showLoginTip, setShowLoginTip] = useState(false);
+    const handleMenuClick = (href: string) => {
+      const role = localStorage.getItem("userRole")
+      const email = localStorage.getItem("userEmail")
+      if (role && email) {
+        router.push(href)
+        onClose()
+      } else {
+        setShowLoginTip(true)
+      }
+    }
+  // ...existing code...
 
   // 统一使用设计规范的颜色
   const getThemeClasses = () => {
@@ -52,6 +71,36 @@ export function CommonSidebar({
 
   return (
     <>
+      {/* 登录提示浮层（非模态） */}
+      {showLoginTip && (
+        <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+          <div className="bg-white rounded-lg shadow-lg px-8 py-6 min-w-[260px] flex flex-col items-center border border-sage-300">
+            <div className="text-base font-semibold mb-3 text-[#271F18]">请先登录后再访问页面</div>
+            <div className="flex gap-4 mt-2">
+              <button
+                className="px-5 py-1.5 bg-sage-600 text-white rounded font-serif hover:bg-sage-700 transition"
+                onClick={() => {
+                  setShowLoginTip(false)
+                  // let loginPath = "/client/login"
+                  // if (type === "admin") loginPath = "/admin/login"
+                  // else if (type === "manager") loginPath = "/manager/login"
+                  // else if (type === "surrogacy") loginPath = "/surrogacy/login"
+                  // router.push(loginPath)
+                  onClose()
+                }}
+              >
+                去登录
+              </button>
+              <button
+                className="px-5 py-1.5 bg-gray-100 text-sage-700 rounded font-serif border border-sage-300 hover:bg-gray-200 transition"
+                onClick={() => setShowLoginTip(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* 半透明遮罩，仅在移动端显示sidebar时可见 */}
       {isOpen && (
         <div 
@@ -80,27 +129,25 @@ export function CommonSidebar({
           {type === "manager" ? (
             // Manager端特殊样式，带分隔线
             <div className="space-y-4">
-              {groups.map((group, groupIndex) => (
+              {safeGroups.map((group, groupIndex) => (
                 <div key={groupIndex} className="space-y-1">
                   {group.items.map((item) => (
-                    <Link key={item.href} href={item.href}>
-                      <div
-                        className={cn(
-                          "px-6 py-3 text-sm font-medium cursor-pointer transition-colors duration-200",
-                          themeClasses.text,
-                          themeClasses.hoverBg,
-                          pathname === item.href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
-                        )}
-                        onClick={onClose}
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* 不显示图标 */}
-                          {item.label}
-                        </div>
+                    <div
+                      key={item.href}
+                      className={cn(
+                        "px-6 py-3 text-sm font-medium cursor-pointer transition-colors duration-200",
+                        themeClasses.text,
+                        themeClasses.hoverBg,
+                        pathname === item.href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
+                      )}
+                      onClick={() => handleMenuClick(item.href)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.label}
                       </div>
-                    </Link>
+                    </div>
                   ))}
-                  {groupIndex < groups.length - 1 && (
+                  {groupIndex < safeGroups.length - 1 && (
                     <div className="mx-4 my-4 border-t border-gray-200" />
                   )}
                 </div>
@@ -109,25 +156,23 @@ export function CommonSidebar({
           ) : type === "admin" ? (
             // Admin端特殊样式
             <div className="space-y-1">
-              {groups.map((group, groupIndex) => (
+              {safeGroups.map((group, groupIndex) => (
                 <div key={groupIndex}>
                   {group.items.map((item) => (
-                    <Link key={item.href} href={item.href}>
-                      <div
-                        className={cn(
-                          "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
-                          themeClasses.text,
-                          themeClasses.hoverBg,
-                          pathname === item.href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
-                        )}
-                        onClick={onClose}
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* 不显示图标 */}
-                          {item.label}
-                        </div>
+                    <div
+                      key={item.href}
+                      className={cn(
+                        "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
+                        themeClasses.text,
+                        themeClasses.hoverBg,
+                        pathname === item.href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
+                      )}
+                      onClick={() => handleMenuClick(item.href)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.label}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               ))}
@@ -135,31 +180,29 @@ export function CommonSidebar({
           ) : (
             // Client和Surrogate端默认样式
             <div>
-              {groups.map((group, groupIndex) => (
+              {safeGroups.map((group, groupIndex) => (
                 <div 
                   key={groupIndex} 
                   className={cn(
                     "py-2",
-                    groupIndex < groups.length - 1 ? `border-b ${themeClasses.itemBorder}` : ""
+                    groupIndex < safeGroups.length - 1 ? `border-b ${themeClasses.itemBorder}` : ""
                   )}
                 >
                   {group.items.map((item) => (
-                    <Link key={item.href} href={item.href}>
-                      <div
-                        className={cn(
-                          "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
-                          themeClasses.text,
-                          themeClasses.hoverBg,
-                          pathname === item.href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
-                        )}
-                        onClick={onClose}
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* 不显示图标 */}
-                          {item.label}
-                        </div>
+                    <div
+                      key={item.href}
+                      className={cn(
+                        "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
+                        themeClasses.text,
+                        themeClasses.hoverBg,
+                        pathname === item.href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
+                      )}
+                      onClick={() => handleMenuClick(item.href)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {item.label}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               ))}

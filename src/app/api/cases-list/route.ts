@@ -7,6 +7,8 @@ export async function GET() {
     query CasesList {
       cases {
         id
+        created_at
+        updated_at
         surrogate_mother {
           id
           email

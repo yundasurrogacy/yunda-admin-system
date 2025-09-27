@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from "react-i18next"
+import i18n from '@/i18n'
 import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus, Eye, CheckCircle, XCircle, Clock, Mail, Phone } from 'lucide-react'
 import { AdminLayout } from '../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
@@ -19,68 +21,18 @@ import type { Application, ApplicationStatus } from '@/types/applications'
 
 export default function SurrogatesApplicationsPage() {
   const router = useRouter()
-  const [language, setLanguage] = useState<"en" | "cn">("en")
+  const { t, i18n } = useTranslation("common")
+  const [lang, setLang] = useState(i18n.language)
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
 
-  const text = {
-    en: {
-      title: "Surrogates Applications",
-      searchPlaceholder: "Search applicants...",
-      addNew: "Add New Application",
-      filterBy: "Filter by",
-      status: "Status",
-      pending: "Pending",
-      approved: "Approved",
-      rejected: "Rejected",
-      all: "All Status",
-      viewProfile: "View Details",
-      approve: "Approve",
-      reject: "Reject",
-      lastUpdate: "Last Update",
-      applicationDate: "Application Date",
-      noApplications: "No applications found",
-      loading: "Loading...",
-      age: "Age",
-      experience: "Experience",
-      healthStatus: "Health Status",
-      previousBirths: "Previous Births",
-      bmi: "BMI",
-      lastMedical: "Last Medical Check",
-      excellent: "Excellent",
-      good: "Good",
-      fair: "Fair",
-    },
-    cn: {
-      title: "代孕者申请表",
-      searchPlaceholder: "搜索申请人...",
-      addNew: "添加新申请",
-      filterBy: "筛选",
-      status: "状态",
-      pending: "待审核",
-      approved: "已通过",
-      rejected: "已拒绝",
-      all: "全部状态",
-      viewProfile: "查看详情",
-      approve: "通过",
-      reject: "拒绝",
-      lastUpdate: "最后更新",
-      applicationDate: "申请时间",
-      noApplications: "暂无申请记录",
-      loading: "加载中...",
-      age: "年龄",
-      experience: "经验",
-      healthStatus: "健康状况",
-      previousBirths: "生育经历",
-      bmi: "体重指数",
-      lastMedical: "最近体检",
-      excellent: "优秀",
-      good: "良好",
-      fair: "一般",
-    }
-  }
+  useEffect(() => {
+    const handleLangChange = () => setLang(i18n.language)
+    i18n.on("languageChanged", handleLangChange)
+    return () => i18n.off("languageChanged", handleLangChange)
+  }, [i18n])
 
   useEffect(() => {
     loadApplications()
@@ -151,10 +103,10 @@ export default function SurrogatesApplicationsPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
+      <AdminLayout key={lang}>
         <PageContent>
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg">{text[language].loading}</div>
+            <div className="text-lg">{t('loading', { defaultValue: '加载中...' })}</div>
           </div>
         </PageContent>
       </AdminLayout>
@@ -162,38 +114,38 @@ export default function SurrogatesApplicationsPage() {
   }
 
   return (
-    <AdminLayout>
+    <AdminLayout key={lang}>
       <PageContent>
         <PageHeader 
-          title={text[language].title}
+          title={t('surrogatesApplications')}
           rightContent={
             <div className="flex items-center gap-4">
               <Button
-                onClick={() => {}}
+                onClick={() => window.open('https://www.yundasurrogacy.com/be-parents', '_blank')}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {text[language].addNew}
+                {t('addNewApplication')}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-white">
                     <Filter className="w-4 h-4 mr-2" />
-                    {text[language].filterBy}
+                    {t('filterBy')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                    {text[language].all}
+                    {t('allStatus')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('pending')}>
-                    {text[language].pending}
+                    {t('pending')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('approved')}>
-                    {text[language].approved}
+                    {t('approved')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setStatusFilter('rejected')}>
-                    {text[language].rejected}
+                    {t('rejected')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -206,7 +158,7 @@ export default function SurrogatesApplicationsPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 w-5 h-5" />
           <Input 
             type="text"
-            placeholder={text[language].searchPlaceholder}
+            placeholder={t('searchApplicants', { defaultValue: '搜索申请人...' })}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 bg-white"
@@ -254,7 +206,7 @@ export default function SurrogatesApplicationsPage() {
                     <div className="font-semibold text-lg text-sage-800 truncate">{contactInfo.first_name} {contactInfo.last_name}</div>
                     <div className="text-sage-500 text-sm truncate">#{app.id} • {age} years</div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>{text[language][app.status]}</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>{t(app.status, { defaultValue: app.status })}</span>
                 </div>
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                   <div className="flex items-center gap-2 truncate">
@@ -290,28 +242,30 @@ export default function SurrogatesApplicationsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">种族:</span>
-                    <span className="text-sage-600 truncate">{contactInfo.ethnicity || 'N/A'}</span>
+                    <span className="text-sage-500">{t('ethnicity', { defaultValue: '种族' })}:</span>
+                    <span className="text-sage-600 truncate">{contactInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">教育:</span>
-                    <span className="text-sage-600 truncate">{aboutYou.education_level || 'N/A'}</span>
+                    <span className="text-sage-500">{t('education', { defaultValue: '教育' })}:</span>
+                    <span className="text-sage-600 truncate">{aboutYou.education_level || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">身高体重:</span>
-                    <span className="text-sage-600 truncate">{contactInfo.height} / {contactInfo.weight}</span>
+                    <span className="text-sage-500">{t('heightWeight', { defaultValue: '身高体重' })}:</span>
+                    <span className="text-sage-600 truncate">{contactInfo.height || t('notAvailable', { defaultValue: 'N/A' })} / {contactInfo.weight || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">身份:</span>
-                    <span className="text-sage-600 truncate">{contactInfo.us_citizen_or_visa_status || 'N/A'}</span>
+                    <span className="text-sage-500">{t('identity', { defaultValue: '身份' })}:</span>
+                    <span className="text-sage-600 truncate">{contactInfo.us_citizen_or_visa_status || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
                 </div>
                 <div className="mb-4 p-3 bg-sage-50 rounded-lg">
                   <div className="text-sm text-sage-700">
-                    <div className="font-medium mb-1">代孕经验:</div>
+                    <div className="font-medium mb-1">{t('surrogacyExperience', { defaultValue: '代孕经验' })}:</div>
                     <div className="text-sage-600 truncate">
-                      {aboutYou.is_former_surrogate ? '有经验' : '首次代孕'}
-                      {contactInfo.surrogacy_experience_count > 0 && ` (${contactInfo.surrogacy_experience_count}次)`}
+                      {aboutYou.is_former_surrogate
+                        ? t('experiencedSurrogate', { defaultValue: '有经验' })
+                        : t('firstTimeSurrogate', { defaultValue: '首次代孕' })}
+                      {contactInfo.surrogacy_experience_count > 0 && ` (${contactInfo.surrogacy_experience_count}${t('times', { defaultValue: '次' })})`}
                     </div>
                     {aboutYou.surrogate_experience && (
                       <div className="text-xs text-sage-500 mt-1 truncate">
@@ -322,7 +276,7 @@ export default function SurrogatesApplicationsPage() {
                 </div>
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
                   <span className="text-sm text-sage-500">
-                    {text[language].applicationDate}: {new Date(app.created_at).toLocaleDateString('zh-CN')}
+                    {t('applicationDate', { defaultValue: '申请时间' })}: {new Date(app.created_at).toLocaleDateString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
                   </span>
                   <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
@@ -333,7 +287,7 @@ export default function SurrogatesApplicationsPage() {
                           onClick={() => handleStatusUpdate(app.id, 'approved')}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
-                          {text[language].approve}
+                          {t('approve', { defaultValue: '通过' })}
                         </Button>
                         <Button 
                           size="sm" 
@@ -342,7 +296,7 @@ export default function SurrogatesApplicationsPage() {
                           onClick={() => handleStatusUpdate(app.id, 'rejected')}
                         >
                           <XCircle className="w-3 h-3 mr-1" />
-                          {text[language].reject}
+                          {t('reject', { defaultValue: '拒绝' })}
                         </Button>
                       </>
                     )}
@@ -352,7 +306,7 @@ export default function SurrogatesApplicationsPage() {
                       onClick={() => router.push(`/admin/surrogates-applications/${app.id}`)}
                     >
                       <Eye className="w-4 h-4 mr-1" />
-                      {text[language].viewProfile}
+                      {t('viewDetails', { defaultValue: '查看详情' })}
                     </Button>
                   </div>
                 </div>
@@ -363,7 +317,7 @@ export default function SurrogatesApplicationsPage() {
 
         {filteredApplications.length === 0 && (
           <div className="text-center py-8 text-sage-500">
-            {text[language].noApplications}
+            {t('noApplications', { defaultValue: '暂无申请记录' })}
           </div>
         )}
       </PageContent>

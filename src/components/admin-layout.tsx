@@ -5,7 +5,8 @@ import { cn } from "../lib/utils"
 import { useState } from "react"
 import { CommonHeader } from "./common-header"
 import { CommonSidebar } from "./common-sidebar"
-import { adminSidebarConfig } from "@/config/sidebar-config"
+// import { adminSidebarConfig } from "@/config/sidebar-config"
+import { getAdminSidebarConfig } from "@/config/sidebar-config";
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -23,7 +24,8 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         theme="sage"
-        groups={adminSidebarConfig}
+        // groups={adminSidebarConfig()}
+        groups={getAdminSidebarConfig()}
         // title="YUNDA ADMIN"
         type="admin"
       />

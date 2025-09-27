@@ -20,7 +20,8 @@ export default function ManagerLayout({
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         // theme="blue"
-        groups={managerSidebarConfig as any}
+        // groups={managerSidebarConfig as any}
+        groups={managerSidebarConfig()}
         // title="YUNDA MANAGER"
         type="manager"
       />

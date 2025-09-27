@@ -28,6 +28,7 @@ export function CommonHeader({
   const { t, i18n } = useTranslation("common")
   // 语言只依赖i18n.language，去除多余useState
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  // console.log(i18n.language)
 
     // const { t, i18n } = useTranslation("common")
 

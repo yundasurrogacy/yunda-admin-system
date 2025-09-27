@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { getClientManagers, insertClientManager } from "@/lib/graphql/client-managers"
 
 export default function ClientManagerPage() {
+  const { t } = useTranslation("common")
   const [managers, setManagers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [addOpen, setAddOpen] = useState(false)
@@ -46,29 +48,29 @@ export default function ClientManagerPage() {
   return (
     <AdminLayout>
       <PageContent>
-        <PageHeader title="客户经理管理"
+        <PageHeader title={t('clientManagerManagement')}
           rightContent={
             <Button onClick={() => setAddOpen(true)}>
-              添加客户经理
+              {t('addClientManager')}
             </Button>
           }
         />
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <form onSubmit={handleAdd} className="space-y-4">
-            <h2 className="text-lg font-bold mb-2">添加客户经理</h2>
-            <Label>邮箱<Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></Label>
-            <Label>密码<Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required /></Label>
+            <h2 className="text-lg font-bold mb-2">{t('addClientManager')}</h2>
+            <Label>{t('emailLabel')}<Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required /></Label>
+            <Label>{t('passwordLabel')}<Input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required /></Label>
             <div className="flex gap-2 mt-2">
-              <Button type="submit" disabled={addLoading}>提交</Button>
-              <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>取消</Button>
+              <Button type="submit" disabled={addLoading}>{t('submit')}</Button>
+              <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>{t('cancel')}</Button>
             </div>
           </form>
         </Dialog>
         <div className="mt-8">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">加载中...</div>
+            <div className="p-8 text-center text-gray-500">{t('loading')}</div>
           ) : managers.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">暂无客户经理</div>
+            <div className="p-8 text-center text-gray-500">{t('noClientManager')}</div>
           ) : (
             <div
               className="grid w-full"
@@ -86,26 +88,26 @@ export default function ClientManagerPage() {
                   <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
                       {/* 可换成客户经理头像或图标 */}
-                      <span className="text-sage-400 text-xl font-bold">{m.email?.[0]?.toUpperCase() || "M"}</span>
+                      <span className="text-sage-400 text-xl font-bold">{m.email?.[0]?.toUpperCase() || t('managerShort')}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-lg text-sage-800 truncate">{m.email}</div>
-                      <div className="text-sage-500 text-sm truncate">ID: {m.id}</div>
+                      <div className="text-sage-500 text-sm truncate">{t('id')}{m.id}</div>
                     </div>
                     <div className="flex flex-col gap-2 items-end">
-                      <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">Manager</span>
+                      <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('manager')}</span>
                     </div>
                   </div>
                   <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                     <div className="flex items-center gap-2 truncate">
-                      <span className="font-mono text-xs text-sage-400">密码：</span>
+                      <span className="font-mono text-xs text-sage-400">{t('passwordLabel')}：</span>
                       <span className="truncate">{m.password}</span>
                     </div>
                   </div>
                   <hr className="my-3 border-sage-100" />
                   <div className="flex items-center justify-between text-sage-500 text-sm">
                     <span>
-                      创建时间：<br />{m.created_at ? new Date(m.created_at).toLocaleString() : "-"}
+                      {t('createdAt')}<br />{m.created_at ? new Date(m.created_at).toLocaleString() : "-"}
                     </span>
                     {/* 可扩展更多操作按钮 */}
                   </div>

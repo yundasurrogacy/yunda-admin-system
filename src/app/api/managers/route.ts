@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
         insert_managers_one(object: { email: $email, password: $password }) {
           id
           email
+          password
           created_at
           updated_at
         }
@@ -36,6 +37,7 @@ export async function GET() {
       managers {
         id
         email
+        password
         created_at
         updated_at
       }

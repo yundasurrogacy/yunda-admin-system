@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
+import { useTranslation } from 'react-i18next'
 
 export default function SurrogateApplicationDetailPage() {
   const router = useRouter()
@@ -16,149 +17,18 @@ export default function SurrogateApplicationDetailPage() {
   const [language, setLanguage] = useState<"en" | "cn">("cn")
   const [application, setApplication] = useState<Application | null>(null)
   const [loading, setLoading] = useState(true)
+  const { t, i18n } = useTranslation('common')
 
-  const text = {
-    en: {
-      title: "Surrogate Application Details",
-      back: "Back to Applications",
-      contactInfo: "Contact Information",
-      aboutYou: "About You",
-      pregnancyHealth: "Pregnancy & Health",
-      interview: "Surrogacy Interview",
-      status: "Status",
-      pending: "Pending",
-      approved: "Approved",
-      rejected: "Rejected",
-      approve: "Approve",
-      reject: "Reject",
-      firstName: "First Name",
-      lastName: "Last Name",
-      dateOfBirth: "Date of Birth",
-      age: "Age",
-      email: "Email",
-      phone: "Phone",
-      city: "City",
-      country: "Country",
-      state: "State/Province",
-      height: "Height",
-      weight: "Weight",
-      bmi: "BMI",
-      ethnicity: "Ethnicity",
-      citizenship: "Citizenship Status",
-      surrogacyExperience: "Surrogacy Experience",
-      occupation: "Occupation",
-      education: "Education Level",
-      maritalStatus: "Marital Status",
-      partnerSupport: "Partner Support",
-      householdIncome: "Household Income",
-      hasGivenBirth: "Has Given Birth",
-      birthDetails: "Birth Details",
-      isCurrentlyPregnant: "Currently Pregnant",
-      isBreastfeeding: "Breastfeeding",
-      hasStillbirth: "Has Stillbirth",
-      medicalConditions: "Medical Conditions",
-      isTakingMedications: "Taking Medications",
-      medicationsList: "Medications List",
-      backgroundCheck: "Background Check",
-      domesticViolence: "Domestic Violence",
-      substanceAbuse: "Substance Abuse",
-      felonyCharges: "Felony Charges",
-      arrests: "Arrests",
-      childAbuseNeglect: "Child Abuse/Neglect",
-      backgroundCheckStatus: "Background Check Status",
-      pregnancyHistories: "Pregnancy Histories",
-      seriousComplications: "Serious Complications",
-      currentBirthControl: "Current Birth Control",
-      closestHospital: "Closest Hospital",
-      closestNICU: "Closest NICU III",
-      emotionalSupport: "Emotional Support",
-      languagesSpoken: "Languages Spoken",
-      motivation: "Motivation",
-      selfIntroduction: "Self Introduction",
-      contactPreference: "Contact Preference",
-      hipaaRelease: "HIPAA Release Willing",
-      twinsFeeling: "Twins Feeling",
-      multipleReduction: "Multiple Reduction Willing",
-      terminationWilling: "Termination Willing",
-      applicationDate: "Application Date",
-      lastUpdate: "Last Update",
-      loading: "Loading...",
-      notFound: "Application not found",
-      yes: "Yes",
-      no: "No",
-      notApplicable: "Not Applicable",
-    },
-    cn: {
-      title: "代孕者申请详情",
-      back: "返回申请列表",
-      contactInfo: "联系信息",
-      aboutYou: "关于你自己",
-      pregnancyHealth: "怀孕与健康",
-      interview: "代孕面试",
-      status: "状态",
-      pending: "待审核",
-      approved: "已通过",
-      rejected: "已拒绝",
-      approve: "通过",
-      reject: "拒绝",
-      firstName: "名字",
-      lastName: "姓氏",
-      dateOfBirth: "出生日期",
-      age: "年龄",
-      email: "邮箱",
-      phone: "电话",
-      city: "城市",
-      country: "国家",
-      state: "州/省",
-      height: "身高",
-      weight: "体重",
-      bmi: "体重指数",
-      ethnicity: "种族",
-      citizenship: "公民身份",
-      surrogacyExperience: "代孕经验",
-      occupation: "职业",
-      education: "教育水平",
-      maritalStatus: "婚姻状态",
-      partnerSupport: "伴侣支持",
-      householdIncome: "家庭收入",
-      hasGivenBirth: "曾经分娩",
-      birthDetails: "分娩详情",
-      isCurrentlyPregnant: "目前怀孕",
-      isBreastfeeding: "正在哺乳",
-      hasStillbirth: "死胎经历",
-      medicalConditions: "医疗状况",
-      isTakingMedications: "正在服药",
-      medicationsList: "药物清单",
-      backgroundCheck: "背景调查",
-      domesticViolence: "家庭暴力",
-      substanceAbuse: "药物滥用",
-      felonyCharges: "重罪指控",
-      arrests: "逮捕记录",
-      childAbuseNeglect: "虐待/忽视儿童",
-      backgroundCheckStatus: "背景调查状态",
-      pregnancyHistories: "怀孕历史",
-      seriousComplications: "严重并发症",
-      currentBirthControl: "当前避孕方式",
-      closestHospital: "最近医院",
-      closestNICU: "最近NICU III",
-      emotionalSupport: "情感支持",
-      languagesSpoken: "会说的语言",
-      motivation: "代孕动机",
-      selfIntroduction: "自我介绍",
-      contactPreference: "联系偏好",
-      hipaaRelease: "HIPAA授权",
-      twinsFeeling: "双胞胎态度",
-      multipleReduction: "多胎减胎",
-      terminationWilling: "终止妊娠",
-      applicationDate: "申请时间",
-      lastUpdate: "最后更新",
-      loading: "加载中...",
-      notFound: "申请记录未找到",
-      yes: "是",
-      no: "否",
-      notApplicable: "不适用",
+  useEffect(() => {
+    const handleLangChange = (lng: string) => {
+      setLanguage(lng === 'zh-CN' ? 'cn' : 'en')
     }
-  }
+    i18n.on('languageChanged', handleLangChange)
+    setLanguage(i18n.language === 'zh-CN' ? 'cn' : 'en')
+    return () => {
+      i18n.off('languageChanged', handleLangChange)
+    }
+  }, [i18n])
 
   useEffect(() => {
     if (params.id) {
@@ -170,6 +40,7 @@ export default function SurrogateApplicationDetailPage() {
     try {
       setLoading(true)
       const data = await getApplicationById(id)
+      console.log('Loaded application:', data)
       setApplication(data)
     } catch (error) {
       console.error('Failed to load application:', error)
@@ -219,7 +90,7 @@ export default function SurrogateApplicationDetailPage() {
       <AdminLayout>
         <PageContent>
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg">{text[language].loading}</div>
+            <div className="text-lg">{t('loading')}</div>
           </div>
         </PageContent>
       </AdminLayout>
@@ -231,7 +102,7 @@ export default function SurrogateApplicationDetailPage() {
       <AdminLayout>
         <PageContent>
           <div className="text-center py-8 text-sage-500">
-            {text[language].notFound}
+            {t('applicationNotFound')}
           </div>
         </PageContent>
       </AdminLayout>
@@ -249,7 +120,7 @@ export default function SurrogateApplicationDetailPage() {
     <AdminLayout>
       <PageContent>
         <PageHeader 
-          title={text[language].title}
+          title={t('surrogateApplicationDetails')}
           rightContent={
             <div className="flex items-center gap-4">
               <Button
@@ -258,7 +129,7 @@ export default function SurrogateApplicationDetailPage() {
                 className="bg-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {text[language].back}
+                {t('backToApplications')}
               </Button>
               {application.status === 'pending' && (
                 <>
@@ -267,7 +138,7 @@ export default function SurrogateApplicationDetailPage() {
                     onClick={() => handleStatusUpdate('approved')}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {text[language].approve}
+                    {t('approve')}
                   </Button>
                   <Button 
                     variant="outline"
@@ -275,13 +146,39 @@ export default function SurrogateApplicationDetailPage() {
                     onClick={() => handleStatusUpdate('rejected')}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
-                    {text[language].reject}
+                    {t('reject')}
                   </Button>
                 </>
               )}
             </div>
           }
         />
+        {/* 顶部照片展示区域 */}
+        <div className="w-full flex flex-col items-center mb-8">
+          <h3 className="text-lg font-medium text-sage-800 mb-3">
+            {language === 'cn' ? '申请照片' : 'Application Photos'}
+          </h3>
+          {Array.isArray(appData.upload_photos) && appData.upload_photos.length > 0 ? (
+            <div className="flex gap-6 justify-center flex-wrap w-full">
+              {appData.upload_photos.map((photo: any, idx: number) => (
+                <div key={idx} className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative">
+                  <img
+                    src={photo.url}
+                    alt={photo.name || `photo-${idx+1}`}
+                    className="object-cover w-full h-full transition-transform duration-200 hover:scale-105"
+                    loading="lazy"
+                  />
+                  {/* 图片序号标签 */}
+                  <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow">
+                    {language === 'cn' ? `第${idx+1}张` : `Photo ${idx+1}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sage-500 text-sm">{language === 'cn' ? '暂无照片' : 'No photos uploaded.'}</div>
+          )}
+        </div>
 
         <div className="space-y-6">
           {/* 状态和基本信息 */}
@@ -295,11 +192,11 @@ export default function SurrogateApplicationDetailPage() {
                   <h2 className="text-2xl font-semibold text-sage-800">
                     {contactInfo.first_name} {contactInfo.last_name}
                   </h2>
-                  <p className="text-sage-500">申请编号: #{application.id} • {calculateAge(contactInfo.date_of_birth)}岁</p>
+                  <p className="text-sage-500">{t('applicationNumber')}: #{application.id} • {calculateAge(contactInfo.date_of_birth)}{t('yearsOld')}</p>
                 </div>
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
-                {text[language][application.status]}
+                {t(application.status)}
               </span>
             </div>
 
@@ -307,31 +204,31 @@ export default function SurrogateApplicationDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  {text[language].contactInfo}
+                  {t('contactInformation')}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].firstName}:</span>
+                    <span className="text-sage-500">{t('firstName')}:</span>
                     <span className="text-sage-800">{contactInfo.first_name || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].lastName}:</span>
+                    <span className="text-sage-500">{t('lastName')}:</span>
                     <span className="text-sage-800">{contactInfo.last_name || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].dateOfBirth}:</span>
+                    <span className="text-sage-500">{t('dateOfBirth')}:</span>
                     <span className="text-sage-800">{contactInfo.date_of_birth || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].email}:</span>
+                    <span className="text-sage-500">{t('email')}:</span>
                     <span className="text-sage-800">{contactInfo.email_address || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].phone}:</span>
+                    <span className="text-sage-500">{t('phone')}:</span>
                     <span className="text-sage-800">{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].city}:</span>
+                    <span className="text-sage-500">{t('city')}:</span>
                     <span className="text-sage-800">{contactInfo.city || 'N/A'}</span>
                   </div>
                 </div>
@@ -340,27 +237,27 @@ export default function SurrogateApplicationDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
                   <Activity className="w-5 h-5" />
-                  身体特征
+                  {t('physicalCharacteristics')}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].height}:</span>
+                    <span className="text-sage-500">{t('height')}:</span>
                     <span className="text-sage-800">{contactInfo.height || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].weight}:</span>
+                    <span className="text-sage-500">{t('weight')}:</span>
                     <span className="text-sage-800">{contactInfo.weight || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].bmi}:</span>
+                    <span className="text-sage-500">{t('bmi')}:</span>
                     <span className="text-sage-800">{contactInfo.bmi || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].ethnicity}:</span>
+                    <span className="text-sage-500">{t('ethnicity')}:</span>
                     <span className="text-sage-800">{contactInfo.ethnicity || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].citizenship}:</span>
+                    <span className="text-sage-500">{t('citizenship')}:</span>
                     <span className="text-sage-800">{contactInfo.us_citizen_or_visa_status || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
@@ -373,27 +270,27 @@ export default function SurrogateApplicationDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
                   <FileText className="w-5 h-5" />
-                  {text[language].aboutYou}
+                  {t('aboutYou')}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].occupation}:</span>
+                    <span className="text-sage-500">{t('occupation')}:</span>
                     <span className="text-sage-800">{aboutYou.occupation || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].education}:</span>
+                    <span className="text-sage-500">{t('education')}:</span>
                     <span className="text-sage-800">{aboutYou.education_level || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].maritalStatus}:</span>
+                    <span className="text-sage-500">{t('maritalStatus')}:</span>
                     <span className="text-sage-800">{aboutYou.marital_status || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].partnerSupport}:</span>
+                    <span className="text-sage-500">{t('partnerSupport')}:</span>
                     <span className="text-sage-800">{aboutYou.partner_support || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].householdIncome}:</span>
+                    <span className="text-sage-500">{t('householdIncome')}:</span>
                     <span className="text-sage-800">{aboutYou.household_income || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
@@ -409,31 +306,31 @@ export default function SurrogateApplicationDetailPage() {
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2 mb-4">
               <Heart className="w-5 h-5" />
-              {text[language].pregnancyHealth}
+              {t('pregnancyHealth')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h4 className="font-medium text-sage-700">怀孕历史</h4>
+                <h4 className="font-medium text-sage-700">{t('pregnancyHistory')}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].hasGivenBirth}:</span>
-                    <span className="text-sage-800">{pregnancyHealth.has_given_birth ? text[language].yes : text[language].no}</span>
+                    <span className="text-sage-500">{t('hasGivenBirth')}:</span>
+                    <span className="text-sage-800">{pregnancyHealth.has_given_birth ? t('yes') : t('no')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].isCurrentlyPregnant}:</span>
-                    <span className="text-sage-800">{pregnancyHealth.is_currently_pregnant ? text[language].yes : text[language].no}</span>
+                    <span className="text-sage-500">{t('isCurrentlyPregnant')}:</span>
+                    <span className="text-sage-800">{pregnancyHealth.is_currently_pregnant ? t('yes') : t('no')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].isBreastfeeding}:</span>
-                    <span className="text-sage-800">{pregnancyHealth.is_breastfeeding ? text[language].yes : text[language].no}</span>
+                    <span className="text-sage-500">{t('isBreastfeeding')}:</span>
+                    <span className="text-sage-800">{pregnancyHealth.is_breastfeeding ? t('yes') : t('no')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].hasStillbirth}:</span>
-                    <span className="text-sage-800">{pregnancyHealth.has_stillbirth ? text[language].yes : text[language].no}</span>
+                    <span className="text-sage-500">{t('hasStillbirth')}:</span>
+                    <span className="text-sage-800">{pregnancyHealth.has_stillbirth ? t('yes') : t('no')}</span>
                   </div>
                   {pregnancyHealth.birth_details && (
                     <div className="space-y-1">
-                      <span className="text-sage-500">{text[language].birthDetails}:</span>
+                      <span className="text-sage-500">{t('birthDetails')}:</span>
                       <div className="p-2 bg-sage-50 rounded text-sage-800 text-xs">
                         {pregnancyHealth.birth_details}
                       </div>
@@ -443,26 +340,26 @@ export default function SurrogateApplicationDetailPage() {
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-medium text-sage-700">健康信息</h4>
+                <h4 className="font-medium text-sage-700">{t('healthInformation')}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].medicalConditions}:</span>
+                    <span className="text-sage-500">{t('medicalConditions')}:</span>
                     <span className="text-sage-800">{pregnancyHealth.medical_conditions?.join(', ') || '无'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].isTakingMedications}:</span>
-                    <span className="text-sage-800">{pregnancyHealth.is_taking_medications ? text[language].yes : text[language].no}</span>
+                    <span className="text-sage-500">{t('isTakingMedications')}:</span>
+                    <span className="text-sage-800">{pregnancyHealth.is_taking_medications ? t('yes') : t('no')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].seriousComplications}:</span>
-                    <span className="text-sage-800">{pregnancyHealth.serious_pregnancy_complications ? text[language].yes : text[language].no}</span>
+                    <span className="text-sage-500">{t('seriousComplications')}:</span>
+                    <span className="text-sage-800">{pregnancyHealth.serious_pregnancy_complications ? t('yes') : t('no')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].currentBirthControl}:</span>
+                    <span className="text-sage-500">{t('currentBirthControl')}:</span>
                     <span className="text-sage-800">{pregnancyHealth.current_birth_control || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].closestHospital}:</span>
+                    <span className="text-sage-500">{t('closestHospital')}:</span>
                     <span className="text-sage-800">{pregnancyHealth.closest_hospital || 'N/A'}</span>
                   </div>
                 </div>
@@ -473,31 +370,31 @@ export default function SurrogateApplicationDetailPage() {
             <div className="mt-6 p-4 bg-sage-50 rounded-lg">
               <h4 className="font-medium text-sage-700 mb-3 flex items-center gap-2">
                 <Shield className="w-4 h-4" />
-                {text[language].backgroundCheck}
+                {t('backgroundCheck')}
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].domesticViolence}:</span>
-                  <span className="text-sage-800">{pregnancyHealth.domestic_violence ? text[language].yes : text[language].no}</span>
+                  <span className="text-sage-500">{t('domesticViolence')}:</span>
+                  <span className="text-sage-800">{pregnancyHealth.domestic_violence ? t('yes') : t('no')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].substanceAbuse}:</span>
-                  <span className="text-sage-800">{pregnancyHealth.substance_abuse ? text[language].yes : text[language].no}</span>
+                  <span className="text-sage-500">{t('substanceAbuse')}:</span>
+                  <span className="text-sage-800">{pregnancyHealth.substance_abuse ? t('yes') : t('no')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].felonyCharges}:</span>
-                  <span className="text-sage-800">{pregnancyHealth.felony_charges ? text[language].yes : text[language].no}</span>
+                  <span className="text-sage-500">{t('felonyCharges')}:</span>
+                  <span className="text-sage-800">{pregnancyHealth.felony_charges ? t('yes') : t('no')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].arrests}:</span>
-                  <span className="text-sage-800">{pregnancyHealth.arrests ? text[language].yes : text[language].no}</span>
+                  <span className="text-sage-500">{t('arrests')}:</span>
+                  <span className="text-sage-800">{pregnancyHealth.arrests ? t('yes') : t('no')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].childAbuseNeglect}:</span>
-                  <span className="text-sage-800">{pregnancyHealth.child_abuse_neglect ? text[language].yes : text[language].no}</span>
+                  <span className="text-sage-500">{t('childAbuseNeglect')}:</span>
+                  <span className="text-sage-800">{pregnancyHealth.child_abuse_neglect ? t('yes') : t('no')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].backgroundCheckStatus}:</span>
+                  <span className="text-sage-500">{t('backgroundCheckStatus')}:</span>
                   <span className="text-sage-800">{pregnancyHealth.background_check_status || 'N/A'}</span>
                 </div>
               </div>
@@ -506,29 +403,29 @@ export default function SurrogateApplicationDetailPage() {
             {/* 怀孕历史详情 */}
             {pregnancyHistories.length > 0 && (
               <div className="mt-6">
-                <h4 className="font-medium text-sage-700 mb-3">{text[language].pregnancyHistories}</h4>
+                <h4 className="font-medium text-sage-700 mb-3">{t('pregnancyHistories')}</h4>
                 <div className="space-y-3">
                   {pregnancyHistories.map((history: any, index: number) => (
                     <div key={index} className="p-3 bg-sage-50 rounded-lg">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <span className="text-sage-500">分娩日期:</span>
+                          <span className="text-sage-500">{t('deliveryDate')}:</span>
                           <div className="text-sage-800">{history.delivery_date}</div>
                         </div>
                         <div>
-                          <span className="text-sage-500">出生体重:</span>
+                          <span className="text-sage-500">{t('birthWeight')}:</span>
                           <div className="text-sage-800">{history.birth_weight}</div>
                         </div>
                         <div>
-                          <span className="text-sage-500">孕周:</span>
+                          <span className="text-sage-500">{t('gestationalWeeks')}:</span>
                           <div className="text-sage-800">{history.gestational_weeks}</div>
                         </div>
                         <div>
-                          <span className="text-sage-500">胎儿数:</span>
+                          <span className="text-sage-500">{t('numberOfBabies')}:</span>
                           <div className="text-sage-800">{history.number_of_babies}</div>
                         </div>
                         <div>
-                          <span className="text-sage-500">分娩方式:</span>
+                          <span className="text-sage-500">{t('deliveryMethod')}:</span>
                           <div className="text-sage-800">{history.delivery_method}</div>
                         </div>
                       </div>
@@ -543,25 +440,25 @@ export default function SurrogateApplicationDetailPage() {
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5" />
-              {text[language].interview}
+              {t('interview')}
             </h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sage-500 text-sm">{text[language].emotionalSupport}:</span>
+                    <span className="text-sage-500 text-sm">{t('emotionalSupport')}:</span>
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                       {interview.emotional_support || 'N/A'}
                     </div>
                   </div>
                   <div>
-                    <span className="text-sage-500 text-sm">{text[language].languagesSpoken}:</span>
+                    <span className="text-sage-500 text-sm">{t('languagesSpoken')}:</span>
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                       {interview.languages_spoken || 'N/A'}
                     </div>
                   </div>
                   <div>
-                    <span className="text-sage-500 text-sm">{text[language].motivation}:</span>
+                    <span className="text-sage-500 text-sm">{t('motivation')}:</span>
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                       {interview.motivation || 'N/A'}
                     </div>
@@ -569,35 +466,35 @@ export default function SurrogateApplicationDetailPage() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sage-500 text-sm">{text[language].selfIntroduction}:</span>
+                    <span className="text-sage-500 text-sm">{t('selfIntroduction')}:</span>
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                       {interview.self_introduction || 'N/A'}
                     </div>
                   </div>
                   <div>
-                    <span className="text-sage-500 text-sm">{text[language].contactPreference}:</span>
+                    <span className="text-sage-500 text-sm">{t('contactPreference')}:</span>
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                       {interview.contact_preference || 'N/A'}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-sage-500">{text[language].hipaaRelease}:</span>
-                      <span className="text-sage-800">{interview.hipaa_release_willing ? text[language].yes : text[language].no}</span>
+                      <span className="text-sage-500">{t('hipaaRelease')}:</span>
+                      <span className="text-sage-800">{interview.hipaa_release_willing ? t('yes') : t('no')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sage-500">{text[language].multipleReduction}:</span>
-                      <span className="text-sage-800">{interview.multiple_reduction_willing ? text[language].yes : text[language].no}</span>
+                      <span className="text-sage-500">{t('multipleReduction')}:</span>
+                      <span className="text-sage-800">{interview.multiple_reduction_willing ? t('yes') : t('no')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sage-500">{text[language].terminationWilling}:</span>
-                      <span className="text-sage-800">{interview.termination_willing ? text[language].yes : text[language].no}</span>
+                      <span className="text-sage-500">{t('terminationWilling')}:</span>
+                      <span className="text-sage-800">{interview.termination_willing ? t('yes') : t('no')}</span>
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <span className="text-sage-500 text-sm">{text[language].twinsFeeling}:</span>
+                <span className="text-sage-500 text-sm">{t('twinsFeeling')}:</span>
                 <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                   {interview.twins_feeling || 'N/A'}
                 </div>
@@ -609,11 +506,11 @@ export default function SurrogateApplicationDetailPage() {
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
               <div className="flex justify-between">
-                <span className="text-sage-500">{text[language].applicationDate}:</span>
+                <span className="text-sage-500">{t('applicationDate')}:</span>
                 <span className="text-sage-800">{new Date(application.created_at).toLocaleString('zh-CN')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sage-500">{text[language].lastUpdate}:</span>
+                <span className="text-sage-500">{t('lastUpdate')}:</span>
                 <span className="text-sage-800">{new Date(application.updated_at).toLocaleString('zh-CN')}</span>
               </div>
             </div>

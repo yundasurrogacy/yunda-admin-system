@@ -147,7 +147,7 @@ export default function MyCasesPage() {
                 <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">代孕妈妈：</span>
                   {item.surrogate_mother ? (
-                    <Link href={`/surrogacy/profile?id=${item.surrogate_mother.id}`} className="text-blue-600 underline">{item.surrogate_mother.name}</Link>
+                    <Link href={`/client/surrogate-match/`} className="text-blue-600 underline">{item.surrogate_mother.name}</Link>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
@@ -185,8 +185,8 @@ export default function MyCasesPage() {
               <hr className="my-3 border-sage-100" />
               <div className="flex flex-wrap gap-2 text-sm">
                 <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">孕母动态</Link>
-                <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">JOURNEY</Link>
-                <Link href={`/client/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">ivf clinic</Link>
+                <Link href={`/client/journey`} className="text-blue-600 underline">JOURNEY</Link>
+                <Link href={`/client/ivf-clinic`} className="text-blue-600 underline">ivf clinic</Link>
               </div>
             </div>
           ))

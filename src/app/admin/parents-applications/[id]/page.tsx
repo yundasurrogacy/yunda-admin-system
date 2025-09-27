@@ -9,96 +9,32 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
+import { useTranslation } from 'react-i18next'
 
-export default function ParentApplicationDetailPage() {
+export default function ParentsApplicationDetailPage() {
   const router = useRouter()
   const params = useParams()
   const [language, setLanguage] = useState<"en" | "cn">("cn")
   const [application, setApplication] = useState<Application | null>(null)
   const [loading, setLoading] = useState(true)
-
-  const text = {
-    en: {
-      title: "Parent Application Details",
-      back: "Back to Applications",
-      basicInfo: "Basic Information",
-      contactInfo: "Contact Information",
-      familyProfile: "Family Profile",
-      programInterests: "Program Interests",
-      referral: "Referral Information",
-      status: "Status",
-      pending: "Pending",
-      approved: "Approved",
-      rejected: "Rejected",
-      approve: "Approve",
-      reject: "Reject",
-      firstName: "First Name",
-      lastName: "Last Name",
-      pronouns: "Pronouns",
-      genderIdentity: "Gender Identity",
-      dateOfBirth: "Date of Birth",
-      ethnicity: "Ethnicity",
-      email: "Email",
-      phone: "Phone",
-      languages: "Languages",
-      sexualOrientation: "Sexual Orientation",
-      city: "City",
-      country: "Country",
-      state: "State/Province",
-      interestedServices: "Interested Services",
-      journeyStartTiming: "Journey Start Timing",
-      desiredChildrenCount: "Desired Children Count",
-      referralSource: "Referral Source",
-      initialQuestions: "Initial Questions",
-      applicationDate: "Application Date",
-      lastUpdate: "Last Update",
-      loading: "Loading...",
-      notFound: "Application not found",
-    },
-    cn: {
-      title: "准父母申请详情",
-      back: "返回申请列表",
-      basicInfo: "基本信息",
-      contactInfo: "联系信息",
-      familyProfile: "家庭资料",
-      programInterests: "项目意向",
-      referral: "推荐信息",
-      status: "状态",
-      pending: "待审核",
-      approved: "已通过",
-      rejected: "已拒绝",
-      approve: "通过",
-      reject: "拒绝",
-      firstName: "名字",
-      lastName: "姓氏",
-      pronouns: "代词",
-      genderIdentity: "性别认同",
-      dateOfBirth: "出生日期",
-      ethnicity: "族裔",
-      email: "邮箱",
-      phone: "电话",
-      languages: "语言",
-      sexualOrientation: "性取向",
-      city: "城市",
-      country: "国家",
-      state: "州/省",
-      interestedServices: "感兴趣的服务",
-      journeyStartTiming: "旅程开始时间",
-      desiredChildrenCount: "期望孩子数量",
-      referralSource: "推荐来源",
-      initialQuestions: "初步问题",
-      applicationDate: "申请时间",
-      lastUpdate: "最后更新",
-      loading: "加载中...",
-      notFound: "申请记录未找到",
-    }
-  }
+  const { t, i18n } = useTranslation('common')
 
   useEffect(() => {
     if (params.id) {
       loadApplication(Number(params.id))
     }
   }, [params.id])
+
+  useEffect(() => {
+    const handleLangChange = (lng: string) => {
+      setLanguage(lng === 'zh-CN' ? 'cn' : 'en')
+    }
+    i18n.on('languageChanged', handleLangChange)
+    setLanguage(i18n.language === 'zh-CN' ? 'cn' : 'en')
+    return () => {
+      i18n.off('languageChanged', handleLangChange)
+    }
+  }, [i18n])
 
   const loadApplication = async (id: number) => {
     try {
@@ -176,7 +112,7 @@ export default function ParentApplicationDetailPage() {
       <AdminLayout>
         <PageContent>
           <div className="flex items-center justify-center h-64">
-            <div className="text-lg">{text[language].loading}</div>
+            <div className="text-lg">{t('loading')}</div>
           </div>
         </PageContent>
       </AdminLayout>
@@ -188,7 +124,7 @@ export default function ParentApplicationDetailPage() {
       <AdminLayout>
         <PageContent>
           <div className="text-center py-8 text-sage-500">
-            {text[language].notFound}
+            {t('applicationNotFound')}
           </div>
         </PageContent>
       </AdminLayout>
@@ -209,7 +145,7 @@ export default function ParentApplicationDetailPage() {
     <AdminLayout>
       <PageContent>
         <PageHeader 
-          title={text[language].title}
+          title={t('parentsApplications')}
           rightContent={
             <div className="flex items-center gap-4">
               <Button
@@ -218,7 +154,7 @@ export default function ParentApplicationDetailPage() {
                 className="bg-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {text[language].back}
+                {t('backToApplications')}
               </Button>
               {application.status === 'pending' && (
                 <>
@@ -227,7 +163,7 @@ export default function ParentApplicationDetailPage() {
                     onClick={() => handleStatusUpdate('approved')}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    {text[language].approve}
+                    {t('approve')}
                   </Button>
                   <Button 
                     variant="outline"
@@ -235,7 +171,7 @@ export default function ParentApplicationDetailPage() {
                     onClick={() => handleStatusUpdate('rejected')}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
-                    {text[language].reject}
+                    {t('reject')}
                   </Button>
                 </>
               )}
@@ -255,11 +191,11 @@ export default function ParentApplicationDetailPage() {
                   <h2 className="text-2xl font-semibold text-sage-800">
                     {basicInfo.firstName} {basicInfo.lastName}
                   </h2>
-                  <p className="text-sage-500">申请编号: #{application.id}</p>
+                  <p className="text-sage-500">{t('applicationNumber')}: #{application.id}</p>
                 </div>
               </div>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(application.status)}`}>
-                {text[language][application.status]}
+                {t(application.status)}
               </span>
             </div>
 
@@ -267,31 +203,31 @@ export default function ParentApplicationDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  {text[language].basicInfo}
+                  {t('basicInformation')}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].firstName}:</span>
+                    <span className="text-sage-500">{t('firstName')}:</span>
                     <span className="text-sage-800">{basicInfo.firstName || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].lastName}:</span>
+                    <span className="text-sage-500">{t('lastName')}:</span>
                     <span className="text-sage-800">{basicInfo.lastName || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].pronouns}:</span>
+                    <span className="text-sage-500">{t('pronouns')}:</span>
                     <span className="text-sage-800">{basicInfo.pronouns || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].genderIdentity}:</span>
+                    <span className="text-sage-500">{t('genderIdentity')}:</span>
                     <span className="text-sage-800">{basicInfo.gender_identity || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].dateOfBirth}:</span>
+                    <span className="text-sage-500">{t('dateOfBirth')}:</span>
                     <span className="text-sage-800">{basicInfo.date_of_birth || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].ethnicity}:</span>
+                    <span className="text-sage-500">{t('ethnicity')}:</span>
                     <span className="text-sage-800">{ethnicity}</span>
                   </div>
                 </div>
@@ -300,19 +236,19 @@ export default function ParentApplicationDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
                   <Mail className="w-5 h-5" />
-                  {text[language].contactInfo}
+                  {t('contactInformation')}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].email}:</span>
+                    <span className="text-sage-500">{t('email')}:</span>
                     <span className="text-sage-800">{contactInfo.email_address || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].phone}:</span>
+                    <span className="text-sage-500">{t('phone')}:</span>
                     <span className="text-sage-800">{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].languages}:</span>
+                    <span className="text-sage-500">{t('languages')}:</span>
                     <span className="text-sage-800">{languages}</span>
                   </div>
                 </div>
@@ -321,23 +257,23 @@ export default function ParentApplicationDetailPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
                   <Heart className="w-5 h-5" />
-                  {text[language].familyProfile}
+                  {t('familyProfile')}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].sexualOrientation}:</span>
+                    <span className="text-sage-500">{t('sexualOrientation')}:</span>
                     <span className="text-sage-800">{familyProfile.sexual_orientation || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].city}:</span>
+                    <span className="text-sage-500">{t('city')}:</span>
                     <span className="text-sage-800">{familyProfile.city || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].country}:</span>
+                    <span className="text-sage-500">{t('country')}:</span>
                     <span className="text-sage-800">{familyProfile.country || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sage-500">{text[language].state}:</span>
+                    <span className="text-sage-500">{t('state')}:</span>
                     <span className="text-sage-800">{familyProfile.state_or_province || 'N/A'}</span>
                   </div>
                 </div>
@@ -349,20 +285,20 @@ export default function ParentApplicationDetailPage() {
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5" />
-              {text[language].programInterests}
+              {t('programInterests')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].interestedServices}:</span>
+                  <span className="text-sage-500">{t('interestedServices')}:</span>
                   <span className="text-sage-800">{getServiceName(programInterests.interested_services || 'N/A')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].journeyStartTiming}:</span>
+                  <span className="text-sage-500">{t('journeyStartTiming')}:</span>
                   <span className="text-sage-800">{getTimingName(programInterests.journey_start_timing || 'N/A')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].desiredChildrenCount}:</span>
+                  <span className="text-sage-500">{t('desiredChildrenCount')}:</span>
                   <span className="text-sage-800">{getChildrenCountName(programInterests.desired_children_count || 'N/A')}</span>
                 </div>
               </div>
@@ -373,16 +309,16 @@ export default function ParentApplicationDetailPage() {
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5" />
-              {text[language].referral}
+              {t('referral')}
             </h3>
             <div className="space-y-4">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-sage-500">{text[language].referralSource}:</span>
+                  <span className="text-sage-500">{t('referralSource')}:</span>
                   <span className="text-sage-800">{referral.referral_source || 'N/A'}</span>
                 </div>
                 <div className="space-y-2">
-                  <span className="text-sage-500">{text[language].initialQuestions}:</span>
+                  <span className="text-sage-500">{t('initialQuestions')}:</span>
                   <div className="p-3 bg-sage-50 rounded-lg">
                     <p className="text-sage-800">{referral.initial_questions || 'N/A'}</p>
                   </div>
@@ -395,11 +331,11 @@ export default function ParentApplicationDetailPage() {
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
               <div className="flex justify-between">
-                <span className="text-sage-500">{text[language].applicationDate}:</span>
+                <span className="text-sage-500">{t('applicationDate')}:</span>
                 <span className="text-sage-800">{new Date(application.created_at).toLocaleString('zh-CN')}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sage-500">{text[language].lastUpdate}:</span>
+                <span className="text-sage-500">{t('lastUpdate')}:</span>
                 <span className="text-sage-800">{new Date(application.updated_at).toLocaleString('zh-CN')}</span>
               </div>
             </div>

@@ -136,21 +136,21 @@ export default function SurrogacyMyCasesPage() {
                 <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">准父母：</span>
                   {item.intended_parent ? (
-                    <Link href={`/admin/client-profiles/${item.intended_parent.id}`} className="text-green-600 underline">
+                    <Link href={`/surrogacy/intended-parents`} className="text-green-600 underline">
                       {item.intended_parent.name}
                     </Link>
                     ) : (
                     <span className="text-gray-400">-</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 truncate">
+                {/* <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">代孕妈妈：</span>
                   {item.surrogate_mother ? (
-                    <Link href={`/surrogacy/profile?id=${item.surrogate_mother.id}`} className="text-blue-600 underline">{item.surrogate_mother.name}</Link>
+                    <span className="text-sage-800">{item.surrogate_mother.name}</span>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">文件：</span>
                   {item.cases_files && item.cases_files.length > 0 ? (
@@ -183,10 +183,10 @@ export default function SurrogacyMyCasesPage() {
               </div>
               <hr className="my-3 border-sage-100" />
               <div className="flex flex-wrap gap-2 text-sm">
-                <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">孕母动态</Link>
+                <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">动态</Link>
                 <Link href={`/surrogacy/journal/new?caseId=${item.id}`} className="text-green-600 underline">发布动态</Link>
-                <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">JOURNEY</Link>
-                <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">ivf clinic</Link>
+                <Link href={`/surrogacy/journal`} className="text-blue-600 underline">JOURNEY</Link>
+                <Link href={`/surrogacy/ivf-clinic`} className="text-blue-600 underline">ivf clinic</Link>
               </div>
             </div>
           ))
