@@ -15,15 +15,15 @@ const JournalPage: React.FC = () => {
 
   // 获取动态列表
   useEffect(() => {
-    // 获取 surrogateId
-    const surrogateId = typeof window !== "undefined" ? localStorage.getItem("surrogateId") : null;
-    if (!surrogateId) {
+    // 获取 parentId
+    const parentId = typeof window !== "undefined" ? localStorage.getItem("parentId") : null;
+    if (!parentId) {
       setError("未找到用户ID，请重新登录。");
       setLoading(false);
       return;
     }
     // 获取 case 列表
-    fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`)
+    fetch(`/api/cases-by-parent?parentId=${parentId}`)
       .then(async (res) => {
         if (!res.ok) throw new Error("获取案子失败");
         const data = await res.json();
@@ -52,6 +52,7 @@ const JournalPage: React.FC = () => {
   const fetchComments = async (postId: number) => {
     const res = await fetch(`/api/post_comments?postId=${postId}`);
     const data = await res.json();
+    console.log("comments", data);
     setComments(prev => ({ ...prev, [postId]: data.data || [] }));
   };
 
@@ -93,16 +94,16 @@ const JournalPage: React.FC = () => {
   const handleComment = async (postId: number) => {
     if (!commentText.trim()) return;
     setLoading(true);
-    // 从 localStorage 获取 surrogateId
-    const surrogateId = typeof window !== 'undefined' ? localStorage.getItem('surrogateId') : null;
+    // 从 localStorage 获取 parentId
+    const parentId = typeof window !== 'undefined' ? localStorage.getItem('parentId') : null;
     await fetch("/api/post_comments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: commentText,
-        comment_role: "surrogate_mother",
+        comment_role: "intended_parent",
         post_posts: postId,
-        surrogate_mother_surrogate_mothers: surrogateId ? Number(surrogateId) : undefined,
+        intended_parent_intended_parents: parentId ? Number(parentId) : undefined,
       }),
     });
     setCommentText("");
@@ -158,7 +159,7 @@ const JournalPage: React.FC = () => {
                             ? comments[post.id].map((c: any) => (
                                 <div key={c.id} className="bg-white rounded px-2 py-2 text-xs border border-[#E6E6E6] flex items-center justify-between">
                                   <div>
-                                    <span className="font-bold mr-2 text-[#3a2c1e]">{c.comment_role === "surrogate_mother" ? "我" : c.comment_role === "intended_parent" ? "准父母" : c.comment_role}</span>
+                                    <span className="font-bold mr-2 text-[#3a2c1e]">{c.comment_role === "surrogate_mother" ? "孕母" : c.comment_role === "intended_parent" ? "我" : c.comment_role}</span>
                                     <span>{c.content}</span>
                                   </div>
                                   <span className="ml-4 text-[11px] text-gray-400 whitespace-nowrap">
@@ -167,14 +168,9 @@ const JournalPage: React.FC = () => {
                                 </div>
                               ))
                             : (Array.isArray(post.post_comments) ? post.post_comments : []).map((c: any) => (
-                                <div key={c.id} className="bg-white rounded px-2 py-2 text-xs border border-[#E6E6E6] flex items-center justify-between">
-                                  <div>
-                                    <span className="font-bold mr-2 text-[#3a2c1e]">{c.comment_role === "surrogate_mother" ? "我" : c.comment_role === "intended_parent" ? "准父母" : c.comment_role}</span>
-                                    <span>{c.content}</span>
-                                  </div>
-                                  <span className="ml-4 text-[11px] text-gray-400 whitespace-nowrap">
-                                    {c.created_at ? new Date(c.created_at).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : ""}
-                                  </span>
+                                <div key={c.id} className="bg-white rounded px-2 py-1 text-xs border border-[#E6E6E6]">
+                                  <span className="font-bold mr-2">{c.comment_role === "surrogate_mother" ? "孕母" : c.comment_role === "intended_parent" ? "准父母" : c.comment_role}</span>
+                                  {c.content}
                                 </div>
                               ))}
                         </div>
@@ -199,51 +195,7 @@ const JournalPage: React.FC = () => {
               ))
             )}
           </div>
-          {/* 右侧填写区 */}
-          <div className="w-[420px] flex flex-col gap-4">
-            <div className="bg-[#FBF0DA] rounded-xl shadow-md p-4 mb-2">
-              <div className="text-lg font-semibold mb-2">This week, I'm feeling...</div>
-              <textarea
-                className="w-full h-24 rounded-md border border-[#E6E6E6] p-2 text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#271F18]"
-                placeholder="Write a message..."
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-              />
-            </div>
-            <div className="bg-[#FBF0DA] rounded-xl shadow-md p-4 flex flex-col items-center justify-center h-32">
-              <label className="flex flex-col items-center cursor-pointer w-full h-full justify-center">
-                <svg width="32" height="32" fill="#271F18" className="mb-2 opacity-40"><path d="M16 4a12 12 0 100 24 12 12 0 000-24zm0 22a10 10 0 110-20 10 10 0 010 20zm-4-8l2.5 3 3.5-4.5 4.5 6H8l4-4.5z"/></svg>
-                <span className="text-sm text-[#271F18] opacity-60">Upload a photo</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={e => setPhoto(e.target.files?.[0] || null)}
-                />
-              </label>
-              {photo && (
-                <div className="mt-2 text-xs text-[#271F18]">{photo.name}</div>
-              )}
-            </div>
-            <div className="flex items-center gap-4 mt-2">
-              <label className="flex items-center gap-2 text-sm">
-                <span>Visible</span>
-                <input
-                  type="checkbox"
-                  checked={visible}
-                  onChange={e => setVisible(e.target.checked)}
-                  className="accent-[#271F18] w-4 h-4 rounded"
-                />
-              </label>
-              <button
-                className="ml-auto px-6 py-2 bg-[#271F18] text-white rounded-full font-semibold shadow hover:bg-[#3a2c1e] transition"
-                onClick={handlePost}
-                disabled={loading}
-              >
-                发布动态
-              </button>
-            </div>
-          </div>
+          {/* 右侧填写区（准父母端隐藏，仅展示动态和评论） */}
         </div>
       </div>
     </div>

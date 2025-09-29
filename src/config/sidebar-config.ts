@@ -47,14 +47,15 @@ export function getAdminSidebarConfig() {
   return [
     {
       items: [
-        { label: t('dashboard'), href: "/admin/dashboard", icon: LayoutDashboard },
-        { label: t('parentsApplications'), href: "/admin/parents-applications", icon: UserCircle },
-        { label: t('surrogatesApplications'), href: "/admin/surrogates-applications", icon: HeartPulse },
-        { label: t('clientProfiles'), href: "/admin/client-profiles", icon: UserCircle },
-        { label: t('surrogateProfiles'), href: "/admin/surrogate-profiles", icon: HeartPulse },
-        { label: t('allCases'), href: "/admin/all-cases", icon: Briefcase },
-        { label: t('clientManagers'), href: "/admin/client-manager", icon: Briefcase },
-        { label: t('managers'), href: "/admin/managers", icon: Briefcase },
+  { label: t('dashboard'), href: "/admin/dashboard", icon: LayoutDashboard },
+  { label: t('parentsApplications'), href: "/admin/parents-applications", icon: UserCircle },
+  { label: t('surrogatesApplications'), href: "/admin/surrogates-applications", icon: HeartPulse },
+  { label: t('clientProfiles'), href: "/admin/client-profiles", icon: UserCircle },
+  { label: t('surrogateProfiles'), href: "/admin/surrogate-profiles", icon: HeartPulse },
+  { label: t('allCases'), href: "/admin/all-cases", icon: Briefcase },
+  { label: t('clientManagers'), href: "/admin/client-manager", icon: Briefcase },
+  { label: t('managers'), href: "/admin/managers", icon: Briefcase },
+  { label: t('blogs'), href: "/admin/blogs", icon: FolderOpen },
       ]
     }
   ]
@@ -74,6 +75,7 @@ export function getSurrogacySidebarConfig() {
     },
     {
       items: [
+        // { label: t('myJourney'), href: "/surrogacy/journey", icon: Briefcase },
         { label: t('myJournal'), href: "/surrogacy/journal", icon: Briefcase },
         { label: t('legalFiles'), href: "/surrogacy/legal-files", icon: FolderOpen },
         { label: t('medicationTracker'), href: "/surrogacy/medication", icon: Stethoscope },

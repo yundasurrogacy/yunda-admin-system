@@ -1,6 +1,9 @@
-import React from 'react'
+'use client'
+import React, { Suspense } from 'react'
+// import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const timeline = [
   {
@@ -66,7 +69,36 @@ const timeline = [
   },
 ]
 
-export default function Journey() {
+function JourneyInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [caseId, setCaseId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const paramCaseId = searchParams.get('caseId');
+    if (paramCaseId) {
+      setCaseId(paramCaseId);
+      return;
+    }
+    // 没有 caseId 参数时，自动获取 parentId 并请求第一个 caseId
+    const parentId = typeof window !== 'undefined' ? localStorage.getItem('parentId') : null;
+    if (!parentId) return;
+    fetch(`/api/cases-by-parent?parentId=${parentId}`)
+      .then(res => res.json())
+      .then(data => {
+        const casesRaw = data.cases || data.data || data;
+        if (Array.isArray(casesRaw) && casesRaw.length > 0) {
+          setCaseId(casesRaw[0].id?.toString() || null);
+        }
+      });
+  }, [searchParams]);
+
+  // 跳转到 files 页面并携带参数
+  const handleViewClick = (stageIdx: number, itemTitle: string) => {
+    if (!caseId) return;
+    router.push(`/client/files?caseId=${caseId}&stage=${stageIdx + 1}&title=${encodeURIComponent(itemTitle)}`);
+  };
+
   return (
     <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
       <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">Journey</h1>
@@ -92,7 +124,13 @@ export default function Journey() {
                 {step.items.map((item, i) => (
                   <li key={item} className="flex justify-between items-center py-1">
                     <span>{item}</span>
-                    <Button className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]">View</Button>
+                    <Button
+                      className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]"
+                      onClick={() => handleViewClick(idx, item)}
+                      disabled={!caseId}
+                    >
+                      View
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -101,5 +139,13 @@ export default function Journey() {
         </div>
       </Card>
     </div>
-  )
+  );
+}
+
+export default function Journey() {
+  return (
+    <Suspense fallback={<div className="p-8">加载中...</div>}>
+      <JourneyInner />
+    </Suspense>
+  );
 }

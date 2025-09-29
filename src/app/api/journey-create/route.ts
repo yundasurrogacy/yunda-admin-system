@@ -13,9 +13,11 @@ export async function POST(req: NextRequest) {
   try {
     // 构造 GraphQL mutation
     const mutation = `
-      mutation InsertJourneyWithFiles($journey: journeys_insert_input!, $files: [cases_files_insert_input!]) {
+      mutation InsertJourneyWithFiles($case_cases: bigint, $stage: bigint, $title: String, $files: [cases_files_insert_input!]!) {
         insert_journeys_one(object: {
-          ...$journey,
+          case_cases: $case_cases,
+          stage: $stage,
+          title: $title,
           cases_files: { data: $files }
         }) {
           id
@@ -24,12 +26,19 @@ export async function POST(req: NextRequest) {
       }
     `;
     const variables = {
-      journey,
+      case_cases: journey.case_cases,
+      stage: journey.stage,
+      title: journey.title,
       files: files || []
     };
+    // const variables = {
+    //   journey,
+    //   files: files || []
+    // };
     const result = await client.execute({ query: mutation, variables });
     return NextResponse.json({ journey: result.insert_journeys_one });
   } catch (e) {
+    console.error('GraphQL error:', e);
     return NextResponse.json({ error: "新增 journey 失败", detail: String(e) }, { status: 500 });
   }
 }

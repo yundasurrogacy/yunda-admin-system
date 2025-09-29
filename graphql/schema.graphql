@@ -446,6 +446,326 @@ input bigint_comparison_exp {
   _nin: [bigint!]
 }
 
+"""博客"""
+type blogs {
+  """分类名称"""
+  category: String
+
+  """内容"""
+  content: String
+
+  """封面图"""
+  cover_img_url: String
+  created_at: timestamptz!
+  id: bigint!
+
+  """标题"""
+  title: String
+  updated_at: timestamptz!
+}
+
+"""
+aggregated selection of "blogs"
+"""
+type blogs_aggregate {
+  aggregate: blogs_aggregate_fields
+  nodes: [blogs!]!
+}
+
+"""
+aggregate fields of "blogs"
+"""
+type blogs_aggregate_fields {
+  avg: blogs_avg_fields
+  count(columns: [blogs_select_column!], distinct: Boolean): Int!
+  max: blogs_max_fields
+  min: blogs_min_fields
+  stddev: blogs_stddev_fields
+  stddev_pop: blogs_stddev_pop_fields
+  stddev_samp: blogs_stddev_samp_fields
+  sum: blogs_sum_fields
+  var_pop: blogs_var_pop_fields
+  var_samp: blogs_var_samp_fields
+  variance: blogs_variance_fields
+}
+
+"""aggregate avg on columns"""
+type blogs_avg_fields {
+  id: Float
+}
+
+"""
+Boolean expression to filter rows from the table "blogs". All fields are combined with a logical 'AND'.
+"""
+input blogs_bool_exp {
+  _and: [blogs_bool_exp!]
+  _not: blogs_bool_exp
+  _or: [blogs_bool_exp!]
+  category: String_comparison_exp
+  content: String_comparison_exp
+  cover_img_url: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: bigint_comparison_exp
+  title: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
+}
+
+"""
+unique or primary key constraints on table "blogs"
+"""
+enum blogs_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  blogs_pkey
+}
+
+"""
+input type for incrementing numeric columns in table "blogs"
+"""
+input blogs_inc_input {
+  id: bigint
+}
+
+"""
+input type for inserting data into table "blogs"
+"""
+input blogs_insert_input {
+  """分类名称"""
+  category: String
+
+  """内容"""
+  content: String
+
+  """封面图"""
+  cover_img_url: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate max on columns"""
+type blogs_max_fields {
+  """分类名称"""
+  category: String
+
+  """内容"""
+  content: String
+
+  """封面图"""
+  cover_img_url: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate min on columns"""
+type blogs_min_fields {
+  """分类名称"""
+  category: String
+
+  """内容"""
+  content: String
+
+  """封面图"""
+  cover_img_url: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""
+response of any mutation on the table "blogs"
+"""
+type blogs_mutation_response {
+  """number of rows affected by the mutation"""
+  affected_rows: Int!
+
+  """data from the rows affected by the mutation"""
+  returning: [blogs!]!
+}
+
+"""
+on_conflict condition type for table "blogs"
+"""
+input blogs_on_conflict {
+  constraint: blogs_constraint!
+  update_columns: [blogs_update_column!]! = []
+  where: blogs_bool_exp
+}
+
+"""Ordering options when selecting data from "blogs"."""
+input blogs_order_by {
+  category: order_by
+  content: order_by
+  cover_img_url: order_by
+  created_at: order_by
+  id: order_by
+  title: order_by
+  updated_at: order_by
+}
+
+"""primary key columns input for table: blogs"""
+input blogs_pk_columns_input {
+  id: bigint!
+}
+
+"""
+select columns of table "blogs"
+"""
+enum blogs_select_column {
+  """column name"""
+  category
+
+  """column name"""
+  content
+
+  """column name"""
+  cover_img_url
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  title
+
+  """column name"""
+  updated_at
+}
+
+"""
+input type for updating data in table "blogs"
+"""
+input blogs_set_input {
+  """分类名称"""
+  category: String
+
+  """内容"""
+  content: String
+
+  """封面图"""
+  cover_img_url: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate stddev on columns"""
+type blogs_stddev_fields {
+  id: Float
+}
+
+"""aggregate stddev_pop on columns"""
+type blogs_stddev_pop_fields {
+  id: Float
+}
+
+"""aggregate stddev_samp on columns"""
+type blogs_stddev_samp_fields {
+  id: Float
+}
+
+"""
+Streaming cursor of the table "blogs"
+"""
+input blogs_stream_cursor_input {
+  """Stream column input with initial value"""
+  initial_value: blogs_stream_cursor_value_input!
+
+  """cursor ordering"""
+  ordering: cursor_ordering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input blogs_stream_cursor_value_input {
+  """分类名称"""
+  category: String
+
+  """内容"""
+  content: String
+
+  """封面图"""
+  cover_img_url: String
+  created_at: timestamptz
+  id: bigint
+
+  """标题"""
+  title: String
+  updated_at: timestamptz
+}
+
+"""aggregate sum on columns"""
+type blogs_sum_fields {
+  id: bigint
+}
+
+"""
+update columns of table "blogs"
+"""
+enum blogs_update_column {
+  """column name"""
+  category
+
+  """column name"""
+  content
+
+  """column name"""
+  cover_img_url
+
+  """column name"""
+  created_at
+
+  """column name"""
+  id
+
+  """column name"""
+  title
+
+  """column name"""
+  updated_at
+}
+
+input blogs_updates {
+  """increments the numeric columns with given value of the filtered values"""
+  _inc: blogs_inc_input
+
+  """sets the columns of the filtered rows to the given values"""
+  _set: blogs_set_input
+
+  """filter the rows which have to be updated"""
+  where: blogs_bool_exp!
+}
+
+"""aggregate var_pop on columns"""
+type blogs_var_pop_fields {
+  id: Float
+}
+
+"""aggregate var_samp on columns"""
+type blogs_var_samp_fields {
+  id: Float
+}
+
+"""aggregate variance on columns"""
+type blogs_variance_fields {
+  id: Float
+}
+
 """
 columns and relationships of "cases"
 """
@@ -4098,6 +4418,19 @@ type mutation_root {
   delete_applications_by_pk(id: bigint!): applications
 
   """
+  delete data from the table: "blogs"
+  """
+  delete_blogs(
+    """filter the rows which have to be deleted"""
+    where: blogs_bool_exp!
+  ): blogs_mutation_response
+
+  """
+  delete single row from the table: "blogs"
+  """
+  delete_blogs_by_pk(id: bigint!): blogs
+
+  """
   delete data from the table: "cases"
   """
   delete_cases(
@@ -4261,6 +4594,28 @@ type mutation_root {
     """upsert condition"""
     on_conflict: applications_on_conflict
   ): applications
+
+  """
+  insert data into the table: "blogs"
+  """
+  insert_blogs(
+    """the rows to be inserted"""
+    objects: [blogs_insert_input!]!
+
+    """upsert condition"""
+    on_conflict: blogs_on_conflict
+  ): blogs_mutation_response
+
+  """
+  insert a single row into the table: "blogs"
+  """
+  insert_blogs_one(
+    """the row to be inserted"""
+    object: blogs_insert_input!
+
+    """upsert condition"""
+    on_conflict: blogs_on_conflict
+  ): blogs
 
   """
   insert data into the table: "cases"
@@ -4579,6 +4934,40 @@ type mutation_root {
     """updates to execute, in order"""
     updates: [applications_updates!]!
   ): [applications_mutation_response]
+
+  """
+  update data of the table: "blogs"
+  """
+  update_blogs(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: blogs_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: blogs_set_input
+
+    """filter the rows which have to be updated"""
+    where: blogs_bool_exp!
+  ): blogs_mutation_response
+
+  """
+  update single row of the table: "blogs"
+  """
+  update_blogs_by_pk(
+    """increments the numeric columns with given value of the filtered values"""
+    _inc: blogs_inc_input
+
+    """sets the columns of the filtered rows to the given values"""
+    _set: blogs_set_input
+    pk_columns: blogs_pk_columns_input!
+  ): blogs
+
+  """
+  update multiples rows of table: "blogs"
+  """
+  update_blogs_many(
+    """updates to execute, in order"""
+    updates: [blogs_updates!]!
+  ): [blogs_mutation_response]
 
   """
   update data of the table: "cases"
@@ -6333,6 +6722,49 @@ type query_root {
   """fetch data from the table: "applications" using primary key columns"""
   applications_by_pk(id: bigint!): applications
 
+  """
+  fetch data from the table: "blogs"
+  """
+  blogs(
+    """distinct select on columns"""
+    distinct_on: [blogs_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [blogs_order_by!]
+
+    """filter the rows returned"""
+    where: blogs_bool_exp
+  ): [blogs!]!
+
+  """
+  fetch aggregated fields from the table: "blogs"
+  """
+  blogs_aggregate(
+    """distinct select on columns"""
+    distinct_on: [blogs_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [blogs_order_by!]
+
+    """filter the rows returned"""
+    where: blogs_bool_exp
+  ): blogs_aggregate!
+
+  """fetch data from the table: "blogs" using primary key columns"""
+  blogs_by_pk(id: bigint!): blogs
+
   """An array relationship"""
   cases(
     """distinct select on columns"""
@@ -6846,6 +7278,63 @@ type subscription_root {
     """filter the rows returned"""
     where: applications_bool_exp
   ): [applications!]!
+
+  """
+  fetch data from the table: "blogs"
+  """
+  blogs(
+    """distinct select on columns"""
+    distinct_on: [blogs_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [blogs_order_by!]
+
+    """filter the rows returned"""
+    where: blogs_bool_exp
+  ): [blogs!]!
+
+  """
+  fetch aggregated fields from the table: "blogs"
+  """
+  blogs_aggregate(
+    """distinct select on columns"""
+    distinct_on: [blogs_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [blogs_order_by!]
+
+    """filter the rows returned"""
+    where: blogs_bool_exp
+  ): blogs_aggregate!
+
+  """fetch data from the table: "blogs" using primary key columns"""
+  blogs_by_pk(id: bigint!): blogs
+
+  """
+  fetch data from the table in a streaming manner: "blogs"
+  """
+  blogs_stream(
+    """maximum number of rows returned in a single batch"""
+    batch_size: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [blogs_stream_cursor_input]!
+
+    """filter the rows returned"""
+    where: blogs_bool_exp
+  ): [blogs!]!
 
   """An array relationship"""
   cases(

@@ -1,6 +1,9 @@
-import React from 'react'
+'use client'
+import React, { Suspense } from 'react'
+import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const timeline = [
   {
@@ -66,40 +69,64 @@ const timeline = [
   },
 ]
 
+function JourneyInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get('caseId');
+
+  // 跳转到 files 页面并携带参数
+  const handleViewClick = (stageIdx: number, itemTitle: string) => {
+    router.push(`/client-manager/files?caseId=${caseId}&stage=${stageIdx + 1}&title=${encodeURIComponent(itemTitle)}`);
+  };
+
+  return (
+    <ManagerLayout>
+      <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
+        <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">Journey</h1>
+        <p className="text-[#271F18] font-serif mb-8">Access and track your journey status with a visual roadmap.</p>
+        <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-serif">Current Status</h2>
+            <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">IN LEGAL AGREEMENT STAGE</span>
+          </div>
+          <div className="text-sm">Updated today</div>
+        </Card>
+        <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
+          <h2 className="text-xl font-serif mb-4">Status Timeline</h2>
+          <div className="relative pl-8">
+            {/* 竖线 */}
+            <div className="absolute left-4 top-0 w-0.5 h-full bg-[#D9D9D9]" />
+            {timeline.map((step, idx) => (
+              <div key={step.stage} className="mb-8 relative">
+                {/* 圆点 */}
+                <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-[#D9D9D9]" />
+                <h3 className="font-serif text-lg mb-2">{step.stage}</h3>
+                <ul className="mb-2">
+                  {step.items.map((item, i) => (
+                    <li key={item} className="flex justify-between items-center py-1">
+                      <span>{item}</span>
+                      <Button
+                        className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]"
+                        onClick={() => handleViewClick(idx, item)}
+                      >
+                        View
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </ManagerLayout>
+  )
+}
+
 export default function Journey() {
   return (
-    <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
-      <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">Journey</h1>
-      <p className="text-[#271F18] font-serif mb-8">Access and track your journey status with a visual roadmap.</p>
-      <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-serif">Current Status</h2>
-          <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">IN LEGAL AGREEMENT STAGE</span>
-        </div>
-        <div className="text-sm">Updated today</div>
-      </Card>
-      <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
-        <h2 className="text-xl font-serif mb-4">Status Timeline</h2>
-        <div className="relative pl-8">
-          {/* 竖线 */}
-          <div className="absolute left-4 top-0 w-0.5 h-full bg-[#D9D9D9]" />
-          {timeline.map((step, idx) => (
-            <div key={step.stage} className="mb-8 relative">
-              {/* 圆点 */}
-              <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-[#D9D9D9]" />
-              <h3 className="font-serif text-lg mb-2">{step.stage}</h3>
-              <ul className="mb-2">
-                {step.items.map((item, i) => (
-                  <li key={item} className="flex justify-between items-center py-1">
-                    <span>{item}</span>
-                    <Button className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]">View</Button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  )
+    <Suspense fallback={<div className="p-8">加载中...</div>}>
+      <JourneyInner />
+    </Suspense>
+  );
 }

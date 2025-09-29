@@ -10,10 +10,11 @@ import { Progress } from '@/components/ui/progress';
 interface CaseItem {
   id: string;
   surrogate_mother: { id: string; email?: string; contact_information?: string } | null;
-  intended_parent: { id: string; email?: string; contact_information?: string } | null;
+  intended_parent: { id: string; email?: string; basic_information?: string } | null;
   cases_files: { id: string; file_url?: string; category?: string; created_at: string }[];
   ivf_clinics: { id: string; type?: string; created_at: string; data?: string }[];
   process_status: string;
+  trust_account_balance?: number;
 }
 
 const MyCasesPage = () => {
@@ -34,6 +35,7 @@ const MyCasesPage = () => {
       }
       const res = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
       const data = await res.json();
+      console.log('Cases data:', data);
       setCases(data);
     } catch (error) {
       console.error('Failed to fetch cases:', error);
@@ -56,113 +58,112 @@ const MyCasesPage = () => {
     router.push(`/client-manager/surrogate-profiles/${id}`);
   };
 
+
   // 跳转准父母详情页
   const handleParentDetail = (id: string) => {
     router.push(`/client-manager/client-profiles/${id}`);
   };
 
   // 新增 journey（cases_files）
-  // 新增 journey（cases_files）
   const handleAddJourney = (caseId: string) => {
   // 跳转到新增 Journey 页面，带上 caseId（去掉问号前的斜杠）
-  router.push(`/client-manager/my-cases/add-journey?caseId=${caseId}`);
+  // router.push(`/client-manager/my-cases/add-journey?caseId=${caseId}`);
+  router.push(`/client-manager/journey?caseId=${caseId}`);
   };
 
   // 新增 ivf_clinic
   const handleAddIvfClinic = (caseId: string) => {
     // 跳转到新增 IVF Clinic 页面，带上 caseId
-    router.push(`/client-manager/my-cases/add-ivf-clinic?caseId=${caseId}`);
+    // router.push(`/client-manager/my-cases/add-ivf-clinic?caseId=${caseId}`);
+    router.push(`/client-manager/ivf-clinic`);
   };
 
   return (
     <ManagerLayout>
-      <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-8">我的案子</h1>
-        {/* 列表 */}
-        <div className="grid grid-cols-2 gap-6">
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">我的案子</h1>
+        <div
+          className="w-full"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gap: '32px',
+            alignItems: 'stretch',
+          }}
+        >
           {isLoading ? (
-            <div>加载中...</div>
+            <div className="text-center py-8">加载中...</div>
           ) : cases.length === 0 ? (
-            <div>暂无案子</div>
+            <div className="text-center py-8 col-span-full text-gray-500">暂无案子</div>
           ) : (
             cases.map((item) => (
-              <Card key={item.id} className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <div className="font-semibold">
-                      代孕母：
-                      {item.surrogate_mother && item.surrogate_mother.id ? (
-                        <Button
-                          variant="link"
-                          onClick={() => {
-                            if (item.surrogate_mother && item.surrogate_mother.id) {
-                              handleSurrogateDetail(item.surrogate_mother.id);
+              <div
+                key={item.id}
+                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
+              >
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-sage-400 text-xl font-bold">{String(item.id).slice(-2)}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-lg text-sage-800 truncate">案件ID：{item.id}</div>
+                    <div className="text-sage-500 text-sm truncate">状态：{item.process_status || '-'}</div>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="font-mono text-xs text-sage-400">信托余额：</span>
+                    <span>{item.trust_account_balance ?? '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="font-mono text-xs text-sage-400">准父母：</span>
+                    {item.intended_parent && item.intended_parent.id ? (
+                      <span className="text-blue-600 underline cursor-pointer" onClick={() => handleParentDetail(item.intended_parent!.id)}>
+                        {(() => {
+                          if (item.intended_parent.basic_information) {
+                            try {
+                              const info = typeof item.intended_parent.basic_information === 'string' ? JSON.parse(item.intended_parent.basic_information) : item.intended_parent.basic_information;
+                              return info.firstName || item.intended_parent.email;
+                            } catch {
+                              return item.intended_parent.basic_information || item.intended_parent.email;
                             }
-                          }}
-                        >
-                          {item.surrogate_mother?.contact_information || item.surrogate_mother?.email}
-                        </Button>
-                      ) : '未分配'}
-                    </div>
-                    <div className="font-semibold">
-                      准父母：
-                      {item.intended_parent && item.intended_parent.id ? (
-                        <Button
-                          variant="link"
-                          onClick={() => handleParentDetail(item.intended_parent ? item.intended_parent.id : '')}
-                        >
-                          {item.intended_parent.contact_information || item.intended_parent.email}
-                        </Button>
-                      ) : '未分配'}
-                    </div>
+                          }
+                          return item.intended_parent.email;
+                        })()}
+                        {/* <span className="text-xs text-sage-400">({item.intended_parent.email})</span> */}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </div>
-                  <div>
-                    <Button variant="secondary" size="sm" onClick={() => handleViewDetails(item.id)}>
-                      详情
-                    </Button>
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="font-mono text-xs text-sage-400">代孕妈妈：</span>
+                    {item.surrogate_mother && item.surrogate_mother.id ? (
+                      <span className="text-blue-600 underline cursor-pointer" onClick={() => handleSurrogateDetail(item.surrogate_mother!.id)}>
+                        {(() => {
+                          if (item.surrogate_mother.contact_information) {
+                            try {
+                              const info = typeof item.surrogate_mother.contact_information === 'string' ? JSON.parse(item.surrogate_mother.contact_information) : item.surrogate_mother.contact_information;
+                              return info.first_name || item.surrogate_mother.email;
+                            } catch {
+                              return item.surrogate_mother.contact_information || item.surrogate_mother.email;
+                            }
+                          }
+                          return item.surrogate_mother.email;
+                        })()}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </div>
                 </div>
-                <div className="mb-2">
-                  <span className="text-sm">状态：</span>
-                  <span className="text-sm font-bold">{item.process_status || '-'}</span>
+                <hr className="my-3 border-sage-100" />
+                <div className="flex flex-wrap gap-2 text-sm">
+                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journal?caseId=${item.id}`)}>孕母动态</span> */}
+                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journey?caseId=${item.id}`)}>JOURNEY</span>
+                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/ivf-clinic?caseId=${item.id}`)}>ivf clinic</span>
                 </div>
-                <div className="flex gap-2 mt-2">
-                  <Button variant="outline" size="sm" onClick={() => handleAddJourney(item.id)}>
-                    新增 Journey
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleAddIvfClinic(item.id)}>
-                    新增 IVF Clinic
-                  </Button>
-                </div>
-                <div className="mt-4">
-                  <div className="font-medium mb-1">Journey 列表：</div>
-                  {item.cases_files.length === 0 ? (
-                    <div className="text-sm text-gray-400">暂无 Journey</div>
-                  ) : (
-                    item.cases_files.map((f) => (
-                      <div key={f.id} className="text-sm text-gray-700">
-                        {f.file_url ? (
-                          <a href={f.file_url} target="_blank" rel="noopener noreferrer">{f.category || f.file_url}</a>
-                        ) : (f.category || '未知文件')}
-                        {' '}({new Date(f.created_at).toLocaleDateString()})
-                      </div>
-                    ))
-                  )}
-                </div>
-                <div className="mt-4">
-                  <div className="font-medium mb-1">IVF Clinics：</div>
-                  {item.ivf_clinics.length === 0 ? (
-                    <div className="text-sm text-gray-400">暂无 IVF Clinic</div>
-                  ) : (
-                    item.ivf_clinics.map((c) => (
-                      <div key={c.id} className="text-sm text-gray-700">
-                        {c.data || c.type || '未知诊所'}
-                        {' '}({new Date(c.created_at).toLocaleDateString()})
-                      </div>
-                    ))
-                  )}
-                </div>
-              </Card>
+              </div>
             ))
           )}
         </div>

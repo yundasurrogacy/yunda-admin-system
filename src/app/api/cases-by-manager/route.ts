@@ -16,12 +16,12 @@ export async function GET(req: Request) {
         surrogate_mother {
           id
           email
-          contact_information(path: "name")
+          contact_information(path: "first_name")
         }
         intended_parent {
           id
           email
-          contact_information(path: "name")
+          basic_information(path: "firstName")
         }
         cases_files {
           id

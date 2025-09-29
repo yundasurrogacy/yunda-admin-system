@@ -152,7 +152,7 @@ export default function MyCasesPage() {
                     <span className="text-gray-400">-</span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 truncate">
+                {/* <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">文件：</span>
                   {item.cases_files && item.cases_files.length > 0 ? (
                     <ul className="list-disc pl-4">
@@ -180,13 +180,13 @@ export default function MyCasesPage() {
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
-                </div>
+                </div> */}
               </div>
               <hr className="my-3 border-sage-100" />
               <div className="flex flex-wrap gap-2 text-sm">
-                <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">孕母动态</Link>
-                <Link href={`/client/journey`} className="text-blue-600 underline">JOURNEY</Link>
-                <Link href={`/client/ivf-clinic`} className="text-blue-600 underline">ivf clinic</Link>
+                <Link href={`/client/journal?caseId=${item.id}`} className="text-blue-600 underline">孕母动态</Link>
+                <Link href={`/client/journey?caseId=${item.id}`} className="text-blue-600 underline">JOURNEY</Link>
+                <Link href={`/client/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">ivf clinic</Link>
               </div>
             </div>
           ))

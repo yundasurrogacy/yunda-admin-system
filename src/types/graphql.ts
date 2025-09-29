@@ -382,6 +382,287 @@ export type Bigint_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['bigint']['input']>>;
 };
 
+/** 博客 */
+export type Blogs = {
+  __typename?: 'blogs';
+  /** 分类名称 */
+  category?: Maybe<Scalars['String']['output']>;
+  /** 内容 */
+  content?: Maybe<Scalars['String']['output']>;
+  /** 封面图 */
+  cover_img_url?: Maybe<Scalars['String']['output']>;
+  created_at: Scalars['timestamptz']['output'];
+  id: Scalars['bigint']['output'];
+  /** 标题 */
+  title?: Maybe<Scalars['String']['output']>;
+  updated_at: Scalars['timestamptz']['output'];
+};
+
+/** aggregated selection of "blogs" */
+export type Blogs_Aggregate = {
+  __typename?: 'blogs_aggregate';
+  aggregate?: Maybe<Blogs_Aggregate_Fields>;
+  nodes: Array<Blogs>;
+};
+
+/** aggregate fields of "blogs" */
+export type Blogs_Aggregate_Fields = {
+  __typename?: 'blogs_aggregate_fields';
+  avg?: Maybe<Blogs_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Blogs_Max_Fields>;
+  min?: Maybe<Blogs_Min_Fields>;
+  stddev?: Maybe<Blogs_Stddev_Fields>;
+  stddev_pop?: Maybe<Blogs_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Blogs_Stddev_Samp_Fields>;
+  sum?: Maybe<Blogs_Sum_Fields>;
+  var_pop?: Maybe<Blogs_Var_Pop_Fields>;
+  var_samp?: Maybe<Blogs_Var_Samp_Fields>;
+  variance?: Maybe<Blogs_Variance_Fields>;
+};
+
+
+/** aggregate fields of "blogs" */
+export type Blogs_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Blogs_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type Blogs_Avg_Fields = {
+  __typename?: 'blogs_avg_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "blogs". All fields are combined with a logical 'AND'. */
+export type Blogs_Bool_Exp = {
+  _and?: InputMaybe<Array<Blogs_Bool_Exp>>;
+  _not?: InputMaybe<Blogs_Bool_Exp>;
+  _or?: InputMaybe<Array<Blogs_Bool_Exp>>;
+  category?: InputMaybe<String_Comparison_Exp>;
+  content?: InputMaybe<String_Comparison_Exp>;
+  cover_img_url?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "blogs" */
+export enum Blogs_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  BlogsPkey = 'blogs_pkey'
+}
+
+/** input type for incrementing numeric columns in table "blogs" */
+export type Blogs_Inc_Input = {
+  id?: InputMaybe<Scalars['bigint']['input']>;
+};
+
+/** input type for inserting data into table "blogs" */
+export type Blogs_Insert_Input = {
+  /** 分类名称 */
+  category?: InputMaybe<Scalars['String']['input']>;
+  /** 内容 */
+  content?: InputMaybe<Scalars['String']['input']>;
+  /** 封面图 */
+  cover_img_url?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 标题 */
+  title?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+};
+
+/** aggregate max on columns */
+export type Blogs_Max_Fields = {
+  __typename?: 'blogs_max_fields';
+  /** 分类名称 */
+  category?: Maybe<Scalars['String']['output']>;
+  /** 内容 */
+  content?: Maybe<Scalars['String']['output']>;
+  /** 封面图 */
+  cover_img_url?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  /** 标题 */
+  title?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+};
+
+/** aggregate min on columns */
+export type Blogs_Min_Fields = {
+  __typename?: 'blogs_min_fields';
+  /** 分类名称 */
+  category?: Maybe<Scalars['String']['output']>;
+  /** 内容 */
+  content?: Maybe<Scalars['String']['output']>;
+  /** 封面图 */
+  cover_img_url?: Maybe<Scalars['String']['output']>;
+  created_at?: Maybe<Scalars['timestamptz']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  /** 标题 */
+  title?: Maybe<Scalars['String']['output']>;
+  updated_at?: Maybe<Scalars['timestamptz']['output']>;
+};
+
+/** response of any mutation on the table "blogs" */
+export type Blogs_Mutation_Response = {
+  __typename?: 'blogs_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Blogs>;
+};
+
+/** on_conflict condition type for table "blogs" */
+export type Blogs_On_Conflict = {
+  constraint: Blogs_Constraint;
+  update_columns?: Array<Blogs_Update_Column>;
+  where?: InputMaybe<Blogs_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "blogs". */
+export type Blogs_Order_By = {
+  category?: InputMaybe<Order_By>;
+  content?: InputMaybe<Order_By>;
+  cover_img_url?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: blogs */
+export type Blogs_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** select columns of table "blogs" */
+export enum Blogs_Select_Column {
+  /** column name */
+  Category = 'category',
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CoverImgUrl = 'cover_img_url',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "blogs" */
+export type Blogs_Set_Input = {
+  /** 分类名称 */
+  category?: InputMaybe<Scalars['String']['input']>;
+  /** 内容 */
+  content?: InputMaybe<Scalars['String']['input']>;
+  /** 封面图 */
+  cover_img_url?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 标题 */
+  title?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Blogs_Stddev_Fields = {
+  __typename?: 'blogs_stddev_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Blogs_Stddev_Pop_Fields = {
+  __typename?: 'blogs_stddev_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Blogs_Stddev_Samp_Fields = {
+  __typename?: 'blogs_stddev_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "blogs" */
+export type Blogs_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Blogs_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Blogs_Stream_Cursor_Value_Input = {
+  /** 分类名称 */
+  category?: InputMaybe<Scalars['String']['input']>;
+  /** 内容 */
+  content?: InputMaybe<Scalars['String']['input']>;
+  /** 封面图 */
+  cover_img_url?: InputMaybe<Scalars['String']['input']>;
+  created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 标题 */
+  title?: InputMaybe<Scalars['String']['input']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Blogs_Sum_Fields = {
+  __typename?: 'blogs_sum_fields';
+  id?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** update columns of table "blogs" */
+export enum Blogs_Update_Column {
+  /** column name */
+  Category = 'category',
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CoverImgUrl = 'cover_img_url',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Blogs_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Blogs_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Blogs_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Blogs_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Blogs_Var_Pop_Fields = {
+  __typename?: 'blogs_var_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Blogs_Var_Samp_Fields = {
+  __typename?: 'blogs_var_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Blogs_Variance_Fields = {
+  __typename?: 'blogs_variance_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
 /** columns and relationships of "cases" */
 export type Cases = {
   __typename?: 'cases';
@@ -3397,6 +3678,10 @@ export type Mutation_Root = {
   delete_applications?: Maybe<Applications_Mutation_Response>;
   /** delete single row from the table: "applications" */
   delete_applications_by_pk?: Maybe<Applications>;
+  /** delete data from the table: "blogs" */
+  delete_blogs?: Maybe<Blogs_Mutation_Response>;
+  /** delete single row from the table: "blogs" */
+  delete_blogs_by_pk?: Maybe<Blogs>;
   /** delete data from the table: "cases" */
   delete_cases?: Maybe<Cases_Mutation_Response>;
   /** delete single row from the table: "cases" */
@@ -3445,6 +3730,10 @@ export type Mutation_Root = {
   insert_applications?: Maybe<Applications_Mutation_Response>;
   /** insert a single row into the table: "applications" */
   insert_applications_one?: Maybe<Applications>;
+  /** insert data into the table: "blogs" */
+  insert_blogs?: Maybe<Blogs_Mutation_Response>;
+  /** insert a single row into the table: "blogs" */
+  insert_blogs_one?: Maybe<Blogs>;
   /** insert data into the table: "cases" */
   insert_cases?: Maybe<Cases_Mutation_Response>;
   /** insert data into the table: "cases_files" */
@@ -3495,6 +3784,12 @@ export type Mutation_Root = {
   update_applications_by_pk?: Maybe<Applications>;
   /** update multiples rows of table: "applications" */
   update_applications_many?: Maybe<Array<Maybe<Applications_Mutation_Response>>>;
+  /** update data of the table: "blogs" */
+  update_blogs?: Maybe<Blogs_Mutation_Response>;
+  /** update single row of the table: "blogs" */
+  update_blogs_by_pk?: Maybe<Blogs>;
+  /** update multiples rows of table: "blogs" */
+  update_blogs_many?: Maybe<Array<Maybe<Blogs_Mutation_Response>>>;
   /** update data of the table: "cases" */
   update_cases?: Maybe<Cases_Mutation_Response>;
   /** update single row of the table: "cases" */
@@ -3572,6 +3867,18 @@ export type Mutation_RootDelete_ApplicationsArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Applications_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_BlogsArgs = {
+  where: Blogs_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Blogs_By_PkArgs = {
   id: Scalars['bigint']['input'];
 };
 
@@ -3719,6 +4026,20 @@ export type Mutation_RootInsert_ApplicationsArgs = {
 export type Mutation_RootInsert_Applications_OneArgs = {
   object: Applications_Insert_Input;
   on_conflict?: InputMaybe<Applications_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_BlogsArgs = {
+  objects: Array<Blogs_Insert_Input>;
+  on_conflict?: InputMaybe<Blogs_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Blogs_OneArgs = {
+  object: Blogs_Insert_Input;
+  on_conflict?: InputMaybe<Blogs_On_Conflict>;
 };
 
 
@@ -3905,6 +4226,28 @@ export type Mutation_RootUpdate_Applications_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Applications_ManyArgs = {
   updates: Array<Applications_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_BlogsArgs = {
+  _inc?: InputMaybe<Blogs_Inc_Input>;
+  _set?: InputMaybe<Blogs_Set_Input>;
+  where: Blogs_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Blogs_By_PkArgs = {
+  _inc?: InputMaybe<Blogs_Inc_Input>;
+  _set?: InputMaybe<Blogs_Set_Input>;
+  pk_columns: Blogs_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Blogs_ManyArgs = {
+  updates: Array<Blogs_Updates>;
 };
 
 
@@ -5175,6 +5518,12 @@ export type Query_Root = {
   applications_aggregate: Applications_Aggregate;
   /** fetch data from the table: "applications" using primary key columns */
   applications_by_pk?: Maybe<Applications>;
+  /** fetch data from the table: "blogs" */
+  blogs: Array<Blogs>;
+  /** fetch aggregated fields from the table: "blogs" */
+  blogs_aggregate: Blogs_Aggregate;
+  /** fetch data from the table: "blogs" using primary key columns */
+  blogs_by_pk?: Maybe<Blogs>;
   /** An array relationship */
   cases: Array<Cases>;
   /** An aggregate relationship */
@@ -5263,6 +5612,29 @@ export type Query_RootApplications_AggregateArgs = {
 
 
 export type Query_RootApplications_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Query_RootBlogsArgs = {
+  distinct_on?: InputMaybe<Array<Blogs_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Blogs_Order_By>>;
+  where?: InputMaybe<Blogs_Bool_Exp>;
+};
+
+
+export type Query_RootBlogs_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Blogs_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Blogs_Order_By>>;
+  where?: InputMaybe<Blogs_Bool_Exp>;
+};
+
+
+export type Query_RootBlogs_By_PkArgs = {
   id: Scalars['bigint']['input'];
 };
 
@@ -5529,6 +5901,14 @@ export type Subscription_Root = {
   applications_by_pk?: Maybe<Applications>;
   /** fetch data from the table in a streaming manner: "applications" */
   applications_stream: Array<Applications>;
+  /** fetch data from the table: "blogs" */
+  blogs: Array<Blogs>;
+  /** fetch aggregated fields from the table: "blogs" */
+  blogs_aggregate: Blogs_Aggregate;
+  /** fetch data from the table: "blogs" using primary key columns */
+  blogs_by_pk?: Maybe<Blogs>;
+  /** fetch data from the table in a streaming manner: "blogs" */
+  blogs_stream: Array<Blogs>;
   /** An array relationship */
   cases: Array<Cases>;
   /** An aggregate relationship */
@@ -5647,6 +6027,36 @@ export type Subscription_RootApplications_StreamArgs = {
   batch_size: Scalars['Int']['input'];
   cursor: Array<InputMaybe<Applications_Stream_Cursor_Input>>;
   where?: InputMaybe<Applications_Bool_Exp>;
+};
+
+
+export type Subscription_RootBlogsArgs = {
+  distinct_on?: InputMaybe<Array<Blogs_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Blogs_Order_By>>;
+  where?: InputMaybe<Blogs_Bool_Exp>;
+};
+
+
+export type Subscription_RootBlogs_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Blogs_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Blogs_Order_By>>;
+  where?: InputMaybe<Blogs_Bool_Exp>;
+};
+
+
+export type Subscription_RootBlogs_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootBlogs_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Blogs_Stream_Cursor_Input>>;
+  where?: InputMaybe<Blogs_Bool_Exp>;
 };
 
 
