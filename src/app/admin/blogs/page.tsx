@@ -19,6 +19,8 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     content: '',
     category: '',
     cover_img_url: '',
+    reference_author: '',
+    tags: '',
     ...initialValues,
   });
   const [uploading, setUploading] = useState(false);
@@ -29,6 +31,8 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       content: '',
       category: '',
       cover_img_url: '',
+      reference_author: '',
+      tags: '',
       ...initialValues,
     })
   }, [initialValues, open])
@@ -81,6 +85,8 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
         <h2 className="text-lg font-bold mb-2">{form.id ? '编辑博客' : '新增博客'}</h2>
         <Label>标题<Input name="title" value={form.title} onChange={handleChange} required /></Label>
         <Label>内容<textarea name="content" value={form.content} onChange={handleChange} required className="w-full p-2 min-h-[80px] border rounded" /></Label>
+        <Label>作者<Input name="reference_author" value={form.reference_author} onChange={handleChange} placeholder="请输入作者名称" /></Label>
+        <Label>标签<Input name="tags" value={form.tags} onChange={handleChange} placeholder="多个标签用|分隔，如：代孕|法律|权益保护" /></Label>
         <Label>分类
           <select name="category" value={form.category} onChange={handleChange} required className="w-full p-2 border rounded">
             <option value="">请选择分类</option>
@@ -210,6 +216,16 @@ export default function BlogsPage() {
                     </div>
                   </div>
                   <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-mono text-xs text-sage-400">作者：</span>
+                      <span className="truncate">{blog.reference_author || '未设置'}</span>
+                    </div>
+                    {blog.tags && (
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-mono text-xs text-sage-400">标签：</span>
+                        <span className="truncate">{blog.tags}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">内容：</span>
                       <span className="truncate">{blog.content}</span>
