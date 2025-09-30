@@ -11,19 +11,117 @@ export async function GET(request: NextRequest) {
   const hasuraClient = getHasuraClient();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+  const search = searchParams.get('search')||"";
+  const category = searchParams.get('category')||"";
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '9');
+  const offset = (page - 1) * limit;
+
   let query = '';
   let variables = {};
+
   if (id) {
-    query = `query GetBlog($id: bigint!) { blogs_by_pk(id: $id) { id title content category cover_img_url tags reference_author created_at updated_at } }`;
+    // 获取单个博客
+    query = `query GetBlog($id: bigint!) { 
+      blogs_by_pk(id: $id) { 
+        id title content category cover_img_url tags reference_author created_at updated_at 
+      } 
+    }`;
     variables = { id: Number(id) };
   } else {
-    query = `query GetBlogs { blogs(order_by: {created_at: desc}) { id title content category cover_img_url tags reference_author created_at updated_at } }`;
+    // 获取博客列表，支持筛选、搜索、分页
+    let whereClause = '';
+    let whereVariables: any = {};
+
+    // 构建where条件
+    if (category && category !== '全部' && search && search.trim()) {
+      // 同时有分类和搜索条件
+      whereClause = 'where: {_and: [{category: {_eq: $category}}, {title: {_ilike: $search}}]}';
+      whereVariables = { category, search: `%${search.trim()}%` };
+    } else if (category && category !== '全部') {
+      // 只有分类条件
+      whereClause = 'where: {category: {_eq: $category}}';
+      whereVariables = { category };
+    } else if (search && search.trim()) {
+      // 只有搜索条件
+      whereClause = 'where: {title: {_ilike: $search}}';
+      whereVariables = { search: `%${search.trim()}%` };
+    }
+
+    // 构建查询
+    if (whereClause) {
+      query = `query GetBlogs($offset: Int!, $limit: Int!, $category: String, $search: String) { 
+        blogs(
+          order_by: {created_at: desc}
+          offset: $offset
+          limit: $limit
+          ${whereClause}
+        ) { 
+          id title content category cover_img_url tags reference_author created_at updated_at 
+        }
+        blogs_aggregate(
+          ${whereClause}
+        ) {
+          aggregate {
+            count
+          }
+        }
+      }`;
+    } else {
+      query = `query GetBlogs($offset: Int!, $limit: Int!) { 
+        blogs(
+          order_by: {created_at: desc}
+          offset: $offset
+          limit: $limit
+        ) { 
+          id title content category cover_img_url tags reference_author created_at updated_at 
+        }
+        blogs_aggregate {
+          aggregate {
+            count
+          }
+        }
+      }`;
+    }
+
+    if (whereClause) {
+      variables = {
+        offset,
+        limit,
+        ...whereVariables
+      };
+    } else {
+      variables = {
+        offset,
+        limit
+      };
+    }
   }
+
+  console.log(query, variables);
+
   const result = await hasuraClient.execute({ query, variables });
+
   if (id) {
     return new NextResponse(JSON.stringify(result?.blogs_by_pk), { status: 200, headers: corsHeaders });
   }
-  return new NextResponse(JSON.stringify({ blogs: result?.blogs || [] }), { status: 200, headers: corsHeaders });
+
+  // 返回分页数据和总数
+  const blogs = result?.blogs || [];
+  const totalCount = result?.blogs_aggregate?.aggregate?.count || 0;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  return new NextResponse(JSON.stringify({
+    blogs,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalCount,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    }
+  }), { status: 200, headers: corsHeaders });
 }
 
 export async function POST(request: NextRequest) {
@@ -56,6 +154,7 @@ export async function DELETE(request: NextRequest) {
   const result = await hasuraClient.execute({ query, variables });
   return new NextResponse(JSON.stringify(result?.delete_blogs_by_pk), { status: 200, headers: corsHeaders });
 }
+
 
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
