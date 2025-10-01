@@ -28,11 +28,13 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
         style={{
           background: "#fff",
           borderRadius: 8,
-          minWidth: 400,
-          minHeight: 100,
+          width: "90vw",
+          maxWidth: "800px",
+          maxHeight: "90vh",
           boxShadow: "0 2px 16px rgba(0,0,0,0.15)",
           padding: 24,
           position: "relative",
+          overflow: "auto",
         }}
         onClick={e => e.stopPropagation()}
       >

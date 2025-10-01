@@ -13,7 +13,7 @@ const BLOG_API = '/api/blog';
 const UPLOAD_API = '/api/upload/form';
 
 function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
-  const { t } = useTranslation("common")
+  const { t, i18n } = useTranslation("common")
   const [form, setForm] = useState({
     title: '',
     content: '',
@@ -24,6 +24,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     ...initialValues,
   });
   const [uploading, setUploading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     setForm({
@@ -52,13 +53,23 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       body: fd,
     });
     const data = await res.json();
+    console.log('Upload response:', data); // 添加调试信息
     if (data.success) {
-      setForm({ ...form, cover_img_url: data.data.url || data.data });
-      alert('图片上传成功');
+      const imageUrl = data.data.url || data.data;
+      console.log('Image URL:', imageUrl); // 添加调试信息
+      setForm({ ...form, cover_img_url: imageUrl });
+      setImageError(false); // 重置错误状态
+      alert(t('uploadSuccess'));
     } else {
-      alert('图片上传失败');
+      alert(t('uploadFailed'));
     }
     setUploading(false);
+    // 清空file input的值，以便能重新选择同一个文件
+    e.target.value = '';
+  };
+
+  const handleRemoveImage = () => {
+    setForm({ ...form, cover_img_url: '' });
   };
 
   const handleSubmit = async (e: any) => {
@@ -67,41 +78,244 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   };
 
   const categoryOptions = [
-    '代孕妈妈相关',
-    '准父母相关',
-    '孕达品牌相关',
-    '代孕流程相关',
-    '法律法规相关',
-    '行业动态相关',
-    '医学健康相关',
-    '教育科普相关',
-    '成功案例相关',
-    '心理情绪相关',
+    { key: 'categoryRelatedToSurrogate', value: '代孕妈妈相关' },
+    { key: 'categoryRelatedToParents', value: '准父母相关' },
+    { key: 'categoryRelatedToBrand', value: '孕达品牌相关' },
+    { key: 'categoryRelatedToProcess', value: '代孕流程相关' },
+    { key: 'categoryRelatedToLaw', value: '法律法规相关' },
+    { key: 'categoryRelatedToIndustry', value: '行业动态相关' },
+    { key: 'categoryRelatedToMedical', value: '医学健康相关' },
+    { key: 'categoryRelatedToEducation', value: '教育科普相关' },
+    { key: 'categoryRelatedToSuccess', value: '成功案例相关' },
+    { key: 'categoryRelatedToPsychology', value: '心理情绪相关' },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <form onSubmit={handleSubmit} className="space-y-4 p-6">
-        <h2 className="text-lg font-bold mb-2">{form.id ? '编辑博客' : '新增博客'}</h2>
-        <Label>标题<Input name="title" value={form.title} onChange={handleChange} required /></Label>
-        <Label>内容<textarea name="content" value={form.content} onChange={handleChange} required className="w-full p-2 min-h-[80px] border rounded" /></Label>
-        <Label>作者<Input name="reference_author" value={form.reference_author} onChange={handleChange} placeholder="请输入作者名称" /></Label>
-        <Label>标签<Input name="tags" value={form.tags} onChange={handleChange} placeholder="多个标签用|分隔，如：代孕|法律|权益保护" /></Label>
-        <Label>分类
-          <select name="category" value={form.category} onChange={handleChange} required className="w-full p-2 border rounded">
-            <option value="">请选择分类</option>
-            {categoryOptions.map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </Label>
-        <Label>封面图片<input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} /></Label>
-        {form.cover_img_url && <img src={form.cover_img_url} alt="cover" style={{ maxWidth: 200, marginTop: 8 }} />}
-        <div className="flex gap-2 mt-2">
-          <Button type="submit" disabled={uploading}>{form.id ? '保存修改' : '新增'}</Button>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>取消</Button>
-        </div>
-      </form>
+      <div className="w-full max-w-none">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <h2 className="text-lg font-bold mb-4">{form.id ? t('editBlog') : t('addBlog')}</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t('title')}</Label>
+              <Input 
+                name="title" 
+                value={form.title} 
+                onChange={handleChange} 
+                required 
+                className="w-full"
+                placeholder={t('pleaseEnterTitle')}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t('author')}</Label>
+              <Input 
+                name="reference_author" 
+                value={form.reference_author} 
+                onChange={handleChange} 
+                placeholder={t('pleaseEnterAuthor')}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t('tags')}</Label>
+              <Input 
+                name="tags" 
+                value={form.tags} 
+                onChange={handleChange} 
+                placeholder={t('pleaseEnterTags')}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">{t('category')}</Label>
+              <select 
+                name="category" 
+                value={form.category} 
+                onChange={handleChange} 
+                required 
+                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">{t('pleaseSelectCategory')}</option>
+                {categoryOptions.map(opt => (
+                  <option key={opt.key} value={opt.value}>{t(opt.key)}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">{t('content')}</Label>
+            <textarea 
+              name="content" 
+              value={form.content} 
+              onChange={handleChange} 
+              required 
+              className="w-full p-3 min-h-[120px] max-h-[200px] border rounded-md resize-y focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={t('pleaseEnterContent')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">{t('coverImage')}</Label>
+            
+            {/* 如果没有图片，显示上传区域 */}
+            {!form.cover_img_url && (
+              <div className="relative">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleUpload} 
+                  disabled={uploading}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                  id="coverImageUpload"
+                />
+                <div className="w-full p-3 border-2 border-dashed border-gray-300 rounded-md hover:border-blue-400 transition-colors bg-gray-50 hover:bg-blue-50">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 text-sm text-gray-600">
+                      {uploading ? (
+                        <span className="text-blue-600">{t('uploading')}</span>
+                      ) : (
+                        <span>{i18n.language === 'en' ? 'Please select an image file' : '请选择图片文件'}</span>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                        {i18n.language === 'en' ? 'Choose File' : '选择文件'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 如果有图片，显示图片预览和操作按钮 */}
+            {form.cover_img_url && !imageError && (
+              <div className="space-y-3">
+                <div className="relative">
+                  <img 
+                    src={form.cover_img_url} 
+                    alt="cover" 
+                    className="w-full h-auto max-h-48 object-cover rounded-md border bg-white"
+                    onError={(e) => {
+                      console.error('Image failed to load:', form.cover_img_url);
+                      setImageError(true);
+                    }}
+                    onLoad={() => {
+                      console.log('Image loaded successfully:', form.cover_img_url);
+                      setImageError(false);
+                    }}
+                  />
+                  {/* 点击覆盖层用于更换图片 */}
+                  <div className="absolute inset-0 bg-transparent cursor-pointer">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleUpload} 
+                      disabled={uploading}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+                
+                {/* 操作按钮 */}
+                <div className="flex gap-2">
+                  <label className="flex-1 cursor-pointer">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleUpload} 
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                    <div className="w-full p-2 text-center text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors">
+                      {uploading ? t('uploading') : (i18n.language === 'en' ? 'Change Image' : '更换图片')}
+                    </div>
+                  </label>
+                  <button 
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="px-4 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
+                  >
+                    {i18n.language === 'en' ? 'Remove' : '移除'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 图片加载错误时的显示 */}
+            {form.cover_img_url && imageError && (
+              <div className="space-y-3">
+                <div className="w-full p-4 border-2 border-red-300 rounded-md bg-red-50">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 text-sm text-red-700">
+                      {i18n.language === 'en' ? 'Failed to load image. Please try uploading again.' : '图片加载失败，请重新上传。'}
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-red-600 font-mono">
+                    URL: {form.cover_img_url}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <label className="flex-1 cursor-pointer">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleUpload} 
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                    <div className="w-full p-2 text-center text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors">
+                      {uploading ? t('uploading') : (i18n.language === 'en' ? 'Upload New Image' : '重新上传图片')}
+                    </div>
+                  </label>
+                  <button 
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="px-4 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
+                  >
+                    {i18n.language === 'en' ? 'Remove' : '移除'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+            <Button 
+              type="submit" 
+              disabled={uploading}
+              className="flex-1 sm:flex-none sm:min-w-[100px]"
+            >
+              {uploading ? t('uploading') : (form.id ? t('save') : t('add'))}
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="flex-1 sm:flex-none sm:min-w-[80px]"
+            >
+              {t('cancel')}
+            </Button>
+          </div>
+        </form>
+      </div>
     </Dialog>
   );
 }
@@ -136,13 +350,13 @@ export default function BlogsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('确定要删除吗？')) return;
+    if (!window.confirm(t('confirmDelete'))) return;
     await fetch(BLOG_API, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
-    alert('删除成功');
+    alert(t('deleteSuccess'));
     fetchBlogs();
   };
 
@@ -153,14 +367,14 @@ export default function BlogsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      alert('修改成功');
+      alert(t('editSuccess'));
     } else {
       await fetch(BLOG_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      alert('新增成功');
+      alert(t('addSuccess'));
     }
     setAddOpen(false);
     fetchBlogs();
@@ -171,7 +385,7 @@ export default function BlogsPage() {
       <PageContent>
         <PageHeader title={t('blogs') || '博客管理'}
           rightContent={
-            <Button onClick={handleAdd}>新增博客</Button>
+            <Button onClick={handleAdd}>{t('addBlog')}</Button>
           }
         />
         <BlogForm
@@ -182,9 +396,9 @@ export default function BlogsPage() {
         />
         <div className="mt-8">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">加载中...</div>
+            <div className="p-8 text-center text-gray-500">{t('loading')}</div>
           ) : blogs.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">暂无博客</div>
+            <div className="p-8 text-center text-gray-500">{t('noBlog')}</div>
           ) : (
             <div
               className="grid w-full"
@@ -212,33 +426,33 @@ export default function BlogsPage() {
                       <div className="text-sage-500 text-sm truncate">{blog.category}</div>
                     </div>
                     <div className="flex flex-col gap-2 items-end">
-                      <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">博客</span>
+                      <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('blog')}</span>
                     </div>
                   </div>
                   <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                     <div className="flex items-center gap-2 truncate">
-                      <span className="font-mono text-xs text-sage-400">作者：</span>
-                      <span className="truncate">{blog.reference_author || '未设置'}</span>
+                      <span className="font-mono text-xs text-sage-400">{t('author')}：</span>
+                      <span className="truncate">{blog.reference_author || t('notAvailable')}</span>
                     </div>
                     {blog.tags && (
                       <div className="flex items-center gap-2 truncate">
-                        <span className="font-mono text-xs text-sage-400">标签：</span>
+                        <span className="font-mono text-xs text-sage-400">{t('tags')}：</span>
                         <span className="truncate">{blog.tags}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 truncate">
-                      <span className="font-mono text-xs text-sage-400">内容：</span>
+                      <span className="font-mono text-xs text-sage-400">{t('content')}：</span>
                       <span className="truncate">{blog.content}</span>
                     </div>
                   </div>
                   <hr className="my-3 border-sage-100" />
                   <div className="flex items-center justify-between text-sage-500 text-sm">
                     <span>
-                      创建时间<br />{blog.created_at ? new Date(blog.created_at).toLocaleString() : "-"}
+                      {t('createdAt')}<br />{blog.created_at ? new Date(blog.created_at).toLocaleString() : "-"}
                     </span>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => handleEdit(blog)}>编辑</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDelete(blog.id)}>删除</Button>
+                      <Button size="sm" onClick={() => handleEdit(blog)}>{t('edit')}</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDelete(blog.id)}>{t('delete')}</Button>
                     </div>
                   </div>
                 </div>

@@ -1,110 +1,299 @@
+
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useSearchParams } from 'next/navigation';
 
-const stages: { key: "match" | "legal" | "pregnancy" | "complete"; label: string }[] = [
-  { key: "match", label: "Matching" },
-  { key: "legal", label: "Legal Stage" },
-  { key: "pregnancy", label: "Pregnancy" },
-  { key: "complete", label: "Completed" },
-];
+function IVFClinicContent() {
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get('caseId');
 
-const todosByStage: Record<"match" | "legal" | "pregnancy" | "complete", string[]> = {
-  match: ["签约身份验证", "上传协议文件", "等待匹配"],
-  legal: ["签署法律文件", "身份认证", "等待律师反馈"],
-  pregnancy: ["产检预约", "用药提醒", "上传医疗报告"],
-  complete: ["流程总结", "归档所有文件", "通知相关人员"],
-};
+  const [open, setOpen] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [clinics, setClinics] = useState<any[]>([]);
 
-export default function SurrogacyJourneyPage() {
-  const [currentStage, setCurrentStage] = useState<"match" | "legal" | "pregnancy" | "complete">("match");
-  const [todos, setTodos] = useState(todosByStage[currentStage].map((t) => ({ text: t, done: false })));
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/ivf-clinic-get?caseId=${caseId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setClinics(data.ivf_clinics || []);
+      })
+      .finally(() => setLoading(false));
+  }, [caseId]);
 
-  // 切换阶段时刷新待办
-  const handleStageChange = (key: "match" | "legal" | "pregnancy" | "complete") => {
-    setCurrentStage(key);
-    setTodos(todosByStage[key].map((t) => ({ text: t, done: false })));
-  };
+  // 获取各类型数据
+  const clinicOverview = clinics.find((c) => c.type === "ClinicOverview")?.data;
+  const embryoJourneyData = clinics.find((c) => c.type === "EmbryoJourney")?.data;
+  const surrogateAppointmentsData = clinics.find((c) => c.type === "SurrogateAppointments")?.data;
+  const medicationTrackerData = clinics.find((c) => c.type === "MedicationTracker")?.data;
+  const doctorsNotesData = clinics.find((c) => c.type === "DoctorNotes")?.data;
 
-  // 勾选待办
-  const toggleTodo = (idx: number) => {
-    setTodos((prev) => prev.map((todo, i) => i === idx ? { ...todo, done: !todo.done } : todo));
-  };
-
-  // 模拟预约列表
-  const appointments = [
-    { date: "2025-10-10", type: "Ultrasound", doctor: "Dr. John Doe", clinic: "Hope IVF Center", address: "123 Main St, City", time: "9:30 AM" },
-    { date: "2025-10-15", type: "Consultation", doctor: "Dr. Jane Smith", clinic: "Hope IVF Center", address: "123 Main St, City", time: "2:00 PM" },
-  ];
+  if (loading) {
+    return (
+      <div className="p-8 min-h-screen flex items-center justify-center" style={{ background: '#FBF0DA40' }}>
+        <div className="text-[#271F18] font-serif">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#FBF0DA40] font-serif text-[#271F18] px-8 py-6 flex flex-col items-center" style={{ fontFamily: 'Source Serif 4, serif' }}>
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-6">
-        <h1 className="text-2xl font-bold mb-1">Journey</h1>
-        <p className="mb-4 text-base">我的流程进度与待办事项</p>
-        {/* 阶段切换 */}
-        <div className="flex gap-4 mb-6">
-          {stages.map((stage) => (
-            <button
-              key={stage.key}
-              className={`px-5 py-2 rounded-full font-medium shadow text-sm transition border ${currentStage === stage.key ? 'bg-[#271F18] text-white' : 'bg-[#E6F2ED] text-[#271F18]'}`}
-              onClick={() => handleStageChange(stage.key)}
-            >
-              {stage.label}
-            </button>
-          ))}
-        </div>
-        {/* 待办事项列表 */}
-        <div className="bg-[#FBF0DA] rounded-xl shadow-md p-6 mb-6">
-          <div className="font-semibold text-lg mb-4">待办事项</div>
-          <ul className="flex flex-col gap-3">
-            {todos.map((todo, idx) => (
-              <li key={idx} className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={todo.done}
-                  onChange={() => toggleTodo(idx)}
-                  className="accent-[#271F18] w-5 h-5 rounded"
-                />
-                <span className={`text-base ${todo.done ? 'line-through opacity-50' : ''}`}>{todo.text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        {/* 预约列表与诊所信息（Calendar联动） */}
-        <div className="bg-[#FBF0DA] rounded-xl shadow-md p-6">
-          <div className="font-semibold text-lg mb-4">预约列表</div>
-          <table className="w-full text-left border-separate border-spacing-y-2 mb-4">
-            <thead>
-              <tr className="text-[#271F18] opacity-80 text-sm">
-                <th>日期</th>
-                <th>类型</th>
-                <th>医生</th>
-                <th>诊所</th>
-                <th>时间</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointments.map((item, idx) => (
-                <tr key={idx} className="bg-white rounded-md shadow-sm">
-                  <td className="py-2 px-3">{item.date}</td>
-                  <td className="py-2 px-3">{item.type}</td>
-                  <td className="py-2 px-3">{item.doctor}</td>
-                  <td className="py-2 px-3">{item.clinic}</td>
-                  <td className="py-2 px-3">{item.time}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* 医生与诊所信息 */}
-          <div className="mt-2">
-            <div className="font-semibold mb-1">主治医生信息</div>
-            <div className="text-sm">姓名：Dr. John Doe</div>
-            <div className="text-sm">诊所：Hope IVF Center</div>
-            <div className="text-sm">地址：123 Main St, City</div>
-            <div className="text-sm">电话：123-456-7890</div>
+    <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
+      <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">IVF Clinic</h1>
+      <p className="text-[#271F18] font-serif mb-8">View your IVF clinic team and review updates related to your embryo transfer process</p>
+
+      {/* Clinic Overview 折叠卡片 */}
+      <div className="rounded-xl bg-[#FBF0DA40] p-0 font-serif text-[#271F18] mb-6">
+        <button
+          className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none"
+          onClick={() => setOpen(open === 'Clinic Overview' ? null : 'Clinic Overview')}
+        >
+          <span>Clinic Overview</span>
+          <span className="text-xs">{clinicOverview?.location || 'No data available'}</span>
+          <span className={`ml-2 transition-transform ${open === 'Clinic Overview' ? 'rotate-90' : ''}`}>▼</span>
+        </button>
+        {open === 'Clinic Overview' && clinicOverview && (
+          <div className="px-6 py-4">
+            <div className="flex gap-6">
+              {/* Doctor */}
+              <div className="rounded-xl bg-white p-6 flex gap-4 items-start flex-1 shadow-sm">
+                <Avatar className="w-12 h-12 flex-shrink-0">
+                  <AvatarFallback className="bg-[#E8F4F8] font-serif text-[#271F18] text-sm font-medium">
+                    {clinicOverview?.doctor?.name?.slice(0,2) || 'JD'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="font-serif text-lg font-medium text-[#271F18] mb-1">{clinicOverview?.doctor?.name}</div>
+                  <div className="text-sm text-[#666] mb-2">{clinicOverview?.doctor?.role}</div>
+                  <div className="text-sm text-[#666] mb-1">{clinicOverview?.doctor?.email}</div>
+                  <div className="text-sm text-[#666] mb-3">{clinicOverview?.doctor?.phone}</div>
+                  <div className="text-sm text-[#271F18] leading-relaxed">{clinicOverview?.doctor?.desc}</div>
+                </div>
+              </div>
+              {/* Coordinator */}
+              <div className="rounded-xl bg-white p-6 flex gap-4 items-start flex-1 shadow-sm">
+                <Avatar className="w-12 h-12 flex-shrink-0">
+                  <AvatarFallback className="bg-[#E8F4F8] font-serif text-[#271F18] text-sm font-medium">
+                    {clinicOverview?.coordinator?.name?.slice(0,2) || 'JD'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="font-serif text-lg font-medium text-[#271F18] mb-1">{clinicOverview?.coordinator?.name}</div>
+                  <div className="text-sm text-[#666] mb-2">{clinicOverview?.coordinator?.role}</div>
+                  <div className="text-sm text-[#666] mb-1">{clinicOverview?.coordinator?.email}</div>
+                  <div className="text-sm text-[#666] mb-3">{clinicOverview?.coordinator?.phone}</div>
+                  <div className="text-sm text-[#271F18] leading-relaxed">{clinicOverview?.coordinator?.desc}</div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+        {open === 'Clinic Overview' && !clinicOverview && (
+          <div className="px-6 py-4">
+            <div className="text-center text-[#666] font-serif">No clinic overview data available</div>
+          </div>
+        )}
+      </div>
+
+      {/* Embryo Journey 折叠卡片 */}
+      <div className="rounded-xl bg-[#FBF0DA40] p-0 font-serif text-[#271F18] mb-4">
+        <button 
+          className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
+          onClick={() => setOpen(open === 'Embryo Journey' ? null : 'Embryo Journey')}
+        >
+          <span>Embryo Journey</span>
+          <span className={`text-xl transition-transform ${open === 'Embryo Journey' ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        {open === 'Embryo Journey' && embryoJourneyData && (
+          <div className="px-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 左侧时间线展示 */}
+              <div className="relative">
+                <h3 className="font-serif text-lg font-bold mb-4 text-[#271F18]">Timeline</h3>
+                <div className="relative pl-6">
+                  {/* 竖线 */}
+                  <div className="absolute left-2 top-0 bottom-0 w-px bg-[#C2A87A]"></div>
+                  {embryoJourneyData?.timeline?.map((item: any, i: number) => (
+                    <div key={i} className="relative mb-6 last:mb-0">
+                      {/* 圆点 */}
+                      <div className="absolute -left-1 w-2 h-2 rounded-full bg-white border-2 border-[#C2A87A]"></div>
+                      <div className="ml-4">
+                        <div className="font-serif text-base font-medium text-[#271F18] mb-1">{item.label}</div>
+                        <div className="text-sm text-[#C2A87A]">{item.date}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 右侧胚胎表格展示 */}
+              <div>
+                <h3 className="font-serif text-lg font-bold mb-4 text-[#271F18]">Embryos</h3>
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                  <table className="w-full text-[#271F18] font-serif">
+                    <thead className="bg-[#F8F9FA] border-b">
+                      <tr>
+                        <th className="py-3 px-4 text-left font-bold text-base">Grade</th>
+                        <th className="py-3 px-4 text-left font-bold text-base">ID</th>
+                        <th className="py-3 px-4 text-left font-bold text-base">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {embryoJourneyData?.embryos?.map((e: any, i: number) => (
+                        <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                          <td className="py-3 px-4 text-base">{e.grade}</td>
+                          <td className="py-3 px-4 text-base">{e.id}</td>
+                          <td className="py-3 px-4 text-base">{e.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {open === 'Embryo Journey' && !embryoJourneyData && (
+          <div className="px-6 py-4">
+            <div className="text-center text-[#666] font-serif">No embryo journey data available</div>
+          </div>
+        )}
+      </div>
+
+      {/* Surrogate Appointments 折叠卡片 */}
+      <div className="rounded-xl bg-[#FBF0DA40] p-0 font-serif text-[#271F18] mb-4">
+        <button 
+          className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
+          onClick={() => setOpen(open === 'Surrogate Appointments' ? null : 'Surrogate Appointments')}
+        >
+          <span>Surrogate Appointments</span>
+          <span className={`text-xl transition-transform ${open === 'Surrogate Appointments' ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        {open === 'Surrogate Appointments' && surrogateAppointmentsData && (
+          <div className="px-6 py-4">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-[#271F18] font-serif">
+                <thead className="bg-[#F8F9FA] border-b">
+                  <tr>
+                    <th className="py-3 px-4 text-left font-bold text-base">Date</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Type</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Doctor</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Medication</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(surrogateAppointmentsData) && surrogateAppointmentsData.map((a: any, i: number) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                      <td className="py-3 px-4 text-base">{a.date}</td>
+                      <td className="py-3 px-4 text-base">{a.type}</td>
+                      <td className="py-3 px-4 text-base">{a.doctor}</td>
+                      <td className="py-3 px-4 text-base">{a.medication}</td>
+                      <td className="py-3 px-4 text-base">
+                        <ul className="list-disc pl-4 text-sm">
+                          {a.instructions?.map((ins: string, idx: number) => <li key={idx}>{ins}</li>)}
+                        </ul>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {open === 'Surrogate Appointments' && !surrogateAppointmentsData && (
+          <div className="px-6 py-4">
+            <div className="text-center text-[#666] font-serif">No surrogate appointments data available</div>
+          </div>
+        )}
+      </div>
+
+      {/* Medication Tracker 折叠卡片 */}
+      <div className="rounded-xl bg-[#FBF0DA40] p-0 font-serif text-[#271F18] mb-4">
+        <button 
+          className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
+          onClick={() => setOpen(open === 'Medication Tracker' ? null : 'Medication Tracker')}
+        >
+          <span>Medication Tracker</span>
+          <span className={`text-xl transition-transform ${open === 'Medication Tracker' ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        {open === 'Medication Tracker' && medicationTrackerData && (
+          <div className="px-6 py-4">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-[#271F18] font-serif">
+                <thead className="bg-[#F8F9FA] border-b">
+                  <tr>
+                    <th className="py-3 px-4 text-left font-bold text-base">Medication</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Dosage</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Frequency</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Start Date</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(medicationTrackerData) && medicationTrackerData.map((m: any, i: number) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                      <td className="py-3 px-4 text-base">{m.name}</td>
+                      <td className="py-3 px-4 text-base">{m.dosage}</td>
+                      <td className="py-3 px-4 text-base">{m.frequency}</td>
+                      <td className="py-3 px-4 text-base">{m.start}</td>
+                      <td className="py-3 px-4 text-base">{m.notes}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {open === 'Medication Tracker' && !medicationTrackerData && (
+          <div className="px-6 py-4">
+            <div className="text-center text-[#666] font-serif">No medication tracker data available</div>
+          </div>
+        )}
+      </div>
+
+      {/* Doctor's Notes 折叠卡片 */}
+      <div className="rounded-xl bg-[#FBF0DA40] p-0 font-serif text-[#271F18] mb-4">
+        <button 
+          className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
+          onClick={() => setOpen(open === "Doctor's Notes" ? null : "Doctor's Notes")}
+        > 
+          <span>Doctor's Notes</span>
+          <span className={`text-xl transition-transform ${open === "Doctor's Notes" ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        {open === "Doctor's Notes" && doctorsNotesData && (
+          <div className="px-6 py-4">
+            <div className="space-y-3">
+              {Array.isArray(doctorsNotesData) && doctorsNotesData.map((note: any, i: number) => (
+                <div key={i} className="bg-[#F8F9FA] rounded-lg p-4 border border-[#E5E7EB]">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="mb-2">
+                        <span className="font-serif text-sm font-medium text-[#271F18] block">{note.date}</span>
+                        <span className="font-serif text-sm font-medium text-[#271F18] block">Dr. {note.doctor}</span>
+                      </div>
+                      <p className="text-sm text-[#271F18] leading-relaxed">{note.note}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {open === "Doctor's Notes" && !doctorsNotesData && (
+          <div className="px-6 py-4">
+            <div className="text-center text-[#666] font-serif">No doctor's notes data available</div>
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+export default function IVFClinic() {
+  return (
+    <Suspense fallback={<div className="p-8 min-h-screen flex items-center justify-center" style={{ background: '#FBF0DA40' }}><div className="text-[#271F18] font-serif">Loading...</div></div>}>
+      <IVFClinicContent />
+    </Suspense>
   );
 }

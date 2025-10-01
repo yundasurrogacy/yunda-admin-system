@@ -11,6 +11,8 @@ export async function GET(req: Request) {
     query CasesByManager($managerId: bigint!) {
       cases(where: { client_manager_client_managers: { _eq: $managerId } }) {
         id
+        created_at
+        updated_at
         process_status
         trust_account_balance
         surrogate_mother {

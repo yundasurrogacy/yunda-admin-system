@@ -1,5 +1,5 @@
 'use client'
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -74,6 +74,37 @@ function JourneyInner() {
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
 
+  const [processStatus, setProcessStatus] = useState<string>('');
+  const [updatedAt, setUpdatedAt] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 获取案例数据并设置当前case的process_status和updated_at
+  useEffect(() => {
+    const fetchCases = async () => {
+      setIsLoading(true);
+      try {
+        const managerId = typeof window !== 'undefined' ? localStorage.getItem('managerId') : null;
+        if (!managerId || !caseId) {
+          setIsLoading(false);
+          return;
+        }
+        const res = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
+        const data = await res.json();
+        // 兼容数据结构
+        const casesArr = Array.isArray(data) ? data : (data.cases || data.data || []);
+        const currentCase = casesArr.find((c: any) => c.id?.toString() === caseId?.toString());
+        setProcessStatus(currentCase?.process_status || '');
+        setUpdatedAt(currentCase?.updated_at || '');
+      } catch (error) {
+        setProcessStatus('');
+        setUpdatedAt('');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCases();
+  }, [caseId]);
+
   // 跳转到 files 页面并携带参数
   const handleViewClick = (stageIdx: number, itemTitle: string) => {
     router.push(`/client-manager/files?caseId=${caseId}&stage=${stageIdx + 1}&title=${encodeURIComponent(itemTitle)}`);
@@ -87,9 +118,13 @@ function JourneyInner() {
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-serif">Current Status</h2>
-            <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">IN LEGAL AGREEMENT STAGE</span>
+            <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">
+              {isLoading ? 'Loading...' : (processStatus || 'No Status')}
+            </span>
           </div>
-          <div className="text-sm">Updated today</div>
+          <div className="text-sm">
+            {updatedAt ? `Updated ${updatedAt.slice(0, 10)}` : '-'}
+          </div>
         </Card>
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
           <h2 className="text-xl font-serif mb-4">Status Timeline</h2>

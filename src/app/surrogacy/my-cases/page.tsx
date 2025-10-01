@@ -186,7 +186,7 @@ export default function SurrogacyMyCasesPage() {
                 {/* <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">动态</Link> */}
                 <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">发布动态</Link>
                 <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">JOURNEY</Link>
-                <Link href={`/surrogacy/ivf-clinic`} className="text-blue-600 underline">ivf clinic</Link>
+                <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">ivf clinic</Link>
               </div>
             </div>
           ))
