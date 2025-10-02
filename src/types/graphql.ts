@@ -393,6 +393,10 @@ export type Blogs = {
   cover_img_url?: Maybe<Scalars['String']['output']>;
   created_at: Scalars['timestamptz']['output'];
   id: Scalars['bigint']['output'];
+  /** 作者来源 */
+  reference_author?: Maybe<Scalars['String']['output']>;
+  /** 标签，多个用｜分割，如：准父母｜心里准备 */
+  tags?: Maybe<Scalars['String']['output']>;
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at: Scalars['timestamptz']['output'];
@@ -444,6 +448,8 @@ export type Blogs_Bool_Exp = {
   cover_img_url?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Bigint_Comparison_Exp>;
+  reference_author?: InputMaybe<String_Comparison_Exp>;
+  tags?: InputMaybe<String_Comparison_Exp>;
   title?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -469,6 +475,10 @@ export type Blogs_Insert_Input = {
   cover_img_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 作者来源 */
+  reference_author?: InputMaybe<Scalars['String']['input']>;
+  /** 标签，多个用｜分割，如：准父母｜心里准备 */
+  tags?: InputMaybe<Scalars['String']['input']>;
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -485,6 +495,10 @@ export type Blogs_Max_Fields = {
   cover_img_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
+  /** 作者来源 */
+  reference_author?: Maybe<Scalars['String']['output']>;
+  /** 标签，多个用｜分割，如：准父母｜心里准备 */
+  tags?: Maybe<Scalars['String']['output']>;
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -501,6 +515,10 @@ export type Blogs_Min_Fields = {
   cover_img_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
+  /** 作者来源 */
+  reference_author?: Maybe<Scalars['String']['output']>;
+  /** 标签，多个用｜分割，如：准父母｜心里准备 */
+  tags?: Maybe<Scalars['String']['output']>;
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -529,6 +547,8 @@ export type Blogs_Order_By = {
   cover_img_url?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  reference_author?: InputMaybe<Order_By>;
+  tags?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -551,6 +571,10 @@ export enum Blogs_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  ReferenceAuthor = 'reference_author',
+  /** column name */
+  Tags = 'tags',
+  /** column name */
   Title = 'title',
   /** column name */
   UpdatedAt = 'updated_at'
@@ -566,6 +590,10 @@ export type Blogs_Set_Input = {
   cover_img_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 作者来源 */
+  reference_author?: InputMaybe<Scalars['String']['input']>;
+  /** 标签，多个用｜分割，如：准父母｜心里准备 */
+  tags?: InputMaybe<Scalars['String']['input']>;
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -607,6 +635,10 @@ export type Blogs_Stream_Cursor_Value_Input = {
   cover_img_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 作者来源 */
+  reference_author?: InputMaybe<Scalars['String']['input']>;
+  /** 标签，多个用｜分割，如：准父母｜心里准备 */
+  tags?: InputMaybe<Scalars['String']['input']>;
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -630,6 +662,10 @@ export enum Blogs_Update_Column {
   CreatedAt = 'created_at',
   /** column name */
   Id = 'id',
+  /** column name */
+  ReferenceAuthor = 'reference_author',
+  /** column name */
+  Tags = 'tags',
   /** column name */
   Title = 'title',
   /** column name */
@@ -4449,7 +4485,12 @@ export type Mutation_RootUpdate_Post_Comments_ManyArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdate_PostsArgs = {
+  _append?: InputMaybe<Posts_Append_Input>;
+  _delete_at_path?: InputMaybe<Posts_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Posts_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Posts_Delete_Key_Input>;
   _inc?: InputMaybe<Posts_Inc_Input>;
+  _prepend?: InputMaybe<Posts_Prepend_Input>;
   _set?: InputMaybe<Posts_Set_Input>;
   where: Posts_Bool_Exp;
 };
@@ -4457,7 +4498,12 @@ export type Mutation_RootUpdate_PostsArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdate_Posts_By_PkArgs = {
+  _append?: InputMaybe<Posts_Append_Input>;
+  _delete_at_path?: InputMaybe<Posts_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Posts_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Posts_Delete_Key_Input>;
   _inc?: InputMaybe<Posts_Inc_Input>;
+  _prepend?: InputMaybe<Posts_Prepend_Input>;
   _set?: InputMaybe<Posts_Set_Input>;
   pk_columns: Posts_Pk_Columns_Input;
 };
@@ -5092,6 +5138,7 @@ export type Posts = {
   /** 标题 */
   title: Scalars['String']['output'];
   updated_at: Scalars['timestamptz']['output'];
+  url?: Maybe<Scalars['jsonb']['output']>;
 };
 
 
@@ -5112,6 +5159,12 @@ export type PostsPost_Comments_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
   order_by?: InputMaybe<Array<Post_Comments_Order_By>>;
   where?: InputMaybe<Post_Comments_Bool_Exp>;
+};
+
+
+/** 动态 */
+export type PostsUrlArgs = {
+  path?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregated selection of "posts" */
@@ -5170,6 +5223,11 @@ export type Posts_Aggregate_Order_By = {
   variance?: InputMaybe<Posts_Variance_Order_By>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Posts_Append_Input = {
+  url?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
 /** input type for inserting array relation for remote table "posts" */
 export type Posts_Arr_Rel_Insert_Input = {
   data: Array<Posts_Insert_Input>;
@@ -5206,6 +5264,7 @@ export type Posts_Bool_Exp = {
   post_comments_aggregate?: InputMaybe<Post_Comments_Aggregate_Bool_Exp>;
   title?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  url?: InputMaybe<Jsonb_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "posts" */
@@ -5213,6 +5272,21 @@ export enum Posts_Constraint {
   /** unique or primary key constraint on columns "id" */
   PostsPkey = 'posts_pkey'
 }
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Posts_Delete_At_Path_Input = {
+  url?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Posts_Delete_Elem_Input = {
+  url?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Posts_Delete_Key_Input = {
+  url?: InputMaybe<Scalars['String']['input']>;
+};
 
 /** input type for incrementing numeric columns in table "posts" */
 export type Posts_Inc_Input = {
@@ -5234,6 +5308,7 @@ export type Posts_Insert_Input = {
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  url?: InputMaybe<Scalars['jsonb']['input']>;
 };
 
 /** aggregate max on columns */
@@ -5323,11 +5398,17 @@ export type Posts_Order_By = {
   post_comments_aggregate?: InputMaybe<Post_Comments_Aggregate_Order_By>;
   title?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  url?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: posts */
 export type Posts_Pk_Columns_Input = {
   id: Scalars['bigint']['input'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Posts_Prepend_Input = {
+  url?: InputMaybe<Scalars['jsonb']['input']>;
 };
 
 /** select columns of table "posts" */
@@ -5343,7 +5424,9 @@ export enum Posts_Select_Column {
   /** column name */
   Title = 'title',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updated_at',
+  /** column name */
+  Url = 'url'
 }
 
 /** input type for updating data in table "posts" */
@@ -5357,6 +5440,7 @@ export type Posts_Set_Input = {
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  url?: InputMaybe<Scalars['jsonb']['input']>;
 };
 
 /** aggregate stddev on columns */
@@ -5423,6 +5507,7 @@ export type Posts_Stream_Cursor_Value_Input = {
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  url?: InputMaybe<Scalars['jsonb']['input']>;
 };
 
 /** aggregate sum on columns */
@@ -5453,12 +5538,24 @@ export enum Posts_Update_Column {
   /** column name */
   Title = 'title',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updated_at',
+  /** column name */
+  Url = 'url'
 }
 
 export type Posts_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Posts_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Posts_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Posts_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Posts_Delete_Key_Input>;
   /** increments the numeric columns with given value of the filtered values */
   _inc?: InputMaybe<Posts_Inc_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Posts_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Posts_Set_Input>;
   /** filter the rows which have to be updated */

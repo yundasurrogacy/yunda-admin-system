@@ -2,11 +2,11 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import ManagerLayout from '@/components/manager-layout'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
 interface Surrogate {
@@ -16,9 +16,8 @@ interface Surrogate {
   status: 'Matched' | 'In Progress'
 }
 
-
-
 export default function SurrogateProfiles() {
+  const { t } = useTranslation('common')
   const [searchTerm, setSearchTerm] = React.useState('')
   const [hovered, setHovered] = React.useState<string | null>(null)
   const [surrogates, setSurrogates] = React.useState<Surrogate[]>([])
@@ -31,18 +30,14 @@ export default function SurrogateProfiles() {
       setLoading(true)
       setError(null)
       try {
-        // 1. 获取经理id
         const managerId = typeof window !== 'undefined' ? localStorage.getItem('managerId') || '3' : '3'
-        // 2. 获取所有case
         const caseRes = await fetch(`/api/cases-by-manager?managerId=${managerId}`)
-        if (!caseRes.ok) throw new Error('获取案子失败')
+        if (!caseRes.ok) throw new Error(t('surrogateProfiles.fetchCasesFailed'))
         const caseData = await caseRes.json()
         const casesRaw = caseData.cases || caseData.data || caseData || []
-        // 3. 提取所有代孕母id
         const surrogateIds = Array.isArray(casesRaw)
           ? casesRaw.map((item: any) => item.surrogate_mother?.id).filter(Boolean)
           : []
-        // 4. 批量获取代孕母详情
         const details: Surrogate[] = []
         for (const surrogateId of surrogateIds) {
           const res = await fetch(`/api/surrogate_mothers-detail?surrogacy=${surrogateId}`)
@@ -58,30 +53,30 @@ export default function SurrogateProfiles() {
         }
         setSurrogates(details)
       } catch (err: any) {
-        setError('数据获取失败')
+        setError(t('surrogateProfiles.fetchDataFailed'))
       }
       setLoading(false)
     }
     fetchSurrogates()
-  }, [])
+  }, [t])
 
   return (
     <ManagerLayout>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold font-serif text-[#271F18]">Surrogate Profile</h1>
+          <h1 className="text-2xl font-semibold font-serif text-[#271F18]">{t('surrogateProfiles.title')}</h1>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               className="w-[240px] pl-9 bg-white font-serif text-[#271F18] border-none shadow rounded-full focus:ring-0 focus:outline-none"
-              placeholder="Search"
+              placeholder={t('surrogateProfiles.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
         {loading ? (
-          <div className="font-serif text-[#271F18]">加载中...</div>
+          <div className="font-serif text-[#271F18]">{t('loadingText')}</div>
         ) : error ? (
           <div className="font-serif text-red-500">{error}</div>
         ) : (
@@ -90,7 +85,7 @@ export default function SurrogateProfiles() {
               .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
               .map((surrogate, idx) => (
                 <div
-                  key={surrogate.id}
+                  key={`${surrogate.id}-${idx}`}
                   className="rounded-xl bg-[#FBF0DA40] p-6 shadow font-serif text-[#271F18] flex flex-col justify-between min-h-[120px] hover:shadow-lg transition-shadow"
                   onMouseEnter={() => setHovered(surrogate.id)}
                   onMouseLeave={() => setHovered(null)}
@@ -98,7 +93,7 @@ export default function SurrogateProfiles() {
                   <div>
                     <div className="text-lg font-serif mb-1">{surrogate.name}</div>
                     <div className="text-sm mb-1">{surrogate.location}</div>
-                    <div className="text-sm mb-2">Surrogate</div>
+                    <div className="text-sm mb-2">{t('surrogateProfiles.role')}</div>
                     <div className="text-sm mb-2">{surrogate.status}</div>
                   </div>
                   <div className="flex justify-end">
@@ -106,7 +101,7 @@ export default function SurrogateProfiles() {
                       className={`rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none border border-[#D9D9D9] transition-colors ${hovered === surrogate.id ? 'bg-[#F5E6C8] border-[#271F18]' : ''}`}
                       onClick={() => router.push(`/client-manager/surrogate-profiles/${surrogate.id}`)}
                     >
-                      View
+                      {t('surrogateProfiles.view')}
                     </Button>
                   </div>
                 </div>

@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-// ...existing code...
 interface SurrogateMother {
   id: string;
   email: string;
@@ -40,6 +40,7 @@ interface CaseItem {
 }
 
 export default function MyCasesPage() {
+  const { t } = useTranslation('common');
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,13 +48,13 @@ export default function MyCasesPage() {
   useEffect(() => {
     const parentId = typeof window !== "undefined" ? localStorage.getItem("parentId") : null;
     if (!parentId) {
-      setError("未找到用户ID，请重新登录。");
+      setError(t('myCases.error.noUserId', "未找到用户ID，请重新登录。"));
       setLoading(false);
       return;
     }
   fetch(`/api/cases-by-parent?parentId=${parentId}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error("获取案子失败");
+        if (!res.ok) throw new Error(t('myCases.error.fetchFailed', "获取案子失败"));
         const data = await res.json();
         // 打印接口返回原始数据，方便调试
         console.log('接口返回数据:', data);
@@ -97,14 +98,14 @@ export default function MyCasesPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
-  if (loading) return <div>加载中...</div>;
+  if (loading) return <div>{t('loadingText', '加载中...')}</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">我的案子</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('myCases.title', '我的案子')}</h1>
       <div
         className="w-full"
         style={{
@@ -115,7 +116,7 @@ export default function MyCasesPage() {
         }}
       >
         {cases.length === 0 ? (
-          <div className="text-center py-8 col-span-full text-gray-500">暂无案子</div>
+          <div className="text-center py-8 col-span-full text-gray-500">{t('myCases.noCases', '暂无案子')}</div>
         ) : (
           cases.map((item) => (
             <div
@@ -127,17 +128,17 @@ export default function MyCasesPage() {
                   <span className="text-sage-400 text-xl font-bold">{String(item.id).slice(-2)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-lg text-sage-800 truncate">案件ID：{item.id}</div>
-                  <div className="text-sage-500 text-sm truncate">状态：{item.process_status || '-'}</div>
+                  <div className="font-semibold text-lg text-sage-800 truncate">{t('myCases.caseIdLabel', '案件ID：')}{item.id}</div>
+                  <div className="text-sage-500 text-sm truncate">{t('myCases.statusLabel', '状态：')}{item.process_status || '-'}</div>
                 </div>
               </div>
               <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">信托余额：</span>
+                  <span className="font-mono text-xs text-sage-400">{t('myCases.trustBalanceLabel', '信托余额：')}</span>
                   <span>{item.trust_account_balance ?? '-'}</span>
                 </div>
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">准父母：</span>
+                  <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel', '准父母：')}</span>
                   {item.intended_parent ? (
                     <span>{item.intended_parent.name} <span className="text-xs text-sage-400">({item.intended_parent.email})</span></span>
                   ) : (
@@ -145,7 +146,7 @@ export default function MyCasesPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">代孕妈妈：</span>
+                  <span className="font-mono text-xs text-sage-400">{t('surrogateMotherLabel', '代孕妈妈：')}</span>
                   {item.surrogate_mother ? (
                     <Link href={`/client/surrogate-match/`} className="text-blue-600 underline">{item.surrogate_mother.name}</Link>
                   ) : (
@@ -184,9 +185,9 @@ export default function MyCasesPage() {
               </div>
               <hr className="my-3 border-sage-100" />
               <div className="flex flex-wrap gap-2 text-sm">
-                <Link href={`/client/journal?caseId=${item.id}`} className="text-blue-600 underline">孕母动态</Link>
-                <Link href={`/client/journey?caseId=${item.id}`} className="text-blue-600 underline">JOURNEY</Link>
-                <Link href={`/client/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">ivf clinic</Link>
+                <Link href={`/client/journal?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.surrogateJourney', '孕母动态')}</Link>
+                <Link href={`/client/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey', 'JOURNEY')}</Link>
+                <Link href={`/client/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic', 'ivf clinic')}</Link>
               </div>
             </div>
           ))

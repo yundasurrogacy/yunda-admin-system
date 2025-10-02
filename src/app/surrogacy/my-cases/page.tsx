@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-// ...existing code...
 interface SurrogateMother {
   id: string;
   email: string;
@@ -40,6 +40,7 @@ interface CaseItem {
 }
 
 export default function SurrogacyMyCasesPage() {
+  const { t } = useTranslation('common');
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,13 +48,13 @@ export default function SurrogacyMyCasesPage() {
   useEffect(() => {
     const surrogateId = typeof window !== "undefined" ? localStorage.getItem("surrogateId") : null;
     if (!surrogateId) {
-      setError("未找到用户ID，请重新登录。");
+      setError(t('myCases.error.noUserId'));
       setLoading(false);
       return;
     }
     fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error("获取案子失败");
+        if (!res.ok) throw new Error(t('myCases.error.fetchFailed'));
         const data = await res.json();
         // 兼容后端返回结构
         const casesRaw = data.cases || data.data || data || [];
@@ -94,14 +95,14 @@ export default function SurrogacyMyCasesPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
-  if (loading) return <div>加载中...</div>;
+  if (loading) return <div>{t('loadingText')}</div>;
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">我的案子</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('myCases.title')}</h1>
       <div
         className="w-full"
         style={{
@@ -112,7 +113,7 @@ export default function SurrogacyMyCasesPage() {
         }}
       >
         {cases.length === 0 ? (
-          <div className="text-center py-8 col-span-full text-gray-500">暂无案子</div>
+          <div className="text-center py-8 col-span-full text-gray-500">{t('myCases.noCases')}</div>
         ) : (
           cases.map((item) => (
             <div
@@ -124,17 +125,17 @@ export default function SurrogacyMyCasesPage() {
                   <span className="text-sage-400 text-xl font-bold">{String(item.id).slice(-2)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-lg text-sage-800 truncate">案件ID：{item.id}</div>
-                  <div className="text-sage-500 text-sm truncate">状态：{item.process_status || '-'}</div>
+                  <div className="font-semibold text-lg text-sage-800 truncate">{t('myCases.caseIdLabel')}{item.id}</div>
+                  <div className="text-sage-500 text-sm truncate">{t('myCases.statusLabel')}{item.process_status || '-'}</div>
                 </div>
               </div>
               <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">信托余额：</span>
+                  <span className="font-mono text-xs text-sage-400">{t('myCases.trustBalanceLabel')}</span>
                   <span>{item.trust_account_balance ?? '-'}</span>
                 </div>
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">准父母：</span>
+                  <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel')}</span>
                   {item.intended_parent ? (
                     <Link href={`/surrogacy/intended-parents`} className="text-green-600 underline">
                       {item.intended_parent.name}
@@ -184,9 +185,9 @@ export default function SurrogacyMyCasesPage() {
               <hr className="my-3 border-sage-100" />
               <div className="flex flex-wrap gap-2 text-sm">
                 {/* <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">动态</Link> */}
-                <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">发布动态</Link>
-                <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">JOURNEY</Link>
-                <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">ivf clinic</Link>
+                <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.publishUpdate')}</Link>
+                <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey')}</Link>
+                <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic')}</Link>
               </div>
             </div>
           ))

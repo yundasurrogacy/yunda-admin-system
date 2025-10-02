@@ -238,7 +238,7 @@ export default function SurrogateProfilesPage() {
       {/* header 已存在，无需重复插入 CommonHeader */}
       <PageContent>
         <PageHeader 
-          title={t('surrogateProfiles')}
+          title={t('SURROGATE PROFILES')}
             // rightContent={
             //   <div className="flex items-center gap-4">
             //     <Button

@@ -1,6 +1,6 @@
-
 "use client"
 
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
@@ -14,6 +14,7 @@ import { User, MessageSquare, Calendar } from "lucide-react"
 import type { SurrogateMother } from '@/types/surrogate_mother'
 
 export default function SurrogateProfileDetailPage() {
+  const { t } = useTranslation('common');
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const [surrogate, setSurrogate] = useState<SurrogateMother | null>(null)
@@ -24,7 +25,7 @@ export default function SurrogateProfileDetailPage() {
       if (params?.id) {
         try {
           const res = await fetch(`/api/surrogate_mothers-detail?surrogacy=${params.id}`)
-          if (!res.ok) throw new Error('获取失败')
+          if (!res.ok) throw new Error(t('surrogateProfileDetail.fetchFailed'))
           const data = await res.json()
           setSurrogate(data)
         } catch {
@@ -34,14 +35,14 @@ export default function SurrogateProfileDetailPage() {
       setLoading(false)
     }
     fetchData()
-  }, [params?.id])
+  }, [params?.id, t])
 
   if (loading) {
-    return <div className="p-8 text-[#271F18]">加载中...</div>
+    return <div className="p-8 text-[#271F18]">{t('loading')}</div>
   }
 
   if (!surrogate) {
-    return <div className="p-8 text-red-600">未找到代孕母信息</div>
+    return <div className="p-8 text-red-600">{t('surrogateProfileDetail.notFound')}</div>
   }
 
   const ci = surrogate.contact_information
@@ -53,13 +54,13 @@ export default function SurrogateProfileDetailPage() {
     <ManagerLayout>
       <div className="space-y-6 animate-fade-in p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         <div className="mb-4">
-          <Button variant="outline" onClick={() => router.push('/client-manager/surrogate-profiles')}>返回列表</Button>
+          <Button variant="outline" onClick={() => router.push('/client-manager/surrogate-profiles')}>{t('surrogateProfileDetail.backToList')}</Button>
         </div>
-        <h1 className="text-3xl font-light text-[#271F18] tracking-wide mb-6">Surrogate Profile</h1>
+        <h1 className="text-3xl font-light text-[#271F18] tracking-wide mb-6">{t('surrogateProfileDetail.title')}</h1>
         {/* 基本信息 */}
         <Card className="bg-white border-[#E2E8F0] animate-slide-in-up">
           <CardHeader className="pb-4">
-            <CardTitle className="text-[#271F18] text-lg font-medium">基本信息</CardTitle>
+            <CardTitle className="text-[#271F18] text-lg font-medium">{t('surrogateProfileDetail.basicInfo')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-start gap-4">
@@ -69,71 +70,71 @@ export default function SurrogateProfileDetailPage() {
               <div className="flex-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
                   <div>
-                    <Label className="text-[#271F18] text-sm">姓名:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.name')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : surrogate.id}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">出生日期:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.dob')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.date_of_birth ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">电话:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.phone')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.cell_phone_country_code ? `+${ci.cell_phone_country_code} ` : ""}{ci?.cell_phone ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">邮箱:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.email')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.email_address ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">城市:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.city')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.city ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">省/州:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.stateProvince')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.state_or_province ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">国家:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.country')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.country ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">邮编:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.zipCode')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.zip_code ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">身高:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.height')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.height ?? "-"} cm</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">体重:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.weight')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.weight ?? "-"} kg</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">BMI:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.bmi')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.bmi ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">族裔:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.ethnicity')}:</Label>
                     <p className="font-medium text-[#271F18]">{ci?.ethnicity_selected_key ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">代孕经验:</Label>
-                    <p className="font-medium text-[#271F18]">{ci?.surrogacy_experience_count ?? "-"} 次</p>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.surrogacyExperience')}:</Label>
+                    <p className="font-medium text-[#271F18]">{ci?.surrogacy_experience_count ?? "-"} {t('surrogateProfileDetail.timesUnit')}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">学历:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.education')}:</Label>
                     <p className="font-medium text-[#271F18]">{ay?.education_level_selected_key ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">婚姻状况:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.maritalStatus')}:</Label>
                     <p className="font-medium text-[#271F18]">{ay?.marital_status_selected_key ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">伴侣支持:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.partnerSupport')}:</Label>
                     <p className="font-medium text-[#271F18]">{ay?.partner_support_selected_key ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">家庭收入:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.householdIncome')}:</Label>
                     <p className="font-medium text-[#271F18]">{ay?.household_income_selected_key ?? "-"}</p>
                   </div>
                 </div>
@@ -146,49 +147,49 @@ export default function SurrogateProfileDetailPage() {
           {/* 孕产与健康 */}
           <Card className="bg-white border-[#E2E8F0] animate-slide-in-left">
             <CardHeader className="pb-4">
-              <CardTitle className="text-[#271F18] text-lg font-medium">孕产与健康</CardTitle>
+              <CardTitle className="text-[#271F18] text-lg font-medium">{t('surrogateProfileDetail.pregnancyHealth')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-[#271F18] text-sm">是否有分娩经历:</Label>
-                  <p className="font-medium text-[#271F18]">{ph?.has_given_birth ? '是' : '否'}</p>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.hasGivenBirth')}:</Label>
+                  <p className="font-medium text-[#271F18]">{ph?.has_given_birth ? t('yes') : t('no')}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">当前是否怀孕:</Label>
-                  <p className="font-medium text-[#271F18]">{ph?.is_currently_pregnant ? '是' : '否'}</p>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.isCurrentlyPregnant')}:</Label>
+                  <p className="font-medium text-[#271F18]">{ph?.is_currently_pregnant ? t('yes') : t('no')}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">是否哺乳:</Label>
-                  <p className="font-medium text-[#271F18]">{ph?.is_breastfeeding ? '是' : '否'}</p>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.isBreastfeeding')}:</Label>
+                  <p className="font-medium text-[#271F18]">{ph?.is_breastfeeding ? t('yes') : t('no')}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">是否有死胎经历:</Label>
-                  <p className="font-medium text-[#271F18]">{ph?.has_stillbirth ? '是' : '否'}</p>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.hasStillbirth')}:</Label>
+                  <p className="font-medium text-[#271F18]">{ph?.has_stillbirth ? t('yes') : t('no')}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">健康状况:</Label>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.healthConditions')}:</Label>
                   <p className="font-medium text-[#271F18]">{ph?.medical_conditions_selected_keys?.join(", ") ?? "-"}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">是否服药:</Label>
-                  <p className="font-medium text-[#271F18]">{ph?.is_taking_medications ? '是' : '否'}</p>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.isTakingMedications')}:</Label>
+                  <p className="font-medium text-[#271F18]">{ph?.is_taking_medications ? t('yes') : t('no')}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">药物清单:</Label>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.medicationsList')}:</Label>
                   <p className="font-medium text-[#271F18]">{ph?.medications_list ?? "-"}</p>
                 </div>
                 <div>
-                  <Label className="text-[#271F18] text-sm">背景调查:</Label>
+                  <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.backgroundCheck')}:</Label>
                   <p className="font-medium text-[#271F18]">{ph?.background_check_status_selected_key ?? "-"}</p>
                 </div>
               </div>
               <div className="mt-4">
-                <Label className="text-[#271F18] text-sm">孕产史:</Label>
+                <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.pregnancyHistory')}:</Label>
                 <ul className="list-disc ml-6">
                   {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
                     <li key={idx} className="text-[#271F18] text-sm">
-                      {h.delivery_date} | {h.delivery_method} | {h.number_of_babies} 个宝宝 | {h.birth_weight}kg
+                      {h.delivery_date} | {h.delivery_method} | {h.number_of_babies} {t('surrogateProfileDetail.babiesUnit')} | {h.birth_weight}kg
                     </li>
                   )) : <li className="text-[#271F18] text-sm">-</li>}
                 </ul>
@@ -202,25 +203,25 @@ export default function SurrogateProfileDetailPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-[#271F18] text-lg font-medium flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  面试信息
+                  {t('surrogateProfileDetail.interviewInfo')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-[#271F18] text-sm">语言:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.languages')}:</Label>
                     <p className="font-medium text-[#271F18]">{interview?.languages_spoken ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">动机:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.motivation')}:</Label>
                     <p className="font-medium text-[#271F18]">{interview?.motivation ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">自我介绍:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.selfIntroduction')}:</Label>
                     <p className="font-medium text-[#271F18]">{interview?.self_introduction ?? "-"}</p>
                   </div>
                   <div>
-                    <Label className="text-[#271F18] text-sm">联系方式偏好:</Label>
+                    <Label className="text-[#271F18] text-sm">{t('surrogateProfileDetail.contactPreference')}:</Label>
                     <p className="font-medium text-[#271F18]">{interview?.contact_preference ?? "-"}</p>
                   </div>
                 </div>
@@ -231,7 +232,7 @@ export default function SurrogateProfileDetailPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-[#271F18] text-lg font-medium flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  上传照片
+                  {t('surrogateProfileDetail.uploadedPhotos')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -240,7 +241,7 @@ export default function SurrogateProfileDetailPage() {
                     <div key={idx} className="w-24 h-24 rounded-lg overflow-hidden border border-[#E2E8F0] flex items-center justify-center bg-[#F5E6C8]">
                       <img src={photo.url} alt={photo.name} className="object-cover w-full h-full" />
                     </div>
-                  )) : <span className="text-[#271F18]">未上传照片</span>}
+                  )) : <span className="text-[#271F18]">{t('surrogateProfileDetail.noPhotos')}</span>}
                 </div>
               </CardContent>
             </Card>

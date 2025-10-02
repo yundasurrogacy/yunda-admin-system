@@ -11,6 +11,17 @@ module.exports = {
     extend: {
       colors: {
         'main-bg': '#FBF0DA', // 统一背景色
+        // 'page-bg': '#F9F6F0', // 页面背景
+        'page-bg': ' #FBF0DA',
+        'card-bg': '#FBF0DA', // 卡片背景
+        // 'card-bg': '#F9F6F0', // 卡片背景
+        'brand-green': '#A6A99F', // 品牌绿色
+        'brand-brown': {
+          light: '#D4C0A8',
+          DEFAULT: '#8B6F47',
+          dark: '#6B4F3A',
+        },
+        'brand-yellow': '#E8E2D5',
         sage: {
           50: '#F3F5F1',
           100: '#E7EBE3',
@@ -25,7 +36,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        serif: ['Times New Roman', 'serif'],
+        serif: ['Cormorant', 'SourceHanSerifCN', 'Times New Roman', 'serif'],
       },
     },
   },

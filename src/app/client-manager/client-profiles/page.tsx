@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +33,7 @@ interface Filters {
 
 export default function ClientProfilesPage() {
   const router = useRouter()
+  const { t } = useTranslation('common')
   const [clients, setClients] = React.useState<ClientProfile[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -116,7 +118,7 @@ export default function ClientProfilesPage() {
   if (error) {
     return (
       <ManagerLayout>
-        <div className="text-red-500">加载失败: {error}</div>
+        <div className="text-red-500">{t('clientProfiles.loadingFailed', { error: error })}</div>
       </ManagerLayout>
     )
   }
@@ -125,12 +127,12 @@ export default function ClientProfilesPage() {
     <ManagerLayout>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold font-serif text-[#271F18]">Client Profile</h1>
+          <h1 className="text-2xl font-semibold font-serif text-[#271F18]">{t('clientProfiles.title')}</h1>
           <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94A3B8] h-4 w-4" />
             <Input
               type="text"
-              placeholder="Search"
+              placeholder={t('clientProfiles.searchPlaceholder')}
               value={filters.search}
               onChange={handleSearch}
               className="pl-9 bg-[#F8F9FC] w-full font-serif text-[#271F18] rounded-full"
@@ -138,7 +140,7 @@ export default function ClientProfilesPage() {
           </div>
         </div>
         {isLoading ? (
-          <div className="font-serif text-[#271F18]">Loading...</div>
+          <div className="font-serif text-[#271F18]">{t('loadingText')}</div>
         ) : (
           <div className="grid grid-cols-3 gap-6">
             {clients.map(client => (
@@ -163,10 +165,10 @@ export default function ClientProfilesPage() {
                     }
                     onClick={() => handleViewDetails(client.id)}
                   >
-                    View
+                    {t('clientProfiles.view')}
                   </Button>
                 </div>
-                <p className="text-sm font-serif text-[#271F18] opacity-60">{client.status === 'Matched' ? 'Client' : client.status}</p>
+                <p className="text-sm font-serif text-[#271F18] opacity-60">{client.status === 'Matched' ? t('clientProfiles.clientStatus') : client.status}</p>
               </Card>
             ))}
           </div>

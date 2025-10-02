@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
         id
         case_cases
         content
+        url
         created_at
         post_comments {
           id
@@ -44,14 +45,19 @@ export async function POST(request: NextRequest) {
         content
         title
         created_at
+        url
       }
     }`;
     // 补充 title 字段，前端 message 作为 title
-    const variables = { object: {
+    const object: any = {
       content: body.content,
       case_cases: body.case_cases,
       title: body.title || body.content?.slice(0, 20) || "日志"
-    }};
+    };
+    if (body.url) {
+      object.url = body.url;
+    }
+    const variables = { object };
     const result = await client.execute({ query: mutation, variables });
     return Response.json({ data: result.insert_posts_one });
   } catch (e) {

@@ -459,6 +459,12 @@ type blogs {
   created_at: timestamptz!
   id: bigint!
 
+  """作者来源"""
+  reference_author: String
+
+  """标签，多个用｜分割，如：准父母｜心里准备"""
+  tags: String
+
   """标题"""
   title: String
   updated_at: timestamptz!
@@ -506,6 +512,8 @@ input blogs_bool_exp {
   cover_img_url: String_comparison_exp
   created_at: timestamptz_comparison_exp
   id: bigint_comparison_exp
+  reference_author: String_comparison_exp
+  tags: String_comparison_exp
   title: String_comparison_exp
   updated_at: timestamptz_comparison_exp
 }
@@ -542,6 +550,12 @@ input blogs_insert_input {
   created_at: timestamptz
   id: bigint
 
+  """作者来源"""
+  reference_author: String
+
+  """标签，多个用｜分割，如：准父母｜心里准备"""
+  tags: String
+
   """标题"""
   title: String
   updated_at: timestamptz
@@ -560,6 +574,12 @@ type blogs_max_fields {
   created_at: timestamptz
   id: bigint
 
+  """作者来源"""
+  reference_author: String
+
+  """标签，多个用｜分割，如：准父母｜心里准备"""
+  tags: String
+
   """标题"""
   title: String
   updated_at: timestamptz
@@ -577,6 +597,12 @@ type blogs_min_fields {
   cover_img_url: String
   created_at: timestamptz
   id: bigint
+
+  """作者来源"""
+  reference_author: String
+
+  """标签，多个用｜分割，如：准父母｜心里准备"""
+  tags: String
 
   """标题"""
   title: String
@@ -610,6 +636,8 @@ input blogs_order_by {
   cover_img_url: order_by
   created_at: order_by
   id: order_by
+  reference_author: order_by
+  tags: order_by
   title: order_by
   updated_at: order_by
 }
@@ -639,6 +667,12 @@ enum blogs_select_column {
   id
 
   """column name"""
+  reference_author
+
+  """column name"""
+  tags
+
+  """column name"""
   title
 
   """column name"""
@@ -659,6 +693,12 @@ input blogs_set_input {
   cover_img_url: String
   created_at: timestamptz
   id: bigint
+
+  """作者来源"""
+  reference_author: String
+
+  """标签，多个用｜分割，如：准父母｜心里准备"""
+  tags: String
 
   """标题"""
   title: String
@@ -704,6 +744,12 @@ input blogs_stream_cursor_value_input {
   created_at: timestamptz
   id: bigint
 
+  """作者来源"""
+  reference_author: String
+
+  """标签，多个用｜分割，如：准父母｜心里准备"""
+  tags: String
+
   """标题"""
   title: String
   updated_at: timestamptz
@@ -732,6 +778,12 @@ enum blogs_update_column {
 
   """column name"""
   id
+
+  """column name"""
+  reference_author
+
+  """column name"""
+  tags
 
   """column name"""
   title
@@ -5329,8 +5381,29 @@ type mutation_root {
   update data of the table: "posts"
   """
   update_posts(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: posts_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: posts_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: posts_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: posts_delete_key_input
+
     """increments the numeric columns with given value of the filtered values"""
     _inc: posts_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: posts_prepend_input
 
     """sets the columns of the filtered rows to the given values"""
     _set: posts_set_input
@@ -5343,8 +5416,29 @@ type mutation_root {
   update single row of the table: "posts"
   """
   update_posts_by_pk(
+    """append existing jsonb value of filtered columns with new jsonb value"""
+    _append: posts_append_input
+
+    """
+    delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+    """
+    _delete_at_path: posts_delete_at_path_input
+
+    """
+    delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+    """
+    _delete_elem: posts_delete_elem_input
+
+    """
+    delete key/value pair or string element. key/value pairs are matched based on their key value
+    """
+    _delete_key: posts_delete_key_input
+
     """increments the numeric columns with given value of the filtered values"""
     _inc: posts_inc_input
+
+    """prepend existing jsonb value of filtered columns with new jsonb value"""
+    _prepend: posts_prepend_input
 
     """sets the columns of the filtered rows to the given values"""
     _set: posts_set_input
@@ -6217,6 +6311,10 @@ type posts {
   """标题"""
   title: String!
   updated_at: timestamptz!
+  url(
+    """JSON select path"""
+    path: String
+  ): jsonb
 }
 
 """
@@ -6272,6 +6370,11 @@ input posts_aggregate_order_by {
   variance: posts_variance_order_by
 }
 
+"""append existing jsonb value of filtered columns with new jsonb value"""
+input posts_append_input {
+  url: jsonb
+}
+
 """
 input type for inserting array relation for remote table "posts"
 """
@@ -6314,6 +6417,7 @@ input posts_bool_exp {
   post_comments_aggregate: post_comments_aggregate_bool_exp
   title: String_comparison_exp
   updated_at: timestamptz_comparison_exp
+  url: jsonb_comparison_exp
 }
 
 """
@@ -6324,6 +6428,27 @@ enum posts_constraint {
   unique or primary key constraint on columns "id"
   """
   posts_pkey
+}
+
+"""
+delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+"""
+input posts_delete_at_path_input {
+  url: [String!]
+}
+
+"""
+delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+"""
+input posts_delete_elem_input {
+  url: Int
+}
+
+"""
+delete key/value pair or string element. key/value pairs are matched based on their key value
+"""
+input posts_delete_key_input {
+  url: String
 }
 
 """
@@ -6353,6 +6478,7 @@ input posts_insert_input {
   """标题"""
   title: String
   updated_at: timestamptz
+  url: jsonb
 }
 
 """aggregate max on columns"""
@@ -6459,11 +6585,17 @@ input posts_order_by {
   post_comments_aggregate: post_comments_aggregate_order_by
   title: order_by
   updated_at: order_by
+  url: order_by
 }
 
 """primary key columns input for table: posts"""
 input posts_pk_columns_input {
   id: bigint!
+}
+
+"""prepend existing jsonb value of filtered columns with new jsonb value"""
+input posts_prepend_input {
+  url: jsonb
 }
 
 """
@@ -6487,6 +6619,9 @@ enum posts_select_column {
 
   """column name"""
   updated_at
+
+  """column name"""
+  url
 }
 
 """
@@ -6504,6 +6639,7 @@ input posts_set_input {
   """标题"""
   title: String
   updated_at: timestamptz
+  url: jsonb
 }
 
 """aggregate stddev on columns"""
@@ -6578,6 +6714,7 @@ input posts_stream_cursor_value_input {
   """标题"""
   title: String
   updated_at: timestamptz
+  url: jsonb
 }
 
 """aggregate sum on columns"""
@@ -6617,11 +6754,35 @@ enum posts_update_column {
 
   """column name"""
   updated_at
+
+  """column name"""
+  url
 }
 
 input posts_updates {
+  """append existing jsonb value of filtered columns with new jsonb value"""
+  _append: posts_append_input
+
+  """
+  delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+  """
+  _delete_at_path: posts_delete_at_path_input
+
+  """
+  delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+  """
+  _delete_elem: posts_delete_elem_input
+
+  """
+  delete key/value pair or string element. key/value pairs are matched based on their key value
+  """
+  _delete_key: posts_delete_key_input
+
   """increments the numeric columns with given value of the filtered values"""
   _inc: posts_inc_input
+
+  """prepend existing jsonb value of filtered columns with new jsonb value"""
+  _prepend: posts_prepend_input
 
   """sets the columns of the filtered rows to the given values"""
   _set: posts_set_input

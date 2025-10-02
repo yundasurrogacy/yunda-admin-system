@@ -5,16 +5,18 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 
 
-const categories = [
-  { key: 'EmbryoDocs', label: 'Embryo Docs' },
-  { key: 'SurrogateInfo', label: 'Surrogate Info' },
-  { key: 'LegalDocs', label: 'Legal Docs' },
-  { key: 'Other', label: 'Other' },
+const getCategories = (t: (key: string) => string) => [
+  { key: 'EmbryoDocs', label: t('files.categories.embryoDocs') },
+  { key: 'SurrogateInfo', label: t('files.categories.surrogateInfo') },
+  { key: 'LegalDocs', label: t('files.categories.legalDocs') },
+  { key: 'Other', label: t('files.categories.other') },
 ];
 
 function FilesPageInner() {
+  const { t } = useTranslation('common');
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
   const stage = searchParams.get('stage');
@@ -35,6 +37,9 @@ function FilesPageInner() {
       created_at: string;
     }>;
   }>>([]);
+
+  const categories = getCategories(t);
+
   // 页面初始化时获取 journey 及文件
   useEffect(() => {
     if (!caseId) return;
@@ -82,7 +87,7 @@ function FilesPageInner() {
         fileUrl = uploadData.data.url || uploadData.data.path || uploadData.data.fileUrl || uploadData.data;
       } else {
         setUploading(false);
-        alert('文件上传失败：' + (uploadData.message || '未知错误'));
+        alert(`${t('files.uploadFailed')}: ${uploadData.message || t('files.unknownError')}`);
         return;
       }
       // 2. 新增 journey 和 cases_files
@@ -126,9 +131,9 @@ function FilesPageInner() {
               );
             }
           });
-        alert('上传成功');
+        alert(t('files.uploadSuccess'));
       } else {
-        alert('新增 journey 失败');
+        alert(t('files.addJourneyFailed'));
       }
     };
     fileInput.click();
@@ -137,7 +142,7 @@ function FilesPageInner() {
   return (
     <ManagerLayout>
       <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-8">My Files</h1>
+        <h1 className="text-2xl font-semibold mb-8">{t('files.title')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {categories.map((cat) => (
             <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] font-serif text-[#271F18]">
@@ -148,7 +153,7 @@ function FilesPageInner() {
                   onClick={() => handleUpload(cat.key)}
                   disabled={uploading}
                 >
-                  + Upload
+                  {`+ ${t('files.upload')}`}
                 </Button>
               </div>
               {/* 按 journey 分组展示文件 */}
@@ -156,15 +161,15 @@ function FilesPageInner() {
                 journey.files.filter((f) => f.category === cat.key).map((file, idx) => (
                   <div key={file.id} className="mb-4">
                     <div className="flex justify-between items-center">
-                      <span>{file.file_type || '文件'}</span>
-                      <span className="text-xs">Uploaded</span>
+                      <span>{file.file_type || t('files.file')}</span>
+                      <span className="text-xs">{t('files.uploaded')}</span>
                     </div>
                     <div className="text-xs mb-1">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
                     <Button
                       className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]"
                       onClick={() => window.open(file.file_url, '_blank')}
                     >
-                      Download
+                      {t('files.download')}
                     </Button>
                     <hr className="my-2" />
                   </div>

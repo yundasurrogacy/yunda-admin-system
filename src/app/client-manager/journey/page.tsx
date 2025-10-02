@@ -4,67 +4,68 @@ import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
-const timeline = [
+const timelineData = (t: (key: string) => string) => [
   {
-    stage: 'Stage 1: Initial Setup',
+    stage: t('journey.stage1.title'),
     items: [
-      'Account Created & Form Submitted',
-      'Initial Consultation Completed',
-      'Service Agreement Signed',
-      'IVF Account Established',
+      t('journey.stage1.item1'),
+      t('journey.stage1.item2'),
+      t('journey.stage1.item3'),
+      t('journey.stage1.item4'),
     ],
   },
   {
-    stage: 'Stage 2: Surrogate Matching & Screening',
+    stage: t('journey.stage2.title'),
     items: [
-      'Matching in Progress',
-      'Candidate Profile Sent to Client',
-      'Client Interview & Insights',
-      'Surrogate Screening in Progress',
-      'Match Confirmed',
+      t('journey.stage2.item1'),
+      t('journey.stage2.item2'),
+      t('journey.stage2.item3'),
+      t('journey.stage2.item4'),
+      t('journey.stage2.item5'),
     ],
   },
   {
-    stage: 'Stage 3: Medical & Legal Setup',
+    stage: t('journey.stage3.title'),
     items: [
-      'Embryo Creation or Transferable ID',
-      'Legal agreement(s) prepared',
-      'Legal agreement(s) fully signed',
+      t('journey.stage3.item1'),
+      t('journey.stage3.item2'),
+      t('journey.stage3.item3'),
     ],
   },
   {
-    stage: 'Stage 4: Embryo Transfer Preparation',
+    stage: t('journey.stage4.title'),
     items: [
-      'Cycle synchronization and Medication',
-      'Embryo Transfer Completed',
-      'Waiting for Pregnancy Test',
-      'Positive Pregnancy Received',
+      t('journey.stage4.item1'),
+      t('journey.stage4.item2'),
+      t('journey.stage4.item3'),
+      t('journey.stage4.item4'),
     ],
   },
   {
-    stage: 'Stage 5: Pregnancy Monitoring',
+    stage: t('journey.stage5.title'),
     items: [
-      'First set of monitoring & check-ins',
-      'OB Care in Progress',
-      'Ultrasound in Progress',
-      'Pregnancy Stable',
+      t('journey.stage5.item1'),
+      t('journey.stage5.item2'),
+      t('journey.stage5.item3'),
+      t('journey.stage5.item4'),
     ],
   },
   {
-    stage: 'Stage 6: Delivery & Handover',
+    stage: t('journey.stage6.title'),
     items: [
-      'Birth Plan Confirmed',
-      'Baby Delivered & Legal Protocol',
-      'Baby Credentials & Legal Protocol',
-      'Baby Delivered to Intended Parents',
+      t('journey.stage6.item1'),
+      t('journey.stage6.item2'),
+      t('journey.stage6.item3'),
+      t('journey.stage6.item4'),
     ],
   },
   {
-    stage: 'Stage 7: Post Journey Support',
+    stage: t('journey.stage7.title'),
     items: [
-      'Departure Support Provided',
-      'Journey Completed',
+      t('journey.stage7.item1'),
+      t('journey.stage7.item2'),
     ],
   },
 ]
@@ -72,11 +73,23 @@ const timeline = [
 function JourneyInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation('common');
   const caseId = searchParams.get('caseId');
 
   const [processStatus, setProcessStatus] = useState<string>('');
   const [updatedAt, setUpdatedAt] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const timeline = timelineData(t);
+
+  // 将后端返回的状态映射到翻译文件中的键
+  const statusKeyMap: { [key: string]: string } = {
+    'Matching': 'Matching',
+    'LegalStage': 'Legal',
+    'CyclePrep': 'Medical',
+    'Pregnant': 'Pregnancy',
+    'Transferred': 'Post-delivery',
+  };
 
   // 获取案例数据并设置当前case的process_status和updated_at
   useEffect(() => {
@@ -113,21 +126,21 @@ function JourneyInner() {
   return (
     <ManagerLayout>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
-        <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">Journey</h1>
-        <p className="text-[#271F18] font-serif mb-8">Access and track your journey status with a visual roadmap.</p>
+        <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('journey.title')}</h1>
+        <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p>
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-serif">Current Status</h2>
+            <h2 className="text-xl font-serif">{t('journey.currentStatus')}</h2>
             <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">
-              {isLoading ? 'Loading...' : (processStatus || 'No Status')}
+              {isLoading ? t('loadingText') : (processStatus ? t(`statusMapping.${statusKeyMap[processStatus] || processStatus}`, { defaultValue: processStatus }) : t('journey.noStatus'))}
             </span>
           </div>
           <div className="text-sm">
-            {updatedAt ? `Updated ${updatedAt.slice(0, 10)}` : '-'}
+            {updatedAt ? `${t('journey.updated')} ${updatedAt.slice(0, 10)}` : '-'}
           </div>
         </Card>
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
-          <h2 className="text-xl font-serif mb-4">Status Timeline</h2>
+          <h2 className="text-xl font-serif mb-4">{t('journey.statusTimeline')}</h2>
           <div className="relative pl-8">
             {/* 竖线 */}
             <div className="absolute left-4 top-0 w-0.5 h-full bg-[#D9D9D9]" />
@@ -144,7 +157,7 @@ function JourneyInner() {
                         className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]"
                         onClick={() => handleViewClick(idx, item)}
                       >
-                        View
+                        {t('viewDetails')}
                       </Button>
                     </li>
                   ))}

@@ -150,7 +150,7 @@ export default function ClientProfilesPage() {
     <AdminLayout>
       <PageContent>
         <PageHeader 
-          title={t('clientProfiles')}
+          title={t('CLIENT PROFILES')}
           // rightContent={
           //   <div className="flex items-center gap-4">
           //     <Button

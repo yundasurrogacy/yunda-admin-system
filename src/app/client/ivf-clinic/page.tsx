@@ -1,32 +1,36 @@
-
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSearchParams } from 'next/navigation';
+import { useTranslation } from 'next-i18next';
+
 
 function IVFClinicContent() {
+  const { t } = useTranslation('common');
   const searchParams = useSearchParams();
-  const urlCaseId = searchParams.get('caseId');
-  const [caseId, setCaseId] = useState<string | null>(urlCaseId);
-
+  const [caseId, setCaseId] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [clinics, setClinics] = useState<any[]>([]);
 
+  // caseId 获取逻辑：优先 URL 参数，否则用 parentId 请求
   useEffect(() => {
-    if (!caseId) {
-      const parentId = typeof window !== 'undefined' ? localStorage.getItem('parentId') : null;
-      if (!parentId) return;
-      fetch(`/api/cases-by-parent?parentId=${parentId}`)
-        .then(res => res.json())
-        .then(data => {
-          const casesRaw = data.cases || data.data || data;
-          if (Array.isArray(casesRaw) && casesRaw.length > 0) {
-            setCaseId(casesRaw[0].id?.toString() || null);
-          }
-        });
+    const paramCaseId = searchParams.get('caseId');
+    if (paramCaseId) {
+      setCaseId(paramCaseId);
+      return;
     }
-  }, [caseId, searchParams]);
+    const parentId = typeof window !== 'undefined' ? localStorage.getItem('parentId') : null;
+    if (!parentId) return;
+    fetch(`/api/cases-by-parent?parentId=${parentId}`)
+      .then(res => res.json())
+      .then(data => {
+        const casesRaw = data.cases || data.data || data;
+        if (Array.isArray(casesRaw) && casesRaw.length > 0) {
+          setCaseId(casesRaw[0].id?.toString() || null);
+        }
+      });
+  }, [searchParams]);
 
   useEffect(() => {
     if (!caseId) return;
@@ -49,15 +53,15 @@ function IVFClinicContent() {
   if (loading) {
     return (
       <div className="p-8 min-h-screen flex items-center justify-center" style={{ background: '#FBF0DA40' }}>
-        <div className="text-[#271F18] font-serif">Loading...</div>
+        <div className="text-[#271F18] font-serif">{t('ivfClinic.loadingText')}</div>
       </div>
     );
   }
 
   return (
     <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
-      <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">IVF Clinic</h1>
-      <p className="text-[#271F18] font-serif mb-8">View your IVF clinic team and review updates related to your embryo transfer process</p>
+      <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('ivfClinic.title')}</h1>
+      <p className="text-[#271F18] font-serif mb-8">{t('ivfClinic.pageDescription')}</p>
 
       {/* Clinic Overview 折叠卡片 */}
       <div className="rounded-xl bg-[#FBF0DA40] p-0 font-serif text-[#271F18] mb-6">
@@ -65,8 +69,8 @@ function IVFClinicContent() {
           className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none"
           onClick={() => setOpen(open === 'Clinic Overview' ? null : 'Clinic Overview')}
         >
-          <span>Clinic Overview</span>
-          <span className="text-xs">{clinicOverview?.location || 'No data available'}</span>
+          <span>{t('ivfClinic.clinicOverview')}</span>
+          <span className="text-xs">{clinicOverview?.location || t('ivfClinic.noDataAvailable')}</span>
           <span className={`ml-2 transition-transform ${open === 'Clinic Overview' ? 'rotate-90' : ''}`}>▼</span>
         </button>
         {open === 'Clinic Overview' && clinicOverview && (
@@ -107,7 +111,7 @@ function IVFClinicContent() {
         )}
         {open === 'Clinic Overview' && !clinicOverview && (
           <div className="px-6 py-4">
-            <div className="text-center text-[#666] font-serif">No clinic overview data available</div>
+            <div className="text-center text-[#666] font-serif">{t('ivfClinic.noClinicOverview')}</div>
           </div>
         )}
       </div>
@@ -118,7 +122,7 @@ function IVFClinicContent() {
           className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
           onClick={() => setOpen(open === 'Embryo Journey' ? null : 'Embryo Journey')}
         >
-          <span>Embryo Journey</span>
+          <span>{t('ivfClinic.embryoJourney')}</span>
           <span className={`text-xl transition-transform ${open === 'Embryo Journey' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
         {open === 'Embryo Journey' && embryoJourneyData && (
@@ -126,7 +130,7 @@ function IVFClinicContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 左侧时间线展示 */}
               <div className="relative">
-                <h3 className="font-serif text-lg font-bold mb-4 text-[#271F18]">Timeline</h3>
+                <h3 className="font-serif text-lg font-bold mb-4 text-[#271F18]">{t('ivfClinic.timeline')}</h3>
                 <div className="relative pl-6">
                   {/* 竖线 */}
                   <div className="absolute left-2 top-0 bottom-0 w-px bg-[#C2A87A]"></div>
@@ -145,14 +149,14 @@ function IVFClinicContent() {
               
               {/* 右侧胚胎表格展示 */}
               <div>
-                <h3 className="font-serif text-lg font-bold mb-4 text-[#271F18]">Embryos</h3>
+                <h3 className="font-serif text-lg font-bold mb-4 text-[#271F18]">{t('ivfClinic.embryos')}</h3>
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                   <table className="w-full text-[#271F18] font-serif">
                     <thead className="bg-[#F8F9FA] border-b">
                       <tr>
-                        <th className="py-3 px-4 text-left font-bold text-base">Grade</th>
-                        <th className="py-3 px-4 text-left font-bold text-base">ID</th>
-                        <th className="py-3 px-4 text-left font-bold text-base">Status</th>
+                        <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.grade')}</th>
+                        <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.id')}</th>
+                        <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.status')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -172,7 +176,7 @@ function IVFClinicContent() {
         )}
         {open === 'Embryo Journey' && !embryoJourneyData && (
           <div className="px-6 py-4">
-            <div className="text-center text-[#666] font-serif">No embryo journey data available</div>
+            <div className="text-center text-[#666] font-serif">{t('ivfClinic.noEmbryoJourney')}</div>
           </div>
         )}
       </div>
@@ -183,7 +187,7 @@ function IVFClinicContent() {
           className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
           onClick={() => setOpen(open === 'Surrogate Appointments' ? null : 'Surrogate Appointments')}
         >
-          <span>Surrogate Appointments</span>
+          <span>{t('ivfClinic.surrogateAppointments')}</span>
           <span className={`text-xl transition-transform ${open === 'Surrogate Appointments' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
         {open === 'Surrogate Appointments' && surrogateAppointmentsData && (
@@ -192,11 +196,11 @@ function IVFClinicContent() {
               <table className="w-full text-[#271F18] font-serif">
                 <thead className="bg-[#F8F9FA] border-b">
                   <tr>
-                    <th className="py-3 px-4 text-left font-bold text-base">Date</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Type</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Doctor</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Medication</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Instructions</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.date')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.type')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.doctor')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.medication')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.instructions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -220,7 +224,7 @@ function IVFClinicContent() {
         )}
         {open === 'Surrogate Appointments' && !surrogateAppointmentsData && (
           <div className="px-6 py-4">
-            <div className="text-center text-[#666] font-serif">No surrogate appointments data available</div>
+            <div className="text-center text-[#666] font-serif">{t('ivfClinic.noSurrogateAppointments')}</div>
           </div>
         )}
       </div>
@@ -231,7 +235,7 @@ function IVFClinicContent() {
           className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
           onClick={() => setOpen(open === 'Medication Tracker' ? null : 'Medication Tracker')}
         >
-          <span>Medication Tracker</span>
+          <span>{t('ivfClinic.medicationTracker')}</span>
           <span className={`text-xl transition-transform ${open === 'Medication Tracker' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
         {open === 'Medication Tracker' && medicationTrackerData && (
@@ -240,11 +244,11 @@ function IVFClinicContent() {
               <table className="w-full text-[#271F18] font-serif">
                 <thead className="bg-[#F8F9FA] border-b">
                   <tr>
-                    <th className="py-3 px-4 text-left font-bold text-base">Medication</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Dosage</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Frequency</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Start Date</th>
-                    <th className="py-3 px-4 text-left font-bold text-base">Notes</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.medication')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.dosage')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.frequency')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.startDate')}</th>
+                    <th className="py-3 px-4 text-left font-bold text-base">{t('ivfClinic.notes')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -264,7 +268,7 @@ function IVFClinicContent() {
         )}
         {open === 'Medication Tracker' && !medicationTrackerData && (
           <div className="px-6 py-4">
-            <div className="text-center text-[#666] font-serif">No medication tracker data available</div>
+            <div className="text-center text-[#666] font-serif">{t('ivfClinic.noMedicationTracker')}</div>
           </div>
         )}
       </div>
@@ -275,7 +279,7 @@ function IVFClinicContent() {
           className="w-full flex justify-between items-center px-6 py-4 text-lg font-serif border-b border-[#E3E8E3] focus:outline-none" 
           onClick={() => setOpen(open === "Doctor's Notes" ? null : "Doctor's Notes")}
         > 
-          <span>Doctor's Notes</span>
+          <span>{t('ivfClinic.doctorsNotes')}</span>
           <span className={`text-xl transition-transform ${open === "Doctor's Notes" ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
         {open === "Doctor's Notes" && doctorsNotesData && (
@@ -299,7 +303,7 @@ function IVFClinicContent() {
         )}
         {open === "Doctor's Notes" && !doctorsNotesData && (
           <div className="px-6 py-4">
-            <div className="text-center text-[#666] font-serif">No doctor's notes data available</div>
+            <div className="text-center text-[#666] font-serif">{t('ivfClinic.noDoctorsNotes')}</div>
           </div>
         )}
       </div>
@@ -308,8 +312,9 @@ function IVFClinicContent() {
 }
 
 export default function IVFClinic() {
+  const { t } = useTranslation('common');
   return (
-    <Suspense fallback={<div className="p-8 min-h-screen flex items-center justify-center" style={{ background: '#FBF0DA40' }}><div className="text-[#271F18] font-serif">Loading...</div></div>}>
+    <Suspense fallback={<div className="p-8 min-h-screen flex items-center justify-center" style={{ background: '#FBF0DA40' }}><div className="text-[#271F18] font-serif">{t('ivfClinic.loadingText')}</div></div>}>
       <IVFClinicContent />
     </Suspense>
   );

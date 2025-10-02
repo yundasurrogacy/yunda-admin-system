@@ -1,161 +1,110 @@
-"use client";
-import React from "react";
+'use client'
+import React, { useState, useEffect } from 'react';
+// import ManagerLayout from '@/components/manager-layout';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+// import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 
-export default function SurrogacyFilesPage() {
-  // 示例文件数据
-  const completedFiles = [
-    {
-      name: "Lab Report",
-      date: "Feb 15, 2025",
-      status: "Signed",
-      action: "Download",
-    },
-    {
-      name: "Lab Report",
-      date: "Feb 15, 2025",
-      status: "Signed",
-      action: "Download",
-    },
-    {
-      name: "Lab Report",
-      date: "Feb 15, 2025",
-      status: "Signed",
-      action: "Download",
-    },
-  ];
-  const incompleteFiles = [
-    {
-      name: "Medical History",
-      date: "Feb 15, 2025",
-      status: "Signature Needed",
-      action: "Upload",
-    },
-    {
-      name: "Screening Report",
-      date: "Feb 15, 2025",
-      status: "Review",
-      action: "Download",
-    },
-    {
-      name: "Lab Photo",
-      date: "Feb 15, 2025",
-      status: "Review",
-      action: "Download",
-    },
-  ];
-  const advisors = [
-    {
-      title: "Legal Advisor",
-      name: "John Doe",
-      phone: "(123) 456 - 7890",
-      email: "123456@gmail.com",
-    },
-    {
-      title: "Yunda Advisor",
-      name: "John Doe",
-      phone: "(123) 456 - 7890",
-      email: "123456@gmail.com",
-    },
+
+function FilesPageInner() {
+  const { t } = useTranslation('common');
+  const searchParams = useSearchParams();
+  const caseId = searchParams.get('caseId');
+  const stage = searchParams.get('stage');
+  const title = searchParams.get('title');
+  const journeyId = searchParams.get('journeyId'); // 可选
+
+  const categories = [
+    { key: 'EmbryoDocs', label: t('files.categories.embryoDocs') },
+    { key: 'SurrogateInfo', label: t('files.categories.surrogateInfo') },
+    { key: 'LegalDocs', label: t('files.categories.legalDocs') },
+    { key: 'Other', label: t('files.categories.other') },
   ];
 
-  // 文件上传与签署状态交互
-  const [uploading, setUploading] = React.useState(false);
-  const [signed, setSigned] = React.useState(false);
-  const handleUpload = () => {
-    setUploading(true);
-    setTimeout(() => {
-      setUploading(false);
-      setSigned(true);
-    }, 1500);
-  };
+  const [uploading, setUploading] = useState(false);
+  // 文件列表结构调整为 journey 及其文件
+  const [journeyFiles, setJourneyFiles] = useState<Array<{
+    id: number;
+    stage: number;
+    title: string;
+    files: Array<{
+      id: number;
+      file_url: string;
+      category: string;
+      file_type: string;
+      created_at: string;
+    }>;
+  }>>([]);
+  // 页面初始化时获取 journey 及文件
+  useEffect(() => {
+    if (!caseId) return;
+    fetch(`/api/journey-get?caseId=${caseId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.journeys) {
+          setJourneyFiles(
+            data.journeys.map((j: any) => ({
+              id: j.id,
+              stage: j.stage,
+              title: j.title,
+              files: (j.cases_files || []).map((f: any) => ({
+                id: f.id,
+                file_url: f.file_url,
+                category: f.category,
+                file_type: f.file_type,
+                created_at: f.created_at,
+              }))
+            }))
+          );
+        }
+      });
+  }, [caseId]);
+
+  // 只读模式：不允许上传文件，隐藏上传相关逻辑
+
   return (
-    <div
-      className="min-h-screen bg-[#FBF0DA40] font-serif text-[#271F18] px-8 py-6 flex flex-col items-center"
-      style={{ fontFamily: 'Source Serif 4, serif' }}
-    >
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-8 flex flex-col gap-6">
-        <h1 className="text-2xl font-bold mb-1">My Files</h1>
-        <div className="flex gap-8 mt-4">
-          {/* 左侧文件分组区 */}
-          <div className="flex-1 flex gap-8">
-            {/* Completed */}
-            <div className="flex-1">
-              <div className="text-lg font-semibold mb-4">Completed</div>
-              <div className="flex flex-col gap-4">
-                {completedFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="font-medium">{file.name}</div>
-                      <div className="text-xs opacity-60">{file.date}</div>
-                    </div>
-                    <div className="text-xs px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full shadow font-medium">
-                      {file.status}
-                    </div>
-                    <button className="ml-2 px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition">
-                      {file.action}
-                    </button>
-                  </div>
-                ))}
-              </div>
+    <div className="p-8">
+      <h1 className="text-2xl font-semibold mb-8">{t('files.title')}</h1>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {categories.map((cat) => (
+          <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] font-serif text-[#271F18]">
+            <div className="flex items-center mb-2">
+              <h2 className="text-xl font-serif">{cat.label}</h2>
+              {/* 只读模式不显示上传按钮 */}
             </div>
-            {/* 分组竖线 */}
-            <div className="w-px bg-[#E6E6E6] mx-2" />
-            {/* Incomplete */}
-            <div className="flex-1">
-              <div className="text-lg font-semibold mb-4">Incomplete</div>
-              <div className="flex flex-col gap-4">
-                {incompleteFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="font-medium">{file.name}</div>
-                      <div className="text-xs opacity-60">{file.date}</div>
-                    </div>
-                    <div className="text-xs px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full shadow font-medium">
-                      {file.status}
-                    </div>
-                    {/* 文件上传与签署按钮 */}
-                    {file.action === "Upload" ? (
-                      <button
-                        className={`ml-2 px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onClick={handleUpload}
-                        disabled={uploading}
-                      >
-                        {uploading ? "Uploading..." : "Upload"}
-                      </button>
-                    ) : (
-                      <button className="ml-2 px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition">
-                        {file.action}
-                      </button>
-                    )}
-                    {/* 电子签名状态展示 */}
-                    {file.status === "Signature Needed" && (
-                      <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${signed ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-800'}`}>
-                        {signed ? "已签署 (eSign)" : "待签署 (eSign)"}
-                      </span>
-                    )}
+            {/* 按 journey 分组展示文件 */}
+            {journeyFiles.map((journey) => (
+              journey.files.filter((f) => f.category === cat.key).map((file, idx) => (
+                <div key={file.id} className="mb-4">
+                  <div className="flex justify-between items-center">
+                    <span>{file.file_type || t('files.file')}</span>
+                    <span className="text-xs">{t('files.uploaded')}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* 右侧顾问信息区 */}
-          <div className="w-[340px] flex flex-col gap-4">
-            {advisors.map((advisor, idx) => (
-              <div key={idx} className="bg-[#FBF0DA] rounded-xl shadow-md p-4 flex gap-4 items-center">
-                <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                  <svg width="32" height="32" fill="#271F18" className="opacity-40"><circle cx="16" cy="12" r="7"/><ellipse cx="16" cy="24" rx="10" ry="6"/></svg>
+                  <div className="text-xs mb-1">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
+                  <Button
+                    className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E3E3]"
+                    onClick={() => window.open(file.file_url, '_blank')}
+                  >
+                    {t('files.download')}
+                  </Button>
+                  <hr className="my-2" />
                 </div>
-                <div className="flex-1">
-                  <div className="font-semibold mb-1">{advisor.title}</div>
-                  <div className="text-sm">Name: <span className="font-medium">{advisor.name}</span></div>
-                  <div className="text-sm">Phone: <span className="font-medium">{advisor.phone}</span></div>
-                  <div className="text-sm">Email: <span className="font-medium">{advisor.email}</span></div>
-                </div>
-              </div>
+              ))
             ))}
-          </div>
-        </div>
+          </Card>
+        ))}
       </div>
     </div>
+  );
+}
+
+export default function FilesPage() {
+  return (
+    <Suspense fallback={<div className="p-8">加载中...</div>}>
+      <FilesPageInner />
+    </Suspense>
   );
 }

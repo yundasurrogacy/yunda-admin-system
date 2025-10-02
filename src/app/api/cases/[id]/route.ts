@@ -26,6 +26,7 @@ export async function GET(
       cases_by_pk(id: $id) {
         id
         process_status
+        updated_at
         surrogate_mother {
           id
           email

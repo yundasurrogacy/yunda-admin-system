@@ -158,7 +158,7 @@ export default function ClientProfileDetailPage() {
           <Button variant="outline" size="sm" className="border-sage-300 text-sage-700 bg-white hover:bg-sage-50" onClick={() => router.back()}>
             {t('backToClientProfiles')}
           </Button>
-          <h1 className="text-3xl font-light text-sage-800 tracking-wide">{t('clientProfiles')}</h1>
+          <h1 className="text-3xl font-light text-sage-800 tracking-wide">{t('CLIENT PROFILES')}</h1>
         </div>
 
         {/* 基本信息 */}
