@@ -37,22 +37,48 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     <ToastContext.Provider value={{ showToast }}>
       <ToastPrimitives.Provider swipeDirection="right">
         {children}
+        {/* 自定义的居中toast容器 */}
         <div style={{ 
           position: "fixed", 
           top: "50%", 
           left: "50%", 
           transform: "translate(-50%, -50%)", 
-          zIndex: 9999,
-          pointerEvents: "none"
+          zIndex: 10000,
+          pointerEvents: "none",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "12px",
+          width: "fit-content"
         }}>
           {toasts.map((toast) => (
-            <Toast key={toast.id} variant={toast.variant} style={{ pointerEvents: "auto", marginBottom: "8px" }}>
+            <Toast 
+              key={toast.id} 
+              variant={toast.variant} 
+              style={{ 
+                pointerEvents: "auto",
+                minWidth: "320px",
+                maxWidth: "500px",
+                textAlign: "center",
+                animation: "slideInFromTop 0.3s ease-out"
+              }}
+            >
               {toast.title && <ToastTitle>{toast.title}</ToastTitle>}
               {toast.description && <ToastDescription>{toast.description}</ToastDescription>}
             </Toast>
           ))}
         </div>
-        <ToastPrimitives.Viewport />
+        {/* 完全隐藏默认的Viewport */}
+        <ToastPrimitives.Viewport 
+          style={{ 
+            position: "fixed",
+            top: "-9999px",
+            left: "-9999px",
+            visibility: "hidden",
+            pointerEvents: "none",
+            zIndex: -1
+          }} 
+        />
       </ToastPrimitives.Provider>
     </ToastContext.Provider>
   );

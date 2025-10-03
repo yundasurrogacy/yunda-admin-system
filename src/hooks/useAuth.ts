@@ -23,6 +23,12 @@ export function useAuth() {
     isLoading: true,
     isAuthenticated: false
   })
+  
+  // 添加一个强制重新渲染的state
+  const [, forceUpdate] = useState({})
+  const triggerUpdate = useCallback(() => {
+    forceUpdate({})
+  }, [])
 
   // 从localStorage恢复用户状态
   const restoreUserSession = useCallback(() => {
@@ -39,6 +45,7 @@ export function useAuth() {
                     localStorage.getItem('surrogateId')
 
       console.log(`[Auth] Session data - Role: ${userRole}, Email: ${userEmail}, ID: ${userId}`)
+      console.log(`[Auth] Individual IDs - Admin: ${localStorage.getItem('adminId')}, Parent: ${localStorage.getItem('parentId')}, Manager: ${localStorage.getItem('managerId')}, Surrogate: ${localStorage.getItem('surrogateId')}`)
 
       if (userRole && userEmail && userId) {
         const restoredUser = {
@@ -56,6 +63,7 @@ export function useAuth() {
         console.log(`[Auth] Session restored successfully for user:`, restoredUser)
       } else {
         console.log(`[Auth] No valid session found, setting unauthenticated state`)
+        console.log(`[Auth] Missing data - Role: ${!!userRole}, Email: ${!!userEmail}, ID: ${!!userId}`)
         setAuthState({
           user: null,
           isLoading: false,
@@ -107,18 +115,46 @@ export function useAuth() {
     document.cookie = `userEmail=${user.email}; path=/; max-age=${7 * 24 * 60 * 60}`
     document.cookie = `userId=${user.id}; path=/; max-age=${7 * 24 * 60 * 60}`
 
-    // 立即更新状态
-    setAuthState({
-      user,
-      isLoading: false,
-      isAuthenticated: true
+    // 立即更新状态并强制重新渲染
+    setAuthState(prevState => {
+      const newState = {
+        user,
+        isLoading: false,
+        isAuthenticated: true
+      }
+      console.log(`[Auth] State updated from:`, prevState, 'to:', newState)
+      return newState
     })
     
+    // 强制触发所有使用useAuth的组件重新渲染
+    setTimeout(() => {
+      triggerUpdate()
+      // 分发全局认证状态变化事件
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('authStateChanged'))
+        console.log(`[Auth] Dispatched global authStateChanged event`)
+      }
+    }, 10)
+    
     console.log(`[Auth] User state updated, authenticated: true, role: ${user.role}`)
+    
+    // 验证状态是否正确更新
+    setTimeout(() => {
+      console.log(`[Auth] State verification - user stored in localStorage:`, {
+        role: localStorage.getItem('userRole'),
+        email: localStorage.getItem('userEmail'),
+        id: localStorage.getItem('adminId') || localStorage.getItem('managerId') || localStorage.getItem('parentId') || localStorage.getItem('surrogateId')
+      })
+    }, 50)
   }, [])
 
   // 登出
-  const logout = useCallback(() => {
+  const logout = useCallback((redirectToRole?: User['role']) => {
+    // 获取当前用户角色，用于确定重定向路径
+    const currentRole = redirectToRole || authState.user?.role
+    
+    console.log(`[Auth] Logging out user with role: ${currentRole}`)
+    
     // 清除所有存储的用户信息
     localStorage.removeItem('userRole')
     localStorage.removeItem('userEmail')
@@ -138,9 +174,30 @@ export function useAuth() {
       isAuthenticated: false
     })
 
-    // 重定向到首页
-    router.push('/')
-  }, [router])
+    // 强制触发重新渲染
+    triggerUpdate()
+    
+    // 分发全局认证状态变化事件
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('authStateChanged'))
+      console.log(`[Auth] Dispatched global authStateChanged event for logout`)
+    }
+
+    // 根据角色重定向到对应的登录页面
+    const getLogoutRedirectPath = (role?: User['role']) => {
+      switch (role) {
+        case 'admin': return '/admin/login'
+        case 'manager': return '/client-manager/login'
+        case 'client': return '/client/login'
+        case 'surrogacy': return '/surrogacy/login'
+        default: return '/' // 如果没有角色信息，跳转到首页
+      }
+    }
+    
+    const redirectPath = getLogoutRedirectPath(currentRole)
+    console.log(`[Auth] Redirecting to: ${redirectPath}`)
+    router.push(redirectPath)
+  }, [router, authState.user, triggerUpdate])
 
   // 检查用户是否有特定权限
   const hasRole = useCallback((role: User['role']) => {

@@ -5,9 +5,11 @@ import { CommonHeader } from "@/components/common-header"
 import { useState } from "react"
 import { CommonSidebar } from "@/components/common-sidebar"
 import { managerSidebarConfig } from "@/config/sidebar-config"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function ManagerLoginLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isAuthenticated } = useAuth()
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -24,7 +26,6 @@ export default function ManagerLoginLayout({ children }: { children: React.React
       <CommonHeader 
         showMenuButton={true} 
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        isLoggedIn={false} 
         theme="blue"
         title="YUNDA 客户经理"
         type="client-manager"

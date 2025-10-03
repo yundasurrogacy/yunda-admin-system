@@ -1,12 +1,42 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
-import { AuthGuard } from "@/components/auth-guard"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function ClientDashboardPage() {
+  const router = useRouter()
+  const { isAuthenticated, isLoading, user } = useAuth()
+
+  // 简单的认证检查
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      console.log('[ClientDashboard] User not authenticated, redirecting to login')
+      router.replace('/client/login')
+      return
+    }
+    
+    if (!isLoading && isAuthenticated && user?.role !== 'client') {
+      console.log('[ClientDashboard] User not client, redirecting to login')
+      router.replace('/client/login')
+      return
+    }
+    
+    console.log('[ClientDashboard] Access granted for client user')
+  }, [isAuthenticated, isLoading, user, router])
+
+  // 如果还在加载或未认证，显示加载状态
+  if (isLoading || !isAuthenticated || user?.role !== 'client') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
+  }
+
   return (
-    <AuthGuard requiredRole="client">
-      <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">DASHBOARD</h1>
         <p className="text-sm text-gray-600 mt-1">
@@ -187,6 +217,5 @@ export default function ClientDashboardPage() {
         </div>
       </div>
     </div>
-    </AuthGuard>
   )
 }

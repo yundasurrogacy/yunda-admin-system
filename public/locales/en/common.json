@@ -78,34 +78,22 @@
     "genderIdentity": "Gender Identity",
     "pronouns": "Pronouns",
     "ethnicity": "Ethnicity",
-    "genderIdentityKey": "Gender Identity Key",
-    "pronounsKey": "Pronouns Key",
-    "ethnicityKey": "Ethnicity Key",
     "contactInfo": "Contact Information",
     "cellPhone": "Cell Phone",
     "primaryLanguages": "Primary Languages",
-    "primaryLanguagesKey": "Primary Languages Key",
     "agreeToReceiveMessages": "Agree to Receive Messages",
     "familyProfile": "Family Profile",
     "city": "City",
     "stateProvince": "State/Province",
-    "stateProvinceKey": "State/Province Key",
     "country": "Country",
-    "countryKey": "Country Key",
     "sexualOrientation": "Sexual Orientation",
-    "sexualOrientationKey": "Sexual Orientation Key",
     "programInterests": "Program Interests",
     "interestedServices": "Interested Services",
-    "interestedServicesKey": "Interested Services Key",
     "journeyStartTiming": "Journey Start Timing",
-    "journeyStartTimingKey": "Journey Start Timing Key",
     "desiredChildrenCount": "Desired Children Count",
-    "desiredChildrenCountKey": "Desired Children Count Key",
     "referralAndInitialCommunication": "Referral & Initial Communication",
     "referralSource": "Referral Source",
-    "referralSourceKey": "Referral Source Key",
-    "initialQuestions": "Initial Questions",
-    "initialQuestionsKey": "Initial Questions Key"
+    "initialQuestions": "Initial Questions"
   },
   "clientProfiles": {
     "title": "Client Profile",
@@ -380,6 +368,7 @@
     "currentStatus": "Current Status",
     "noStatus": "No Status",
     "updatedAgo": "Updated {{distance}} ago",
+    "updated": "Updated on",
     "loading": "LOADING...",
     "statusTimeline": "Status Timeline",
     "view": "View",
@@ -435,7 +424,9 @@
   "N/A": "N/A",
   "surrogacyProfile": {
     "title": "Surrogate Profile",
-    "description": "View the details of your matched surrogate mother.",
+    "description": "View the details of your matched surrogate mother",
+    "yes": "Yes",
+    "no": "No",
     "aboutYou": {
       "title": "About You",
       "occupation": "Occupation",
@@ -465,7 +456,8 @@
       "height": "Height",
       "weight": "Weight",
       "usCitizenOrVisaStatus": "US Citizen/Visa Status",
-      "surrogacyExperienceCount": "Surrogacy Experience Count"
+      "surrogacyExperienceCount": "Surrogacy Experience Count",
+      "physicalInfo": "Physical Information"
     },
     "health": {
       "title": "Pregnancy & Health",
@@ -490,19 +482,27 @@
       "isTakingMedications": "Is Taking Medications",
       "backgroundCheckStatus": "Background Check Status",
       "childProtectionInvestigation": "Child Protection Investigation",
-      "seriousPregnancyComplications": "Serious Pregnancy Complications"
+      "seriousPregnancyComplications": "Serious Pregnancy Complications",
+      "medicalInfo": "Medical & Medication Information",
+      "backgroundCheck": "Background Check"
     },
     "photos": {
-      "title": "Upload Photos",
+      "title": "Photos",
       "photo": "Photo",
-      "noPhotos": "No photos uploaded yet."
-    },
+      "noPhotos": "No photos uploaded"
+    }
+  },
+  "common": {
+    "back": "Back",
+    "viewLarge": "View Large",
     "yes": "Yes",
     "no": "No"
   },
   "intendedParents": {
     "title": "My Intended Parents",
     "description": "Here are some details about the intended parents you are matched with.",
+    "personalInfo": "Personal Information",
+    "personalInfoDescription": "View and manage your personal profile information",
     "error": {
       "fetchCaseFailed": "Failed to fetch case",
       "noParentInfo": "Intended parent information not found",
@@ -521,45 +521,110 @@
       "dob": "Date of Birth",
       "genderIdentity": "Gender Identity",
       "pronouns": "Pronouns",
-      "ethnicity": "Ethnicity",
-      "genderIdentityKey": "Gender Identity Key",
-      "pronounsKey": "Pronouns Key",
-      "ethnicityKey": "Ethnicity Key"
+      "ethnicity": "Ethnicity"
     },
     "contactInfo": {
       "title": "Contact Information",
       "cellPhone": "Cell Phone",
       "email": "Email",
       "primaryLanguages": "Primary Languages",
-      "primaryLanguagesKey": "Primary Languages Key",
       "agreeToReceiveMessages": "Agree to Receive Messages"
     },
     "familyProfile": {
       "title": "Family Profile",
       "city": "City",
       "stateProvince": "State/Province",
-      "stateProvinceKey": "State/Province Key",
       "country": "Country",
-      "countryKey": "Country Key",
-      "sexualOrientation": "Sexual Orientation",
-      "sexualOrientationKey": "Sexual Orientation Key"
+      "sexualOrientation": "Sexual Orientation"
     },
     "programInterests": {
       "title": "Program Interests",
       "interestedServices": "Interested Services",
-      "interestedServicesKey": "Interested Services Key",
       "journeyStartTiming": "Journey Start Timing",
-      "journeyStartTimingKey": "Journey Start Timing Key",
-      "desiredChildrenCount": "Desired Children Count",
-      "desiredChildrenCountKey": "Desired Children Count Key"
+      "desiredChildrenCount": "Desired Children Count"
     },
     "referral": {
       "title": "Referral & Initial Communication",
       "referralSource": "Referral Source",
-      "referralSourceKey": "Referral Source Key",
-      "initialQuestions": "Initial Questions",
-      "initialQuestionsKey": "Initial Questions Key"
+      "initialQuestions": "Initial Questions"
     }
+  },
+  "edit": "Edit Profile",
+  "back": "Back",
+  "save": "Save",
+  "saving": "Saving...",
+  "updateFailed": "Update failed",
+  "updateSuccess": "Update successful!",
+  "multipleSelectHint": "Hold Ctrl to select multiple",
+  "enterInitialQuestions": "Please enter your initial questions...",
+  "genderOptions": {
+    "male": "Male",
+    "female": "Female",
+    "nonBinary": "Non-Binary",
+    "other": "Other"
+  },
+  "ethnicityOptions": {
+    "asian": "Asian",
+    "black": "Black",
+    "hispanic": "Hispanic",
+    "middleEastern": "Middle Eastern",
+    "white": "White",
+    "mixed": "Mixed",
+    "other": "Other"
+  },
+  "languageOptions": {
+    "english": "English",
+    "chinese": "Chinese",
+    "spanish": "Spanish",
+    "french": "French",
+    "german": "German",
+    "japanese": "Japanese",
+    "korean": "Korean",
+    "russian": "Russian",
+    "portuguese": "Portuguese",
+    "arabic": "Arabic",
+    "other": "Other"
+  },
+  "sexualOrientationOptions": {
+    "heterosexual": "Heterosexual",
+    "homosexual": "Homosexual",
+    "bisexual": "Bisexual",
+    "pansexual": "Pansexual",
+    "asexual": "Asexual",
+    "other": "Other"
+  },
+  "serviceOptions": {
+    "surrogacyService": "Surrogacy Service",
+    "surrogacyEggDonorService": "Surrogacy + Egg Donor Service",
+    "eggDonorService": "Egg Donor Service",
+    "thirdPartySurrogate": "Third Party Surrogate",
+    "bringYourOwnSurrogate": "Bring Your Own Surrogate",
+    "bringYourOwnSurrogateEgg": "Bring Your Own Surrogate + Egg Donor",
+    "notSure": "Not Sure"
+  },
+  "timingOptions": {
+    "immediately": "Immediately",
+    "within3Months": "Within 3 months",
+    "within6Months": "Within 6 months",
+    "within1Year": "Within 1 year",
+    "moreThan1Year": "More than 1 year",
+    "notSure": "Not sure"
+  },
+  "childrenCountOptions": {
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "fourPlus": "4 or more",
+    "notSure": "Not sure"
+  },
+  "referralSourceOptions": {
+    "searchEngine": "Search Engine",
+    "socialMedia": "Social Media",
+    "friendReferral": "Friend Referral",
+    "doctorReferral": "Doctor Referral",
+    "advertisement": "Advertisement",
+    "eventConference": "Event/Conference",
+    "other": "Other"
   },
   "surrogacyFiles": {
     "title": "My Files",
@@ -582,5 +647,63 @@
     "advisorName": "Name",
     "advisorPhone": "Phone",
     "advisorEmail": "Email"
-  }
+  },
+  "matchedSurrogate": "Matched Surrogate",
+  "matchedSurrogateDesc": "Below is the detailed information of the surrogate mother matched for you",
+  "backToCases": "Back to My Cases",
+  "surrogateMatchInfo": "Surrogate Match Information",
+  "surrogateMatchDesc": "The system has matched a suitable surrogate mother for your case. Below is her detailed profile, including personal information, health status, pregnancy history and other important information. If you have any questions, please contact our professional team.",
+  "uploadPhotos": "Upload Photos",
+  "photo": "Photo",
+  "noPhotosUploaded": "No photos uploaded",
+  "contactInformation": "Contact Information",
+  "dateOfBirth": "Date of Birth",
+  "phone": "Phone",
+  "email": "Email",
+  "city": "City",
+  "stateOrProvince": "State/Province",
+  "country": "Country",
+  "zipCode": "Zip Code",
+  "physicalCharacteristics": "Physical Characteristics",
+  "height": "Height",
+  "weight": "Weight",
+  "cm": "cm",
+  "kg": "kg",
+  "bmi": "BMI",
+  "maritalStatus": "Marital Status",
+  "partnerSupport": "Partner Support",
+  "householdIncome": "Household Income",
+  "pregnancyHealth": "Pregnancy & Health",
+  "hasGivenBirth": "Has Given Birth",
+  "isCurrentlyPregnant": "Is Currently Pregnant",
+  "isBreastfeeding": "Is Breastfeeding",
+  "hasStillbirth": "Has Stillbirth",
+  "medicalConditions": "Medical Conditions",
+  "isTakingMedications": "Is Taking Medications",
+  "medications": "Medications",
+  "pregnancyHistories": "Pregnancy Histories",
+  "backgroundCheckStatus": "Background Check Status",
+  "pregnancyHistory": "Pregnancy History",
+  "deliveryDate": "Delivery Date",
+  "birthWeight": "Birth Weight",
+  "gestationalWeeks": "Gestational Weeks",
+  "numberOfBabies": "Number of Babies",
+  "deliveryMethod": "Delivery Method",
+  "interview": "Interview Information",
+  "emotionalSupport": "Emotional Support",
+  "languagesSpoken": "Languages Spoken",
+  "motivation": "Motivation",
+  "selfIntroduction": "Self Introduction",
+  "contactPreference": "Contact Preference",
+  "hipaaRelease": "HIPAA Release",
+  "multipleReduction": "Multiple Reduction",
+  "terminationWilling": "Termination Willing",
+  "created": "Created",
+  "updated": "Updated",
+  "noData": "No Data",
+  "fetchError": "Failed to fetch data",
+  "notFoundCase": "Case not found",
+  "notFoundSurrogate": "Surrogate not found",
+  "yes": "Yes",
+  "no": "No"
 }

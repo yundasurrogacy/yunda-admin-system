@@ -8,24 +8,54 @@ import { Button } from "../../../components/ui/button"
 import { Alert, AlertDescription } from "../../../components/ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { AuthGuard } from "../../../components/auth-guard"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function DashboardPage() {
   const router = useRouter()
   const { t } = useTranslation("common")
+  const { isAuthenticated, isLoading, user } = useAuth()
 
-  // 真实案例数据
+  // 真实案例数据 - 必须在所有条件检查之前声明所有hooks
   const [cases, setCases] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
+  // 简单的认证检查
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      console.log('[AdminDashboard] User not authenticated, redirecting to login')
+      router.replace('/admin/login')
+      return
+    }
+    
+    if (!isLoading && isAuthenticated && user?.role !== 'admin') {
+      console.log('[AdminDashboard] User not admin, redirecting to login')
+      router.replace('/admin/login')
+      return
+    }
+    
+    console.log('[AdminDashboard] Access granted for admin user')
+  }, [isAuthenticated, isLoading, user, router])
+
   // 获取真实案例数据
   useEffect(() => {
-    setLoading(true)
-    fetch("/api/cases-list")
-      .then(r => r.json())
-      .then(data => setCases(Array.isArray(data) ? data : data.data || []))
-      .finally(() => setLoading(false))
-  }, [])
+    // 只有在认证通过后才获取数据
+    if (!isLoading && isAuthenticated && user?.role === 'admin') {
+      setLoading(true)
+      fetch("/api/cases-list")
+        .then(r => r.json())
+        .then(data => setCases(Array.isArray(data) ? data : data.data || []))
+        .finally(() => setLoading(false))
+    }
+  }, [isAuthenticated, isLoading, user])
+
+  // 如果还在加载或未认证，显示加载状态
+  if (isLoading || !isAuthenticated || user?.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
   // 阶段统计
   const stageMap: Record<string, string> = {
@@ -64,113 +94,111 @@ export default function DashboardPage() {
   const chartColors = ["#E8E2D5", "#D4C0A8", "#8B6F47", "#6B4F3A", "#A9907E"]
 
   return (
-    <AuthGuard requiredRole="admin">
-      <AdminLayout>
-        <div className="space-y-6 p-8 bg-page-bg font-serif">
-          <div>
-            <h1 className="text-3xl font-bold text-brand-brown-dark tracking-wider">{t("DASHBOARD")}</h1>
-          </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Total Active Cases Card */}
-          <Card className="bg-card-bg border-none shadow-lg rounded-xl">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("totalActiveCases")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-6xl font-light text-brand-brown-dark">{loading ? "..." : totalCases}</div>
-            </CardContent>
-          </Card>
-
-          {/* Stage Distribution Chart */}
-          <Card className="bg-card-bg border-none shadow-lg rounded-xl">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("stageDistribution")}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="h-8 w-full bg-brand-yellow rounded-full flex overflow-hidden mb-2">
-                {stageData.map((entry, index) => (
-                  <div
-                    key={`bar-${index}`}
-                    style={{
-                      width: `${totalCases > 0 ? (entry.value / totalCases) * 100 : 0}%`,
-                      backgroundColor: chartColors[index % chartColors.length],
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="flex justify-start text-xs text-brand-brown gap-4">
-                {stageData.map((item, index) => (
-                  <div key={item.name} className="flex items-center">
-                    <span
-                      className="w-3 h-3 inline-block mr-2 rounded-sm"
-                      style={{ backgroundColor: chartColors[index % chartColors.length] }}
-                    ></span>
-                    <span>
-                      {item.name}
-                      {item.count}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+    <AdminLayout>
+      <div className="space-y-6 p-8 bg-page-bg font-serif">
+        <div>
+          <h1 className="text-3xl font-bold text-brand-brown-dark tracking-wider">{t("DASHBOARD")}</h1>
         </div>
 
-        {/* Active Cases By Customer Manager */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Total Active Cases Card */}
         <Card className="bg-card-bg border-none shadow-lg rounded-xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("activeCasesByManager")}</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("totalActiveCases")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-0">
-              {/* Table Header */}
-              <div className="grid grid-cols-3 gap-4 pb-3 border-b border-brand-brown-light">
-                <div className="text-sm font-medium text-brand-brown">{t("name")}</div>
-                <div className="text-sm font-medium text-brand-brown">{t("caseNumber")}</div>
-                <div></div>
-              </div>
-              {/* Table Rows */}
-              {activeCases.map((item, index) => (
+            <div className="text-6xl font-light text-brand-brown-dark">{loading ? "..." : totalCases}</div>
+          </CardContent>
+        </Card>
+
+        {/* Stage Distribution Chart */}
+        <Card className="bg-card-bg border-none shadow-lg rounded-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("stageDistribution")}</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="h-8 w-full bg-brand-yellow rounded-full flex overflow-hidden mb-2">
+              {stageData.map((entry, index) => (
                 <div
-                  key={index}
-                  className="grid grid-cols-3 gap-4 items-center py-4 border-b border-brand-brown-light last:border-b-0"
-                >
-                  <div className="text-base text-brand-brown-dark">{item.name}</div>
-                  <div className="text-base text-brand-brown-dark">{item.count}</div>
-                  <div className="flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-transparent text-brand-brown border-brand-brown-light hover:bg-brand-yellow hover:text-brand-brown-dark text-xs px-4 py-2 rounded-md"
-                      onClick={() => router.push("/admin/client-manager")}
-                    >
-                      {t("viewDetails")}
-                    </Button>
-                  </div>
+                  key={`bar-${index}`}
+                  style={{
+                    width: `${totalCases > 0 ? (entry.value / totalCases) * 100 : 0}%`,
+                    backgroundColor: chartColors[index % chartColors.length],
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="flex justify-start text-xs text-brand-brown gap-4">
+              {stageData.map((item, index) => (
+                <div key={item.name} className="flex items-center">
+                  <span
+                    className="w-3 h-3 inline-block mr-2 rounded-sm"
+                    style={{ backgroundColor: chartColors[index % chartColors.length] }}
+                  ></span>
+                  <span>
+                    {item.name}
+                    {item.count}
+                  </span>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
-
-        {/* System Alerts */}
-        <Card className="bg-card-bg border-none shadow-lg rounded-xl">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("systemAlerts")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert className="border-none bg-transparent p-0">
-              <div className="flex items-center">
-                <AlertTriangle className="h-5 w-5 text-brand-brown-dark mr-3" />
-                <AlertDescription className="text-brand-brown-dark text-base">{t("noUpdatesAlert")}</AlertDescription>
-              </div>
-            </Alert>
-          </CardContent>
-        </Card>
       </div>
-    </AdminLayout>
-    </AuthGuard>
+
+      {/* Active Cases By Customer Manager */}
+      <Card className="bg-card-bg border-none shadow-lg rounded-xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("activeCasesByManager")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-0">
+            {/* Table Header */}
+            <div className="grid grid-cols-3 gap-4 pb-3 border-b border-brand-brown-light">
+              <div className="text-sm font-medium text-brand-brown">{t("name")}</div>
+              <div className="text-sm font-medium text-brand-brown">{t("caseNumber")}</div>
+              <div></div>
+            </div>
+            {/* Table Rows */}
+            {activeCases.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-3 gap-4 items-center py-4 border-b border-brand-brown-light last:border-b-0"
+              >
+                <div className="text-base text-brand-brown-dark">{item.name}</div>
+                <div className="text-base text-brand-brown-dark">{item.count}</div>
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent text-brand-brown border-brand-brown-light hover:bg-brand-yellow hover:text-brand-brown-dark text-xs px-4 py-2 rounded-md"
+                    onClick={() => router.push("/admin/client-manager")}
+                  >
+                    {t("viewDetails")}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* System Alerts */}
+      <Card className="bg-card-bg border-none shadow-lg rounded-xl">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-normal text-brand-brown-dark">{t("systemAlerts")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert className="border-none bg-transparent p-0">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-brand-brown-dark mr-3" />
+              <AlertDescription className="text-brand-brown-dark text-base">{t("noUpdatesAlert")}</AlertDescription>
+            </div>
+          </Alert>
+        </CardContent>
+      </Card>
+    </div>
+  </AdminLayout>
   )
 }

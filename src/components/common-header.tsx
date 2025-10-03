@@ -29,8 +29,46 @@ export function CommonHeader({
   const { isAuthenticated, user, logout, getLoginPath } = useAuth()
   const { toast } = useToast()
 
-  // 使用认证系统的状态，如果有prop传入则优先使用prop
-  const isLoggedIn = isLoggedInProp !== undefined ? isLoggedInProp : isAuthenticated
+  // 强制重新渲染当认证状态改变时 - 必须在所有useEffect之前
+  const [, setForceUpdate] = useState({})
+  // 本地状态追踪登录状态
+  const [localIsLoggedIn, setLocalIsLoggedIn] = useState(false)
+
+  // 直接使用认证系统的状态，不依赖外部传入的prop
+  const isLoggedIn = isAuthenticated
+
+  // 监听认证状态变化并更新本地状态
+  useEffect(() => {
+    console.log(`[CommonHeader] Auth state changed - isAuthenticated: ${isAuthenticated}, user: ${user?.role}, type: ${type}`)
+    setLocalIsLoggedIn(isAuthenticated)
+    // 强制重新渲染
+    setForceUpdate({})
+  }, [isAuthenticated, user, type])
+
+  // 监听全局认证状态变化事件
+  useEffect(() => {
+    const handleAuthChange = () => {
+      console.log(`[CommonHeader] Global auth change event received`)
+      // 重新检查localStorage中的状态
+      const userRole = localStorage.getItem('userRole')
+      const userEmail = localStorage.getItem('userEmail')
+      const hasUserData = userRole && userEmail
+      
+      console.log(`[CommonHeader] localStorage check - role: ${userRole}, email: ${userEmail}, hasUserData: ${hasUserData}`)
+      setLocalIsLoggedIn(!!hasUserData)
+      setForceUpdate({})
+    }
+
+    // 监听自定义认证事件
+    window.addEventListener('authStateChanged', handleAuthChange)
+    
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthChange)
+    }
+  }, [])
+
+  // 实际使用的登录状态
+  const actualIsLoggedIn = localIsLoggedIn
 
   const toggleLanguage = () => {
     const currentLang = i18n.language as "en" | "zh-CN"
@@ -53,33 +91,39 @@ export function CommonHeader({
   const handleLogout = () => {
     // 获取角色文本用于提示
     let roleText = '';
+    let userRole: 'admin' | 'client' | 'manager' | 'surrogacy' = 'client';
+    
     switch(type) {
       case 'admin':
         roleText = t('adminTitle', { defaultValue: '管理员' });
+        userRole = 'admin';
         break;
       case 'client':
         roleText = t('clientTitle', { defaultValue: '准父母' });
+        userRole = 'client';
         break;
       case 'manager':
       case 'client-manager':
         roleText = t('managerTitle', { defaultValue: '客户经理' });
+        userRole = 'manager';
         break;
       case 'surrogacy':
         roleText = t('surrogacyTitle', { defaultValue: '代孕母' });
+        userRole = 'surrogacy';
         break;
       default:
         roleText = t('user', { defaultValue: '用户' });
     }
 
-    // 使用认证系统的logout方法
-    logout()
-    
     // 显示退出成功提示
     toast({
       title: t('logOutSuccess', { defaultValue: '退出成功' }),
       description: `${roleText}${t('logOutSuccessDesc', { defaultValue: '已安全退出登录' })}`,
       variant: 'default',
     });
+
+    // 使用认证系统的logout方法，传递角色信息
+    logout(userRole)
   }
 
   // ...existing code...
@@ -142,7 +186,7 @@ export function CommonHeader({
 
       {/* 右侧导航/按钮，桌面自适应，移动端固定宽度 */}
       <div className="flex items-center gap-8 md:gap-8" style={{ minWidth: 40 }}>
-        {isLoggedIn ? (
+        {actualIsLoggedIn ? (
           <button 
             onClick={handleLogout}
             className="text-lg font-serif text-[#3C2B1C]"

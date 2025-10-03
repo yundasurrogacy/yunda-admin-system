@@ -1,129 +1,317 @@
 "use client"
 
-import ManagerLayout from '@/components/manager-layout'
-import { Card } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import { useTranslation } from 'react-i18next'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { getIntendedParentById } from "@/lib/graphql/applications"
+import type { IntendedParent } from "@/types/intended_parent"
+import { ChevronRight, ChevronDown, User, FileText, Search, ArrowLeft } from "lucide-react"
+import { Button } from "../../../../components/ui/button"
+import { CommonHeader } from "../../../../components/common-header"
+import { useTranslation } from "react-i18next"
+import '../../../../i18n'
+import { Label } from "../../../../components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card"
+import { Badge } from "../../../../components/ui/badge"
+import ManagerLayout from "@/components/manager-layout"
 
-export default function ClientProfileDetail() {
-  const params = useParams();
-  const { t } = useTranslation('common');
-  const parentId = params?.id || '';
-  const [parent, setParent] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export default function ClientProfileDetailPage() {
+  const router = useRouter()
+  const { t } = useTranslation('common')
+  const params = useParams<{ id: string }>()
+  const [language, setLanguage] = useState<"EN" | "CN">("EN")
+  const [client, setClient] = useState<IntendedParent | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    medicalRecords: false,
+    medicationTracker: false,
+  })
 
   useEffect(() => {
-    if (!parentId) {
-      setError(t('clientProfileDetail.notFound'));
-      setLoading(false);
-      return;
+    async function fetchData() {
+      if (params?.id) {
+        const data = await getIntendedParentById(Number(params.id))
+        setClient(data)
+      }
+      setLoading(false)
     }
-    fetch(`/api/intended-parent-detail?parentId=${parentId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setParent(data);
-        }
-      })
-      .catch(e => setError(t('clientProfileDetail.fetchFailed')))
-      .finally(() => setLoading(false));
-  }, [parentId, t]);
+    fetchData()
+  }, [params?.id])
 
-  if (loading) return <ManagerLayout><div className="p-8">{t('loadingText')}</div></ManagerLayout>;
-  if (error) return <ManagerLayout><div className="p-8 text-red-500">{error}</div></ManagerLayout>;
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }))
+  }
 
-  // 解析分组信息
-  const basic = parent?.basic_information || {};
-  const contact = parent?.contact_information || {};
-  const family = parent?.family_profile || {};
-  const program = parent?.program_interests || {};
-  const referral = parent?.referral || {};
+  const text = {
+    EN: {
+      title: "Client Profile",
+      basicInfo: "Basic Information",
+      embryoInfo: "Embryo Information",
+      uploadDocs: "Upload Documents",
+      trustAccount: "Trust Account",
+      clientManager: "Client Manager",
+      medicalRecords: "Medical Records",
+      doctorInfo: "Doctor Information",
+      clinicInfo: "Clinic Information",
+      upcomingAppts: "Upcoming Appointments",
+      pastAppts: "Past Appointments",
+      medicationTracker: "Medication Tracker",
+      name: "Name",
+      phone: "Phone",
+      email: "Email",
+      language: "Language",
+      trustId: "Trust ID",
+      trustBalance: "Trust Balance",
+      status: "Status",
+      passport: "Passport",
+      agreement: "Agreement",
+      authentication: "Authorization",
+      preBirthOrder: "Pre-Birth Order",
+      viewDetails: "View Details",
+      edit: "Edit",
+      active: "Active",
+      complete: "Complete",
+      pending: "Pending",
+      date: "Date",
+      type: "Type",
+      doctor: "Doctor",
+      clinic: "Clinic",
+      time: "Time",
+      medication: "Medication",
+      instructions: "Instructions",
+      dailyReminders: "Daily Reminders",
+      october2023: "October 2023",
+      unreadMessage: "Unread Message",
+      visitReport: "Visit Report",
+      doctorsNotes: "Doctor's Notes",
+    },
+    CN: {
+      title: "客户档案",
+      basicInfo: "基本信息",
+      embryoInfo: "胚胎信息",
+      uploadDocs: "上传文件",
+      trustAccount: "信托账户",
+      clientManager: "客户经理",
+      medicalRecords: "医疗记录",
+      doctorInfo: "医生信息",
+      clinicInfo: "诊所信息",
+      upcomingAppts: "即将到来的预约",
+      pastAppts: "过往预约",
+      medicationTracker: "用药跟踪",
+      name: "姓名",
+      phone: "电话",
+      email: "邮箱",
+      language: "语言",
+      trustId: "信托ID",
+      trustBalance: "信托余额",
+      status: "状态",
+      passport: "护照",
+      agreement: "协议",
+      authentication: "授权",
+      preBirthOrder: "出生前令",
+      viewDetails: "查看详情",
+      edit: "编辑",
+      active: "活跃",
+      complete: "完成",
+      pending: "待处理",
+      date: "日期",
+      type: "类型",
+      doctor: "医生",
+      clinic: "诊所",
+      time: "时间",
+      medication: "药物",
+      instructions: "说明",
+      dailyReminders: "每日提醒",
+      october2023: "2023年10月",
+      unreadMessage: "未读消息",
+      visitReport: "访问报告",
+      doctorsNotes: "医生笔记",
+    },
+  }
+
+  if (loading) {
+    return <div className="p-8 text-sage-600">加载中...</div>
+  }
+
+  if (!client) {
+    return <div className="p-8 text-red-600">未找到该准父母信息</div>
+  }
+
+  const basic = client.basic_information
+  const contact = client.contact_information
+  const family = client.family_profile
+  const program = client.program_interests
+  const referral = client.referral
+
+
+  // 格式化多选和枚举展示
+  const formatArray = (arr: string[] | undefined): string => Array.isArray(arr) && arr.length ? arr.join(", ") : "-"
+  const formatValue = (val: string | undefined): string => val ? val : "-"
 
   return (
     <ManagerLayout>
-      <div className="p-8 min-h-screen bg-gradient-to-br from-[#FBF0DA] to-[#F7F7F7]">
-        <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-8">{t('clientProfileDetail.title')}</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* 信托账户余额 */}
-          <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-            <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>💰</span> {t('clientProfileDetail.trustAccountBalance')}</h2>
-            <div className="text-2xl font-bold mb-2">{parent.trust_account_balance ?? 0}</div>
-            <div className="text-xs text-gray-500 mt-1">{t('clientProfileDetail.email')}: {parent.email}</div>
-            <div className="text-xs text-gray-500">{t('clientProfileDetail.created')}: {parent.created_at}</div>
-            <div className="text-xs text-gray-500">{t('clientProfileDetail.updated')}: {parent.updated_at}</div>
-          </Card>
-          {/* 基本信息 */}
-          <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-            <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>📝</span> {t('clientProfileDetail.basicInfo')}</h2>
-            <div className="flex gap-6 items-center mb-2">
-              <Avatar className="w-16 h-16">
-                <AvatarFallback className="bg-[#E2E8F0] font-serif text-[#271F18] text-2xl">{basic.firstName?.[0] || 'U'}</AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
-                <div><span className="font-semibold">{t('clientProfileDetail.firstName')}:</span> {basic.firstName}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.lastName')}:</span> {basic.lastName}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.dob')}:</span> {basic.date_of_birth}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.genderIdentity')}:</span> {basic.gender_identity}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.pronouns')}:</span> {basic.pronouns}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.ethnicity')}:</span> {basic.ethnicity}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.genderIdentityKey')}:</span> {basic.gender_identity_selected_key}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.pronounsKey')}:</span> {basic.pronouns_selected_key}</div>
-                <div><span className="font-semibold">{t('clientProfileDetail.ethnicityKey')}:</span> {basic.ethnicity_selected_key}</div>
+      <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
+        <div className="flex items-center justify-between pt-6 pb-2">
+          <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/client-manager/client-profiles')}
+              className="bg-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {t('backToClientProfiles')}
+            </Button>
+          </div>
+        </div>
+
+        {/* 基本信息 */}
+  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('basicInformation')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+              <div>
+                <Label className="text-sage-600 text-sm">{t('firstName')} / {t('lastName')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.firstName)} {formatValue(basic?.lastName)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('pronouns') || '代词'}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.pronouns)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('genderIdentity')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.gender_identity)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('dateOfBirth')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.date_of_birth)}</p>
+              </div>
+              <div className="col-span-2">
+                <Label className="text-sage-600 text-sm">{t('ethnicity')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatArray(basic?.ethnicity?.split(","))}</p>
               </div>
             </div>
-          </Card>
-          {/* 联系信息 */}
-          <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-            <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>📞</span> {t('clientProfileDetail.contactInfo')}</h2>
-            <div className="space-y-1">
-              <div><span className="font-semibold">{t('clientProfileDetail.cellPhone')}:</span> {contact.cell_phone_country_code} {contact.cell_phone}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.email')}:</span> {contact.email_address}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.primaryLanguages')}:</span> {Array.isArray(contact.primary_languages) ? contact.primary_languages.join(', ') : ''}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.primaryLanguagesKey')}:</span> {Array.isArray(contact.primary_languages_selected_keys) ? contact.primary_languages_selected_keys.join(', ') : ''}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.agreeToReceiveMessages')}:</span> {contact.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</div>
+          </CardContent>
+        </Card>
+
+        {/* 联系信息 */}
+  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('contactInformation')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+              <div>
+                <Label className="text-sage-600 text-sm">{t('phone')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{contact?.cell_phone_country_code ? `+${contact?.cell_phone_country_code} ` : ""}{formatValue(contact?.cell_phone)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('email')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(contact?.email_address)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('languages')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatArray(contact?.primary_languages_selected_keys)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('clientProfileDetail.agreeToReceiveMessages')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{contact?.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
+              </div>
             </div>
-          </Card>
-          {/* 家庭资料 */}
-          <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-            <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>🏠</span> {t('clientProfileDetail.familyProfile')}</h2>
-            <div className="space-y-1">
-              <div><span className="font-semibold">{t('clientProfileDetail.city')}:</span> {family.city}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.stateProvince')}:</span> {family.state_or_province}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.stateProvinceKey')}:</span> {family.state_or_province_selected_key}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.country')}:</span> {family.country}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.countryKey')}:</span> {family.country_selected_key}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.sexualOrientation')}:</span> {family.sexual_orientation}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.sexualOrientationKey')}:</span> {family.sexual_orientation_selected_key}</div>
+          </CardContent>
+        </Card>
+
+        {/* 家庭资料 */}
+  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('familyProfile')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+              <div>
+                <Label className="text-sage-600 text-sm">{t('sexualOrientation')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.sexual_orientation)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('city')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.city)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('country')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.country)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('stateOrProvince')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.state_or_province)}</p>
+              </div>
             </div>
-          </Card>
-          {/* 项目意向 */}
-          <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-            <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>🎯</span> {t('clientProfileDetail.programInterests')}</h2>
-            <div className="space-y-1">
-              <div><span className="font-semibold">{t('clientProfileDetail.interestedServices')}:</span> {program.interested_services}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.interestedServicesKey')}:</span> {program.interested_services_selected_keys}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.journeyStartTiming')}:</span> {program.journey_start_timing}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.journeyStartTimingKey')}:</span> {program.journey_start_timing_selected_key}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.desiredChildrenCount')}:</span> {program.desired_children_count}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.desiredChildrenCountKey')}:</span> {program.desired_children_count_selected_key}</div>
+          </CardContent>
+        </Card>
+
+        {/* 项目意向 */}
+  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('programInterests')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+              <div>
+                <Label className="text-sage-600 text-sm">{t('serviceNeeds')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(program?.interested_services)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('journeyStartTiming')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(program?.journey_start_timing)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('desiredChildrenCount')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(program?.desired_children_count)}</p>
+              </div>
             </div>
-          </Card>
-          {/* 渠道及初步沟通 */}
-          <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-            <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>🔗</span> {t('clientProfileDetail.referralAndInitialCommunication')}</h2>
-            <div className="space-y-1">
-              <div><span className="font-semibold">{t('clientProfileDetail.referralSource')}:</span> {referral.referral_source}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.referralSourceKey')}:</span> {referral.referral_source_selected_key}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.initialQuestions')}:</span> {referral.initial_questions}</div>
-              <div><span className="font-semibold">{t('clientProfileDetail.initialQuestionsKey')}:</span> {referral.initial_questions_selected_key}</div>
+          </CardContent>
+        </Card>
+
+        {/* 渠道及初步沟通 */}
+  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('referral')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+              <div>
+                <Label className="text-sage-600 text-sm">{t('referralSource')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(referral?.referral_source)}</p>
+              </div>
+              <div>
+                <Label className="text-sage-600 text-sm">{t('initialQuestions')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(referral?.initial_questions)}</p>
+              </div>
             </div>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
+
+        {/* 同意条款 */}
+  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('agreement')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-y-2">
+              <div>
+                <Label className="text-sage-600 text-sm">{t('sharePersonalInfo')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{contact?.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 其他区块（原有内容保留） */}
+        {/* ...existing code... */}
       </div>
     </ManagerLayout>
   )

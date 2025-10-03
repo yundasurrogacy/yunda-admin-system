@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 import { getIntendedParentById } from "@/lib/graphql/applications"
 import type { IntendedParent } from "@/types/intended_parent"
-import { ChevronRight, ChevronDown, User, FileText, Search } from "lucide-react"
+import { ChevronRight, ChevronDown, User, FileText, Search, ArrowLeft } from "lucide-react"
 import { Button } from "../../../../components/ui/button"
 import { CommonHeader } from "../../../../components/common-header"
 import { useTranslation } from "react-i18next"
@@ -154,11 +154,18 @@ export default function ClientProfileDetailPage() {
   return (
     <AdminLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
-        <div className="flex items-center gap-4 pt-6 pb-2">
-          <Button variant="outline" size="sm" className="border-sage-300 text-sage-700 bg-white hover:bg-sage-50" onClick={() => router.back()}>
-            {t('backToClientProfiles')}
-          </Button>
-          <h1 className="text-3xl font-light text-sage-800 tracking-wide">{t('CLIENT PROFILES')}</h1>
+        <div className="flex items-center justify-between pt-6 pb-2">
+          <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/admin/client-profiles')}
+              className="bg-white"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {t('backToClientProfiles')}
+            </Button>
+          </div>
         </div>
 
         {/* 基本信息 */}
@@ -170,23 +177,23 @@ export default function ClientProfileDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <div>
                 <Label className="text-sage-600 text-sm">{t('firstName')} / {t('lastName')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(basic?.firstName)} {formatValue(basic?.lastName)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.firstName)} {formatValue(basic?.lastName)}</p>
               </div>
               <div>
-                <Label className="text-sage-600 text-sm">{t('pronouns')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(basic?.pronouns)}</p>
+                <Label className="text-sage-600 text-sm">{t('pronouns') || '代词'}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.pronouns)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('genderIdentity')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(basic?.gender_identity)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.gender_identity)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('dateOfBirth')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(basic?.date_of_birth)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(basic?.date_of_birth)}</p>
               </div>
               <div className="col-span-2">
                 <Label className="text-sage-600 text-sm">{t('ethnicity')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatArray(basic?.ethnicity?.split(","))}</p>
+                <p className="font-medium text-sage-800 break-words">{formatArray(basic?.ethnicity?.split(","))}</p>
               </div>
             </div>
           </CardContent>
@@ -201,19 +208,19 @@ export default function ClientProfileDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <div>
                 <Label className="text-sage-600 text-sm">{t('phone')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{contact?.cell_phone_country_code ? `+${contact?.cell_phone_country_code} ` : ""}{formatValue(contact?.cell_phone)}</p>
+                <p className="font-medium text-sage-800 break-words">{contact?.cell_phone_country_code ? `+${contact?.cell_phone_country_code} ` : ""}{formatValue(contact?.cell_phone)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('email')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(contact?.email_address)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(contact?.email_address)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('languages')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatArray(contact?.primary_languages_selected_keys)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatArray(contact?.primary_languages_selected_keys)}</p>
               </div>
               <div>
-                <Label className="text-sage-600 text-sm">{t('yes')} / {t('no')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{contact?.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
+                <Label className="text-sage-600 text-sm">{t('clientProfileDetail.agreeToReceiveMessages')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{contact?.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
               </div>
             </div>
           </CardContent>
@@ -228,19 +235,19 @@ export default function ClientProfileDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <div>
                 <Label className="text-sage-600 text-sm">{t('sexualOrientation')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(family?.sexual_orientation)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.sexual_orientation)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('city')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(family?.city)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.city)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('country')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(family?.country)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.country)}</p>
               </div>
               <div>
-                <Label className="text-sage-600 text-sm">{t('stateOrProvince') || '省/州'}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(family?.state_or_province)}</p>
+                <Label className="text-sage-600 text-sm">{t('stateOrProvince')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(family?.state_or_province)}</p>
               </div>
             </div>
           </CardContent>
@@ -254,16 +261,16 @@ export default function ClientProfileDetailPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <div>
-                <Label className="text-sage-600 text-sm">{t('serviceNeeds') || '服务类型'}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(program?.interested_services)}</p>
+                <Label className="text-sage-600 text-sm">{t('serviceNeeds')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{formatValue(program?.interested_services)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('journeyStartTiming')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(program?.journey_start_timing)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(program?.journey_start_timing)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('desiredChildrenCount')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(program?.desired_children_count)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(program?.desired_children_count)}</p>
               </div>
             </div>
           </CardContent>
@@ -278,11 +285,11 @@ export default function ClientProfileDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
               <div>
                 <Label className="text-sage-600 text-sm">{t('referralSource')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(referral?.referral_source)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(referral?.referral_source)}</p>
               </div>
               <div>
                 <Label className="text-sage-600 text-sm">{t('initialQuestions')}:</Label>
-                <p className="font-medium text-sage-800 truncate">{formatValue(referral?.initial_questions)}</p>
+                <p className="font-medium text-sage-800 break-words">{formatValue(referral?.initial_questions)}</p>
               </div>
             </div>
           </CardContent>
@@ -291,13 +298,13 @@ export default function ClientProfileDetailPage() {
         {/* 同意条款 */}
   <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
-            <CardTitle className="text-sage-800 text-lg font-medium">{t('agreement') || '同意条款'}</CardTitle>
+            <CardTitle className="text-sage-800 text-lg font-medium">{t('agreement')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-y-2">
               <div>
-                <Label className="text-sage-600 text-sm">{t('sharePersonalInfo') || '同意分享个人信息'}:</Label>
-                <p className="font-medium text-sage-800 truncate">{contact?.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
+                <Label className="text-sage-600 text-sm">{t('sharePersonalInfo')}:</Label>
+                <p className="font-medium text-sage-800 break-words">{contact?.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
               </div>
             </div>
           </CardContent>

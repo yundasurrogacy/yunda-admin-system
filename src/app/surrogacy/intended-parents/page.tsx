@@ -2,9 +2,13 @@
 
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
+import { User, Phone, Mail, MapPin, Heart, Calendar, FileText } from 'lucide-react'
+import '../../../i18n'
 
 export default function IntendedParents() {
   const { t } = useTranslation('common')
@@ -84,88 +88,200 @@ export default function IntendedParents() {
   const program = parentInfo?.program_interests || {}
   const referral = parentInfo?.referral || {}
 
+  // 格式化多选和枚举展示
+  const formatArray = (arr: string[] | undefined): string => Array.isArray(arr) && arr.length ? arr.join(", ") : t('noData', '暂无数据')
+  const formatValue = (val: string | undefined): string => val ? val : t('noData', '暂无数据')
+
   return (
-    <div className="p-8 min-h-screen bg-gradient-to-br from-[#FBF0DA] to-[#F7F7F7]">
-      <h1 className="text-3xl font-bold font-serif text-[#271F18] mb-4 flex items-center gap-2">
-        <span>👤</span> {t('intendedParents.title')}
-      </h1>
-      <p className="text-[#271F18] font-serif mb-8 text-base">{t('intendedParents.description')}</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 信托账户余额 */}
-        <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-          <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>💰</span> {t('intendedParents.trustAccount.title')}</h2>
-          <div className="text-2xl font-bold mb-2">{parentInfo?.trust_account_balance ?? 0}</div>
-          <div className="text-xs text-gray-500 mt-1">{t('intendedParents.trustAccount.email')}: {parentInfo?.email}</div>
-          <div className="text-xs text-gray-500">{t('intendedParents.trustAccount.created')}: {parentInfo?.created_at}</div>
-          <div className="text-xs text-gray-500">{t('intendedParents.trustAccount.updated')}: {parentInfo?.updated_at}</div>
-        </Card>
-        {/* 基本信息 */}
-        <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-          <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>📝</span> {t('intendedParents.basicInfo.title')}</h2>
-          <div className="flex gap-6 items-center mb-2">
-            <Avatar className="w-16 h-16">
-              <AvatarFallback className="bg-[#E2E8F0] font-serif text-[#271F18] text-2xl">{basic.firstName?.[0] || 'U'}</AvatarFallback>
+    <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
+      <div className="flex items-center justify-between pt-6 pb-2">
+        <h1 className="text-2xl font-medium text-sage-800">{t('intendedParents.title')}</h1>
+        <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
+          {t('intendedParents.status.matched', '已匹配')}
+        </Badge>
+      </div>
+
+      {/* 基本信息卡片 */}
+      <Card className="bg-white border-sage-200 animate-slide-in-left">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
+            <User className="w-5 h-5" />
+            {t('intendedParents.basicInfo.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start gap-6">
+            <Avatar className="w-20 h-20">
+              <AvatarFallback className="bg-sage-100 text-sage-800 text-2xl font-medium">
+                {basic.firstName?.[0] || 'U'}
+              </AvatarFallback>
             </Avatar>
-            <div className="space-y-1">
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.firstName')}:</span> {basic.firstName}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.lastName')}:</span> {basic.lastName}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.dob')}:</span> {basic.date_of_birth}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.genderIdentity')}:</span> {basic.gender_identity}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.pronouns')}:</span> {basic.pronouns}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.ethnicity')}:</span> {basic.ethnicity}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.genderIdentityKey')}:</span> {basic.gender_identity_selected_key}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.pronounsKey')}:</span> {basic.pronouns_selected_key}</div>
-              <div><span className="font-semibold">{t('intendedParents.basicInfo.ethnicityKey')}:</span> {basic.ethnicity_selected_key}</div>
+            <div className="flex-1">
+              <h2 className="text-2xl font-semibold text-sage-800 mb-2">
+                {formatValue(basic.firstName)} {formatValue(basic.lastName)}
+              </h2>
+              <p className="text-sage-500 mb-4">{t('intendedParents.trustAccount.email')}: {parentInfo?.email}</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                <div>
+                  <Label className="text-sage-600 text-sm">{t('intendedParents.basicInfo.dob')}:</Label>
+                  <p className="font-medium text-sage-800">{formatValue(basic.date_of_birth)}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">{t('intendedParents.basicInfo.pronouns')}:</Label>
+                  <p className="font-medium text-sage-800">{formatValue(basic.pronouns)}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">{t('intendedParents.basicInfo.genderIdentity')}:</Label>
+                  <p className="font-medium text-sage-800">{formatValue(basic.gender_identity)}</p>
+                </div>
+                <div>
+                  <Label className="text-sage-600 text-sm">{t('intendedParents.basicInfo.ethnicity')}:</Label>
+                  <p className="font-medium text-sage-800">{formatValue(basic.ethnicity)}</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* 信托账户余额显示 */}
+            <div className="text-right">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <Label className="text-sage-600 text-sm">{t('intendedParents.trustAccount.title')}</Label>
+                <p className="text-2xl font-bold text-green-700">${parentInfo?.trust_account_balance ?? 0}</p>
+              </div>
             </div>
           </div>
-        </Card>
-        {/* 联系信息 */}
-        <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-          <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>📞</span> {t('intendedParents.contactInfo.title')}</h2>
-          <div className="space-y-1">
-            <div><span className="font-semibold">{t('intendedParents.contactInfo.cellPhone')}:</span> {contact.cell_phone_country_code} {contact.cell_phone}</div>
-            <div><span className="font-semibold">{t('intendedParents.contactInfo.email')}:</span> {contact.email_address}</div>
-            <div><span className="font-semibold">{t('intendedParents.contactInfo.primaryLanguages')}:</span> {Array.isArray(contact.primary_languages) ? contact.primary_languages.join(', ') : ''}</div>
-            <div><span className="font-semibold">{t('intendedParents.contactInfo.primaryLanguagesKey')}:</span> {Array.isArray(contact.primary_languages_selected_keys) ? contact.primary_languages_selected_keys.join(', ') : ''}</div>
-            <div><span className="font-semibold">{t('intendedParents.contactInfo.agreeToReceiveMessages')}:</span> {contact.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</div>
+        </CardContent>
+      </Card>
+
+      {/* 联系信息 */}
+      <Card className="bg-white border-sage-200 animate-slide-in-left">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
+            <Phone className="w-5 h-5" />
+            {t('intendedParents.contactInfo.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.contactInfo.cellPhone')}:</Label>
+              <p className="font-medium text-sage-800">{contact.cell_phone_country_code ? `+${contact.cell_phone_country_code} ` : ""}{formatValue(contact.cell_phone)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.contactInfo.email')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(contact.email_address)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.contactInfo.primaryLanguages')}:</Label>
+              <p className="font-medium text-sage-800">{formatArray(contact.primary_languages_selected_keys)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.contactInfo.agreeToReceiveMessages')}:</Label>
+              <p className="font-medium text-sage-800">{contact.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</p>
+            </div>
           </div>
-        </Card>
-        {/* 家庭资料 */}
-        <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-          <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>🏠</span> {t('intendedParents.familyProfile.title')}</h2>
-          <div className="space-y-1">
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.city')}:</span> {family.city}</div>
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.stateProvince')}:</span> {family.state_or_province}</div>
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.stateProvinceKey')}:</span> {family.state_or_province_selected_key}</div>
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.country')}:</span> {family.country}</div>
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.countryKey')}:</span> {family.country_selected_key}</div>
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.sexualOrientation')}:</span> {family.sexual_orientation}</div>
-            <div><span className="font-semibold">{t('intendedParents.familyProfile.sexualOrientationKey')}:</span> {family.sexual_orientation_selected_key}</div>
+        </CardContent>
+      </Card>
+
+      {/* 家庭资料 */}
+      <Card className="bg-white border-sage-200 animate-slide-in-left">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
+            <MapPin className="w-5 h-5" />
+            {t('intendedParents.familyProfile.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.familyProfile.city')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(family.city)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.familyProfile.stateProvince')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(family.state_or_province)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.familyProfile.country')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(family.country)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.familyProfile.sexualOrientation')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(family.sexual_orientation)}</p>
+            </div>
           </div>
-        </Card>
-        {/* 项目意向 */}
-        <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-          <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>🎯</span> {t('intendedParents.programInterests.title')}</h2>
-          <div className="space-y-1">
-            <div><span className="font-semibold">{t('intendedParents.programInterests.interestedServices')}:</span> {program.interested_services}</div>
-            <div><span className="font-semibold">{t('intendedParents.programInterests.interestedServicesKey')}:</span> {program.interested_services_selected_keys}</div>
-            <div><span className="font-semibold">{t('intendedParents.programInterests.journeyStartTiming')}:</span> {program.journey_start_timing}</div>
-            <div><span className="font-semibold">{t('intendedParents.programInterests.journeyStartTimingKey')}:</span> {program.journey_start_timing_selected_key}</div>
-            <div><span className="font-semibold">{t('intendedParents.programInterests.desiredChildrenCount')}:</span> {program.desired_children_count}</div>
-            <div><span className="font-semibold">{t('intendedParents.programInterests.desiredChildrenCountKey')}:</span> {program.desired_children_count_selected_key}</div>
+        </CardContent>
+      </Card>
+
+      {/* 项目意向 */}
+      <Card className="bg-white border-sage-200 animate-slide-in-left">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
+            <Heart className="w-5 h-5" />
+            {t('intendedParents.programInterests.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.programInterests.interestedServices')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(program.interested_services)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.programInterests.journeyStartTiming')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(program.journey_start_timing)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.programInterests.desiredChildrenCount')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(program.desired_children_count)}</p>
+            </div>
           </div>
-        </Card>
-        {/* 渠道及初步沟通 */}
-        <Card className="rounded-2xl shadow-lg bg-white p-6 font-serif text-[#271F18] flex flex-col border border-[#F3E6C2]">
-          <h2 className="text-xl font-bold font-serif mb-4 flex items-center gap-2"><span>🔗</span> {t('intendedParents.referral.title')}</h2>
-          <div className="space-y-1">
-            <div><span className="font-semibold">{t('intendedParents.referral.referralSource')}:</span> {referral.referral_source}</div>
-            <div><span className="font-semibold">{t('intendedParents.referral.referralSourceKey')}:</span> {referral.referral_source_selected_key}</div>
-            <div><span className="font-semibold">{t('intendedParents.referral.initialQuestions')}:</span> {referral.initial_questions}</div>
-            <div><span className="font-semibold">{t('intendedParents.referral.initialQuestionsKey')}:</span> {referral.initial_questions_selected_key}</div>
+        </CardContent>
+      </Card>
+
+      {/* 渠道及初步沟通 */}
+      <Card className="bg-white border-sage-200 animate-slide-in-left">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
+            <FileText className="w-5 h-5" />
+            {t('intendedParents.referral.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.referral.referralSource')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(referral.referral_source)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.referral.initialQuestions')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(referral.initial_questions)}</p>
+            </div>
           </div>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
+
+      {/* 账户信息 */}
+      <Card className="bg-white border-sage-200 animate-slide-in-left">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
+            <Calendar className="w-5 h-5" />
+            {t('intendedParents.accountInfo', '账户信息')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.trustAccount.created')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(parentInfo?.created_at)}</p>
+            </div>
+            <div>
+              <Label className="text-sage-600 text-sm">{t('intendedParents.trustAccount.updated')}:</Label>
+              <p className="font-medium text-sage-800">{formatValue(parentInfo?.updated_at)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -40,7 +40,7 @@
   "JOURNEY": "旅程",
   "IVF CLINIC": "IVF 诊所",
   "MY PROFILE": "我的资料",
-  "MY JOURNEY": "我的旅程",
+  "MY JOURNEY": "旅程",
   "SURROGATE MATCH": "代孕匹配",
   "MY INTENDED PARENTS": "我的准父母",
   "PARENTS APPLICATIONS": "意向父母申请表",
@@ -100,34 +100,22 @@
     "genderIdentity": "性别认同",
     "pronouns": "代词",
     "ethnicity": "族裔",
-    "genderIdentityKey": "性别认同键",
-    "pronounsKey": "代词键",
-    "ethnicityKey": "族裔键",
     "contactInfo": "联系信息",
     "cellPhone": "手机",
     "primaryLanguages": "主要语言",
-    "primaryLanguagesKey": "主要语言键",
     "agreeToReceiveMessages": "同意接收消息",
     "familyProfile": "家庭资料",
     "city": "城市",
     "stateProvince": "州/省",
-    "stateProvinceKey": "州/省键",
     "country": "国家",
-    "countryKey": "国家键",
     "sexualOrientation": "性取向",
-    "sexualOrientationKey": "性取向键",
     "programInterests": "项目意向",
     "interestedServices": "感兴趣的服务",
-    "interestedServicesKey": "感兴趣的服务键",
     "journeyStartTiming": "旅程开始时间",
-    "journeyStartTimingKey": "旅程开始时间键",
     "desiredChildrenCount": "期望孩子数量",
-    "desiredChildrenCountKey": "期望孩子数量键",
     "referralAndInitialCommunication": "推荐及初步沟通",
     "referralSource": "推荐来源",
-    "referralSourceKey": "推荐来源键",
-    "initialQuestions": "初步问题",
-    "initialQuestionsKey": "初步问题键"
+    "initialQuestions": "初步问题"
   },
   "clientProfiles": {
     "title": "客户资料",
@@ -448,11 +436,12 @@
     "surrogate_portal": "代母门户"
   },
   "journey": {
-    "title": "我的旅程",
+    "title": "旅程",
     "description": "通过可视化路线图访问和跟踪您的旅程状态。",
     "currentStatus": "当前状态",
     "noStatus": "暂无状态",
     "updatedAgo": "{{distance}}前更新",
+    "updated": "更新于",
     "loading": "加载中...",
     "statusTimeline": "状态时间线",
     "view": "查看",
@@ -506,76 +495,21 @@
     }
   },
   "N/A": "无",
-  "surrogacyProfile": {
-    "title": "代孕者资料",
-    "description": "查看与您匹配的代孕母详细信息。",
-    "aboutYou": {
-      "title": "关于你",
-      "occupation": "职业",
-      "contactSource": "获知渠道",
-      "maritalStatus": "婚姻状况",
-      "educationLevel": "教育水平",
-      "partnerSupport": "伴侣支持",
-      "householdIncome": "家庭收入",
-      "isFormerSurrogate": "是否曾为代孕者",
-      "surrogateExperience": "代孕经验",
-      "hasHighSchoolDiploma": "是否有高中学历"
-    },
-    "contactInfo": {
-      "title": "联系信息",
-      "firstName": "名字",
-      "lastName": "姓氏",
-      "dob": "出生日期",
-      "email": "邮箱",
-      "cellPhone": "手机",
-      "agreeToReceiveMessages": "同意接收消息",
-      "city": "城市",
-      "stateProvince": "州/省",
-      "country": "国家",
-      "zipCode": "邮编",
-      "ethnicity": "族裔",
-      "bmi": "体重指数",
-      "height": "身高",
-      "weight": "体重",
-      "usCitizenOrVisaStatus": "美国公民/签证状态",
-      "surrogacyExperienceCount": "代孕经验次数"
-    },
-    "health": {
-      "title": "孕产与健康",
-      "arrests": "逮捕记录",
-      "birthDetails": "分娩详情",
-      "felonyCharges": "重罪指控",
-      "hasStillbirth": "是否有过死产",
-      "hasGivenBirth": "是否曾分娩",
-      "substanceAbuse": "药物滥用",
-      "closestHospital": "最近医院",
-      "closestNICUIII": "最近NICU三级医院",
-      "formalProbation": "正式缓刑",
-      "isBreastfeeding": "是否在哺乳",
-      "medicationsList": "药物清单",
-      "domesticViolence": "家庭暴力",
-      "medicalConditions": "健康状况",
-      "childAbuseNeglect": "虐待/忽视儿童",
-      "outstandingWarrant": "未结案通缉",
-      "pregnancyHistories": "怀孕历史",
-      "currentBirthControl": "当前避孕方式",
-      "isCurrentlyPregnant": "目前是否怀孕",
-      "isTakingMedications": "是否正在服药",
-      "backgroundCheckStatus": "背景调查状态",
-      "childProtectionInvestigation": "儿童保护调查",
-      "seriousPregnancyComplications": "严重妊娠并发症"
-    },
-    "photos": {
-      "title": "上传照片",
-      "photo": "照片",
-      "noPhotos": "暂无照片上传"
-    },
+  "common": {
+    "back": "返回",
+    "viewLarge": "查看大图",
     "yes": "是",
     "no": "否"
   },
+  "pronouns": "代词",
+  "sharePersonalInfo": "同意分享个人信息",
+  "agreement": "同意条款",
+  "agreeToReceiveMessages": "同意接收消息",
   "intendedParents": {
     "title": "我的准父母",
     "description": "这里是与您匹配的准父母的一些详细信息。",
+    "personalInfo": "个人信息",
+    "personalInfoDescription": "查看并管理您的个人资料信息",
     "error": {
       "fetchCaseFailed": "获取案子失败",
       "noParentInfo": "未找到准父母信息",
@@ -594,45 +528,110 @@
       "dob": "出生日期",
       "genderIdentity": "性别认同",
       "pronouns": "代词",
-      "ethnicity": "族裔",
-      "genderIdentityKey": "性别认同键",
-      "pronounsKey": "代词键",
-      "ethnicityKey": "族裔键"
+      "ethnicity": "族裔"
     },
     "contactInfo": {
       "title": "联系信息",
       "cellPhone": "手机",
       "email": "邮箱",
       "primaryLanguages": "主要语言",
-      "primaryLanguagesKey": "主要语言键",
       "agreeToReceiveMessages": "同意接收消息"
     },
     "familyProfile": {
       "title": "家庭资料",
       "city": "城市",
       "stateProvince": "州/省",
-      "stateProvinceKey": "州/省键",
       "country": "国家",
-      "countryKey": "国家键",
-      "sexualOrientation": "性取向",
-      "sexualOrientationKey": "性取向键"
+      "sexualOrientation": "性取向"
     },
     "programInterests": {
       "title": "项目意向",
       "interestedServices": "感兴趣的服务",
-      "interestedServicesKey": "感兴趣的服务键",
       "journeyStartTiming": "旅程开始时间",
-      "journeyStartTimingKey": "旅程开始时间键",
-      "desiredChildrenCount": "期望孩子数量",
-      "desiredChildrenCountKey": "期望孩子数量键"
+      "desiredChildrenCount": "期望孩子数量"
     },
     "referral": {
       "title": "推荐及初步沟通",
       "referralSource": "推荐来源",
-      "referralSourceKey": "推荐来源键",
-      "initialQuestions": "初步问题",
-      "initialQuestionsKey": "初步问题键"
+      "initialQuestions": "初步问题"
     }
+  },
+  "edit": "编辑个人资料",
+  "back": "返回",
+  "save": "保存",
+  "saving": "保存中...",
+  "updateFailed": "更新失败",
+  "updateSuccess": "更新成功！",
+  "multipleSelectHint": "按住 Ctrl 键可多选",
+  "enterInitialQuestions": "请输入您的初步问题...",
+  "genderOptions": {
+    "male": "男",
+    "female": "女",
+    "nonBinary": "非二元性别",
+    "other": "其他"
+  },
+  "ethnicityOptions": {
+    "asian": "亚洲人",
+    "black": "黑人",
+    "hispanic": "西班牙裔",
+    "middleEastern": "中东人",
+    "white": "白人",
+    "mixed": "混血",
+    "other": "其他"
+  },
+  "languageOptions": {
+    "english": "英语",
+    "chinese": "中文",
+    "spanish": "西班牙语",
+    "french": "法语",
+    "german": "德语",
+    "japanese": "日语",
+    "korean": "韩语",
+    "russian": "俄语",
+    "portuguese": "葡萄牙语",
+    "arabic": "阿拉伯语",
+    "other": "其他"
+  },
+  "sexualOrientationOptions": {
+    "heterosexual": "异性恋",
+    "homosexual": "同性恋",
+    "bisexual": "双性恋",
+    "pansexual": "泛性恋",
+    "asexual": "无性恋",
+    "other": "其他"
+  },
+  "serviceOptions": {
+    "surrogacyService": "代孕服务",
+    "surrogacyEggDonorService": "代孕+捐卵服务",
+    "eggDonorService": "捐卵服务",
+    "thirdPartySurrogate": "第三方代孕",
+    "bringYourOwnSurrogate": "自带代孕者",
+    "bringYourOwnSurrogateEgg": "自带代孕者+捐卵",
+    "notSure": "不确定"
+  },
+  "timingOptions": {
+    "immediately": "立即开始",
+    "within3Months": "3个月内",
+    "within6Months": "6个月内",
+    "within1Year": "1年内",
+    "moreThan1Year": "1年以上",
+    "notSure": "不确定"
+  },
+  "childrenCountOptions": {
+    "one": "1个",
+    "two": "2个",
+    "three": "3个",
+    "fourPlus": "4个或更多",
+    "notSure": "不确定"
+  },
+  "referralSourceOptions": {
+    "searchEngine": "搜索引擎",
+    "socialMedia": "社交媒体",
+    "friendReferral": "朋友推荐",
+    "doctorReferral": "医生推荐",
+    "advertisement": "广告",
+    "eventConference": "活动/会议",
+    "other": "其他"
   },
   "surrogacyFiles": {
     "title": "我的文件",
@@ -656,6 +655,20 @@
     "advisorPhone": "电话",
     "advisorEmail": "邮箱"
   },
+  "matchedSurrogate": "匹配的代孕母",
+  "matchedSurrogateDesc": "以下是为您匹配的代孕母详细信息",
+  "surrogateMatchInfo": "代孕母匹配信息",
+  "surrogateMatchDesc": "系统已为您的案例匹配了合适的代孕母。以下是她的详细资料，包括个人信息、健康状况、怀孕历史等重要信息。如有任何疑问，请联系我们的专业团队。",
+  "backToCases": "返回我的案例",
+  "noData": "暂无数据",
+  "photo": "照片",
+  "cm": "公分",
+  "kg": "公斤",
+  "aboutYou": "关于您",
+  "created": "创建时间",
+  "updated": "更新时间",
+  "notFoundCase": "未找到匹配的案例",
+  "fetchError": "获取数据失败",
   "files": {
     "title": "我的文件",
     "categories": {
@@ -672,5 +685,75 @@
     "unknownError": "未知错误",
     "uploadSuccess": "上传成功",
     "addJourneyFailed": "添加旅程失败"
+  },
+  "surrogacyProfile": {
+    "title": "代孕母资料",
+    "description": "查看您匹配的代孕母详细信息",
+    "yes": "是",
+    "no": "否",
+    "aboutYou": {
+      "title": "关于您",
+      "occupation": "职业",
+      "contactSource": "联系来源",
+      "maritalStatus": "婚姻状况",
+      "educationLevel": "教育水平",
+      "partnerSupport": "伴侣支持",
+      "householdIncome": "家庭收入",
+      "isFormerSurrogate": "之前是否做过代孕",
+      "surrogateExperience": "代孕经验",
+      "hasHighSchoolDiploma": "拥有高中文凭"
+    },
+    "contactInfo": {
+      "title": "联系信息",
+      "firstName": "名字",
+      "lastName": "姓氏",
+      "dob": "出生日期",
+      "email": "邮箱",
+      "cellPhone": "手机",
+      "agreeToReceiveMessages": "同意接收信息",
+      "city": "城市",
+      "stateProvince": "州/省",
+      "country": "国家",
+      "zipCode": "邮编",
+      "ethnicity": "种族",
+      "bmi": "BMI",
+      "height": "身高",
+      "weight": "体重",
+      "usCitizenOrVisaStatus": "美国公民/签证状态",
+      "surrogacyExperienceCount": "代孕经验次数",
+      "physicalInfo": "身体状况"
+    },
+    "health": {
+      "title": "怀孕与健康",
+      "arrests": "逮捕记录",
+      "birthDetails": "生育详情",
+      "felonyCharges": "重罪指控",
+      "hasStillbirth": "曾经死产",
+      "hasGivenBirth": "曾经生育",
+      "substanceAbuse": "药物滥用",
+      "closestHospital": "最近医院",
+      "closestNICUIII": "最近NICU III",
+      "formalProbation": "正式缓刑",
+      "isBreastfeeding": "正在哺乳",
+      "medicationsList": "药物清单",
+      "domesticViolence": "家庭暴力",
+      "medicalConditions": "医疗状况",
+      "childAbuseNeglect": "儿童虐待/忽视",
+      "outstandingWarrant": "未执行逮捕令",
+      "pregnancyHistories": "怀孕历史",
+      "currentBirthControl": "当前避孕方式",
+      "isCurrentlyPregnant": "目前怀孕",
+      "isTakingMedications": "正在服药",
+      "backgroundCheckStatus": "背景调查状态",
+      "childProtectionInvestigation": "儿童保护调查",
+      "seriousPregnancyComplications": "严重怀孕并发症",
+      "medicalInfo": "医疗与药物信息",
+      "backgroundCheck": "背景调查"
+    },
+    "photos": {
+      "title": "照片",
+      "photo": "照片",
+      "noPhotos": "暂无照片"
+    }
   }
 }

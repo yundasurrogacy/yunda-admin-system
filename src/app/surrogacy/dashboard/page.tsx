@@ -2,12 +2,10 @@
 
 import React from "react"
 import { Button } from "@/components/ui/button"
-import { AuthGuard } from "@/components/auth-guard"
 
 export default function SurrogacyDashboard() {
   return (
-    <AuthGuard requiredRole="surrogacy">
-      <div className="p-8 min-h-screen" style={{ background: "#FBF0DA40" }}>
+    <div className="p-8 min-h-screen" style={{ background: "#FBF0DA40" }}>
       <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">
         DASHBOARD
       </h1>
@@ -125,6 +123,5 @@ export default function SurrogacyDashboard() {
         </div>
       </div>
     </div>
-    </AuthGuard>
   )
 }

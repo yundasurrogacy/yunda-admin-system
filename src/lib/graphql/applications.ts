@@ -64,6 +64,7 @@ export async function getSurrogateMotherById(id: number) {
         contact_information
         about_you
         pregnancy_and_health
+        gestational_surrogacy_interview
         upload_photos
         created_at
         updated_at
@@ -93,6 +94,7 @@ export async function getSurrogateMothers(
         contact_information
         about_you
         pregnancy_and_health
+        gestational_surrogacy_interview
         upload_photos
         created_at
         updated_at
@@ -249,6 +251,7 @@ export async function updateApplicationStatus(
           contact_information,
           about_you,
           pregnancy_and_health,
+          gestational_surrogacy_interview,
           upload_photos
         } = application_data || {}
         const email = contact_information?.email_address || null
@@ -256,6 +259,7 @@ export async function updateApplicationStatus(
           contact_information,
           about_you,
           pregnancy_and_health,
+          gestational_surrogacy_interview,
           upload_photos,
           email,
         }
@@ -337,6 +341,7 @@ export async function insertSurrogateMother(data: {
   contact_information?: any;
   about_you?: any;
   pregnancy_and_health?: any;
+  gestational_surrogacy_interview?: any;
   upload_photos?: any;
   email?: string;
 }) {

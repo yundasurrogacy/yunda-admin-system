@@ -58,12 +58,13 @@ export default function AdminLoginPage() {
           variant: "default",
         });
         
-        // 登录成功后手动重定向，增加延迟确保状态更新
+        // 直接跳转到管理员dashboard，不依赖认证状态
+        console.log(`[AdminLogin] Redirecting to: /admin/dashboard`)
+        
+        // 立即重定向
         setTimeout(() => {
-          const homePath = getHomePath('admin')
-          console.log(`[AdminLogin] Redirecting to: ${homePath}`)
-          router.replace(homePath)
-        }, 1000) // 增加延迟到1秒
+          router.replace('/admin/dashboard')
+        }, 300) // 减少延迟
         
         return;
       }

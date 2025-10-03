@@ -20,21 +20,8 @@ import { useTranslation } from 'react-i18next'
 import { useAdminAuth } from "@/hooks/usePageAuth"
 
 export default function ClientProfilesPage() {
-  const { isAuthenticated, isLoading } = useAdminAuth()
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return null // 会被认证检查重定向
-  }
   const { t } = useTranslation('common')
-
+  const { isAuthenticated, isLoading } = useAdminAuth()
   const [clients, setClients] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showDialog, setShowDialog] = useState(false)
@@ -44,6 +31,7 @@ export default function ClientProfilesPage() {
   const [resetLoading, setResetLoading] = useState(false)
   const { register, handleSubmit, reset } = useForm()
   const router = useRouter()
+
   useEffect(() => {
     async function fetchClients() {
       const data = await getIntendedParents(10, 0)
@@ -158,6 +146,20 @@ export default function ClientProfilesPage() {
       alert(t('requestError'))
     }
     setResetLoading(false)
+  }
+
+  // 加载状态
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">加载中...</div>
+      </div>
+    )
+  }
+
+  // 未认证状态
+  if (!isAuthenticated) {
+    return null // 会被认证检查重定向
   }
 
   return (

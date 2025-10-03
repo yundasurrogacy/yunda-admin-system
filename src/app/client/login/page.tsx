@@ -53,11 +53,14 @@ export default function ClientLoginPage() {
           variant: "default",
         });
         
-        // 登录成功后手动重定向
+        // 直接使用硬编码路径进行重定向
+        const homePath = '/client/dashboard'
+        console.log(`[ClientLogin] Redirecting to: ${homePath}`)
+        
+        // 立即重定向
         setTimeout(() => {
-          const homePath = getHomePath('client')
           router.replace(homePath)
-        }, 500)
+        }, 300) // 减少延迟
         
         return;
       }

@@ -33,9 +33,9 @@ export function getClientSidebarConfig() {
     {
       items: [
         { label: t('SURROGATE MATCH'), href: "/client/surrogate-match", icon: HeartPulse },
-        { label: t('TRUST ACCOUNT'), href: "/client/trust-account", icon: FolderOpen },
-        { label: t('MESSAGES'), href: "/client/messages", icon: MessageCircle },
-        { label: t('SUPPORT'), href: "/client/support", icon: Bell },
+        // { label: t('TRUST ACCOUNT'), href: "/client/trust-account", icon: FolderOpen },
+        // { label: t('MESSAGES'), href: "/client/messages", icon: MessageCircle },
+        // { label: t('SUPPORT'), href: "/client/support", icon: Bell },
       ]
     }
   ]

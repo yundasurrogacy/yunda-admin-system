@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { CommonHeader } from './common-header'
 import { CommonSidebar } from './common-sidebar'
 import { managerSidebarConfig } from '@/config/sidebar-config'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function ManagerLayout({
   children,
@@ -12,6 +13,7 @@ export default function ManagerLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { isAuthenticated } = useAuth()
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -31,7 +33,6 @@ export default function ManagerLayout({
         <CommonHeader 
           showMenuButton={true} 
           onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
-          isLoggedIn={true} 
           // theme="blue"
           // title="YUNDA MANAGER"
           type="client-manager"

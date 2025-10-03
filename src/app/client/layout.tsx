@@ -5,9 +5,11 @@ import { CommonHeader } from "@/components/common-header"
 import { useState } from "react"
 import { CommonSidebar } from "@/components/common-sidebar"
 import { clientSidebarConfig } from "@/config/sidebar-config"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function ClientLoginLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isAuthenticated } = useAuth()
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -25,7 +27,6 @@ export default function ClientLoginLayout({ children }: { children: React.ReactN
         <CommonHeader
           showMenuButton={true}
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-          isLoggedIn={false}
           title="YUNDA CLIENT"
           type="client"
         />

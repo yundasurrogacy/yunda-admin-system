@@ -35,7 +35,6 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
           <CommonHeader 
             showMenuButton={true} 
             onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
-            isLoggedIn={isAuthenticated} 
             type="admin"
           />
         )}

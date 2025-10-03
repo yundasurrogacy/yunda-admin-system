@@ -3,7 +3,7 @@ import { cn } from "../lib/utils"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
 
 // 定义菜单项类型
@@ -38,15 +38,38 @@ export function CommonSidebar({
   const safeGroups = Array.isArray(groups) ? groups : [];
   const pathname = usePathname()
   const router = useRouter();
-  const { isAuthenticated, getLoginPath } = useAuth()
+  const { isAuthenticated, getLoginPath, user, refreshSession } = useAuth()
+
+  // 添加认证状态监听和调试
+  useEffect(() => {
+    console.log(`[CommonSidebar] Auth state changed - isAuthenticated: ${isAuthenticated}, user: `, user, `type: ${type}`)
+    
+    // 额外的localStorage检查
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('userRole')
+      const userEmail = localStorage.getItem('userEmail')
+      const surrogateId = localStorage.getItem('surrogateId')
+      
+      console.log(`[CommonSidebar] localStorage data - Role: ${userRole}, Email: ${userEmail}, SurrogateId: ${surrogateId}`)
+      
+      // 如果localStorage有数据但isAuthenticated为false，强制刷新认证状态
+      if (userRole && userEmail && surrogateId && !isAuthenticated && type === 'surrogacy') {
+        console.log(`[CommonSidebar] Detected auth state mismatch for surrogacy, refreshing session`)
+        refreshSession()
+      }
+    }
+  }, [isAuthenticated, user, type, refreshSession])
 
   // 菜单点击统一处理，未登录跳转登录页
   const [showLoginTip, setShowLoginTip] = useState(false);
   const handleMenuClick = (href: string) => {
+    console.log(`[CommonSidebar] Menu click - isAuthenticated: ${isAuthenticated}, type: ${type}, href: ${href}`)
+    
     if (isAuthenticated) {
       router.push(href)
       onClose()
     } else {
+      console.log(`[CommonSidebar] User not authenticated, showing login tip`)
       setShowLoginTip(true)
     }
   }
