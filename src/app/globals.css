@@ -5,7 +5,8 @@
 
 :root {
   /* --background: #ffffff; */
-  --background: #FBF0DA25;
+  --background: #FBF0DA75;
+  --bg-background: var(--background);
   --foreground: #271F18;
   --font-serif: 'Source Serif 4', serif;
 }

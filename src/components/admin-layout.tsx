@@ -5,8 +5,8 @@ import { cn } from "../lib/utils"
 import { useState } from "react"
 import { CommonHeader } from "./common-header"
 import { CommonSidebar } from "./common-sidebar"
-// import { adminSidebarConfig } from "@/config/sidebar-config"
-import { getAdminSidebarConfig } from "@/config/sidebar-config";
+import { getAdminSidebarConfig } from "@/config/sidebar-config"
+import { useAuth } from "@/hooks/useAuth"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -16,6 +16,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { user, isAuthenticated } = useAuth()
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -24,9 +25,7 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         theme="sage"
-        // groups={adminSidebarConfig()}
         groups={getAdminSidebarConfig()}
-        // title="YUNDA ADMIN"
         type="admin"
       />
       
@@ -36,9 +35,7 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
           <CommonHeader 
             showMenuButton={true} 
             onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
-            isLoggedIn={isLoggedIn} 
-            // theme="purple"
-            // title="YUNDA ADMIN"
+            isLoggedIn={isAuthenticated} 
             type="admin"
           />
         )}

@@ -1,18 +1,22 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoginCard } from '@/components/common/login-card';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/useToast';
-import { getHasuraClient } from '@/config-lib/hasura-graphql-client/hasura-graphql-client';
+import { useAuth } from '@/hooks/useAuth';
+import { LoginForm } from '@/components/enhanced-login-form';
+import { apiClient } from '@/lib/api-client-auth';
 
 export default function ManagerLoginPage() {
-  // 计算header高度
-  const [headerHeight, setHeaderHeight] = useState(80)
+  const { t } = useTranslation('common')
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
-  const { t } = useTranslation('common')
+  const { login, isAuthenticated, getHomePath, user } = useAuth()
+
+  // 计算header高度
+  const [headerHeight, setHeaderHeight] = useState(80)
+  
   useEffect(() => {
     const updateHeaderHeight = () => {
       if (window.innerWidth >= 768) {
@@ -29,24 +33,38 @@ export default function ManagerLoginPage() {
   const handleLogin = async (username: string, password: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/client-manager-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (res.ok && data.manager) {
-        localStorage.setItem('managerId', data.manager.id);
-        localStorage.setItem('userRole', 'manager');
-        localStorage.setItem('userEmail', username);
-        router.push('/client-manager/my-cases');
+      const response = await apiClient.managerLogin({ username, password });
+      
+      if (response.success && response.data?.manager) {
+        // 使用新的认证系统
+        login({
+          id: String(response.data.manager.id),
+          email: username,
+          role: 'manager',
+          name: response.data.manager.name
+        });
+        
+        toast({
+          title: t("loginSuccess", { defaultValue: "登录成功" }),
+          description: t("managerLoginSuccess", { defaultValue: "欢迎回来，客户经理！" }),
+          variant: "default",
+        });
+        
+        // 登录成功后手动重定向
+        setTimeout(() => {
+          const homePath = getHomePath('manager')
+          router.replace(homePath)
+        }, 500)
+        
         return;
       }
-      throw new Error(data.error || t('loginError'));
+      
+      throw new Error(response.error || response.data?.error || t("loginError"));
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: t('loginFailed'),
-        description: t('loginErrorDesc'),
+        description: error instanceof Error ? error.message : t('loginErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -74,27 +92,27 @@ export default function ManagerLoginPage() {
         <h1 className="text-5xl font-serif italic text-[#3C2B1C] tracking-wide">{t('managerTitle', { defaultValue: 'MANAGER' })}</h1>
       </div>
       <div style={{
-        width: '100%',
+        width: "100%",
         maxWidth: 1080,
-        margin: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxSizing: 'border-box',
-        maxHeight: `calc(100vh - ${headerHeight}px - 80px)`
+        background: "rgba(251, 240, 218, 0.2)",
+        borderRadius: 32,
+        boxShadow: "0 32px 96px 0 rgba(191,201,191,0.28), 0 0 120px 24px rgba(251,240,218,0.38)",
+        margin: "auto",
+        border: "none",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "32px 32px",
+        boxSizing: "border-box",
       }}>
-        <LoginCard
-          title={t('managerTitle', { defaultValue: 'MANAGER' })}
-          subtitle={t('loginSubtitle')}
-          emailLabel={t('emailLabel')}
-          passwordLabel={t('passwordLabel')}
-          forgotPassword={t('forgotPassword')}
-          loginButton={t('loginButton')}
-          loggingIn={t('loggingIn')}
-          loading={loading}
-          onLogin={handleLogin}
-        />
+        <h2 className="text-xl font-serif mb-4 text-[#3C2B1C]">{t('loginSubtitle', { defaultValue: '使用您的邮箱地址登录' })}</h2>
+        <div style={{ width: "100%", maxWidth: 600, margin: "0 auto" }}>
+          <LoginForm 
+            onSubmit={handleLogin}
+            loading={loading}
+          />
+        </div>
       </div>
     </div>
   )

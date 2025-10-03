@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { GlobalAuthCheck } from "@/components/global-auth-check";
 
 export const metadata: Metadata = {
   title: "云达代孕管理系统",
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="antialiased">
         <ToastProvider>
-          {children}
+          <GlobalAuthCheck>
+            {children}
+          </GlobalAuthCheck>
         </ToastProvider>
       </body>
     </html>

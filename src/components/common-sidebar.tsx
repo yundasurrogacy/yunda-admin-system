@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { useAuth } from "@/hooks/useAuth"
 
 // 定义菜单项类型
 interface MenuItem {
@@ -23,7 +24,7 @@ interface CommonSidebarProps {
   theme?: "sage" | "blue" | "purple" | "default";
   groups: MenuGroup[]; // 菜单分组
   title?: string;
-  type?: "manager" | "admin" | "client" | "surrogacy";
+  type?: "manager" | "admin" | "client" | "surrogacy" | "client-manager";
 }
 
 export function CommonSidebar({ 
@@ -36,21 +37,19 @@ export function CommonSidebar({
 }: CommonSidebarProps) {
   const safeGroups = Array.isArray(groups) ? groups : [];
   const pathname = usePathname()
+  const router = useRouter();
+  const { isAuthenticated, getLoginPath } = useAuth()
 
-    const router = useRouter();
-
-    // 菜单点击统一处理，未登录跳转登录页
-    const [showLoginTip, setShowLoginTip] = useState(false);
-    const handleMenuClick = (href: string) => {
-      const role = localStorage.getItem("userRole")
-      const email = localStorage.getItem("userEmail")
-      if (role && email) {
-        router.push(href)
-        onClose()
-      } else {
-        setShowLoginTip(true)
-      }
+  // 菜单点击统一处理，未登录跳转登录页
+  const [showLoginTip, setShowLoginTip] = useState(false);
+  const handleMenuClick = (href: string) => {
+    if (isAuthenticated) {
+      router.push(href)
+      onClose()
+    } else {
+      setShowLoginTip(true)
     }
+  }
   // ...existing code...
 
   // 统一使用设计规范的颜色
@@ -81,11 +80,13 @@ export function CommonSidebar({
                 className="px-5 py-1.5 bg-sage-600 text-white rounded font-serif hover:bg-sage-700 transition"
                 onClick={() => {
                   setShowLoginTip(false)
-                  // let loginPath = "/client/login"
-                  // if (type === "admin") loginPath = "/admin/login"
-                  // else if (type === "manager") loginPath = "/manager/login"
-                  // else if (type === "surrogacy") loginPath = "/surrogacy/login"
-                  // router.push(loginPath)
+                  let roleType: 'admin' | 'client' | 'manager' | 'surrogacy' = 'client'
+                  if (type === 'admin') roleType = 'admin'
+                  else if (type === 'manager' || type === 'client-manager') roleType = 'manager'
+                  else if (type === 'surrogacy') roleType = 'surrogacy'
+                  
+                  const loginPath = getLoginPath(roleType)
+                  router.push(loginPath)
                   onClose()
                 }}
               >

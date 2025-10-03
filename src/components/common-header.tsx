@@ -6,6 +6,7 @@ import { cn } from "../lib/utils"
 import '../i18n' 
 import { useTranslation } from "react-i18next"
 import { useToast } from "@/hooks/useToast"
+import { useAuth } from "@/hooks/useAuth"
 
 interface CommonHeaderProps {
   onMenuClick?: () => void
@@ -21,35 +22,15 @@ export function CommonHeader({
   showMenuButton = true, 
   isLoggedIn: isLoggedInProp,
   theme = "sage",
-  // title = "YUNDA",
   type = "client"
 }: CommonHeaderProps) {
   const router = useRouter()
   const { t, i18n } = useTranslation("common")
-  // 语言只依赖i18n.language，去除多余useState
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  // console.log(i18n.language)
+  const { isAuthenticated, user, logout, getLoginPath } = useAuth()
+  const { toast } = useToast()
 
-    // const { t, i18n } = useTranslation("common")
-
-  useEffect(() => {
-    // 只要localStorage有userRole和userEmail即视为已登录
-    const role = localStorage.getItem("userRole")
-    const email = localStorage.getItem("userEmail")
-    setIsLoggedIn(!!role && !!email)
-  }, [])
-
-  useEffect(() => {
-    // 监听localStorage变化，确保切换后立即刷新状态
-    const checkLogin = () => {
-      const role = localStorage.getItem("userRole")
-      const email = localStorage.getItem("userEmail")
-      setIsLoggedIn(!!role && !!email)
-    }
-    checkLogin()
-    window.addEventListener("storage", checkLogin)
-    return () => window.removeEventListener("storage", checkLogin)
-  }, [])
+  // 使用认证系统的状态，如果有prop传入则优先使用prop
+  const isLoggedIn = isLoggedInProp !== undefined ? isLoggedInProp : isAuthenticated
 
   const toggleLanguage = () => {
     const currentLang = i18n.language as "en" | "zh-CN"
@@ -57,54 +38,20 @@ export function CommonHeader({
     if (typeof i18n?.changeLanguage === "function") {
       i18n.changeLanguage(newLang)
     }
-  // }
   }
 
   const handleLogin = () => {
-    router.push(`/${type}/login`)
-    setTimeout(() => {
-      const role = localStorage.getItem("userRole")
-      const email = localStorage.getItem("userEmail")
-      setIsLoggedIn(!!role && !!email)
-    }, 500)
+    let roleType: 'admin' | 'client' | 'manager' | 'surrogacy' = 'client'
+    if (type === 'admin') roleType = 'admin'
+    else if (type === 'manager' || type === 'client-manager') roleType = 'manager'
+    else if (type === 'surrogacy') roleType = 'surrogacy'
+    
+    const loginPath = getLoginPath(roleType)
+    router.push(loginPath)
   }
 
-  const { toast } = useToast();
   const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem("isAuthenticated")
-    localStorage.removeItem("userRole")
-    localStorage.removeItem("userEmail")
-    // 针对不同端清除对应 id，并兜底全部清理
-    switch(type) {
-      case "admin":
-        localStorage.removeItem("adminId");
-        break;
-      case "client":
-        localStorage.removeItem("parentId");
-        break;
-      case "manager":
-      case "client-manager":
-        localStorage.removeItem("managerId");
-        break;
-      case "surrogacy":
-        localStorage.removeItem("surrogateId");
-        break;
-      default:
-        break;
-    }
-    // 兜底清理所有 id，防止 type 传递错误导致 id 残留
-    localStorage.removeItem("adminId");
-    localStorage.removeItem("parentId");
-    localStorage.removeItem("managerId");
-    localStorage.removeItem("surrogateId");
-
-    // Clear authentication cookie
-    document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-
-    setIsLoggedIn(false)
-
-    // 退出登录反馈
+    // 获取角色文本用于提示
     let roleText = '';
     switch(type) {
       case 'admin':
@@ -121,16 +68,18 @@ export function CommonHeader({
         roleText = t('surrogacyTitle', { defaultValue: '代孕母' });
         break;
       default:
-        roleText = t('logOut');
+        roleText = t('user', { defaultValue: '用户' });
     }
+
+    // 使用认证系统的logout方法
+    logout()
+    
+    // 显示退出成功提示
     toast({
       title: t('logOutSuccess', { defaultValue: '退出成功' }),
       description: `${roleText}${t('logOutSuccessDesc', { defaultValue: '已安全退出登录' })}`,
       variant: 'default',
     });
-    setTimeout(() => {
-      router.push(`/${type}/login`)
-    }, 800);
   }
 
   // ...existing code...

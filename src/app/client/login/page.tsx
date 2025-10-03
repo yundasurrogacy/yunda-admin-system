@@ -3,18 +3,21 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { LoginCard } from '@/components/common/login-card'
-import { useToast } from "@/hooks/useToast"
-import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
 import { useTranslation } from 'react-i18next'
+import { useToast } from "@/hooks/useToast"
+import { useAuth } from '@/hooks/useAuth'
+import { LoginForm } from '@/components/enhanced-login-form'
+import { apiClient } from '@/lib/api-client-auth'
 
 export default function ClientLoginPage() {
-  // 计算header高度
-  const [headerHeight, setHeaderHeight] = useState(80)
+  const { t } = useTranslation('common')
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
-  const { t } = useTranslation('common')
+  const { login, isAuthenticated, getHomePath, user } = useAuth()
+
+  // 计算header高度
+  const [headerHeight, setHeaderHeight] = useState(80)
   
   // 响应式 header 高度
   useEffect(() => {
@@ -30,30 +33,41 @@ export default function ClientLoginPage() {
     return () => window.removeEventListener('resize', updateHeaderHeight)
   }, [])
 
-  const [error, setError] = useState('');
   const handleLogin = async (username: string, password: string) => {
     setLoading(true);
-    setError('');
     try {
-      const res = await fetch('/api/intended-parent-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: username, password })
-      });
-      const data = await res.json();
-      if (res.ok && data.parent) {
-        localStorage.setItem('parentId', data.parent.id);
-        localStorage.setItem('userRole', 'client');
-        localStorage.setItem('userEmail', username);
-        router.push('/client/dashboard');
+      const response = await apiClient.clientLogin({ username, password });
+      
+      if (response.success && response.data?.parent) {
+        // 使用新的认证系统
+        login({
+          id: String(response.data.parent.id),
+          email: username,
+          role: 'client',
+          name: response.data.parent.name || '客户'
+        });
+        
+        toast({
+          title: t("loginSuccess", { defaultValue: "登录成功" }),
+          description: t("clientLoginSuccess", { defaultValue: "欢迎回来！" }),
+          variant: "default",
+        });
+        
+        // 登录成功后手动重定向
+        setTimeout(() => {
+          const homePath = getHomePath('client')
+          router.replace(homePath)
+        }, 500)
+        
         return;
       }
-      throw new Error(data.error || t('loginError'));
+      
+      throw new Error(response.error || response.data?.error || t("loginError"));
     } catch (error) {
-      setError('登录失败');
+      console.error('Login error:', error);
       toast({
         title: t('loginFailed'),
-        description: t('loginErrorDesc'),
+        description: error instanceof Error ? error.message : t('loginErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -80,29 +94,30 @@ export default function ClientLoginPage() {
       }}>
         <h1 className="text-5xl font-serif italic text-[#3C2B1C] tracking-wide">{t('clientTitle', { defaultValue: 'CLIENT' })}</h1>
       </div>
-      <div style={{
-        width: '100%',
-        maxWidth: 1080,
-        margin: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxSizing: 'border-box',
-        maxHeight: `calc(100vh - ${headerHeight}px - 80px)`
-      }}>
-        <LoginCard
-          title={t('clientTitle', { defaultValue: 'CLIENT' })}
-          subtitle={t('loginSubtitle')}
-          emailLabel={t('emailLabel')}
-          passwordLabel={t('passwordLabel')}
-          forgotPassword={t('forgotPassword')}
-          loginButton={t('loginButton')}
-          loggingIn={t('loggingIn')}
-          loading={loading}
-          onLogin={handleLogin}
-        />
-      </div>
+
+        <div style={{
+          width: "100%",
+          maxWidth: 1080,
+          background: "rgba(251, 240, 218, 0.2)",
+          borderRadius: 32,
+          boxShadow: "0 32px 96px 0 rgba(191,201,191,0.28), 0 0 120px 24px rgba(251,240,218,0.38)",
+          margin: "auto",
+          border: "none",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "32px 32px",
+          boxSizing: "border-box",
+        }}>
+          <h2 className="text-xl font-serif mb-4 text-[#3C2B1C]">{t('loginSubtitle', { defaultValue: '使用您的邮箱地址登录' })}</h2>
+          <div style={{ width: "100%", maxWidth: 600, margin: "0 auto" }}>
+            <LoginForm 
+              onSubmit={handleLogin}
+              loading={loading}
+            />
+          </div>
+        </div>
     </div>
   )
 }

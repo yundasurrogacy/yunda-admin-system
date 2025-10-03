@@ -1,10 +1,12 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
+import { AuthGuard } from "@/components/auth-guard"
 
 export default function ClientDashboardPage() {
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <AuthGuard requiredRole="client">
+      <div className="space-y-8 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">DASHBOARD</h1>
         <p className="text-sm text-gray-600 mt-1">
@@ -185,5 +187,6 @@ export default function ClientDashboardPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   )
 }

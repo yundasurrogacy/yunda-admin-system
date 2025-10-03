@@ -17,8 +17,22 @@ import {
 import { Dialog } from "@/components/ui/dialog"
 import { useForm } from "react-hook-form"
 import { useTranslation } from 'react-i18next'
+import { useAdminAuth } from "@/hooks/usePageAuth"
 
 export default function ClientProfilesPage() {
+  const { isAuthenticated, isLoading } = useAdminAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">加载中...</div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null // 会被认证检查重定向
+  }
   const { t } = useTranslation('common')
 
   const [clients, setClients] = useState<any[]>([])

@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useTranslation } from 'react-i18next';
+import { AuthGuard } from '@/components/auth-guard';
 // import { console } from 'inspector';
 
 interface CaseItem {
@@ -147,8 +148,9 @@ const MyCasesPage = () => {
   };
 
   return (
-    <ManagerLayout>
-      <div className="p-6">
+    <AuthGuard requiredRole="manager">
+      <ManagerLayout>
+        <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">{t('MY CASES')}</h1>
 
         <div className="flex flex-wrap gap-4 mb-6">
@@ -277,9 +279,8 @@ const MyCasesPage = () => {
             ))
           )}
         </div>
-      </div>
-    </ManagerLayout>
+        </div>
+      </ManagerLayout>
+    </AuthGuard>
   );
-};
-
-export default MyCasesPage;
+};export default MyCasesPage;

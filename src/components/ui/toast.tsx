@@ -6,17 +6,21 @@ const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> & {
     variant?: "default" | "destructive"
+    style?: React.CSSProperties
   }
->(({ className, variant = "default", ...props }, ref) => {
+>(({ className, variant = "default", style, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(
-        "fixed bottom-4 right-4 z-50 flex max-w-md items-center rounded-md border border-gray-200 bg-white px-6 py-4 shadow-lg",
+        "z-50 flex max-w-md items-center rounded-md border border-gray-200 bg-white px-6 py-4 shadow-lg",
         variant === "destructive" &&
           "border-red-600 bg-red-50 text-red-900",
+        variant === "default" &&
+          "border-green-200 bg-green-50 text-green-900",
         className
       )}
+      style={style}
       {...props}
     />
   )

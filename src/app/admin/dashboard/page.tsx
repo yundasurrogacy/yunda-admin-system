@@ -8,6 +8,7 @@ import { Button } from "../../../components/ui/button"
 import { Alert, AlertDescription } from "../../../components/ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { AuthGuard } from "../../../components/auth-guard"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -63,11 +64,12 @@ export default function DashboardPage() {
   const chartColors = ["#E8E2D5", "#D4C0A8", "#8B6F47", "#6B4F3A", "#A9907E"]
 
   return (
-    <AdminLayout>
-      <div className="space-y-6 p-8 bg-page-bg font-serif">
-        <div>
-          <h1 className="text-3xl font-bold text-brand-brown-dark tracking-wider">{t("DASHBOARD")}</h1>
-        </div>
+    <AuthGuard requiredRole="admin">
+      <AdminLayout>
+        <div className="space-y-6 p-8 bg-page-bg font-serif">
+          <div>
+            <h1 className="text-3xl font-bold text-brand-brown-dark tracking-wider">{t("DASHBOARD")}</h1>
+          </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Total Active Cases Card */}
@@ -169,5 +171,6 @@ export default function DashboardPage() {
         </Card>
       </div>
     </AdminLayout>
+    </AuthGuard>
   )
 }
