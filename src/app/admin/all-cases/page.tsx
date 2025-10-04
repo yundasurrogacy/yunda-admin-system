@@ -10,10 +10,8 @@ import { AdminLayout } from "@/components/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Plus, UserPlus } from "lucide-react"
 
-// ...existing code...
 export default function AllCasesPage() {
   const { t, i18n } = useTranslation("common")
-  // ...existing code...
   // 国际化由 i18n 控制，无需本地 language 状态
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showAssignDialog, setShowAssignDialog] = useState(false)
@@ -65,8 +63,6 @@ export default function AllCasesPage() {
     console.log('clients:', clients);
     console.log('managers:', managers);
   }, [cases, surrogates, clients, managers]);
-
-  // ...existing code...
 
   // 刷新全部数据
   const fetchAllData = async () => {
@@ -149,6 +145,10 @@ export default function AllCasesPage() {
                   </div>
                 </div>
                 <hr className="my-3 border-sage-100" />
+                <div className="flex flex-wrap gap-2 text-sm">
+                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/journey?caseId=${c.id}`)}>{t('journey.title')}</span>
+                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/ivf-clinic?caseId=${c.id}`)}>{t('ivfClinic.title')}</span>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sage-500 text-sm">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
                   {managerName === "-" && (

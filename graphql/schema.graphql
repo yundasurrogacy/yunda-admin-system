@@ -909,6 +909,42 @@ type cases {
   ): ivf_clinics_aggregate!
 
   """An array relationship"""
+  journeys(
+    """distinct select on columns"""
+    distinct_on: [journeys_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [journeys_order_by!]
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): [journeys!]!
+
+  """An aggregate relationship"""
+  journeys_aggregate(
+    """distinct select on columns"""
+    distinct_on: [journeys_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [journeys_order_by!]
+
+    """filter the rows returned"""
+    where: journeys_bool_exp
+  ): journeys_aggregate!
+
+  """An array relationship"""
   posts(
     """distinct select on columns"""
     distinct_on: [posts_select_column!]
@@ -1072,6 +1108,8 @@ input cases_bool_exp {
   intended_parent_intended_parents: bigint_comparison_exp
   ivf_clinics: ivf_clinics_bool_exp
   ivf_clinics_aggregate: ivf_clinics_aggregate_bool_exp
+  journeys: journeys_bool_exp
+  journeys_aggregate: journeys_aggregate_bool_exp
   posts: posts_bool_exp
   posts_aggregate: posts_aggregate_bool_exp
   process_status: String_comparison_exp
@@ -1714,6 +1752,7 @@ input cases_insert_input {
   """外键，准父母"""
   intended_parent_intended_parents: bigint
   ivf_clinics: ivf_clinics_arr_rel_insert_input
+  journeys: journeys_arr_rel_insert_input
   posts: posts_arr_rel_insert_input
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
@@ -1856,6 +1895,7 @@ input cases_order_by {
   intended_parent: intended_parents_order_by
   intended_parent_intended_parents: order_by
   ivf_clinics_aggregate: ivf_clinics_aggregate_order_by
+  journeys_aggregate: journeys_aggregate_order_by
   posts_aggregate: posts_aggregate_order_by
   process_status: order_by
   surrogate_mother: surrogate_mothers_order_by
@@ -3763,6 +3803,9 @@ input ivf_clinics_variance_order_by {
 
 """代孕旅程"""
 type journeys {
+  """An object relationship"""
+  case: cases
+
   """关联外键，cases"""
   case_cases: bigint
 
@@ -3820,6 +3863,17 @@ type journeys_aggregate {
   nodes: [journeys!]!
 }
 
+input journeys_aggregate_bool_exp {
+  count: journeys_aggregate_bool_exp_count
+}
+
+input journeys_aggregate_bool_exp_count {
+  arguments: [journeys_select_column!]
+  distinct: Boolean
+  filter: journeys_bool_exp
+  predicate: Int_comparison_exp!
+}
+
 """
 aggregate fields of "journeys"
 """
@@ -3837,6 +3891,33 @@ type journeys_aggregate_fields {
   variance: journeys_variance_fields
 }
 
+"""
+order by aggregate values of table "journeys"
+"""
+input journeys_aggregate_order_by {
+  avg: journeys_avg_order_by
+  count: order_by
+  max: journeys_max_order_by
+  min: journeys_min_order_by
+  stddev: journeys_stddev_order_by
+  stddev_pop: journeys_stddev_pop_order_by
+  stddev_samp: journeys_stddev_samp_order_by
+  sum: journeys_sum_order_by
+  var_pop: journeys_var_pop_order_by
+  var_samp: journeys_var_samp_order_by
+  variance: journeys_variance_order_by
+}
+
+"""
+input type for inserting array relation for remote table "journeys"
+"""
+input journeys_arr_rel_insert_input {
+  data: [journeys_insert_input!]!
+
+  """upsert condition"""
+  on_conflict: journeys_on_conflict
+}
+
 """aggregate avg on columns"""
 type journeys_avg_fields {
   """关联外键，cases"""
@@ -3848,12 +3929,25 @@ type journeys_avg_fields {
 }
 
 """
+order by avg() on columns of table "journeys"
+"""
+input journeys_avg_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+}
+
+"""
 Boolean expression to filter rows from the table "journeys". All fields are combined with a logical 'AND'.
 """
 input journeys_bool_exp {
   _and: [journeys_bool_exp!]
   _not: journeys_bool_exp
   _or: [journeys_bool_exp!]
+  case: cases_bool_exp
   case_cases: bigint_comparison_exp
   cases_files: cases_files_bool_exp
   cases_files_aggregate: cases_files_aggregate_bool_exp
@@ -3890,6 +3984,8 @@ input journeys_inc_input {
 input type for inserting data into table "journeys"
 """
 input journeys_insert_input {
+  case: cases_obj_rel_insert_input
+
   """关联外键，cases"""
   case_cases: bigint
   cases_files: cases_files_arr_rel_insert_input
@@ -3919,6 +4015,23 @@ type journeys_max_fields {
   updated_at: timestamptz
 }
 
+"""
+order by max() on columns of table "journeys"
+"""
+input journeys_max_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  created_at: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+
+  """标题"""
+  title: order_by
+  updated_at: order_by
+}
+
 """aggregate min on columns"""
 type journeys_min_fields {
   """关联外键，cases"""
@@ -3932,6 +4045,23 @@ type journeys_min_fields {
   """标题"""
   title: String
   updated_at: timestamptz
+}
+
+"""
+order by min() on columns of table "journeys"
+"""
+input journeys_min_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  created_at: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+
+  """标题"""
+  title: order_by
+  updated_at: order_by
 }
 
 """
@@ -3966,6 +4096,7 @@ input journeys_on_conflict {
 
 """Ordering options when selecting data from "journeys"."""
 input journeys_order_by {
+  case: cases_order_by
   case_cases: order_by
   cases_files_aggregate: cases_files_aggregate_order_by
   created_at: order_by
@@ -4030,6 +4161,18 @@ type journeys_stddev_fields {
   stage: Float
 }
 
+"""
+order by stddev() on columns of table "journeys"
+"""
+input journeys_stddev_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+}
+
 """aggregate stddev_pop on columns"""
 type journeys_stddev_pop_fields {
   """关联外键，cases"""
@@ -4040,6 +4183,18 @@ type journeys_stddev_pop_fields {
   stage: Float
 }
 
+"""
+order by stddev_pop() on columns of table "journeys"
+"""
+input journeys_stddev_pop_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+}
+
 """aggregate stddev_samp on columns"""
 type journeys_stddev_samp_fields {
   """关联外键，cases"""
@@ -4048,6 +4203,18 @@ type journeys_stddev_samp_fields {
 
   """步骤序号：1-7"""
   stage: Float
+}
+
+"""
+order by stddev_samp() on columns of table "journeys"
+"""
+input journeys_stddev_samp_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
 }
 
 """
@@ -4084,6 +4251,18 @@ type journeys_sum_fields {
 
   """步骤序号：1-7"""
   stage: bigint
+}
+
+"""
+order by sum() on columns of table "journeys"
+"""
+input journeys_sum_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
 }
 
 """
@@ -4130,6 +4309,18 @@ type journeys_var_pop_fields {
   stage: Float
 }
 
+"""
+order by var_pop() on columns of table "journeys"
+"""
+input journeys_var_pop_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+}
+
 """aggregate var_samp on columns"""
 type journeys_var_samp_fields {
   """关联外键，cases"""
@@ -4140,6 +4331,18 @@ type journeys_var_samp_fields {
   stage: Float
 }
 
+"""
+order by var_samp() on columns of table "journeys"
+"""
+input journeys_var_samp_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
+}
+
 """aggregate variance on columns"""
 type journeys_variance_fields {
   """关联外键，cases"""
@@ -4148,6 +4351,18 @@ type journeys_variance_fields {
 
   """步骤序号：1-7"""
   stage: Float
+}
+
+"""
+order by variance() on columns of table "journeys"
+"""
+input journeys_variance_order_by {
+  """关联外键，cases"""
+  case_cases: order_by
+  id: order_by
+
+  """步骤序号：1-7"""
+  stage: order_by
 }
 
 scalar jsonb
@@ -7131,9 +7346,7 @@ type query_root {
   """fetch data from the table: "ivf_clinics" using primary key columns"""
   ivf_clinics_by_pk(id: bigint!): ivf_clinics
 
-  """
-  fetch data from the table: "journeys"
-  """
+  """An array relationship"""
   journeys(
     """distinct select on columns"""
     distinct_on: [journeys_select_column!]
@@ -7151,9 +7364,7 @@ type query_root {
     where: journeys_bool_exp
   ): [journeys!]!
 
-  """
-  fetch aggregated fields from the table: "journeys"
-  """
+  """An aggregate relationship"""
   journeys_aggregate(
     """distinct select on columns"""
     distinct_on: [journeys_select_column!]
@@ -7772,9 +7983,7 @@ type subscription_root {
     where: ivf_clinics_bool_exp
   ): [ivf_clinics!]!
 
-  """
-  fetch data from the table: "journeys"
-  """
+  """An array relationship"""
   journeys(
     """distinct select on columns"""
     distinct_on: [journeys_select_column!]
@@ -7792,9 +8001,7 @@ type subscription_root {
     where: journeys_bool_exp
   ): [journeys!]!
 
-  """
-  fetch aggregated fields from the table: "journeys"
-  """
+  """An aggregate relationship"""
   journeys_aggregate(
     """distinct select on columns"""
     distinct_on: [journeys_select_column!]
@@ -8160,6 +8367,10 @@ type surrogate_mothers {
 
   """登录的邮箱"""
   email: String!
+  gestational_surrogacy_interview(
+    """JSON select path"""
+    path: String
+  ): jsonb
   id: bigint!
 
   """密码"""
@@ -8249,6 +8460,7 @@ input surrogate_mothers_append_input {
 
   """联系方式"""
   contact_information: jsonb
+  gestational_surrogacy_interview: jsonb
 
   """准生育与健康经历"""
   pregnancy_and_health: jsonb
@@ -8277,6 +8489,7 @@ input surrogate_mothers_bool_exp {
   contact_information: jsonb_comparison_exp
   created_at: timestamptz_comparison_exp
   email: String_comparison_exp
+  gestational_surrogacy_interview: jsonb_comparison_exp
   id: bigint_comparison_exp
   password: String_comparison_exp
   post_comments: post_comments_bool_exp
@@ -8310,6 +8523,7 @@ input surrogate_mothers_delete_at_path_input {
 
   """联系方式"""
   contact_information: [String!]
+  gestational_surrogacy_interview: [String!]
 
   """准生育与健康经历"""
   pregnancy_and_health: [String!]
@@ -8329,6 +8543,7 @@ input surrogate_mothers_delete_elem_input {
 
   """联系方式"""
   contact_information: Int
+  gestational_surrogacy_interview: Int
 
   """准生育与健康经历"""
   pregnancy_and_health: Int
@@ -8348,6 +8563,7 @@ input surrogate_mothers_delete_key_input {
 
   """联系方式"""
   contact_information: String
+  gestational_surrogacy_interview: String
 
   """准生育与健康经历"""
   pregnancy_and_health: String
@@ -8379,6 +8595,7 @@ input surrogate_mothers_insert_input {
 
   """登录的邮箱"""
   email: String
+  gestational_surrogacy_interview: jsonb
   id: bigint
 
   """密码"""
@@ -8458,6 +8675,7 @@ input surrogate_mothers_order_by {
   contact_information: order_by
   created_at: order_by
   email: order_by
+  gestational_surrogacy_interview: order_by
   id: order_by
   password: order_by
   post_comments_aggregate: post_comments_aggregate_order_by
@@ -8478,6 +8696,7 @@ input surrogate_mothers_prepend_input {
 
   """联系方式"""
   contact_information: jsonb
+  gestational_surrogacy_interview: jsonb
 
   """准生育与健康经历"""
   pregnancy_and_health: jsonb
@@ -8503,6 +8722,9 @@ enum surrogate_mothers_select_column {
 
   """column name"""
   email
+
+  """column name"""
+  gestational_surrogacy_interview
 
   """column name"""
   id
@@ -8533,6 +8755,7 @@ input surrogate_mothers_set_input {
 
   """登录的邮箱"""
   email: String
+  gestational_surrogacy_interview: jsonb
   id: bigint
 
   """密码"""
@@ -8585,6 +8808,7 @@ input surrogate_mothers_stream_cursor_value_input {
 
   """登录的邮箱"""
   email: String
+  gestational_surrogacy_interview: jsonb
   id: bigint
 
   """密码"""
@@ -8620,6 +8844,9 @@ enum surrogate_mothers_update_column {
 
   """column name"""
   email
+
+  """column name"""
+  gestational_surrogacy_interview
 
   """column name"""
   id

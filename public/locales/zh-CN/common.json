@@ -492,7 +492,11 @@
       "title": "阶段 7：旅程后支持",
       "item1": "已提供离境支持",
       "item2": "旅程已完成"
-    }
+    },
+    "addItemPrompt": "请输入要添加的事项内容",
+    "addItem": "添加事项",
+    "addItemFail": "添加失败",
+    "networkError": "网络错误"
   },
   "N/A": "无",
   "common": {

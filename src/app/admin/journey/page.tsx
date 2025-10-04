@@ -1,6 +1,6 @@
 'use client'
 import React, { Suspense, useEffect, useState } from 'react'
-import ManagerLayout from '@/components/manager-layout';
+import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -102,13 +102,13 @@ function JourneyInner() {
       }));
 
       try {
-        const managerId = typeof window !== 'undefined' ? localStorage.getItem('managerId') : null;
-        if (!managerId || !caseId) {
+        const adminId = typeof window !== 'undefined' ? localStorage.getItem('adminId') : null;
+        if (!adminId || !caseId) {
           setIsLoading(false);
-          setTimeline(baseTimeline); // 如果没有 managerId 或 caseId，显示空的7个阶段
+          setTimeline(baseTimeline);
           return;
         }
-        const res = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
+        const res = await fetch(`/api/cases-by-admin?adminId=${adminId}`);
         const data = await res.json();
         
         const casesArr = Array.isArray(data) ? data : (data.cases || data.data || []);
@@ -153,28 +153,8 @@ function JourneyInner() {
     router.push(`/client-manager/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}`);
   };
 
-  // 添加 journey
-  const handleAddJourney = async (stageNumber: number) => {
-    const title = window.prompt(t('journey.addItemPrompt'));
-    if (!title || !caseId) return;
-    try {
-      const res = await fetch('/api/cases-by-manager/add-journey', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId, stage: stageNumber, title }),
-      });
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        alert(t('journey.addItemFail'));
-      }
-    } catch (e) {
-      alert(t('journey.networkError'));
-    }
-  };
-
   return (
-    <ManagerLayout>
+    <AdminLayout>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('journey.title')}</h1>
         <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p>
@@ -212,18 +192,13 @@ function JourneyInner() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-3 py-1 text-xs mt-1"
-                  onClick={() => handleAddJourney(step.stageNumber)}
-                >
-                  + {t('journey.addItem')}
-                </Button>
+                {/* 只读模式：不显示添加按钮 */}
               </div>
             ))}
           </div>
         </Card>
       </div>
-    </ManagerLayout>
+    </AdminLayout>
   )
 }
 

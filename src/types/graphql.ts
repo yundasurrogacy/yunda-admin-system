@@ -721,6 +721,10 @@ export type Cases = {
   /** An aggregate relationship */
   ivf_clinics_aggregate: Ivf_Clinics_Aggregate;
   /** An array relationship */
+  journeys: Array<Journeys>;
+  /** An aggregate relationship */
+  journeys_aggregate: Journeys_Aggregate;
+  /** An array relationship */
   posts: Array<Posts>;
   /** An aggregate relationship */
   posts_aggregate: Posts_Aggregate;
@@ -773,6 +777,26 @@ export type CasesIvf_Clinics_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
   order_by?: InputMaybe<Array<Ivf_Clinics_Order_By>>;
   where?: InputMaybe<Ivf_Clinics_Bool_Exp>;
+};
+
+
+/** columns and relationships of "cases" */
+export type CasesJourneysArgs = {
+  distinct_on?: InputMaybe<Array<Journeys_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Journeys_Order_By>>;
+  where?: InputMaybe<Journeys_Bool_Exp>;
+};
+
+
+/** columns and relationships of "cases" */
+export type CasesJourneys_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Journeys_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Journeys_Order_By>>;
+  where?: InputMaybe<Journeys_Bool_Exp>;
 };
 
 
@@ -900,6 +924,8 @@ export type Cases_Bool_Exp = {
   intended_parent_intended_parents?: InputMaybe<Bigint_Comparison_Exp>;
   ivf_clinics?: InputMaybe<Ivf_Clinics_Bool_Exp>;
   ivf_clinics_aggregate?: InputMaybe<Ivf_Clinics_Aggregate_Bool_Exp>;
+  journeys?: InputMaybe<Journeys_Bool_Exp>;
+  journeys_aggregate?: InputMaybe<Journeys_Aggregate_Bool_Exp>;
   posts?: InputMaybe<Posts_Bool_Exp>;
   posts_aggregate?: InputMaybe<Posts_Aggregate_Bool_Exp>;
   process_status?: InputMaybe<String_Comparison_Exp>;
@@ -1426,6 +1452,7 @@ export type Cases_Insert_Input = {
   /** 外键，准父母 */
   intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   ivf_clinics?: InputMaybe<Ivf_Clinics_Arr_Rel_Insert_Input>;
+  journeys?: InputMaybe<Journeys_Arr_Rel_Insert_Input>;
   posts?: InputMaybe<Posts_Arr_Rel_Insert_Input>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: InputMaybe<Scalars['String']['input']>;
@@ -1540,6 +1567,7 @@ export type Cases_Order_By = {
   intended_parent?: InputMaybe<Intended_Parents_Order_By>;
   intended_parent_intended_parents?: InputMaybe<Order_By>;
   ivf_clinics_aggregate?: InputMaybe<Ivf_Clinics_Aggregate_Order_By>;
+  journeys_aggregate?: InputMaybe<Journeys_Aggregate_Order_By>;
   posts_aggregate?: InputMaybe<Posts_Aggregate_Order_By>;
   process_status?: InputMaybe<Order_By>;
   surrogate_mother?: InputMaybe<Surrogate_Mothers_Order_By>;
@@ -3107,6 +3135,8 @@ export type Ivf_Clinics_Variance_Order_By = {
 /** 代孕旅程 */
 export type Journeys = {
   __typename?: 'journeys';
+  /** An object relationship */
+  case?: Maybe<Cases>;
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   /** An array relationship */
@@ -3149,6 +3179,17 @@ export type Journeys_Aggregate = {
   nodes: Array<Journeys>;
 };
 
+export type Journeys_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Journeys_Aggregate_Bool_Exp_Count>;
+};
+
+export type Journeys_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Journeys_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<Journeys_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "journeys" */
 export type Journeys_Aggregate_Fields = {
   __typename?: 'journeys_aggregate_fields';
@@ -3172,6 +3213,28 @@ export type Journeys_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+/** order by aggregate values of table "journeys" */
+export type Journeys_Aggregate_Order_By = {
+  avg?: InputMaybe<Journeys_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Journeys_Max_Order_By>;
+  min?: InputMaybe<Journeys_Min_Order_By>;
+  stddev?: InputMaybe<Journeys_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Journeys_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Journeys_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Journeys_Sum_Order_By>;
+  var_pop?: InputMaybe<Journeys_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Journeys_Var_Samp_Order_By>;
+  variance?: InputMaybe<Journeys_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "journeys" */
+export type Journeys_Arr_Rel_Insert_Input = {
+  data: Array<Journeys_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Journeys_On_Conflict>;
+};
+
 /** aggregate avg on columns */
 export type Journeys_Avg_Fields = {
   __typename?: 'journeys_avg_fields';
@@ -3182,11 +3245,21 @@ export type Journeys_Avg_Fields = {
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by avg() on columns of table "journeys" */
+export type Journeys_Avg_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+};
+
 /** Boolean expression to filter rows from the table "journeys". All fields are combined with a logical 'AND'. */
 export type Journeys_Bool_Exp = {
   _and?: InputMaybe<Array<Journeys_Bool_Exp>>;
   _not?: InputMaybe<Journeys_Bool_Exp>;
   _or?: InputMaybe<Array<Journeys_Bool_Exp>>;
+  case?: InputMaybe<Cases_Bool_Exp>;
   case_cases?: InputMaybe<Bigint_Comparison_Exp>;
   cases_files?: InputMaybe<Cases_Files_Bool_Exp>;
   cases_files_aggregate?: InputMaybe<Cases_Files_Aggregate_Bool_Exp>;
@@ -3214,6 +3287,7 @@ export type Journeys_Inc_Input = {
 
 /** input type for inserting data into table "journeys" */
 export type Journeys_Insert_Input = {
+  case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   /** 关联外键，cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   cases_files?: InputMaybe<Cases_Files_Arr_Rel_Insert_Input>;
@@ -3240,6 +3314,19 @@ export type Journeys_Max_Fields = {
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
 };
 
+/** order by max() on columns of table "journeys" */
+export type Journeys_Max_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+  /** 标题 */
+  title?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Journeys_Min_Fields = {
   __typename?: 'journeys_min_fields';
@@ -3252,6 +3339,19 @@ export type Journeys_Min_Fields = {
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
+};
+
+/** order by min() on columns of table "journeys" */
+export type Journeys_Min_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+  /** 标题 */
+  title?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "journeys" */
@@ -3279,6 +3379,7 @@ export type Journeys_On_Conflict = {
 
 /** Ordering options when selecting data from "journeys". */
 export type Journeys_Order_By = {
+  case?: InputMaybe<Cases_Order_By>;
   case_cases?: InputMaybe<Order_By>;
   cases_files_aggregate?: InputMaybe<Cases_Files_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -3332,6 +3433,15 @@ export type Journeys_Stddev_Fields = {
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by stddev() on columns of table "journeys" */
+export type Journeys_Stddev_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+};
+
 /** aggregate stddev_pop on columns */
 export type Journeys_Stddev_Pop_Fields = {
   __typename?: 'journeys_stddev_pop_fields';
@@ -3342,6 +3452,15 @@ export type Journeys_Stddev_Pop_Fields = {
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by stddev_pop() on columns of table "journeys" */
+export type Journeys_Stddev_Pop_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+};
+
 /** aggregate stddev_samp on columns */
 export type Journeys_Stddev_Samp_Fields = {
   __typename?: 'journeys_stddev_samp_fields';
@@ -3350,6 +3469,15 @@ export type Journeys_Stddev_Samp_Fields = {
   id?: Maybe<Scalars['Float']['output']>;
   /** 步骤序号：1-7 */
   stage?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "journeys" */
+export type Journeys_Stddev_Samp_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "journeys" */
@@ -3381,6 +3509,15 @@ export type Journeys_Sum_Fields = {
   id?: Maybe<Scalars['bigint']['output']>;
   /** 步骤序号：1-7 */
   stage?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** order by sum() on columns of table "journeys" */
+export type Journeys_Sum_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "journeys" */
@@ -3418,6 +3555,15 @@ export type Journeys_Var_Pop_Fields = {
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by var_pop() on columns of table "journeys" */
+export type Journeys_Var_Pop_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+};
+
 /** aggregate var_samp on columns */
 export type Journeys_Var_Samp_Fields = {
   __typename?: 'journeys_var_samp_fields';
@@ -3428,6 +3574,15 @@ export type Journeys_Var_Samp_Fields = {
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
+/** order by var_samp() on columns of table "journeys" */
+export type Journeys_Var_Samp_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
+};
+
 /** aggregate variance on columns */
 export type Journeys_Variance_Fields = {
   __typename?: 'journeys_variance_fields';
@@ -3436,6 +3591,15 @@ export type Journeys_Variance_Fields = {
   id?: Maybe<Scalars['Float']['output']>;
   /** 步骤序号：1-7 */
   stage?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "journeys" */
+export type Journeys_Variance_Order_By = {
+  /** 关联外键，cases */
+  case_cases?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** 步骤序号：1-7 */
+  stage?: InputMaybe<Order_By>;
 };
 
 export type Jsonb_Cast_Exp = {
@@ -5651,9 +5815,9 @@ export type Query_Root = {
   ivf_clinics_aggregate: Ivf_Clinics_Aggregate;
   /** fetch data from the table: "ivf_clinics" using primary key columns */
   ivf_clinics_by_pk?: Maybe<Ivf_Clinics>;
-  /** fetch data from the table: "journeys" */
+  /** An array relationship */
   journeys: Array<Journeys>;
-  /** fetch aggregated fields from the table: "journeys" */
+  /** An aggregate relationship */
   journeys_aggregate: Journeys_Aggregate;
   /** fetch data from the table: "journeys" using primary key columns */
   journeys_by_pk?: Maybe<Journeys>;
@@ -6046,9 +6210,9 @@ export type Subscription_Root = {
   ivf_clinics_by_pk?: Maybe<Ivf_Clinics>;
   /** fetch data from the table in a streaming manner: "ivf_clinics" */
   ivf_clinics_stream: Array<Ivf_Clinics>;
-  /** fetch data from the table: "journeys" */
+  /** An array relationship */
   journeys: Array<Journeys>;
-  /** fetch aggregated fields from the table: "journeys" */
+  /** An aggregate relationship */
   journeys_aggregate: Journeys_Aggregate;
   /** fetch data from the table: "journeys" using primary key columns */
   journeys_by_pk?: Maybe<Journeys>;
@@ -6500,6 +6664,7 @@ export type Surrogate_Mothers = {
   created_at: Scalars['timestamptz']['output'];
   /** 登录的邮箱 */
   email: Scalars['String']['output'];
+  gestational_surrogacy_interview?: Maybe<Scalars['jsonb']['output']>;
   id: Scalars['bigint']['output'];
   /** 密码 */
   password?: Maybe<Scalars['String']['output']>;
@@ -6543,6 +6708,12 @@ export type Surrogate_MothersCases_AggregateArgs = {
 
 /** 代孕母表 */
 export type Surrogate_MothersContact_InformationArgs = {
+  path?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** 代孕母表 */
+export type Surrogate_MothersGestational_Surrogacy_InterviewArgs = {
   path?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -6614,6 +6785,7 @@ export type Surrogate_Mothers_Append_Input = {
   about_you?: InputMaybe<Scalars['jsonb']['input']>;
   /** 联系方式 */
   contact_information?: InputMaybe<Scalars['jsonb']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['jsonb']['input']>;
   /** 准生育与健康经历 */
   pregnancy_and_health?: InputMaybe<Scalars['jsonb']['input']>;
   /** 上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}] */
@@ -6637,6 +6809,7 @@ export type Surrogate_Mothers_Bool_Exp = {
   contact_information?: InputMaybe<Jsonb_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   email?: InputMaybe<String_Comparison_Exp>;
+  gestational_surrogacy_interview?: InputMaybe<Jsonb_Comparison_Exp>;
   id?: InputMaybe<Bigint_Comparison_Exp>;
   password?: InputMaybe<String_Comparison_Exp>;
   post_comments?: InputMaybe<Post_Comments_Bool_Exp>;
@@ -6660,6 +6833,7 @@ export type Surrogate_Mothers_Delete_At_Path_Input = {
   about_you?: InputMaybe<Array<Scalars['String']['input']>>;
   /** 联系方式 */
   contact_information?: InputMaybe<Array<Scalars['String']['input']>>;
+  gestational_surrogacy_interview?: InputMaybe<Array<Scalars['String']['input']>>;
   /** 准生育与健康经历 */
   pregnancy_and_health?: InputMaybe<Array<Scalars['String']['input']>>;
   /** 上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}] */
@@ -6672,6 +6846,7 @@ export type Surrogate_Mothers_Delete_Elem_Input = {
   about_you?: InputMaybe<Scalars['Int']['input']>;
   /** 联系方式 */
   contact_information?: InputMaybe<Scalars['Int']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['Int']['input']>;
   /** 准生育与健康经历 */
   pregnancy_and_health?: InputMaybe<Scalars['Int']['input']>;
   /** 上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}] */
@@ -6684,6 +6859,7 @@ export type Surrogate_Mothers_Delete_Key_Input = {
   about_you?: InputMaybe<Scalars['String']['input']>;
   /** 联系方式 */
   contact_information?: InputMaybe<Scalars['String']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['String']['input']>;
   /** 准生育与健康经历 */
   pregnancy_and_health?: InputMaybe<Scalars['String']['input']>;
   /** 上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}] */
@@ -6705,6 +6881,7 @@ export type Surrogate_Mothers_Insert_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   /** 登录的邮箱 */
   email?: InputMaybe<Scalars['String']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['jsonb']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 密码 */
   password?: InputMaybe<Scalars['String']['input']>;
@@ -6770,6 +6947,7 @@ export type Surrogate_Mothers_Order_By = {
   contact_information?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
+  gestational_surrogacy_interview?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   password?: InputMaybe<Order_By>;
   post_comments_aggregate?: InputMaybe<Post_Comments_Aggregate_Order_By>;
@@ -6789,6 +6967,7 @@ export type Surrogate_Mothers_Prepend_Input = {
   about_you?: InputMaybe<Scalars['jsonb']['input']>;
   /** 联系方式 */
   contact_information?: InputMaybe<Scalars['jsonb']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['jsonb']['input']>;
   /** 准生育与健康经历 */
   pregnancy_and_health?: InputMaybe<Scalars['jsonb']['input']>;
   /** 上传的图片，至少两张 array-jsonb，如：[{"name":"a.png","url":"https://test.com/a.png"}] */
@@ -6805,6 +6984,8 @@ export enum Surrogate_Mothers_Select_Column {
   CreatedAt = 'created_at',
   /** column name */
   Email = 'email',
+  /** column name */
+  GestationalSurrogacyInterview = 'gestational_surrogacy_interview',
   /** column name */
   Id = 'id',
   /** column name */
@@ -6826,6 +7007,7 @@ export type Surrogate_Mothers_Set_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   /** 登录的邮箱 */
   email?: InputMaybe<Scalars['String']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['jsonb']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 密码 */
   password?: InputMaybe<Scalars['String']['input']>;
@@ -6871,6 +7053,7 @@ export type Surrogate_Mothers_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   /** 登录的邮箱 */
   email?: InputMaybe<Scalars['String']['input']>;
+  gestational_surrogacy_interview?: InputMaybe<Scalars['jsonb']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 密码 */
   password?: InputMaybe<Scalars['String']['input']>;
@@ -6897,6 +7080,8 @@ export enum Surrogate_Mothers_Update_Column {
   CreatedAt = 'created_at',
   /** column name */
   Email = 'email',
+  /** column name */
+  GestationalSurrogacyInterview = 'gestational_surrogacy_interview',
   /** column name */
   Id = 'id',
   /** column name */

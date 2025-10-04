@@ -419,7 +419,11 @@
       "title": "Stage 7: Post Journey Support",
       "item1": "Departure Support Provided",
       "item2": "Journey Completed"
-    }
+    },
+    "addItemPrompt": "Please enter the item content to add",
+    "addItem": "Add Item",
+    "addItemFail": "Add failed",
+    "networkError": "Network error"
   },
   "N/A": "N/A",
   "surrogacyProfile": {

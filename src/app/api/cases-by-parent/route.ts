@@ -35,6 +35,11 @@ export async function GET(req: Request) {
           created_at
           data(path: "name")
         }
+        journeys {
+          id
+          stage
+          title
+        }
       }
     }
   `;
