@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
             id
             file_url
             category
+            note
             file_type
             created_at
           }

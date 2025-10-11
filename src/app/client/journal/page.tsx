@@ -16,8 +16,12 @@ const JournalPage: React.FC = () => {
 
   // 获取动态列表
   useEffect(() => {
-    // 获取 parentId
-    const parentId = typeof window !== "undefined" ? localStorage.getItem("parentId") : null;
+    function getCookie(name: string) {
+      if (typeof document === 'undefined') return undefined;
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : undefined;
+    }
+    const parentId = typeof document !== 'undefined' ? getCookie('userId_client') : null;
     if (!parentId) {
       setError(t('myCases.error.noUserId', '未找到用户ID，请重新登录。'));
       setLoading(false);
@@ -113,13 +117,12 @@ const JournalPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#FBF0DA40] font-serif text-[#271F18] px-2 md:px-8 py-6 flex flex-col items-center"
-      style={{ fontFamily: 'Source Serif 4, serif' }}
+      className="min-h-screen bg-[#FBF0DA40] text-sage-800 px-2 md:px-8 py-6 flex flex-col items-center"
     >
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-4 md:p-8 flex flex-col gap-6">
-  {/* 标题与描述 */}
-  <h1 className="text-2xl font-bold mb-1">{t('myCases.journey', t('journey.title', 'My Journal'))}</h1>
-  <p className="mb-6 text-base">{t('journey.description', 'Record your experiences and feelings through your journey as a surrogate')}</p>
+        {/* 标题与描述 */}
+        <h1 className="text-2xl font-medium mb-1 text-sage-800">{t('myCases.journal', t('journal.title', 'My Journal'))}</h1>
+        <p className="mb-6 text-base text-sage-800">{t('journey.description', 'Record your experiences and feelings through your journey as a surrogate')}</p>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* 左侧日志卡片区 */}
           <div className="flex-1 flex flex-col gap-6 min-w-0">
@@ -147,11 +150,11 @@ const JournalPage: React.FC = () => {
                   {/* 右侧内容区 */}
                   <div className="flex-1 flex flex-col gap-2 min-w-0">
                     <div className="flex flex-wrap justify-between items-start gap-2">
-                      <div className="text-lg font-semibold flex-1 min-w-0 truncate">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
+                      <div className="text-lg font-medium flex-1 min-w-0 truncate text-sage-800">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
                       <div className="text-xs text-[#271F18] opacity-60 ml-0 md:ml-4 flex-shrink-0 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
                     </div>
                     <button
-                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start"
+                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start"
                       onClick={() => {
                         if (activePostId === post.id) {
                           setActivePostId(null);
@@ -166,12 +169,12 @@ const JournalPage: React.FC = () => {
 
                     {activePostId === post.id && (
                       <div className="mt-2">
-                        <div className="mb-2 text-xs font-bold">{t('comments', '评论：')}</div>
+                        <div className="mb-2 text-xs font-semibold text-sage-800">{t('comments', '评论：')}</div>
                         <div className="flex flex-col gap-2">
                           {(comments[post.id] || post.post_comments || []).map((c: any) => (
                             <div key={c.id} className="bg-white rounded px-2 py-2 text-xs border border-[#E6E6E6] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
                               <div className="flex-1 min-w-0">
-                                <span className="font-bold mr-2 text-[#3a2c1e]">
+                                <span className="font-semibold mr-2 text-sage-800">
                                   {(() => {
                                     // 当前端为准父母，自己发的评论显示“我”
                                     const parentId = typeof window !== 'undefined' ? localStorage.getItem('parentId') : null;
@@ -204,7 +207,7 @@ const JournalPage: React.FC = () => {
                             onChange={e => setCommentText(e.target.value)}
                           />
                           <button
-                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto"
+                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium"
                             onClick={() => handleComment(post.id)}
                           >{t('submit', '发表评论')}</button>
                         </div>

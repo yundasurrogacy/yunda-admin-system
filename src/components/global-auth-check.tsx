@@ -57,6 +57,13 @@ export function usePageAuth(requiredRole?: 'admin' | 'client' | 'manager' | 'sur
   useEffect(() => {
     if (isLoading) return
 
+    // 登录后自动设置cookie，保证SSR和middleware能识别
+    if (isAuthenticated && user) {
+      document.cookie = `userRole=${user.role}; path=/`;
+      if (user.email) document.cookie = `userEmail=${encodeURIComponent(user.email)}; path=/`;
+      if (user.id) document.cookie = `userId=${user.id}; path=/`;
+    }
+
     if (!isAuthenticated) {
       const loginPath = requiredRole ? 
         (requiredRole === 'manager' ? '/client-manager/login' : `/${requiredRole}/login`) :

@@ -16,231 +16,121 @@ interface AuthState {
   isAuthenticated: boolean
 }
 
-export function useAuth() {
+
+// 多端 session key 映射
+const SESSION_KEY_MAP = {
+  admin: 'admin_user',
+  client: 'client_user',
+  manager: 'manager_user',
+  surrogacy: 'surrogacy_user',
+}
+
+// 获取当前端的 session key
+function getSessionKey(type: User['role']) {
+  return SESSION_KEY_MAP[type]
+}
+
+// useAuth 支持传入 type，默认 client
+export function useAuth(type: User['role'] = 'client') {
   const router = useRouter()
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     isLoading: true,
     isAuthenticated: false
   })
-  
-  // 添加一个强制重新渲染的state
+  // 强制刷新
   const [, forceUpdate] = useState({})
-  const triggerUpdate = useCallback(() => {
-    forceUpdate({})
-  }, [])
+  const triggerUpdate = useCallback(() => { forceUpdate({}) }, [])
 
-  // 从localStorage恢复用户状态
+  // 恢复当前端 session
   const restoreUserSession = useCallback(() => {
     if (typeof window === 'undefined') return
-
-    console.log(`[Auth] Restoring user session...`)
-    
+    const sessionKey = getSessionKey(type)
     try {
-      const userRole = localStorage.getItem('userRole')
-      const userEmail = localStorage.getItem('userEmail')
-      const userId = localStorage.getItem('adminId') || 
-                    localStorage.getItem('parentId') || 
-                    localStorage.getItem('managerId') || 
-                    localStorage.getItem('surrogateId')
-
-      console.log(`[Auth] Session data - Role: ${userRole}, Email: ${userEmail}, ID: ${userId}`)
-      console.log(`[Auth] Individual IDs - Admin: ${localStorage.getItem('adminId')}, Parent: ${localStorage.getItem('parentId')}, Manager: ${localStorage.getItem('managerId')}, Surrogate: ${localStorage.getItem('surrogateId')}`)
-
-      if (userRole && userEmail && userId) {
-        const restoredUser = {
-          id: userId,
-          email: userEmail,
-          role: userRole as User['role']
-        }
-        
-        setAuthState({
-          user: restoredUser,
-          isLoading: false,
-          isAuthenticated: true
-        })
-        
-        console.log(`[Auth] Session restored successfully for user:`, restoredUser)
+      const raw = localStorage.getItem(sessionKey)
+      if (raw) {
+        const user: User = JSON.parse(raw)
+        setAuthState({ user, isLoading: false, isAuthenticated: true })
+        console.log(`[Auth][${type}] Session restored:`, user)
       } else {
-        console.log(`[Auth] No valid session found, setting unauthenticated state`)
-        console.log(`[Auth] Missing data - Role: ${!!userRole}, Email: ${!!userEmail}, ID: ${!!userId}`)
-        setAuthState({
-          user: null,
-          isLoading: false,
-          isAuthenticated: false
-        })
+        setAuthState({ user: null, isLoading: false, isAuthenticated: false })
+        console.log(`[Auth][${type}] No session found.`)
       }
-    } catch (error) {
-      console.error('Error restoring user session:', error)
-      setAuthState({
-        user: null,
-        isLoading: false,
-        isAuthenticated: false
-      })
+    } catch (e) {
+      setAuthState({ user: null, isLoading: false, isAuthenticated: false })
+      console.error(`[Auth][${type}] Restore error:`, e)
     }
-  }, [])
+  }, [type])
 
-  // 登录
+  // 登录当前端
   const login = useCallback((user: User) => {
-    console.log(`[Auth] Login called for user:`, user)
-    
-    // 清除旧的存储
-    localStorage.removeItem('adminId')
-    localStorage.removeItem('parentId')
-    localStorage.removeItem('managerId')
-    localStorage.removeItem('surrogateId')
-
-    // 存储新的用户信息
-    localStorage.setItem('userRole', user.role)
-    localStorage.setItem('userEmail', user.email)
-    
-    // 根据角色存储对应的ID
-    switch (user.role) {
-      case 'admin':
-        localStorage.setItem('adminId', user.id)
-        break
-      case 'client':
-        localStorage.setItem('parentId', user.id)
-        break
-      case 'manager':
-        localStorage.setItem('managerId', user.id)
-        break
-      case 'surrogacy':
-        localStorage.setItem('surrogateId', user.id)
-        break
-    }
-
-    // 同步到cookies以支持服务端验证
-    document.cookie = `userRole=${user.role}; path=/; max-age=${7 * 24 * 60 * 60}`
-    document.cookie = `userEmail=${user.email}; path=/; max-age=${7 * 24 * 60 * 60}`
-    document.cookie = `userId=${user.id}; path=/; max-age=${7 * 24 * 60 * 60}`
-
-    // 立即更新状态并强制重新渲染
-    setAuthState(prevState => {
-      const newState = {
-        user,
-        isLoading: false,
-        isAuthenticated: true
-      }
-      console.log(`[Auth] State updated from:`, prevState, 'to:', newState)
-      return newState
-    })
-    
-    // 强制触发所有使用useAuth的组件重新渲染
+    const sessionKey = getSessionKey(type)
+    localStorage.setItem(sessionKey, JSON.stringify(user))
+    // 同步到 cookies
+    document.cookie = `${sessionKey}=${encodeURIComponent(JSON.stringify(user))}; path=/; max-age=${7 * 24 * 60 * 60}`
+    setAuthState({ user, isLoading: false, isAuthenticated: true })
     setTimeout(() => {
       triggerUpdate()
-      // 分发全局认证状态变化事件
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('authStateChanged'))
-        console.log(`[Auth] Dispatched global authStateChanged event`)
       }
     }, 10)
-    
-    console.log(`[Auth] User state updated, authenticated: true, role: ${user.role}`)
-    
-    // 验证状态是否正确更新
-    setTimeout(() => {
-      console.log(`[Auth] State verification - user stored in localStorage:`, {
-        role: localStorage.getItem('userRole'),
-        email: localStorage.getItem('userEmail'),
-        id: localStorage.getItem('adminId') || localStorage.getItem('managerId') || localStorage.getItem('parentId') || localStorage.getItem('surrogateId')
-      })
-    }, 50)
-  }, [])
+    console.log(`[Auth][${type}] Login:`, user)
+  }, [type, triggerUpdate])
 
-  // 登出
-  const logout = useCallback((redirectToRole?: User['role']) => {
-    // 获取当前用户角色，用于确定重定向路径
-    const currentRole = redirectToRole || authState.user?.role
-    
-    console.log(`[Auth] Logging out user with role: ${currentRole}`)
-    
-    // 清除所有存储的用户信息
-    localStorage.removeItem('userRole')
-    localStorage.removeItem('userEmail')
-    localStorage.removeItem('adminId')
-    localStorage.removeItem('parentId')
-    localStorage.removeItem('managerId')
-    localStorage.removeItem('surrogateId')
-
-    // 清除cookies
-    document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    document.cookie = 'userEmail=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    document.cookie = 'userId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-
-    setAuthState({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false
-    })
-
-    // 强制触发重新渲染
+  // 登出当前端
+  const logout = useCallback(() => {
+    const sessionKey = getSessionKey(type)
+    localStorage.removeItem(sessionKey)
+    document.cookie = `${sessionKey}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    setAuthState({ user: null, isLoading: false, isAuthenticated: false })
     triggerUpdate()
-    
-    // 分发全局认证状态变化事件
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('authStateChanged'))
-      console.log(`[Auth] Dispatched global authStateChanged event for logout`)
     }
+    // 跳转到对应登录页
+    router.push(getLoginPath(type))
+    console.log(`[Auth][${type}] Logout.`)
+  }, [type, router, triggerUpdate])
 
-    // 根据角色重定向到对应的登录页面
-    const getLogoutRedirectPath = (role?: User['role']) => {
-      switch (role) {
-        case 'admin': return '/admin/login'
-        case 'manager': return '/client-manager/login'
-        case 'client': return '/client/login'
-        case 'surrogacy': return '/surrogacy/login'
-        default: return '/' // 如果没有角色信息，跳转到首页
-      }
-    }
-    
-    const redirectPath = getLogoutRedirectPath(currentRole)
-    console.log(`[Auth] Redirecting to: ${redirectPath}`)
-    router.push(redirectPath)
-  }, [router, authState.user, triggerUpdate])
-
-  // 检查用户是否有特定权限
+  // 检查当前端角色
   const hasRole = useCallback((role: User['role']) => {
     return authState.user?.role === role
   }, [authState.user])
 
-  // 检查用户是否有访问特定路径的权限
+  // 检查当前端是否能访问 path
   const canAccessPath = useCallback((path: string) => {
     if (!authState.isAuthenticated) return false
-
     const role = authState.user?.role
     if (!role) return false
-
-    // 定义路径权限规则
     if (path.startsWith('/admin')) return role === 'admin'
     if (path.startsWith('/client-manager')) return role === 'manager'
     if (path.startsWith('/client')) return role === 'client'
     if (path.startsWith('/surrogacy')) return role === 'surrogacy'
-
     return true
   }, [authState])
 
-  // 获取对应角色的登录路径
+  // 获取登录路径
   const getLoginPath = useCallback((role?: User['role']) => {
-    switch (role) {
+    switch (role || type) {
       case 'admin': return '/admin/login'
       case 'manager': return '/client-manager/login'
       case 'client': return '/client/login'
       case 'surrogacy': return '/surrogacy/login'
       default: return '/client/login'
     }
-  }, [])
+  }, [type])
 
-  // 获取对应角色的首页路径
+  // 获取首页路径
   const getHomePath = useCallback((role?: User['role']) => {
-    switch (role) {
+    switch (role || type) {
       case 'admin': return '/admin/dashboard'
       case 'manager': return '/client-manager/dashboard'
       case 'client': return '/client/dashboard'
       case 'surrogacy': return '/surrogacy/dashboard'
       default: return '/'
     }
-  }, [])
+  }, [type])
 
   useEffect(() => {
     restoreUserSession()

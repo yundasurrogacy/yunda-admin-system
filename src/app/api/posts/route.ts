@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
         content
         url
         created_at
+        updated_at
         post_comments {
           id
           content

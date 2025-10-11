@@ -1,8 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useTranslation } from 'next-i18next';
-const JournalPage: React.FC = () => {
+import { useSearchParams } from 'next/navigation';
+function JournalPageInner() {
   const { t } = useTranslation('common');
+  const searchParams = useSearchParams();
+  const urlCaseId = searchParams.get('caseId');
   const [message, setMessage] = useState("");
   const [visible, setVisible] = useState(true);
   const [photo, setPhoto] = useState<File | null>(null);
@@ -14,28 +17,40 @@ const JournalPage: React.FC = () => {
   const [caseId, setCaseId] = useState<number | null>(null);
   const [error, setError] = useState<string>("");
 
-  // 获取动态列表
+  // 获取caseId：优先URL参数，无则取最新case
   useEffect(() => {
-    // 获取 surrogateId
-    const surrogateId = typeof window !== "undefined" ? localStorage.getItem("surrogateId") : null;
+    if (urlCaseId) {
+      setCaseId(Number(urlCaseId));
+      return;
+    }
+    function getCookie(name: string) {
+      if (typeof document === 'undefined') return undefined;
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : undefined;
+    }
+    const surrogateId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
     if (!surrogateId) {
-  setError(t('myCases.error.noUserId', '未找到用户ID，请重新登录。'));
+      setError(t('myCases.error.noUserId', '未找到用户ID，请重新登录。'));
       setLoading(false);
       return;
     }
-    // 获取 case 列表
     fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`)
       .then(async (res) => {
-  if (!res.ok) throw new Error(t('myCases.error.fetchFailed', '获取案子失败'));
+        if (!res.ok) throw new Error(t('myCases.error.fetchFailed', '获取案子失败'));
         const data = await res.json();
         const casesRaw = data.cases || data.data || data || [];
         if (casesRaw.length > 0) {
-          setCaseId(casesRaw[0].id);
+          // 取 updated_at 最大（最新）的那个 case
+          const latestCase = casesRaw.reduce((max: any, cur: any) => {
+            if (!max) return cur;
+            return new Date(cur.updated_at) > new Date(max.updated_at) ? cur : max;
+          }, null);
+          if (latestCase) setCaseId(latestCase.id);
         }
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [urlCaseId, t]);
 
   // caseId 变化时获取动态
   useEffect(() => {
@@ -113,13 +128,12 @@ const JournalPage: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#FBF0DA40] font-serif text-[#271F18] px-2 md:px-8 py-6 flex flex-col items-center"
-      style={{ fontFamily: 'Source Serif 4, serif' }}
+      className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12"
     >
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-4 md:p-8 flex flex-col gap-6">
-  {/* 标题与描述 */}
-  <h1 className="text-2xl font-bold mb-1">{t('myCases.journey', t('journey.title', 'My Journal'))}</h1>
-  <p className="mb-6 text-base">{t('journey.description', 'Record your experiences and feelings through your journey as a surrogate')}</p>
+        {/* 标题与描述 */}
+        <h1 className="text-2xl font-medium text-sage-800 mb-1">{t('myCases.journal', t('journal.title', 'My Journal'))}</h1>
+        <p className="mb-6 text-base text-sage-800">{t('journey.description', 'Record your experiences and feelings through your journey as a surrogate')}</p>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* 左侧日志卡片区 */}
           <div className="flex-1 flex flex-col gap-6 min-w-0">
@@ -147,11 +161,11 @@ const JournalPage: React.FC = () => {
                   {/* 右侧内容区 */}
                   <div className="flex-1 flex flex-col gap-2 min-w-0">
                     <div className="flex flex-wrap justify-between items-start gap-2">
-                      <div className="text-lg font-semibold flex-1 min-w-0 truncate">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
-                      <div className="text-xs text-[#271F18] opacity-60 ml-0 md:ml-4 flex-shrink-0 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
+                      <div className="text-lg font-semibold text-sage-800 flex-1 min-w-0 truncate">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
+                      <div className="text-xs text-sage-800 opacity-60 ml-0 md:ml-4 flex-shrink-0 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
                     </div>
                     <button
-                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-[#271F18] rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start"
+                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start"
                       onClick={() => {
                         if (activePostId === post.id) {
                           setActivePostId(null);
@@ -166,12 +180,12 @@ const JournalPage: React.FC = () => {
 
                     {activePostId === post.id && (
                       <div className="mt-2">
-                        <div className="mb-2 text-xs font-bold">{t('comments', '评论：')}</div>
+                        <div className="mb-2 text-xs font-bold text-sage-800">{t('comments', '评论：')}</div>
                         <div className="flex flex-col gap-2">
                           {(comments[post.id] || post.post_comments || []).map((c: any) => (
                             <div key={c.id} className="bg-white rounded px-2 py-2 text-xs border border-[#E6E6E6] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
                               <div className="flex-1 min-w-0">
-                                <span className="font-bold mr-2 text-[#3a2c1e]">
+                                <span className="font-bold mr-2 text-sage-800">
                                   {(() => {
                                     // 当前端为代孕母，自己发的评论显示“我”
                                     const surrogateId = typeof window !== 'undefined' ? localStorage.getItem('surrogateId') : null;
@@ -198,13 +212,13 @@ const JournalPage: React.FC = () => {
                         <div className="flex flex-col sm:flex-row gap-2 mt-2">
                           <input
                             type="text"
-                            className="border rounded px-2 py-1 text-xs flex-1 min-w-0"
+                            className="border rounded px-2 py-1 text-xs flex-1 min-w-0 text-sage-800"
                             placeholder={t('ivfClinic.addNewNote', '写评论...')}
                             value={commentText}
                             onChange={e => setCommentText(e.target.value)}
                           />
                           <button
-                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto"
+                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium"
                             onClick={() => handleComment(post.id)}
                           >{t('submit', '发表评论')}</button>
                         </div>
@@ -218,9 +232,9 @@ const JournalPage: React.FC = () => {
           {/* 右侧填写区 */}
           <div className="w-full lg:w-[420px] flex flex-col gap-4 flex-shrink-0">
             <div className="bg-[#FBF0DA] rounded-xl shadow-md p-4 mb-2">
-              <div className="text-lg font-semibold mb-2">{t('myCases.publishUpdate', t('journey.stage1.title', "This week, I'm feeling..."))}</div>
+              <div className="text-lg font-semibold text-sage-800 mb-2">{t('myCases.publishUpdate', t('journey.stage1.title', "This week, I'm feeling..."))}</div>
               <textarea
-                className="w-full h-24 rounded-md border border-[#E6E6E6] p-2 text-base resize-none focus:outline-none focus:ring-2 focus:ring-[#271F18]"
+                className="w-full h-24 rounded-md border border-[#E6E6E6] p-2 text-base text-sage-800 resize-none focus:outline-none focus:ring-2 focus:ring-[#271F18]"
                 placeholder={t('ivfClinic.noteContent', 'Write a message...')}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
@@ -229,7 +243,7 @@ const JournalPage: React.FC = () => {
             <div className="bg-[#FBF0DA] rounded-xl shadow-md p-4 flex flex-col items-center justify-center h-32">
               <label className="flex flex-col items-center cursor-pointer w-full h-full justify-center">
                 <svg width="32" height="32" fill="#271F18" className="mb-2 opacity-40"><path d="M16 4a12 12 0 100 24 12 12 0 000-24zm0 22a10 10 0 110-20 10 10 0 010 20zm-4-8l2.5 3 3.5-4.5 4.5 6H8l4-4.5z"/></svg>
-                <span className="text-sm text-[#271F18] opacity-60">{t('files.upload', 'Upload')}</span>
+                <span className="text-sm text-sage-800 opacity-60">{t('files.upload', 'Upload')}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -238,7 +252,7 @@ const JournalPage: React.FC = () => {
                 />
               </label>
               {photo && (
-                <div className="mt-2 text-xs text-[#271F18]">{photo.name}</div>
+                <div className="mt-2 text-xs text-sage-800">{photo.name}</div>
               )}
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 mt-2">
@@ -266,4 +280,12 @@ const JournalPage: React.FC = () => {
   );
 };
 
-export default JournalPage;
+import { Suspense } from "react";
+
+export default function JournalPage() {
+  return (
+    <Suspense fallback={<div className="p-8">加载中...</div>}>
+      <JournalPageInner />
+    </Suspense>
+  );
+}

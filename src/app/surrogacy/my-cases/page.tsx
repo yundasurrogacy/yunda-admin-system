@@ -32,7 +32,7 @@ interface IvfClinic {
 interface CaseItem {
   id: string;
   process_status?: string;
-  trust_account_balance: number;
+  trust_account_balance_changes?: { balance_after: number | null }[];
   surrogate_mother?: SurrogateMother;
   intended_parent?: IntendedParent;
   cases_files?: CaseFile[];
@@ -46,7 +46,12 @@ export default function SurrogacyMyCasesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const surrogateId = typeof window !== "undefined" ? localStorage.getItem("surrogateId") : null;
+    function getCookie(name: string) {
+      if (typeof document === 'undefined') return undefined;
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : undefined;
+    }
+    const surrogateId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
     if (!surrogateId) {
       setError(t('myCases.error.noUserId'));
       setLoading(false);
@@ -63,7 +68,7 @@ export default function SurrogacyMyCasesPage() {
           casesRaw.map((item: any) => ({
             id: item.id,
             process_status: item.process_status,
-            trust_account_balance: item.trust_account_balance,
+            trust_account_balance_changes: item.trust_account_balance_changes || [],
             surrogate_mother: item.surrogate_mother
               ? {
                   id: item.surrogate_mother.id,
@@ -131,8 +136,16 @@ export default function SurrogacyMyCasesPage() {
               </div>
               <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                 <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">{t('myCases.trustBalanceLabel')}</span>
-                  <span>{item.trust_account_balance ?? '-'}</span>
+                  <span className="font-mono text-xs text-sage-400 whitespace-nowrap">{t('myCases.trustBalanceLabel', '信托余额：')}</span>
+                  <Link
+                    href={`/surrogacy/trust-account?caseId=${item.id}`}
+                    className="font-semibold text-blue-600 underline hover:bg-sage-50 rounded px-1 py-0.5 transition cursor-pointer"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {item.trust_account_balance_changes && item.trust_account_balance_changes.length > 0 && item.trust_account_balance_changes[0].balance_after !== null && item.trust_account_balance_changes[0].balance_after !== undefined
+                      ? `$${Number(item.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                      : '-'}
+                  </Link>
                 </div>
                 <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel')}</span>
@@ -188,6 +201,8 @@ export default function SurrogacyMyCasesPage() {
                 <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.publishUpdate')}</Link>
                 <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey')}</Link>
                 <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic')}</Link>
+                <Link href={`/surrogacy/appointments?caseId=${item.id}`} className="text-purple-600 underline">{t('myCases.appointments', 'Appointments')}</Link>
+                <Link href={`/surrogacy/medication?caseId=${item.id}`} className="text-pink-600 underline">{t('myCases.medication', 'Medication')}</Link>
               </div>
             </div>
           ))

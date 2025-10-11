@@ -1,4 +1,18 @@
+
 {
+    "pagination": {
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "page": "Page",
+    "of": "of",
+    "pages": "pages",
+    "prevPageAria": "Previous page",
+    "nextPageAria": "Next page",
+    "inputAria": "Enter page number"
+  },
+  "add":"Add",
+  "allClientManagers": "All Client Managers",
+  "searchManagers": "Search Client Managers",
   "resetClientPassword": "Reset Client Password",
   "pleaseEnterNewPassword": "Please enter new password",
   "adminManagement": "Admin Management",
@@ -63,6 +77,12 @@
   "managerLoginSuccess": "Welcome back, Client Manager!",
   "clientLoginSuccess": "Welcome back!",
   "surrogacyLoginSuccess": "Welcome back!",
+  "comments": "Comments",
+  "none": "None",
+  "chooseFile": "Choose File",
+  "noFileSelected": "No file selected",
+  "uploadPhotoTip": "Supports uploading multiple images, effective after saving",
+  "photoUploadingTip":"There are images being uploaded, please wait for the upload to complete before saving",
   "clientProfileDetail": {
     "notFound": "Intended parent ID not found",
     "fetchFailed": "Failed to fetch information",
@@ -111,11 +131,15 @@
     "view": "View"
   },
   "surrogateProfileDetail": {
+    "surrogateProfile":"Surrogate Profile",
     "fetchFailed": "Failed to fetch surrogate profile",
     "notFound": "Surrogate profile not found",
     "backToList": "Back to List",
     "title": "Surrogate Profile",
+    "myProfile": "My Profile",
+    "description": "View your personal information",
     "basicInfo": "Basic Information",
+    "occupation": "Occupation",
     "name": "Name",
     "dob": "Date of Birth",
     "phone": "Phone",
@@ -151,8 +175,15 @@
     "selfIntroduction": "Self-Introduction",
     "contactPreference": "Contact Preference",
     "uploadedPhotos": "Uploaded Photos",
-    "noPhotos": "No photos uploaded"
+    "noPhotos": "No photos uploaded",
+    "contactSource": "Contact Source",
+    "isFormerSurrogate": "Is Former Surrogate",
+    "surrogateExperience": "Surrogate Experience",
+    "hasHighSchoolDiploma": "Has High School Diploma",
+    "yes": "Yes",
+    "no": "No"
   },
+
   "parentsApplications": "Parents Applications",
   "addNewApplication": "Add New Application",
   "filterBy": "Filter By",
@@ -225,6 +256,7 @@
       "noUserId": "User ID not found, please log in again.",
       "fetchFailed": "Failed to fetch cases"
     },
+    "trust-account": "TRUST ACCOUNT",
     "noCases": "No cases yet",
     "caseIdLabel": "Case ID: ",
     "statusLabel": "Status: ",
@@ -233,7 +265,16 @@
     "publishUpdate": "Publish Update",
     "surrogateJourney": "Surrogate Journey",
     "journey": "JOURNEY",
-    "ivfClinic": "IVF Clinic"
+    "intendedParentsJourney": "INTENDED PARENTS JOURNEY",
+    "gestationalCarrierJourney": "GESTATIONAL CARRIER JOURNEY",
+    "journal": "JOURNAL",
+    "ivfClinic": "IVF CLINIC",
+    "intendedParentsIvfClinic": "INTENDED PARENTS IVF CLINIC",
+    "gestationalCarrierIvfClinic": "GESTATIONAL CARRIER IVF CLINIC",
+    "ivfClinicLabel": "IVF CLINIC: ",
+    "appointments": "APPOINTMENTS",
+    "Medication":"MEDICATION",
+    "My Intended Parents": "MY INTENDED PARENTS"
   },
   "loadingText": "Loading...",
   "noCases": "No cases yet",
@@ -248,6 +289,10 @@
   "clickToChange": "Click to change image",
   "statusMapping": {
     "Matching": "Matching",
+    "LegalStage": "Legal Stage",
+    "CyclePrep": "Cycle Prep",
+    "Pregnant": "Pregnancy",
+    "Transferred": "Transferred",
     "Legal": "Legal Stage",
     "Medical": "Cycle Prep",
     "Pregnancy": "Pregnancy",
@@ -268,10 +313,13 @@
     "uploadFailed": "File upload failed",
     "unknownError": "Unknown error",
     "uploadSuccess": "Upload successful",
-    "addJourneyFailed": "Failed to add journey"
+    "addJourneyFailed": "Failed to add journey",
+    "note": "Note"
   },
+  "backToSurrogateProfiles":"Back to Surrogate Profiles",
   "ivfClinic": {
     "title": "IVF Clinic",
+    "clinicAddressHint": "以逗号分割，前面是医院名称，后面是地址。例如：协和医院,北京市东城区帅府园一号",
     "clinicOverview": "Clinic Overview",
     "description": "View your IVF clinic team and review updates related to your embryo transfer process",
     "pageDescription": "View your IVF clinic team and review updates related to your embryo transfer process",
@@ -338,6 +386,18 @@
   },
   "dashboard": {
     "title": "DASHBOARD",
+    "welcome":"Welcome to your Dashboard! Access your progress, important information, digital signatures, and a variety of references to support your journey.",
+    "currentStatus":"Current Status",
+    "applicationStatus":"Application Status",
+    "completed":"COMPLETED",
+    "nextSteps":"Next Steps",
+    "quickAccess":"Quick Access",
+    "uploadJournal":"Upload Journal",
+    "noJournal":"No journal yet.",
+    "recentUpdates":"Recent Updates",
+    "newFileUploaded":"New File Uploaded",
+    "noFile":"No file uploaded yet.",
+    "latestFileTip":"A new file has been uploaded to your account.",
     "today_task": "Today's Task",
     "pending_documents": "Pending Documents",
     "action_needed": "Action Needed",
@@ -364,6 +424,8 @@
   },
   "journey": {
     "title": "Journey",
+    "Intended Parents Journey": "Intended Parents Journey",
+    "Gestational Carrier Journey": "Gestational Carrier Journey",
     "description": "Access and track your journey status with a visual roadmap.",
     "currentStatus": "Current Status",
     "noStatus": "No Status",
@@ -373,6 +435,58 @@
     "statusTimeline": "Status Timeline",
     "view": "View",
     "suspenseLoading": "Loading...",
+      "intendedParentsStages": {
+    "stage1": { "prefix": "Stage 1: ", "title": "Initial Setup" },
+    "stage2": { "prefix": "Stage 2: ", "title": "Surrogate Matching & Screening" },
+    "stage3": { "prefix": "Stage 3: ", "title": "Medical & Legal Setup" },
+    "stage4": { "prefix": "Stage 4: ", "title": "Embryo Transfer Preparation" },
+    "stage5": { "prefix": "Stage 5: ", "title": "Pregnancy Monitoring" },
+    "stage6": { "prefix": "Stage 6: ", "title": "Delivery & Handover" },
+    "stage7": { "prefix": "Stage 7: ", "title": "Post Journey Support" },
+    "stage8": { "prefix": "Stage 8: ", "title": "Delivery & Postpartum" }
+  },
+    "gestationalCarrierStages": {
+      "stage1": {
+        "prefix": "Stage 1:",
+        "title": "Application & Initial Screening",
+        "description": "Submit application with basic info and family photos; sign medical release form to retrieve pregnancy and delivery records."
+      },
+      "stage2": {
+        "prefix": "Stage 2:",
+        "title": "Matching Process",
+        "description": "Attend matching meeting with intended parents and confirm match."
+      },
+      "stage3": {
+        "prefix": "Stage 3:",
+        "title": "Medical Screening & Clearance",
+        "description": "Undergo medical tests at the IVF clinic and receive medical clearance."
+      },
+      "stage4": {
+        "prefix": "Stage 4:",
+        "title": "Legal Clearance",
+        "description": "Both parties sign the surrogacy agreement and receive legal clearance."
+      },
+      "stage5": {
+        "prefix": "Stage 5:",
+        "title": "Embryo Transfer Cycle",
+        "description": "Begin medication protocol, embryo transfer, and await pregnancy results."
+      },
+      "stage6": {
+        "prefix": "Stage 6:",
+        "title": "Pregnancy Monitoring",
+        "description": "Confirm pregnancy; complete first and second ultrasounds (heartbeat confirmation, no ectopic pregnancy); complete NIPT at 12 weeks; attend regular OB visits."
+      },
+      "stage7": {
+        "prefix": "Stage 7:",
+        "title": "Pre-Birth Legal & Delivery Preparation",
+        "description": "Pre-Birth Order (PBO) issued; confirm delivery plan with intended parents and hospital."
+      },
+      "stage8": {
+        "prefix": "Stage 8:",
+        "title": "Delivery & Postpartum",
+        "description": "Delivery and joyful completion of the surrogacy journey."
+      }
+    },
     "stage1": {
       "title": "Stage 1: Initial Setup",
       "item1": "Account Created & Form Submitted",
@@ -506,7 +620,7 @@
     "title": "My Intended Parents",
     "description": "Here are some details about the intended parents you are matched with.",
     "personalInfo": "Personal Information",
-    "personalInfoDescription": "View and manage your personal profile information",
+    "personalInfoDescription": "View your personal profile information",
     "error": {
       "fetchCaseFailed": "Failed to fetch case",
       "noParentInfo": "Intended parent information not found",
@@ -514,6 +628,19 @@
     },
     "trustAccount": {
       "title": "Trust Account Balance",
+      "balance": "Account Balance",
+      "history": "Transaction History",
+      "addRecord": "Add Record",
+      "editRecord": "Edit Record",
+      "date": "Date",
+      "sortByDate": "Sort by Date",
+      "type": "Type",
+      "allTypes": "All Types",
+      "typeRecharge": "Recharge",
+      "amount": "Amount",
+      "typeConsumption": "Consumption",
+      "typeOther": "Other",
+      "remark": "Remark",
       "email": "Email",
       "created": "Created",
       "updated": "Updated"
@@ -682,6 +809,8 @@
   "isCurrentlyPregnant": "Is Currently Pregnant",
   "isBreastfeeding": "Is Breastfeeding",
   "hasStillbirth": "Has Stillbirth",
+  "aboutYou": "About You",
+  "occupation": "Occupation",
   "medicalConditions": "Medical Conditions",
   "isTakingMedications": "Is Taking Medications",
   "medications": "Medications",

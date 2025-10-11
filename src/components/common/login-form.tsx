@@ -52,16 +52,16 @@ export function LoginForm({
     <div className="flex min-h-screen items-center justify-center bg-white">
       <div className="w-full max-w-lg">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-serif italic text-gray-800">{title}</h1>
+          <h1 className="text-3xl font-semibold text-sage-800">{title}</h1>
         </div>
-        
+
         <div className="bg-white p-6 rounded-lg">
-          <h2 className="text-lg font-medium mb-6">{texts[language].subtitle}</h2>
-          
+          <h2 className="text-lg font-medium text-sage-800 mb-6">{texts[language].subtitle}</h2>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm text-gray-600">
+                <Label htmlFor="email" className="text-sm font-medium text-sage-800">
                   {texts[language].emailLabel}
                 </Label>
                 <Input
@@ -70,22 +70,24 @@ export function LoginForm({
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="w-full bg-sage-50 border-sage-200 focus:border-sage-300 focus:ring-sage-300"
+                  className="w-full bg-sage-50 border-sage-200 focus:border-sage-300 focus:ring-sage-300 font-medium text-sage-800"
                 />
+                {/*
                 {forgotPasswordLink && (
                   <div className="text-right">
-                    <a 
+                    <a
                       href={forgotPasswordLink}
-                      className="text-xs text-gray-500 hover:text-gray-700"
+                      className="text-xs text-sage-800 hover:text-sage-900 font-medium"
                     >
                       {texts[language].forgotPassword}
                     </a>
                   </div>
                 )}
+                */}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm text-gray-600">
+                <Label htmlFor="password" className="text-sm font-medium text-sage-800">
                   {texts[language].passwordLabel}
                 </Label>
                 <Input
@@ -94,15 +96,15 @@ export function LoginForm({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full bg-sage-50 border-sage-200 focus:border-sage-300 focus:ring-sage-300"
+                  className="w-full bg-sage-50 border-sage-200 focus:border-sage-300 focus:ring-sage-300 font-medium text-sage-800"
                 />
               </div>
             </div>
-            
+
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-sage-100 hover:bg-sage-200 text-sage-700 border border-sage-300"
+              className="w-full bg-sage-100 hover:bg-sage-200 text-sage-800 border border-sage-300 font-medium"
             >
               {loading ? (language === 'EN' ? "LOGGING IN..." : "登录中...") : texts[language].loginButton}
             </Button>
@@ -115,7 +117,7 @@ export function LoginForm({
               variant="ghost"
               size="sm"
               onClick={onLanguageChange}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-sage-800 hover:text-sage-900 font-medium"
             >
               {language === 'EN' ? '切换到中文' : 'Switch to English'}
             </Button>

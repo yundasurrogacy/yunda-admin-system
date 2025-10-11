@@ -151,7 +151,7 @@ export default function ParentsApplicationDetailPage() {
               <Button
                 variant="outline"
                 onClick={() => router.back()}
-                className="bg-white"
+                className="bg-white cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 {t('backToApplications')}
@@ -159,7 +159,7 @@ export default function ParentsApplicationDetailPage() {
               {application.status === 'pending' && (
                 <>
                   <Button 
-                    className="bg-green-100 text-green-800 hover:bg-green-200"
+                    className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
                     onClick={() => handleStatusUpdate('approved')}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
@@ -167,7 +167,7 @@ export default function ParentsApplicationDetailPage() {
                   </Button>
                   <Button 
                     variant="outline"
-                    className="text-red-600 hover:bg-red-50"
+                    className="text-red-600 hover:bg-red-50 cursor-pointer"
                     onClick={() => handleStatusUpdate('rejected')}
                   >
                     <XCircle className="w-4 h-4 mr-2" />

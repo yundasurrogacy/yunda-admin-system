@@ -51,7 +51,12 @@ export default function DashboardPage() {
   const fetchCases = async () => {
     setIsLoading(true);
     try {
-      const managerId = localStorage.getItem('managerId');
+      function getCookie(name: string) {
+        if (typeof document === 'undefined') return undefined;
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : undefined;
+      }
+      const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
       if (!managerId) {
         setCases([]);
         setIsLoading(false);
@@ -112,47 +117,47 @@ export default function DashboardPage() {
 
   return (
     <ManagerLayout>
-      <div className="p-8 min-h-screen" style={{ background: "#FBF0DA40" }}>
-        <h1 className="text-2xl font-semibold mb-8 font-serif text-[#271F18]">{t('dashboard.title')}</h1>
+      <div className="p-8 min-h-screen bg-main-bg">
+        <h1 className="text-2xl font-medium mb-8 text-sage-800">{t('dashboard.title')}</h1>
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-6 mb-8">
-          <Card 
-            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white font-serif text-[#271F18]"
+          {/* <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white text-sage-800 font-medium"
             onClick={() => router.push('/client-manager/my-cases')}
           >
-            <h2 className="text-lg font-medium mb-4 font-serif text-[#271F18]">{t('dashboard.today_task')}</h2>
-            <div className="text-4xl font-bold font-serif text-[#271F18]">
+            <h2 className="text-lg font-medium mb-4 text-sage-800">{t('dashboard.today_task')}</h2>
+            <div className="text-4xl font-bold text-sage-800">
               {isLoading ? '...' : todaysTasksCount}
             </div>
-          </Card>
-          <Card 
-            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white font-serif text-[#271F18]"
+          </Card> */}
+          {/* <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white text-sage-800 font-medium"
             onClick={() => router.push('/client-manager/documents?status=pending')}
-          >
-            <div className="flex justify-between mb-4">
-              <h2 className="text-lg font-medium font-serif text-[#271F18]">{t('dashboard.pending_documents')}</h2>
-              {/* <span className="text-sm font-serif text-[#271F18] opacity-60">1 Due in 2 Days</span> */}
-            </div>
-            <div className="text-4xl font-bold font-serif text-[#271F18]">{isLoading ? '...' : pendingDocumentsCount}</div>
-            <div className="mt-2 text-sm font-serif text-[#271F18] opacity-60">{t('dashboard.action_needed')}</div>
-          </Card>
-          <Card 
-            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white font-serif text-[#271F18]"
+          > */}
+            {/* <div className="flex justify-between mb-4"> */}
+              {/* <h2 className="text-lg font-medium text-sage-800">{t('dashboard.pending_documents')}</h2> */}
+              {/* <span className="text-sm text-sage-800 opacity-60">1 Due in 2 Days</span> */}
+            {/* </div> */}
+            {/* <div className="text-4xl font-bold text-sage-800">{isLoading ? '...' : pendingDocumentsCount}</div> */}
+            {/* <div className="mt-2 text-sm text-sage-800 opacity-60">{t('dashboard.action_needed')}</div> */}
+          {/* </Card> */}
+          {/* <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-shadow rounded-xl bg-white text-sage-800 font-medium"
             onClick={() => router.push('/client-manager/documents?type=contract')}
           >
-            <h2 className="text-lg font-medium mb-4 font-serif text-[#271F18]">{t('dashboard.contract_status')}</h2>
-            <div className="text-4xl font-bold font-serif text-[#271F18]">
+            <h2 className="text-lg font-medium mb-4 text-sage-800">{t('dashboard.contract_status')}</h2>
+            <div className="text-4xl font-bold text-sage-800">
               {isLoading ? '...' : pendingContractsCount}
             </div>
-            <div className="mt-2 text-sm font-serif text-[#271F18] opacity-60">{t('dashboard.pending_review')}</div>
-          </Card>
+            <div className="mt-2 text-sm text-sage-800 opacity-60">{t('dashboard.pending_review')}</div>
+          </Card> */}
         </div>
         {/* Updates Needed Table */}
-        <Card className="mb-8 rounded-xl bg-white font-serif text-[#271F18]">
+        {/* <Card className="mb-8 rounded-xl bg-white text-sage-800 font-medium">
           <div className="p-6">
-            <h2 className="text-lg font-medium mb-4 font-serif text-[#271F18]">{t('dashboard.updates_needed')}</h2>
+            <h2 className="text-lg font-medium mb-4 text-sage-800">{t('dashboard.updates_needed')}</h2>
             <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-y-2 font-serif text-[#271F18]">
+              <table className="w-full border-separate border-spacing-y-2 text-sage-800 font-medium">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2 px-4 font-semibold">{t('dashboard.table.name')}</th>
@@ -173,7 +178,7 @@ export default function DashboardPage() {
                         <td className="py-2 px-4">{item.next_appointment_date}</td>
                         <td className="py-2 px-4">{item.process_status}</td>
                         <td className="py-2 px-4">
-                          <Button className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-4 py-1 text-sm shadow-none"
+                          <Button className="rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
                             onClick={() => handleCaseClick(item.id)}
                           >{t('dashboard.view_details')}</Button>
                         </td>
@@ -186,11 +191,11 @@ export default function DashboardPage() {
               </table>
             </div>
           </div>
-        </Card>
+        </Card> */}
         {/* Latest Updates */}
-        <Card className="rounded-xl bg-white font-serif text-[#271F18]">
+        <Card className="rounded-xl bg-white text-sage-800 font-medium">
           <div className="p-6">
-            <h2 className="text-lg font-medium mb-6 font-serif text-[#271F18]">{t('dashboard.latest_update')}</h2>
+            <h2 className="text-lg font-medium mb-6 text-sage-800">{t('dashboard.latest_update')}</h2>
             <div className="relative">
               {isLoading ? (
                 <div className="text-center py-4">{t('loadingText')}</div>
@@ -198,16 +203,16 @@ export default function DashboardPage() {
                 <div className="flex space-x-4 overflow-x-auto">
                   {latestUpdates.map((update) => (
                     <div key={update.id} className="flex-none w-48">
-                      <div className="bg-[#F8F9FC] rounded-lg p-4 text-center font-serif text-[#271F18]">
+                      <div className="bg-sage-50 rounded-lg p-4 text-center text-sage-800 font-medium">
                         <Avatar className="w-12 h-12 mx-auto mb-3">
-                          <AvatarFallback className="bg-[#E2E8F0] font-serif text-[#271F18]">
+                          <AvatarFallback className="bg-sage-100 text-sage-800 font-medium">
                             {getParentName(update.intended_parent).charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        <p className="font-medium font-serif text-[#271F18] truncate">{getParentName(update.intended_parent)}</p>
-                        <p className="text-sm font-serif text-[#271F18] opacity-60 mb-3">{new Date(update.updated_at || '').toLocaleDateString()}</p>
+                        <p className="font-medium text-sage-800 truncate">{getParentName(update.intended_parent)}</p>
+                        <p className="text-sm text-sage-800 opacity-60 mb-3">{new Date(update.updated_at || '').toLocaleDateString()}</p>
                         <Button 
-                          className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-4 py-1 text-sm shadow-none"
+                          className="rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
                           onClick={() => handleCaseClick(update.id)}
                         >{t('dashboard.view_details')}</Button>
                       </div>
@@ -222,38 +227,14 @@ export default function DashboardPage() {
         </Card>
         {/* Action Buttons */}
         <div className="mt-8 flex gap-4">
-          {/* <Button 
-            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
-            onClick={() => router.push('/client-manager/client-profiles/new')}
-          >
-            {t('dashboard.add_new_client')}
-          </Button> */}
-          {/* <Button 
-            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
-            onClick={() => router.push('/client-manager/documents/upload')}
-          >
-            {t('dashboard.upload_file')}
-          </Button> */}
-          {/* <Button 
-            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
-            onClick={() => alert(t('dashboard.export_soon'))}
-          >
-            {t('dashboard.export_report')}
-          </Button> */}
-          {/* <Button 
-            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
-            onClick={() => router.push('/client-manager/notifications')}
-          >
-            {t('dashboard.notifications')}
-          </Button> */}
           <Button 
-            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            className="rounded bg-sage-100 text-sage-800 font-medium px-6 py-2 text-sm shadow-none"
             onClick={() => router.push('/client-manager/client-profiles')}
           >
             {t('dashboard.client_portal')}
           </Button>
           <Button 
-            className="rounded bg-[#E3E8E3] text-[#271F18] font-serif px-6 py-2 text-sm shadow-none"
+            className="rounded bg-sage-100 text-sage-800 font-medium px-6 py-2 text-sm shadow-none"
             onClick={() => router.push('/client-manager/surrogate-profiles')}
           >
             {t('dashboard.surrogate_portal')}

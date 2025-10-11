@@ -16,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="antialiased">
+      <body
+        className="antialiased"
+        style={{ background: 'rgba(250,241,224,0.25)' }}
+      >
         <ToastProvider>
           <GlobalAuthCheck>
             {children}

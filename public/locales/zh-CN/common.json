@@ -1,4 +1,17 @@
 {
+  "pagination": {
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "page": "第",
+    "of": "共",
+    "pages": "页",
+    "prevPageAria": "上一页",
+    "nextPageAria": "下一页",
+    "inputAria": "输入页码"
+  },
+  "add":"添加",
+  "allClientManagers": "所有客户经理",
+  "searchManagers": "搜索客户经理",
   "resetClientPassword": "重置客户密码",
   "pleaseEnterNewPassword": "请输入新密码",
   "adminManagement": "管理员管理",
@@ -44,9 +57,9 @@
   "SURROGATE MATCH": "代孕匹配",
   "MY INTENDED PARENTS": "我的准父母",
   "PARENTS APPLICATIONS": "意向父母申请表",
-  "SURROGATES APPLICATIONS": "代孕者申请表",
+  "SURROGATES APPLICATIONS": "代孕母申请表",
   "CLIENT PROFILES": "客户资料",
-  "SURROGATE PROFILES": "代孕者资料",
+  "SURROGATE PROFILES": "代孕母资料",
   "ALL CASES": "所有案子",
   "MY CASES": "我的案子",
   "CLIENT MANAGERS": "客户经理",
@@ -64,6 +77,13 @@
   "loggingIn": "登录中...",
   "loginError": "邮箱或密码错误。",
   "loginFailed": "登录失败",
+  "comments": "评论",
+  "none": "无",
+  "trust-account": "信托账户",
+  "chooseFile": "选择文件",
+  "noFileSelected": "未选择文件",
+  "uploadPhotoTip": "支持多张图片上传，保存后生效",
+  "photoUploadingTip":"有图片正在上传，请等待上传完成后再保存",
   "loginErrorDesc": "请检查您的账号和密码后重试。",
   "loginSuccess": "登录成功",
   "loginSuccessDesc": "欢迎回来！",
@@ -133,11 +153,15 @@
     "view": "查看"
   },
   "surrogateProfileDetail": {
-    "fetchFailed": "获取代母资料失败",
-    "notFound": "未找到代母资料",
+    "surrogateProfile":"代孕母详情",
+    "fetchFailed": "获取代孕母资料失败",
+    "notFound": "未找到代孕母资料",
     "backToList": "返回列表",
-    "title": "代母资料",
+    "title": "代孕母资料",
+    "myProfile": "我的资料",
+    "description": "查看您的个人信息",
     "basicInfo": "基本信息",
+    "occupation": "职业",
     "name": "姓名",
     "dob": "出生日期",
     "phone": "电话",
@@ -194,8 +218,8 @@
   "surrogacyEggDonorService": "代孕+捐卵服务",
   "eggDonorService": "捐卵服务",
   "thirdPartySurrogate": "第三方代孕",
-  "bringYourOwnSurrogate": "自带代孕者",
-  "bringYourOwnSurrogateEgg": "自带代孕者+捐卵",
+  "bringYourOwnSurrogate": "自带代孕母",
+  "bringYourOwnSurrogateEgg": "自带代孕母+捐卵",
   "notSure": "不确定",
   "desiredChildrenCount": "期望孩子数量",
   "journeyStartTiming": "开始时间",
@@ -213,7 +237,7 @@
   "experiencedSurrogate": "有经验",
   "firstTimeSurrogate": "首次代孕",
   "times": "次",
-  "surrogatesApplications": "代孕者申请表",
+  "surrogatesApplications": "代孕母申请表",
   "hasGivenBirth": "曾经分娩",
   "isCurrentlyPregnant": "目前怀孕",
   "isBreastfeeding": "正在哺乳",
@@ -260,7 +284,7 @@
   "householdIncome": "家庭收入",
   "pregnancyHealth": "怀孕与健康",
   "pregnancyHistory": "怀孕历史",
-  "surrogateApplicationDetails": "代孕者申请详情",
+  "surrogateApplicationDetails": "代孕母申请详情",
   "backToApplications": "返回申请列表",
   "emotionalSupport": "情感支持",
   "languagesSpoken": "会说的语言",
@@ -289,10 +313,10 @@
   "noBirthHistory": "无分娩经历",
   "healthStatus": "健康状况",
   "birthHistory": "分娩历史",
-  "searchSurrogates": "搜索代孕者...",
+  "searchSurrogates": "搜索代孕母...",
   "setOrResetPassword": "设置/重置密码",
   "addNewSurrogate": "新建代孕母",
-  "surrogateProfile": "代孕者详情",
+  "surrogateProfile": "代孕母详情",
   "stateOrProvince": "州/省",
   "zipCode": "邮编",
   "uploadPhotos": "上传照片",
@@ -300,7 +324,7 @@
   "babies": "胎儿",
   "noPhotosUploaded": "暂无照片上传",
   "medicationsList": "药物清单",
-  "backToSurrogateProfiles": "返回代孕者列表",
+  "backToSurrogateProfiles": "返回代孕母列表",
   "resetPasswordSuccess": "密码重置成功！",
   "resetPasswordFailed": "重置失败，请重试",
   "requestError": "请求异常",
@@ -323,6 +347,7 @@
       "noUserId": "未找到用户ID，请重新登录。",
       "fetchFailed": "获取案子失败"
     },
+    "trust-account": "信托账户",
     "noCases": "暂无案子",
     "caseIdLabel": "案件ID：",
     "statusLabel": "状态：",
@@ -331,7 +356,36 @@
     "publishUpdate": "发布动态",
     "surrogateJourney": "孕母动态",
     "journey": "旅程",
-    "ivfClinic": "IVF 诊所"
+    "intendedParentsJourney": "准父母旅程",
+    "gestationalCarrierJourney": "代孕母旅程",
+    "journal": "日记",
+    "ivfClinic": "IVF 诊所",
+    "intendedParentsIvfClinic": "准父母IVF诊所",
+    "gestationalCarrierIvfClinic": "代孕母IVF诊所",
+    "trustAccount": "信托账户",
+    "My Intended Parents": "我的准父母",
+    "appointments": "预约",
+    "medication": "药物"
+
+  },
+  "trustAccount": {
+    "title": "信托账户",
+    "balance": "账户余额",
+    "history": "交易记录",
+    "addRecord": "添加记录",
+    "editRecord": "编辑记录",
+    "date": "日期",
+    "sortByDate": "按日期排序",
+    "type": "类型",
+    "allTypes": "所有类型",
+    "typeRecharge": "充值",
+    "amount": "金额",
+    "typeConsumption": "消费",
+    "typeOther": "其他",
+    "remark": "备注",
+    "description": "管理与此案例相关的信托账户的所有信息。",
+    "pageDescription": "查看您的信托账户余额和交易记录",
+    "noDataAvailable": "暂无数据"
   },
   "loadingText": "加载中...",
   "noCases": "暂无案子",
@@ -339,12 +393,24 @@
   "statusLabel": "状态：",
   "trustBalanceLabel": "信托余额：",
   "intendedParentLabel": "准父母：",
-  "surrogateMotherLabel": "代孕妈妈：",
+  "surrogateMotherLabel": "代孕母：",
   "allIntendedParents": "所有准父母",
-  "allSurrogateMothers": "所有代孕妈妈",
+  "allSurrogateMothers": "所有代孕母",
   "allStatuses": "所有状态",
+  "statusMapping": {
+    "Matching": "匹配中",
+    "LegalStage": "法律阶段",
+    "CyclePrep": "周期准备",
+    "Pregnant": "怀孕期",
+    "Transferred": "已交接",
+    "Legal": "法律阶段",
+    "Medical": "周期准备",
+    "Pregnancy": "怀孕期",
+    "Post-delivery": "已交接"
+  },
   "ivfClinic": {
     "title": "IVF 诊所",
+    "clinicAddressHint": "Separate with a comma: hospital name first, then address. Example: Xiehe Hospital, No.1 Shuaifu Garden, Dongcheng District, Beijing",
     "description": "管理与此案例相关的IVF诊所的所有信息。",
     "pageDescription": "查看您的IVF诊所团队并查阅与胚胎移植过程相关的更新",
     "noDataAvailable": "暂无数据",
@@ -411,6 +477,18 @@
   },
   "dashboard": {
     "title": "仪表盘",
+    "welcome": "欢迎来到仪表盘！访问您的进度、重要信息、数字签名以及各种参考资料，以支持您的旅程。",
+    "currentStatus": "当前状态",
+    "applicationStatus": "申请状态",
+    "COMPLETED": "已完成",
+    "nextSteps": "下一步",
+    "quickAccess": "快速访问",
+    "uploadJournal": "上传日记",
+    "noJournal": "尚未上传日记。",
+    "recentUpdates": "最近动态",
+    "newFileUploaded": "新文件已上传",
+    "noFile": "尚未上传文件。",
+    "latestFileTip": "您的账户已上传新文件。",
     "today_task": "今日任务",
     "pending_documents": "待处理文件",
     "action_needed": "需要操作",
@@ -437,6 +515,8 @@
   },
   "journey": {
     "title": "旅程",
+    "Intended Parents Journey": "准父母旅程",
+    "Gestational Carrier Journey": "代孕母旅程",
     "description": "通过可视化路线图访问和跟踪您的旅程状态。",
     "currentStatus": "当前状态",
     "noStatus": "暂无状态",
@@ -446,52 +526,57 @@
     "statusTimeline": "状态时间线",
     "view": "查看",
     "suspenseLoading": "加载中...",
-    "stage1": {
-      "title": "阶段 1：初始设置",
-      "item1": "账户已创建并提交表格",
-      "item2": "初步咨询已完成",
-      "item3": "服务协议已签署",
-      "item4": "IVF账户已建立"
+    "intendedParentsStages": {
+      "stage1": { "prefix": "阶段一：", "title": "初始设置" },
+      "stage2": { "prefix": "阶段二：", "title": "代母匹配与筛选" },
+      "stage3": { "prefix": "阶段三：", "title": "医疗与法律设置" },
+      "stage4": { "prefix": "阶段四：", "title": "胚胎移植准备" },
+      "stage5": { "prefix": "阶段五：", "title": "妊娠监测" },
+      "stage6": { "prefix": "阶段六：", "title": "分娩与交接" },
+      "stage7": { "prefix": "阶段七：", "title": "旅程后支持" },
+      "stage8": { "prefix": "阶段八：", "title": "分娩与产后阶段" }
     },
-    "stage2": {
-      "title": "阶段 2：代母匹配与筛选",
-      "item1": "匹配进行中",
-      "item2": "候选人资料已发送给客户",
-      "item3": "客户面试与见解",
-      "item4": "代母筛选进行中",
-      "item5": "匹配已确认"
-    },
-    "stage3": {
-      "title": "阶段 3：医疗与法律设置",
-      "item1": "胚胎创建或可转移ID",
-      "item2": "法律协议已准备",
-      "item3": "法律协议已完全签署"
-    },
-    "stage4": {
-      "title": "阶段 4：胚胎移植准备",
-      "item1": "周期同步与用药",
-      "item2": "胚胎移植已完成",
-      "item3": "等待验孕",
-      "item4": "收到阳性妊娠结果"
-    },
-    "stage5": {
-      "title": "阶段 5：妊娠监测",
-      "item1": "第一组监测与签到",
-      "item2": "产科护理进行中",
-      "item3": "超声波检查进行中",
-      "item4": "妊娠稳定"
-    },
-    "stage6": {
-      "title": "阶段 6：分娩与交接",
-      "item1": "分娩计划已确认",
-      "item2": "婴儿已分娩与法律程序",
-      "item3": "婴儿证件与法律程序",
-      "item4": "婴儿已交付给准父母"
-    },
-    "stage7": {
-      "title": "阶段 7：旅程后支持",
-      "item1": "已提供离境支持",
-      "item2": "旅程已完成"
+    "gestationalCarrierStages": {
+      "stage1": {
+        "prefix": "阶段一：",
+        "title": "申请与初步筛查",
+          "description": "提交代孕申请，填写基本信息并上传家庭照片；签署医疗记录授权表，用于获取以往的怀孕与分娩记录。"
+      },
+      "stage2": {
+        "prefix": "阶段二：",
+        "title": "匹配流程",
+          "description": "与预期父母进行匹配会谈，双方确认匹配。"
+      },
+      "stage3": {
+        "prefix": "阶段三：",
+        "title": "医学筛查与通过",
+          "description": "前往试管婴儿诊所进行全面体检，并获得医疗合格许可。"
+      },
+      "stage4": {
+        "prefix": "阶段四：",
+        "title": "法律合格确认",
+          "description": "双方签署代孕协议，完成法律合格确认。"
+      },
+      "stage5": {
+        "prefix": "阶段五：",
+        "title": "胚胎移植周期",
+          "description": "开始用药准备，进行胚胎移植并等待妊娠结果。"
+      },
+      "stage6": {
+        "prefix": "阶段六：",
+        "title": "妊娠监测阶段",
+          "description": "确认怀孕后，完成第一次和第二次B超（确认胎心及排除宫外孕），12周进行无创产检（NIPT），并定期进行产检。"
+      },
+      "stage7": {
+        "prefix": "阶段七：",
+        "title": "产前法律与分娩准备",
+          "description": "产前法律文件（PBO）完成，与预期父母及医院确认生产计划。"
+      },
+      "stage8": {
+        "prefix": "阶段八：",
+        "title": "分娩与产后阶段",
+          "description": "顺利分娩，圆满完成代孕旅程。"
+      }
     },
     "addItemPrompt": "请输入要添加的事项内容",
     "addItem": "添加事项",
@@ -513,7 +598,7 @@
     "title": "我的准父母",
     "description": "这里是与您匹配的准父母的一些详细信息。",
     "personalInfo": "个人信息",
-    "personalInfoDescription": "查看并管理您的个人资料信息",
+    "personalInfoDescription": "查看您的个人资料信息",
     "error": {
       "fetchCaseFailed": "获取案子失败",
       "noParentInfo": "未找到准父母信息",
@@ -609,8 +694,8 @@
     "surrogacyEggDonorService": "代孕+捐卵服务",
     "eggDonorService": "捐卵服务",
     "thirdPartySurrogate": "第三方代孕",
-    "bringYourOwnSurrogate": "自带代孕者",
-    "bringYourOwnSurrogateEgg": "自带代孕者+捐卵",
+    "bringYourOwnSurrogate": "自带代孕母",
+    "bringYourOwnSurrogateEgg": "自带代孕母+捐卵",
     "notSure": "不确定"
   },
   "timingOptions": {
@@ -688,7 +773,8 @@
     "uploadFailed": "文件上传失败",
     "unknownError": "未知错误",
     "uploadSuccess": "上传成功",
-    "addJourneyFailed": "添加旅程失败"
+    "addJourneyFailed": "添加旅程失败",
+    "note": "描述"
   },
   "surrogacyProfile": {
     "title": "代孕母资料",

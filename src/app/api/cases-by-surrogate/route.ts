@@ -11,8 +11,12 @@ export async function GET(req: Request) {
     query CasesBySurrogate($surrogateId: bigint!) {
       cases(where: { surrogate_mother_surrogate_mothers: { _eq: $surrogateId } }) {
         id
+        created_at
+        updated_at
         process_status
-        trust_account_balance
+        trust_account_balance_changes(order_by: {created_at: desc}, limit: 1) {
+          balance_after
+        }
         surrogate_mother {
           id
           email

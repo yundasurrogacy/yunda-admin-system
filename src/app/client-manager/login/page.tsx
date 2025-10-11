@@ -12,7 +12,10 @@ export default function ManagerLoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
-  const { login, isAuthenticated, getHomePath, user } = useAuth()
+  // const { login, isAuthenticated, getHomePath, user } = useAuth()
+  // const { login, isAuthenticated, getHomePath, user } = useAuth("manager")
+  // manager 端登录页面只用 manager session
+  const { login, isAuthenticated, getHomePath, user } = useAuth("manager")
 
   // 计算header高度
   const [headerHeight, setHeaderHeight] = useState(80)
@@ -37,28 +40,34 @@ export default function ManagerLoginPage() {
       
       if (response.success && response.data?.manager) {
         // 使用新的认证系统
-        login({
+        const managerInfo = {
           id: String(response.data.manager.id),
           email: username,
-          role: 'manager',
+          role: 'manager' as 'manager',
           name: response.data.manager.name
-        });
-        
+        };
+        login(managerInfo);
+
+  // 登录成功后写入 manager 专属 cookie，支持多端同时登录
+  document.cookie = `userRole_manager=manager; path=/`;
+  document.cookie = `userEmail_manager=${managerInfo.email}; path=/`;
+  document.cookie = `userId_manager=${managerInfo.id}; path=/`;
+
         toast({
           title: t("loginSuccess", { defaultValue: "登录成功" }),
           description: t("managerLoginSuccess", { defaultValue: "欢迎回来，客户经理！" }),
           variant: "default",
         });
-        
+
         // 直接使用硬编码路径进行重定向
-        const homePath = '/client-manager/dashboard'
+        const homePath = '/client-manager/dashboard';
         console.log(`[ManagerLogin] Redirecting to: ${homePath}`)
-        
+
         // 立即重定向
         setTimeout(() => {
-          router.replace(homePath)
+            router.replace(homePath)
         }, 300) // 减少延迟
-        
+
         return;
       }
       
@@ -76,41 +85,19 @@ export default function ManagerLoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: `calc(100vh - ${headerHeight}px)`,
-      background: 'rgba(251, 240, 218, 0.25)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      boxSizing: 'border-box',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        margin: 'auto',
-      }}>
-        <h1 className="text-5xl font-serif italic text-[#3C2B1C] tracking-wide">{t('managerTitle', { defaultValue: 'MANAGER' })}</h1>
+    <div
+      className="min-h-screen flex flex-col items-center justify-start bg-[rgba(251,240,218,0.25)] px-4"
+      style={{ minHeight: `calc(100vh - ${headerHeight}px)` }}
+    >
+      <div className="flex items-center justify-center w-full mt-8 mb-6">
+        <h1 className="text-3xl md:text-5xl font-semibold text-sage-800 tracking-wide">{t('managerTitle', { defaultValue: 'MANAGER' })}</h1>
       </div>
-      <div style={{
-        width: "100%",
-        maxWidth: 1080,
-        background: "rgba(251, 240, 218, 0.2)",
-        borderRadius: 32,
-        boxShadow: "0 32px 96px 0 rgba(191,201,191,0.28), 0 0 120px 24px rgba(251,240,218,0.38)",
-        margin: "auto",
-        border: "none",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "32px 32px",
-        boxSizing: "border-box",
-      }}>
-        <h2 className="text-xl font-serif mb-4 text-[#3C2B1C]">{t('loginSubtitle', { defaultValue: '使用您的邮箱地址登录' })}</h2>
-        <div style={{ width: "100%", maxWidth: 600, margin: "0 auto" }}>
+      <div
+        className="w-full max-w-[1080px] rounded-3xl shadow-xl bg-[rgba(251,240,218,0.2)] flex flex-col items-center justify-center p-8 md:p-12"
+        style={{ boxShadow: "0 32px 96px 0 rgba(191,201,191,0.28), 0 0 120px 24px rgba(251,240,218,0.38)" }}
+      >
+        <h2 className="text-lg md:text-xl font-medium mb-4 text-sage-800">{t('loginSubtitle', { defaultValue: '使用您的邮箱地址登录' })}</h2>
+        <div className="w-full max-w-[600px] mx-auto">
           <LoginForm 
             onSubmit={handleLogin}
             loading={loading}

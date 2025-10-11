@@ -81,16 +81,67 @@ export default function SurrogateProfilesPage() {
     }
   }
 
+
+  // 分页相关
+  const [allSurrogates, setAllSurrogates] = useState<SurrogateMother[]>([])
   const [surrogates, setSurrogates] = useState<SurrogateMother[]>([])
   const [searchValue, setSearchValue] = useState("")
+  const [page, setPage] = useState(1)
+  const [pageInput, setPageInput] = useState('1')
+  const [pageSize, setPageSize] = useState(10)
   const router = useRouter()
+
+  // 自适应每页条数，始终两行，宽度自适应
+  useEffect(() => {
+    function calcPageSize() {
+      const containerWidth = window.innerWidth - 64
+      const cardWidth = 340 + 32
+      const rowCount = Math.max(1, Math.floor(containerWidth / cardWidth))
+      const colCount = 2 // 固定两行
+      const newPageSize = rowCount * colCount
+      setPageSize(newPageSize)
+    }
+    calcPageSize()
+    window.addEventListener('resize', calcPageSize)
+    return () => window.removeEventListener('resize', calcPageSize)
+  }, [])
+
+  // 获取全部数据
   useEffect(() => {
     async function fetchSurrogates() {
-      const data = await getSurrogateMothers(10, 0)
-      setSurrogates(data)
+      const data = await getSurrogateMothers(10000, 0)
+      setAllSurrogates(data)
     }
     fetchSurrogates()
   }, [])
+
+  // 搜索和分页
+  useEffect(() => {
+    const filtered = allSurrogates.filter(surrogate => {
+      const ci = surrogate.contact_information
+      const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+      const city = ci?.city || ''
+      const country = ci?.country || ''
+      const id = String(surrogate.id)
+      const keyword = searchValue.trim().toLowerCase()
+      return (
+        !keyword ||
+        name.toLowerCase().includes(keyword) ||
+        city.toLowerCase().includes(keyword) ||
+        country.toLowerCase().includes(keyword) ||
+        id.includes(keyword)
+      )
+    })
+    const total = filtered.length
+    const totalPages = Math.max(1, Math.ceil(total / pageSize))
+    if (page > totalPages) {
+      setPage(totalPages)
+      setPageInput(String(totalPages))
+    }
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+    setSurrogates(filtered.slice(start, end))
+  }, [allSurrogates, searchValue, page, pageSize])
 
   const handleAddNewSurrogate = () => {
     setShowDialog(true)
@@ -235,57 +286,22 @@ export default function SurrogateProfilesPage() {
 
   return (
     <AdminLayout>
-      {/* header 已存在，无需重复插入 CommonHeader */}
       <PageContent>
         <PageHeader 
           title={t('SURROGATE PROFILES')}
-            // rightContent={
-            //   <div className="flex items-center gap-4">
-            //     <Button
-            //       onClick={handleAddNewSurrogate}
-            //       className="bg-sage-200 text-sage-800 hover:bg-sage-250"
-            //     >
-            //       <Plus className="w-4 h-4 mr-2" />
-            //       {t('addNewSurrogate')}
-            //     </Button>
-            //     <DropdownMenu>
-            //       <DropdownMenuTrigger asChild>
-            //         <Button variant="outline" className="bg-white">
-            //           <Filter className="w-4 h-4 mr-2" />
-            //           {t('filterBy')}
-            //         </Button>
-            //       </DropdownMenuTrigger>
-            //       <DropdownMenuContent align="end" className="w-48">
-            //         <DropdownMenuItem>
-            //           {t('status')}
-            //         </DropdownMenuItem>
-            //         <DropdownMenuItem>
-            //           {t('age')}
-            //         </DropdownMenuItem>
-            //         <DropdownMenuItem>
-            //           {t('location')}
-            //         </DropdownMenuItem>
-            //         <DropdownMenuItem>
-            //           {t('experience')}
-            //         </DropdownMenuItem>
-            //       </DropdownMenuContent>
-            //     </DropdownMenu>
-            //   </div>
-            // }
+          className="text-2xl font-semibold text-sage-800"
         />
-
         {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 w-5 h-5" />
           <Input 
             type="text"
             placeholder={t('searchSurrogates')}
-            className="pl-10 bg-white"
+            className="pl-10 bg-white font-medium text-sage-800"
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
           />
         </div>
-
         {/* Surrogate Grid - 弹性布局美化 */}
         <div
           className="grid w-full"
@@ -293,26 +309,10 @@ export default function SurrogateProfilesPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '32px',
             alignItems: 'stretch',
+            minHeight: '320px',
           }}
         >
-          {surrogates
-            .filter(surrogate => {
-              const ci = surrogate.contact_information
-              const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
-              const city = ci?.city || ''
-              const country = ci?.country || ''
-              const id = String(surrogate.id)
-              // 搜索内容匹配姓名、城市、国家、ID
-              const keyword = searchValue.trim().toLowerCase()
-              return (
-                !keyword ||
-                name.toLowerCase().includes(keyword) ||
-                city.toLowerCase().includes(keyword) ||
-                country.toLowerCase().includes(keyword) ||
-                id.includes(keyword)
-              )
-            })
-            .map((surrogate) => {
+          {surrogates.map((surrogate) => {
             const ci = surrogate.contact_information
             const ph = surrogate.pregnancy_and_health
             // 计算年龄
@@ -325,7 +325,7 @@ export default function SurrogateProfilesPage() {
             // 展示照片
             const photoUrl = surrogate.upload_photos?.[0]?.url
             return (
-              <div key={surrogate.id} className="bg-white rounded-lg border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full" style={{minWidth: '0'}}>
+              <div key={surrogate.id} className="bg-white rounded-lg border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full text-sage-800 font-medium" style={{minWidth: '0'}}>
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center overflow-hidden">
@@ -336,84 +336,84 @@ export default function SurrogateProfilesPage() {
                       )}
                     </div>
                     <div>
-                      <h3 className="text-sage-800 font-medium">{ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : surrogate.id}</h3>
+                      <h3 className="text-sage-800 font-semibold">{ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : surrogate.id}</h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-sage-500">ID: {surrogate.id}</span>
-                        <span className="text-sm text-sage-500">•</span>
-                        <span className="text-sm text-sage-500">{age !== "-" ? t('ageWithUnit', { age }) : t('unknownAge')}</span>
+                        <span className="text-sm text-sage-500 font-normal">ID: {surrogate.id}</span>
+                        <span className="text-sm text-sage-500 font-normal">•</span>
+                        <span className="text-sm text-sage-500 font-normal">{age !== "-" ? t('ageWithUnit', { age }) : t('unknownAge')}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-sage-500">{ci?.city || "-"}, {ci?.state_or_province || "-"}, {ci?.country || "-"}</span>
+                        <span className="text-sm text-sage-500 font-normal">{ci?.city || "-"}, {ci?.state_or_province || "-"}, {ci?.country || "-"}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <MapPin className="w-4 h-4 text-sage-500" />
                     <span className="text-sage-600">{t('country')}: {ci?.country || '-'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <Heart className="w-4 h-4 text-sage-500" />
                     <span className="text-sage-600">{ph?.has_given_birth ? t('hasBirthHistory') : t('noBirthHistory')}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <Calendar className="w-4 h-4 text-sage-500" />
                     <span className="text-sage-600">{t('lastUpdate')}: {surrogate.updated_at?.slice(0, 10) || '-'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <Activity className="w-4 h-4 text-sage-500" />
                     <span className="text-sage-600">BMI: {ci?.bmi ?? '-'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <span className="text-sage-600">{t('height')}: {ci?.height ?? '-'}cm</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <span className="text-sage-600">{t('weight')}: {ci?.weight ?? '-'}kg</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <span className="text-sage-600">{t('ethnicity')}: {ci?.ethnicity_selected_key ?? '-'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <span className="text-sage-600">{t('education')}: {surrogate.about_you?.education_level_selected_key ?? '-'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <span className="text-sage-600">{t('maritalStatus')}: {surrogate.about_you?.marital_status_selected_key ?? '-'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-normal">
                     <span className="text-sage-600">{t('surrogacyExperience')}: {ci?.surrogacy_experience_count ?? '-'} {t('times')}</span>
                   </div>
                 </div>
 
-                <div className="mb-2">
+                <div className="mb-2 font-normal">
                   <span className="text-sage-600">{t('healthStatus')}: {ph?.medical_conditions_selected_keys?.join(', ') ?? '-'}</span>
                 </div>
-                <div className="mb-2">
+                <div className="mb-2 font-normal">
                   <span className="text-sage-600">{t('backgroundCheck')}: {ph?.background_check_status_selected_key ?? '-'}</span>
                 </div>
-                <div className="mb-2">
+                <div className="mb-2 font-normal">
                   <span className="text-sage-600">{t('birthHistory')}:</span>
                   <ul className="list-disc ml-6">
                     {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
-                      <li key={idx} className="text-sage-600 text-sm">
+                      <li key={idx} className="text-sage-600 text-sm font-normal">
                         {h.delivery_date} | {h.delivery_method} | {h.number_of_babies}胎 | {h.birth_weight}kg
                       </li>
-                    )) : <li className="text-sage-600 text-sm">-</li>}
+                    )) : <li className="text-sage-600 text-sm font-normal">-</li>}
                   </ul>
                 </div>
 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
                   <Button
                     variant="link"
-                    className="text-sage-600 hover:text-sage-800"
+                    className="text-sage-600 hover:text-sage-800 font-medium cursor-pointer"
                     onClick={() => router.push(`/admin/surrogate-profiles/${surrogate.id}`)}
                   >
                     {t('viewProfile')}
                   </Button>
                   <Button
                     variant="outline"
-                    className="ml-2 text-sage-600 border-sage-300"
+                    className="ml-2 text-sage-600 border-sage-300 font-medium cursor-pointer"
                     onClick={() => {
                       setSelectedSurrogateId(surrogate.id)
                       setShowPasswordDialog(true)
@@ -426,6 +426,173 @@ export default function SurrogateProfilesPage() {
             )
           })}
         </div>
+
+        {/* 分页控件 */}
+        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={page === 1}
+            onClick={() => {
+              const filtered = allSurrogates.filter(surrogate => {
+                const ci = surrogate.contact_information
+                const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+                const city = ci?.city || ''
+                const country = ci?.country || ''
+                const id = String(surrogate.id)
+                const keyword = searchValue.trim().toLowerCase()
+                return (
+                  !keyword ||
+                  name.toLowerCase().includes(keyword) ||
+                  city.toLowerCase().includes(keyword) ||
+                  country.toLowerCase().includes(keyword) ||
+                  id.includes(keyword)
+                )
+              })
+              const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+              const newPage = Math.max(1, page - 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.prevPage', { defaultValue: '上一页' })}
+          </Button>
+          <span className="text-sage-700 text-sm flex items-center gap-2">
+            {t('pagination.page', { defaultValue: '第' })}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={pageInput}
+              onChange={e => {
+                const val = e.target.value.replace(/[^0-9]/g, '')
+                setPageInput(val)
+              }}
+              onBlur={e => {
+                const filtered = allSurrogates.filter(surrogate => {
+                  const ci = surrogate.contact_information
+                  const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+                  const city = ci?.city || ''
+                  const country = ci?.country || ''
+                  const id = String(surrogate.id)
+                  const keyword = searchValue.trim().toLowerCase()
+                  return (
+                    !keyword ||
+                    name.toLowerCase().includes(keyword) ||
+                    city.toLowerCase().includes(keyword) ||
+                    country.toLowerCase().includes(keyword) ||
+                    id.includes(keyword)
+                  )
+                })
+                const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+                let val = Number(e.target.value)
+                if (isNaN(val) || val < 1) val = 1
+                if (val > totalPages) val = totalPages
+                setPage(val)
+                setPageInput(String(val))
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const filtered = allSurrogates.filter(surrogate => {
+                    const ci = surrogate.contact_information
+                    const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+                    const city = ci?.city || ''
+                    const country = ci?.country || ''
+                    const id = String(surrogate.id)
+                    const keyword = searchValue.trim().toLowerCase()
+                    return (
+                      !keyword ||
+                      name.toLowerCase().includes(keyword) ||
+                      city.toLowerCase().includes(keyword) ||
+                      country.toLowerCase().includes(keyword) ||
+                      id.includes(keyword)
+                    )
+                  })
+                  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+                  let val = Number((e.target as HTMLInputElement).value)
+                  if (isNaN(val) || val < 1) val = 1
+                  if (val > totalPages) val = totalPages
+                  setPage(val)
+                  setPageInput(String(val))
+                }
+              }}
+              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+              aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
+            />
+            {t('pagination.of', { defaultValue: '共' })} {(() => {
+              const filtered = allSurrogates.filter(surrogate => {
+                const ci = surrogate.contact_information
+                const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+                const city = ci?.city || ''
+                const country = ci?.country || ''
+                const id = String(surrogate.id)
+                const keyword = searchValue.trim().toLowerCase()
+                return (
+                  !keyword ||
+                  name.toLowerCase().includes(keyword) ||
+                  city.toLowerCase().includes(keyword) ||
+                  country.toLowerCase().includes(keyword) ||
+                  id.includes(keyword)
+                )
+              })
+              return Math.max(1, Math.ceil(filtered.length / pageSize))
+            })()} {t('pagination.pages', { defaultValue: '页' })}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={(() => {
+              const filtered = allSurrogates.filter(surrogate => {
+                const ci = surrogate.contact_information
+                const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+                const city = ci?.city || ''
+                const country = ci?.country || ''
+                const id = String(surrogate.id)
+                const keyword = searchValue.trim().toLowerCase()
+                return (
+                  !keyword ||
+                  name.toLowerCase().includes(keyword) ||
+                  city.toLowerCase().includes(keyword) ||
+                  country.toLowerCase().includes(keyword) ||
+                  id.includes(keyword)
+                )
+              })
+              const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+              return page >= totalPages
+            })()}
+            onClick={() => {
+              const filtered = allSurrogates.filter(surrogate => {
+                const ci = surrogate.contact_information
+                const name = `${ci?.first_name || ''} ${ci?.last_name || ''}`.trim()
+                const city = ci?.city || ''
+                const country = ci?.country || ''
+                const id = String(surrogate.id)
+                const keyword = searchValue.trim().toLowerCase()
+                return (
+                  !keyword ||
+                  name.toLowerCase().includes(keyword) ||
+                  city.toLowerCase().includes(keyword) ||
+                  country.toLowerCase().includes(keyword) ||
+                  id.includes(keyword)
+                )
+              })
+              const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+              const newPage = Math.min(totalPages, page + 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.nextPage', { defaultValue: '下一页' })}
+          </Button>
+        </div>
+
+        {surrogates.length === 0 && (
+          <div className="text-center py-8 text-sage-500">
+            {t('noApplications', { defaultValue: '暂无记录' })}
+          </div>
+        )}
       {/* 新建代孕母弹窗表单 */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <div className="fixed inset-0 flex items-center justify-center z-50 p-2">
@@ -670,11 +837,11 @@ export default function SurrogateProfilesPage() {
                 </div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-2 md:gap-4 mt-8">
-                <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50" onClick={() => { setShowDialog(false); reset(); }}>{t('cancel')}</Button>
-                <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition">{t('save')}</Button>
+                <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50 cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>{t('cancel')}</Button>
+                <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer">{t('save')}</Button>
               </div>
             </form>
-            <button className="absolute top-4 right-4 text-sage-400 hover:text-sage-600 text-xl" onClick={() => { setShowDialog(false); reset(); }}>&times;</button>
+            <button className="absolute top-4 right-4 text-sage-400 hover:text-sage-600 text-xl cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>&times;</button>
           </div>
         </div>
       </Dialog>
@@ -692,10 +859,10 @@ export default function SurrogateProfilesPage() {
             />
             {passwordError && <div className="text-red-500 text-sm mb-2 text-center w-full">{passwordError}</div>}
             <div className="flex justify-end gap-4 w-full mt-2">
-              <Button variant="outline" className="px-6 py-2 rounded-lg text-base" onClick={() => { setShowPasswordDialog(false); setPasswordValue(""); setPasswordError(""); }}>
+              <Button variant="outline" className="px-6 py-2 rounded-lg text-base cursor-pointer" onClick={() => { setShowPasswordDialog(false); setPasswordValue(""); setPasswordError(""); }}>
                 {t('cancel')}
               </Button>
-              <Button className="px-6 py-2 rounded-lg text-base bg-sage-600 text-white hover:bg-sage-700" onClick={handleResetPassword} disabled={passwordLoading}>
+              <Button className="px-6 py-2 rounded-lg text-base bg-sage-600 text-white hover:bg-sage-700 cursor-pointer" onClick={handleResetPassword} disabled={passwordLoading}>
                 {passwordLoading ? t('processing') : t('confirmReset')}
               </Button>
             </div>

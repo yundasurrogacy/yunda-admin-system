@@ -12,16 +12,16 @@ export default function ManagerLoginLayout({ children }: { children: React.React
   const { isAuthenticated } = useAuth()
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col text-sage-800 font-medium">
       {/* Sidebar */}
       <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         theme="blue"
+        type="client-manager"
         groups={managerSidebarConfig()}
         title="客户经理"
       />
-      
       {/* Header */}
       <CommonHeader 
         showMenuButton={true} 

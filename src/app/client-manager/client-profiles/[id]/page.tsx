@@ -133,11 +133,11 @@ export default function ClientProfileDetailPage() {
   }
 
   if (loading) {
-    return <div className="p-8 text-sage-600">加载中...</div>
+    return <div className="p-8 text-sage-600 font-medium">加载中...</div>
   }
 
   if (!client) {
-    return <div className="p-8 text-red-600">未找到该准父母信息</div>
+    return <div className="p-8 text-red-600 font-medium">未找到该准父母信息</div>
   }
 
   const basic = client.basic_information
@@ -153,14 +153,14 @@ export default function ClientProfileDetailPage() {
 
   return (
     <ManagerLayout>
-      <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
+      <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12 font-medium text-sage-800">
         <div className="flex items-center justify-between pt-6 pb-2">
           <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
               onClick={() => router.push('/client-manager/client-profiles')}
-              className="bg-white"
+              className="bg-white font-medium text-sage-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t('backToClientProfiles')}
@@ -169,7 +169,7 @@ export default function ClientProfileDetailPage() {
         </div>
 
         {/* 基本信息 */}
-  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+        <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-sage-800 text-lg font-medium">{t('basicInformation')}</CardTitle>
           </CardHeader>
@@ -200,7 +200,7 @@ export default function ClientProfileDetailPage() {
         </Card>
 
         {/* 联系信息 */}
-  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+        <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-sage-800 text-lg font-medium">{t('contactInformation')}</CardTitle>
           </CardHeader>
@@ -227,7 +227,7 @@ export default function ClientProfileDetailPage() {
         </Card>
 
         {/* 家庭资料 */}
-  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+        <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-sage-800 text-lg font-medium">{t('familyProfile')}</CardTitle>
           </CardHeader>
@@ -254,7 +254,7 @@ export default function ClientProfileDetailPage() {
         </Card>
 
         {/* 项目意向 */}
-  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+        <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-sage-800 text-lg font-medium">{t('programInterests')}</CardTitle>
           </CardHeader>
@@ -277,7 +277,7 @@ export default function ClientProfileDetailPage() {
         </Card>
 
         {/* 渠道及初步沟通 */}
-  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+        <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-sage-800 text-lg font-medium">{t('referral')}</CardTitle>
           </CardHeader>
@@ -296,7 +296,7 @@ export default function ClientProfileDetailPage() {
         </Card>
 
         {/* 同意条款 */}
-  <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
+        <Card className="bg-white border-sage-200 animate-slide-in-left overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-sage-800 text-lg font-medium">{t('agreement')}</CardTitle>
           </CardHeader>

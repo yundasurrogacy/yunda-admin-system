@@ -67,6 +67,27 @@ export default function ParentsApplicationsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false)
+  // 分页相关
+  const [page, setPage] = useState(1)
+  const [pageInput, setPageInput] = useState('1')
+  const [pageSize, setPageSize] = useState(10)
+
+  // 自适应每页条数，始终两行，宽度自适应
+  useEffect(() => {
+    function calcPageSize() {
+      // 卡片宽度约340px+gap，左右padding 32px
+      const containerWidth = window.innerWidth - 64
+      const cardWidth = 340 + 32
+      const rowCount = Math.max(1, Math.floor(containerWidth / cardWidth))
+      const colCount = 2 // 固定两行
+      const newPageSize = rowCount * colCount
+      setPageSize(newPageSize)
+    }
+    calcPageSize()
+    window.addEventListener('resize', calcPageSize)
+    return () => window.removeEventListener('resize', calcPageSize)
+  }, [])
   useEffect(() => {
     console.log('页面 i18n.language:', i18n.language)
     const handleLangChange = () => {
@@ -77,6 +98,8 @@ export default function ParentsApplicationsPage() {
     return () => i18n.off("languageChanged", handleLangChange)
   }, [])
 
+  // 分页和搜索应在原始数据上进行
+  const [allApplications, setAllApplications] = useState<Application[]>([])
   useEffect(() => {
     loadApplications()
   }, [statusFilter])
@@ -85,8 +108,8 @@ export default function ParentsApplicationsPage() {
     try {
       setLoading(true)
       const status = statusFilter === 'all' ? undefined : statusFilter
-      const data = await getParentsApplications(50, 0, status)
-      setApplications(data)
+      const allData = await getParentsApplications(10000, 0, status)
+      setAllApplications(allData)
     } catch (error) {
       console.error('Failed to load applications:', error)
     } finally {
@@ -103,7 +126,8 @@ export default function ParentsApplicationsPage() {
     }
   }
 
-  const filteredApplications = applications.filter(app => {
+  // 先过滤再分页
+  const filteredAllApplications = allApplications.filter(app => {
     if (!searchTerm) return true
     const searchLower = searchTerm.toLowerCase()
     const appData = app.application_data as any
@@ -128,6 +152,17 @@ export default function ParentsApplicationsPage() {
       referral.referral_source?.toLowerCase().includes(searchLower)
     )
   })
+
+  // 分页
+  const total = filteredAllApplications.length
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const pagedApplications = filteredAllApplications.slice((page - 1) * pageSize, page * pageSize)
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages)
+      setPageInput(String(totalPages))
+    }
+  }, [totalPages, page])
 
   const getStatusBadge = (status: ApplicationStatus) => {
     switch (status) {
@@ -156,13 +191,11 @@ export default function ParentsApplicationsPage() {
   }
 
   if (loading) {
-    // console.log('t(loading):', t('loading'));
     return (
       <AdminLayout key={lang}>
         <PageContent>
           <div className="flex items-center justify-center h-64">
             <div className="text-lg">{t('loading', { defaultValue: '加载中...' })}</div>
-            {/* <div className="text-lg">{t('loading', { defaultValue: 'Loading...' })}</div> */}
           </div>
         </PageContent>
       </AdminLayout>
@@ -179,31 +212,42 @@ export default function ParentsApplicationsPage() {
             <div className="flex items-center gap-4">
               <Button
                 onClick={() => window.open('https://www.yundasurrogacy.com/be-parents', '_blank')}
-                className="bg-sage-200 text-sage-800 hover:bg-sage-250"
+                className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {t('addNewApplication', { defaultValue: '添加新申请' })}
               </Button>
-              <DropdownMenu>
+              <DropdownMenu open={filterMenuOpen} onOpenChange={setFilterMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white">
+                  <Button variant="outline" className="bg-white cursor-pointer">
                     <Filter className="w-4 h-4 mr-2" />
                     {t('filterBy', { defaultValue: '筛选' })}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                    {t('allStatus', { defaultValue: '全部状态' })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('pending')}>
-                    {t('pending', { defaultValue: '待审核' })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('approved')}>
-                    {t('approved', { defaultValue: '已通过' })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('rejected')}>
-                    {t('rejected', { defaultValue: '已拒绝' })}
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-48 bg-white" style={{ background: '#fff', opacity: 1 }}>
+                  {[
+                    { key: 'all', label: t('allStatus', { defaultValue: '全部状态' }) },
+                    { key: 'pending', label: t('pending', { defaultValue: '待审核' }) },
+                    { key: 'approved', label: t('approved', { defaultValue: '已通过' }) },
+                    { key: 'rejected', label: t('rejected', { defaultValue: '已拒绝' }) },
+                  ].map(opt => (
+                    <DropdownMenuItem
+                      key={opt.key}
+                      onClick={() => {
+                        setStatusFilter(opt.key as ApplicationStatus | 'all');
+                        setFilterMenuOpen(false);
+                      }}
+                      className={
+                        `cursor-pointer px-4 py-2 transition-colors duration-150 rounded-lg bg-white ` +
+                        (statusFilter === opt.key
+                          ? 'text-sage-900 font-semibold shadow-md'
+                          : 'text-sage-700 hover:bg-sage-50')
+                      }
+                      style={{ background: '#fff', opacity: 1 }}
+                    >
+                      {opt.label}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -229,9 +273,10 @@ export default function ParentsApplicationsPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '32px',
             alignItems: 'stretch',
+            minHeight: '320px',
           }}
         >
-          {filteredApplications.map((app) => {
+          {pagedApplications.map((app) => {
             const appData = app.application_data as any
             const basicInfo = appData?.basic_information || {}
             const contactInfo = appData?.contact_information || {}
@@ -326,7 +371,7 @@ export default function ParentsApplicationsPage() {
                       <>
                         <Button 
                           size="sm" 
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
+                          className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
                           onClick={() => handleStatusUpdate(app.id, 'approved')}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
@@ -335,7 +380,7 @@ export default function ParentsApplicationsPage() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-600 hover:bg-red-50 cursor-pointer"
                           onClick={() => handleStatusUpdate(app.id, 'rejected')}
                         >
                           <XCircle className="w-3 h-3 mr-1" />
@@ -345,7 +390,7 @@ export default function ParentsApplicationsPage() {
                     )}
                     <Button 
                       variant="link" 
-                      className="text-sage-600 hover:text-sage-800"
+                      className="text-sage-600 hover:text-sage-800 cursor-pointer"
                       onClick={() => router.push(`/admin/parents-applications/${app.id}`)}
                     >
                       <Eye className="w-4 h-4 mr-1" />
@@ -358,7 +403,69 @@ export default function ParentsApplicationsPage() {
           })}
         </div>
 
-        {filteredApplications.length === 0 && (
+        {/* 分页控件 */}
+        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={page === 1}
+            onClick={() => {
+              const newPage = Math.max(1, page - 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.prevPage', { defaultValue: '上一页' })}
+          </Button>
+          <span className="text-sage-700 text-sm flex items-center gap-2">
+            {t('pagination.page', { defaultValue: '第' })}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={pageInput}
+              onChange={e => {
+                const val = e.target.value.replace(/[^0-9]/g, '')
+                setPageInput(val)
+              }}
+              onBlur={e => {
+                let val = Number(e.target.value)
+                if (isNaN(val) || val < 1) val = 1
+                if (val > totalPages) val = totalPages
+                setPage(val)
+                setPageInput(String(val))
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  let val = Number((e.target as HTMLInputElement).value)
+                  if (isNaN(val) || val < 1) val = 1
+                  if (val > totalPages) val = totalPages
+                  setPage(val)
+                  setPageInput(String(val))
+                }
+              }}
+              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+              aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
+            />
+            {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={page >= totalPages}
+            onClick={() => {
+              const newPage = Math.min(totalPages, page + 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.nextPage', { defaultValue: '下一页' })}
+          </Button>
+        </div>
+
+        {pagedApplications.length === 0 && (
           <div className="text-center py-8 text-sage-500">
             {t('noApplications', { defaultValue: '暂无申请记录' })}
           </div>

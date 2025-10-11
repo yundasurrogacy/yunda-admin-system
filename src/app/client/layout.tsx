@@ -12,7 +12,7 @@ export default function ClientLoginLayout({ children }: { children: React.ReactN
   const { isAuthenticated } = useAuth()
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen relative text-sage-800 font-medium" style={{ background: 'rgba(250,241,224,0.25)' }}>
       {/* Sidebar */}
       <CommonSidebar
         isOpen={sidebarOpen}
@@ -21,7 +21,6 @@ export default function ClientLoginLayout({ children }: { children: React.ReactN
         title="YUNDA CLIENT"
         type="client"
       />
-
       {/* Main content */}
       <div className="min-h-screen flex flex-col">
         <CommonHeader

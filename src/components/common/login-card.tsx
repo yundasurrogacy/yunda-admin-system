@@ -45,7 +45,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({
       minHeight: 320,
       maxHeight: 700,
     }}>
-      <h2 className="text-xl font-serif mb-4 text-[#3C2B1C]">{subtitle}</h2>
+  <h2 className="text-xl font-semibold mb-4 text-sage-800">{subtitle}</h2>
       <form
         style={{ width: "100%", maxWidth: 600, margin: "0 auto" }}
         className="flex flex-col gap-2"
@@ -56,7 +56,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({
       >
         <div className="flex flex-col gap-2">
           <div>
-            <label htmlFor="email" className="block text-base font-serif text-[#3C2B1C] mb-2">
+            <label htmlFor="email" className="block text-base font-medium text-sage-800 mb-2">
               {emailLabel}
             </label>
             <input
@@ -73,17 +73,19 @@ export const LoginCard: React.FC<LoginCardProps> = ({
                 height: 56,
                 width: "100%",
                 padding: "0 20px",
+                fontWeight: 500,
+                color: "#374151" // text-sage-800
               }}
-              className="font-serif text-[#3C2B1C]"
+              className="font-medium text-sage-800"
             />
             <div className="text-right mt-2">
-              <a href="/admin/forgot-password" className="text-xs text-[#3C2B1C] hover:underline">
+              <a href="/admin/forgot-password" className="text-xs text-sage-800 hover:underline font-medium">
                 {forgotPassword}
               </a>
             </div>
           </div>
           <div>
-            <label htmlFor="password" className="block text-base font-serif text-[#3C2B1C] mb-2">
+            <label htmlFor="password" className="block text-base font-medium text-sage-800 mb-2">
               {passwordLabel}
             </label>
             <input
@@ -100,8 +102,10 @@ export const LoginCard: React.FC<LoginCardProps> = ({
                 height: 56,
                 width: "100%",
                 padding: "0 20px",
+                fontWeight: 500,
+                color: "#374151"
               }}
-              className="font-serif text-[#3C2B1C]"
+              className="font-medium text-sage-800"
             />
           </div>
         </div>
@@ -123,7 +127,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({
             cursor: loading ? "not-allowed" : "pointer",
             marginTop: "32px",
           }}
-          className="font-serif"
+          className="font-semibold text-sage-800"
         >
           {loading ? loggingIn : loginButton}
         </button>

@@ -35,6 +35,7 @@ function FilesPageInner() {
       category: string;
       file_type: string;
       created_at: string;
+      note?: string;
     }>;
   }>>([]);
 
@@ -58,6 +59,7 @@ function FilesPageInner() {
                 category: f.category,
                 file_type: f.file_type,
                 created_at: f.created_at,
+                note: f.note,
               }))
             }))
           );
@@ -65,95 +67,114 @@ function FilesPageInner() {
       });
   }, [caseId]);
 
-  // 上传文件并新增 journey，上传后自动刷新列表
-  const handleUpload = async (categoryKey: string) => {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.onchange = async (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (!target || !target.files || target.files.length === 0) return;
-      const file = target.files[0];
-      setUploading(true);
-      // 1. 上传文件到后端，获取真实url
-      const formData = new FormData();
-      formData.append('file', file);
-      const uploadRes = await fetch('/api/upload/form', {
-        method: 'POST',
-        body: formData,
-      });
-      const uploadData = await uploadRes.json();
-      let fileUrl = '';
-      if (uploadRes.ok && uploadData.success) {
-        fileUrl = uploadData.data.url || uploadData.data.path || uploadData.data.fileUrl || uploadData.data;
-      } else {
-        setUploading(false);
-        alert(`${t('files.uploadFailed')}: ${uploadData.message || t('files.unknownError')}`);
-        return;
-      }
-      // 2. 新增 journey 和 cases_files
-      const filesToUpload = [{
-        file_url: fileUrl,
-        category: categoryKey,
-        file_type: file.type,
-      }];
-      const res = await fetch('/api/journey-create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          journey: {
-            case_cases: Number(caseId),
-            stage: Number(stage),
-            title: title,
-          },
-          files: filesToUpload,
-        }),
-      });
+  // 上传文件弹窗逻辑
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadCategory, setUploadCategory] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFileName, setUploadFileName] = useState<string>('');
+  const [uploadNote, setUploadNote] = useState('');
+
+  const handleUpload = (categoryKey: string) => {
+    setUploadCategory(categoryKey);
+    setUploadFile(null);
+    setUploadFileName('');
+    setUploadNote('');
+    setShowUploadModal(true);
+  };
+
+  const handleUploadSubmit = async () => {
+    if (!uploadFile || !caseId || !journeyId) {
+      alert(t('files.uploadParamsMissing', 'Missing upload parameters'));
+      return;
+    }
+    setUploading(true);
+    // 1. 上传文件到后端，获取真实url
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+    const uploadRes = await fetch('/api/upload/form', {
+      method: 'POST',
+      body: formData,
+    });
+    const uploadData = await uploadRes.json();
+    let fileUrl = '';
+    if (uploadRes.ok && uploadData.success) {
+      fileUrl = uploadData.data.url || uploadData.data.path || uploadData.data.fileUrl || uploadData.data;
+    } else {
       setUploading(false);
-      if (res.ok) {
-        // 上传成功后刷新 journey 文件列表
-        fetch(`/api/journey-get?caseId=${caseId}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.journeys) {
-              setJourneyFiles(
-                data.journeys.map((j: any) => ({
-                  id: j.id,
-                  stage: j.stage,
-                  title: j.title,
-                  files: (j.cases_files || []).map((f: any) => ({
-                    id: f.id,
-                    file_url: f.file_url,
-                    category: f.category,
-                    file_type: f.file_type,
-                    created_at: f.created_at,
-                  }))
-                }))
-              );
-            }
-          });
-        alert(t('files.uploadSuccess'));
-      } else {
-        alert(t('files.addJourneyFailed'));
-      }
+      alert(`${t('files.uploadFailed', 'Upload failed')}: ${uploadData.message || t('files.unknownError', 'Unknown error')}`);
+      return;
+    }
+    // 2. 直接插入 cases_files
+    const fileToInsert = {
+      file_url: fileUrl,
+      category: uploadCategory,
+      file_type: uploadFile.type,
+      note: uploadNote,
+      case_cases: Number(caseId),
+      journey_journeys: Number(journeyId),
     };
-    fileInput.click();
+    const res = await fetch('/api/files-add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ file: fileToInsert }),
+    });
+    setUploading(false);
+    setShowUploadModal(false);
+    if (res.ok) {
+      // 上传成功后刷新 journey 文件列表
+      fetch(`/api/journey-get?caseId=${caseId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.journeys) {
+            setJourneyFiles(
+              data.journeys.map((j: any) => ({
+                id: j.id,
+                stage: j.stage,
+                title: j.title,
+                files: (j.cases_files || []).map((f: any) => ({
+                  id: f.id,
+                  file_url: f.file_url,
+                  category: f.category,
+                  file_type: f.file_type,
+                  created_at: f.created_at,
+                  note: f.note,
+                }))
+              }))
+            );
+          }
+        });
+      alert(t('files.uploadSuccess', 'Upload successful'));
+    } else {
+      alert(t('files.uploadFailed', 'Upload failed'));
+    }
   };
 
   return (
     <ManagerLayout>
       <div className="p-8">
-        <h1 className="text-2xl font-semibold mb-8">{t('files.title')}</h1>
+        {/* 返回按钮 */}
+        <button
+          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-sage-800 font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+          onClick={() => window.history.back()}
+        >
+          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {t('back', '返回')}
+        </button>
+        <h1 className="text-2xl font-bold text-sage-800 mb-8">{t('files.title', '文件管理')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {categories.map((cat) => (
-            <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] font-serif text-[#271F18]">
+            <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] text-sage-800">
               <div className="flex justify-between items-center mb-2">
-                <h2 className="text-xl font-serif">{cat.label}</h2>
+                <h2 className="text-xl font-bold text-sage-800">{cat.label}</h2>
                 <Button
-                  className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]"
+                  className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
                   onClick={() => handleUpload(cat.key)}
                   disabled={uploading}
+                  aria-label={t('files.upload', '上传')}
                 >
-                  {`+ ${t('files.upload')}`}
+                  {`+ ${t('files.upload', '上传')}`}
                 </Button>
               </div>
               {/* 按 journey 分组展示文件 */}
@@ -161,15 +182,17 @@ function FilesPageInner() {
                 journey.files.filter((f) => f.category === cat.key).map((file, idx) => (
                   <div key={file.id} className="mb-4">
                     <div className="flex justify-between items-center">
-                      <span>{file.file_type || t('files.file')}</span>
-                      <span className="text-xs">{t('files.uploaded')}</span>
+                      <span className="text-base font-medium">{file.file_type || t('files.file', '文件')}</span>
+                      <span className="text-xs text-sage-500">{t('files.uploaded', '上传时间')}</span>
                     </div>
-                    <div className="text-xs mb-1">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
+                    <div className="text-xs mb-1 text-sage-600">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
+                    {file.note && <div className="text-xs text-sage-500 mb-1">{t('files.note', '描述')}: {file.note}</div>}
                     <Button
-                      className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3]"
+                      className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
                       onClick={() => window.open(file.file_url, '_blank')}
+                      aria-label={t('files.download', '下载')}
                     >
-                      {t('files.download')}
+                      {t('files.download', '下载')}
                     </Button>
                     <hr className="my-2" />
                   </div>
@@ -178,6 +201,51 @@ function FilesPageInner() {
             </Card>
           ))}
         </div>
+
+        {/* 上传文件弹窗 */}
+        {showUploadModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-2xl shadow-xl p-8 min-w-[320px] max-w-[90vw] w-full max-w-md relative">
+              <button className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100" onClick={() => setShowUploadModal(false)} aria-label={t('close', '关闭')}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+              <h2 className="text-xl font-bold mb-4">{t('files.uploadFile', 'Upload File')}</h2>
+              <div className="mb-4">
+                <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="file-input">{t('files.selectFile', 'Select File')}</label>
+                <input
+                  id="file-input"
+                  type="file"
+                  onChange={e => {
+                    setUploadFile(e.target.files?.[0] || null);
+                    setUploadFileName(e.target.files?.[0]?.name || '');
+                  }}
+                  className="block w-full border border-gray-300 rounded px-3 py-2 mb-2"
+                  accept="*"
+                  aria-label={t('files.selectFile', 'Select File')}
+                />
+                <div className="text-xs text-gray-500 mb-2">
+                  {uploadFileName
+                    ? t('files.selectedFile', { fileName: uploadFileName, defaultValue: 'Selected: {{fileName}}' })
+                    : t('files.noFileSelected', 'No file selected')}
+                </div>
+                <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="note-input">{t('files.note', 'Description')}</label>
+                <textarea
+                  id="note-input"
+                  className="block w-full border border-gray-300 rounded px-3 py-2"
+                  placeholder={t('files.notePlaceholder', 'Please enter file description')}
+                  value={uploadNote}
+                  onChange={e => setUploadNote(e.target.value)}
+                  rows={3}
+                  aria-label={t('files.note', 'Description')}
+                />
+              </div>
+              <div className="flex justify-end gap-4">
+                <Button onClick={() => setShowUploadModal(false)}>{t('cancel', '取消')}</Button>
+                <Button onClick={handleUploadSubmit} disabled={uploading || !uploadFile}>{uploading ? t('loadingText', '上传中...') : t('save', '保存')}</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ManagerLayout>
   );
@@ -185,7 +253,7 @@ function FilesPageInner() {
 
 export default function FilesPage() {
   return (
-    <Suspense fallback={<div className="p-8">加载中...</div>}>
+    <Suspense fallback={<div className="p-8">{useTranslation('common').t('loadingText', '加载中...')}</div>}>
       <FilesPageInner />
     </Suspense>
   );

@@ -19,7 +19,7 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
   const { user, isAuthenticated } = useAuth()
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative text-sage-800 font-medium">
       {/* Sidebar */}
       <CommonSidebar 
         isOpen={sidebarOpen} 
@@ -28,7 +28,6 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
         groups={getAdminSidebarConfig()}
         type="admin"
       />
-      
       {/* Main content */}
       <div className="min-h-screen flex flex-col">
         {showHeader && (

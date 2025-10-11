@@ -23,10 +23,30 @@ export default function SurrogatesApplicationsPage() {
   const router = useRouter()
   const { t, i18n } = useTranslation("common")
   const [lang, setLang] = useState(i18n.language)
+  // 分页相关
+  const [allApplications, setAllApplications] = useState<Application[]>([])
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
+  const [page, setPage] = useState(1)
+  const [pageInput, setPageInput] = useState('1')
+  const [pageSize, setPageSize] = useState(10)
+
+  // 自适应每页条数，始终两行，宽度自适应
+  useEffect(() => {
+    function calcPageSize() {
+      const containerWidth = window.innerWidth - 64
+      const cardWidth = 340 + 32
+      const rowCount = Math.max(1, Math.floor(containerWidth / cardWidth))
+      const colCount = 2 // 固定两行
+      const newPageSize = rowCount * colCount
+      setPageSize(newPageSize)
+    }
+    calcPageSize()
+    window.addEventListener('resize', calcPageSize)
+    return () => window.removeEventListener('resize', calcPageSize)
+  }, [])
 
   useEffect(() => {
     const handleLangChange = () => setLang(i18n.language)
@@ -34,6 +54,7 @@ export default function SurrogatesApplicationsPage() {
     return () => i18n.off("languageChanged", handleLangChange)
   }, [i18n])
 
+  // 获取全部数据
   useEffect(() => {
     loadApplications()
   }, [statusFilter])
@@ -42,8 +63,8 @@ export default function SurrogatesApplicationsPage() {
     try {
       setLoading(true)
       const status = statusFilter === 'all' ? undefined : statusFilter
-      const data = await getSurrogatesApplications(50, 0, status)
-      setApplications(data)
+      const data = await getSurrogatesApplications(10000, 0, status)
+      setAllApplications(data)
     } catch (error) {
       console.error('Failed to load applications:', error)
     } finally {
@@ -60,20 +81,30 @@ export default function SurrogatesApplicationsPage() {
     }
   }
 
-  const filteredApplications = applications.filter(app => {
-    if (!searchTerm) return true
-    
-    const searchLower = searchTerm.toLowerCase()
-    const appData = app.application_data as any
-    const contactInfo = appData?.contact_information || {}
-    
-    return (
-      contactInfo.first_name?.toLowerCase().includes(searchLower) ||
-      contactInfo.last_name?.toLowerCase().includes(searchLower) ||
-      contactInfo.email_address?.toLowerCase().includes(searchLower) ||
-      contactInfo.cell_phone?.includes(searchTerm)
-    )
-  })
+  // 搜索和分页
+  useEffect(() => {
+    const filtered = allApplications.filter(app => {
+      if (!searchTerm) return true
+      const searchLower = searchTerm.toLowerCase()
+      const appData = app.application_data as any
+      const contactInfo = appData?.contact_information || {}
+      return (
+        contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+        contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+        contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+        contactInfo.cell_phone?.includes(searchTerm)
+      )
+    })
+    const total = filtered.length
+    const totalPages = Math.max(1, Math.ceil(total / pageSize))
+    if (page > totalPages) {
+      setPage(totalPages)
+      setPageInput(String(totalPages))
+    }
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+    setApplications(filtered.slice(start, end))
+  }, [allApplications, searchTerm, page, pageSize])
 
   const getStatusColor = (status: ApplicationStatus) => {
     switch (status) {
@@ -116,35 +147,55 @@ export default function SurrogatesApplicationsPage() {
   return (
     <AdminLayout key={lang}>
       <PageContent>
-        <PageHeader 
+        <PageHeader
           title={t('surrogatesApplications')}
           rightContent={
             <div className="flex items-center gap-4">
               <Button
                 onClick={() => window.open('https://www.yundasurrogacy.com/be-parents', '_blank')}
-                className="bg-sage-200 text-sage-800 hover:bg-sage-250"
+                className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {t('addNewApplication')}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white">
+                  <Button variant="outline" className="bg-white font-medium cursor-pointer">
                     <Filter className="w-4 h-4 mr-2" />
                     {t('filterBy')}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-48 bg-white border border-sage-200 shadow-lg"
+                  style={{ background: '#fff', opacity: 1, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+                >
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter('all')}
+                    className={`cursor-pointer text-sage-800 ${statusFilter === 'all' ? 'bg-sage-100 font-semibold' : 'bg-white'}`}
+                    style={{ background: statusFilter === 'all' ? '#F4F3F0' : '#fff', opacity: 1, boxShadow: 'none' }}
+                  >
                     {t('allStatus')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('pending')}>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter('pending')}
+                    className={`cursor-pointer text-sage-800 ${statusFilter === 'pending' ? 'bg-sage-100 font-semibold' : 'bg-white'}`}
+                    style={{ background: statusFilter === 'pending' ? '#F4F3F0' : '#fff', opacity: 1, boxShadow: 'none' }}
+                  >
                     {t('pending')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('approved')}>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter('approved')}
+                    className={`cursor-pointer text-sage-800 ${statusFilter === 'approved' ? 'bg-sage-100 font-semibold' : 'bg-white'}`}
+                    style={{ background: statusFilter === 'approved' ? '#F4F3F0' : '#fff', opacity: 1, boxShadow: 'none' }}
+                  >
                     {t('approved')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setStatusFilter('rejected')}>
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter('rejected')}
+                    className={`cursor-pointer text-sage-800 ${statusFilter === 'rejected' ? 'bg-sage-100 font-semibold' : 'bg-white'}`}
+                    style={{ background: statusFilter === 'rejected' ? '#F4F3F0' : '#fff', opacity: 1, boxShadow: 'none' }}
+                  >
                     {t('rejected')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -156,12 +207,12 @@ export default function SurrogatesApplicationsPage() {
         {/* Search Bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 w-5 h-5" />
-          <Input 
+          <Input
             type="text"
             placeholder={t('searchApplicants', { defaultValue: '搜索申请人...' })}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white"
+            className="pl-10 bg-white font-medium text-sage-800"
           />
         </div>
 
@@ -172,9 +223,10 @@ export default function SurrogatesApplicationsPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '32px',
             alignItems: 'stretch',
+            minHeight: '320px',
           }}
         >
-          {filteredApplications.map((app) => {
+          {applications.map((app) => {
             const appData = app.application_data as any
             const contactInfo = appData?.contact_information || {}
             const aboutYou = appData?.about_you || {}
@@ -204,11 +256,11 @@ export default function SurrogatesApplicationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-lg text-sage-800 truncate">{contactInfo.first_name} {contactInfo.last_name}</div>
-                    <div className="text-sage-500 text-sm truncate">#{app.id} • {age} years</div>
+                    <div className="text-sage-800 text-sm font-medium truncate">#{app.id} • {age} years</div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>{t(app.status, { defaultValue: app.status })}</span>
                 </div>
-                <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+                <div className="mt-2 space-y-1 text-sage-800 text-[15px] font-medium">
                   <div className="flex items-center gap-2 truncate">
                     <Mail className="w-4 h-4 text-sage-400" />
                     <span className="truncate">{contactInfo.email_address || 'N/A'}</span>
@@ -223,76 +275,76 @@ export default function SurrogatesApplicationsPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
                     <Heart className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600 truncate">{pregnancyHealth.birth_details || 'No births'}</span>
+                    <span className="truncate">{pregnancyHealth.birth_details || 'No births'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
                     <Activity className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600 truncate">BMI: {contactInfo.bmi || 'N/A'}</span>
+                    <span className="truncate">BMI: {contactInfo.bmi || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
                     <Calendar className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600 truncate">DOB: {contactInfo.date_of_birth || 'N/A'}</span>
+                    <span className="truncate">DOB: {contactInfo.date_of_birth || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
                     <User className="w-4 h-4 text-sage-500" />
-                    <span className="text-sage-600 truncate">{aboutYou.occupation || 'N/A'}</span>
+                    <span className="truncate">{aboutYou.occupation || 'N/A'}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">{t('ethnicity', { defaultValue: '种族' })}:</span>
-                    <span className="text-sage-600 truncate">{contactInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' })}</span>
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+                    <span>{t('ethnicity', { defaultValue: '种族' })}:</span>
+                    <span className="truncate">{contactInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">{t('education', { defaultValue: '教育' })}:</span>
-                    <span className="text-sage-600 truncate">{aboutYou.education_level || t('notAvailable', { defaultValue: 'N/A' })}</span>
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+                    <span>{t('education', { defaultValue: '教育' })}:</span>
+                    <span className="truncate">{aboutYou.education_level || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">{t('heightWeight', { defaultValue: '身高体重' })}:</span>
-                    <span className="text-sage-600 truncate">{contactInfo.height || t('notAvailable', { defaultValue: 'N/A' })} / {contactInfo.weight || t('notAvailable', { defaultValue: 'N/A' })}</span>
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+                    <span>{t('heightWeight', { defaultValue: '身高体重' })}:</span>
+                    <span className="truncate">{contactInfo.height || t('notAvailable', { defaultValue: 'N/A' })} / {contactInfo.weight || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-sage-500">{t('identity', { defaultValue: '身份' })}:</span>
-                    <span className="text-sage-600 truncate">{contactInfo.us_citizen_or_visa_status || t('notAvailable', { defaultValue: 'N/A' })}</span>
+                  <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+                    <span>{t('identity', { defaultValue: '身份' })}:</span>
+                    <span className="truncate">{contactInfo.us_citizen_or_visa_status || t('notAvailable', { defaultValue: 'N/A' })}</span>
                   </div>
                 </div>
                 <div className="mb-4 p-3 bg-sage-50 rounded-lg">
-                  <div className="text-sm text-sage-700">
-                    <div className="font-medium mb-1">{t('surrogacyExperience', { defaultValue: '代孕经验' })}:</div>
-                    <div className="text-sage-600 truncate">
+                  <div className="text-sm font-medium text-sage-800">
+                    <div className="mb-1">{t('surrogacyExperience', { defaultValue: '代孕经验' })}:</div>
+                    <div className="truncate">
                       {aboutYou.is_former_surrogate
                         ? t('experiencedSurrogate', { defaultValue: '有经验' })
                         : t('firstTimeSurrogate', { defaultValue: '首次代孕' })}
                       {contactInfo.surrogacy_experience_count > 0 && ` (${contactInfo.surrogacy_experience_count}${t('times', { defaultValue: '次' })})`}
                     </div>
                     {aboutYou.surrogate_experience && (
-                      <div className="text-xs text-sage-500 mt-1 truncate">
+                      <div className="text-xs text-sage-800 mt-1 truncate">
                         {aboutYou.surrogate_experience}
                       </div>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
-                  <span className="text-sm text-sage-500">
+                  <span className="text-sm font-medium text-sage-800">
                     {t('applicationDate', { defaultValue: '申请时间' })}: {new Date(app.created_at).toLocaleDateString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
                   </span>
                   <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
                       <>
-                        <Button 
-                          size="sm" 
-                          className="bg-green-100 text-green-800 hover:bg-green-200"
+                        <Button
+                          size="sm"
+                          className="bg-green-100 text-green-800 hover:bg-green-200 font-medium cursor-pointer"
                           onClick={() => handleStatusUpdate(app.id, 'approved')}
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           {t('approve', { defaultValue: '通过' })}
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-600 hover:bg-red-50 font-medium cursor-pointer"
                           onClick={() => handleStatusUpdate(app.id, 'rejected')}
                         >
                           <XCircle className="w-3 h-3 mr-1" />
@@ -300,9 +352,9 @@ export default function SurrogatesApplicationsPage() {
                         </Button>
                       </>
                     )}
-                    <Button 
-                      variant="link" 
-                      className="text-sage-600 hover:text-sage-800"
+                    <Button
+                      variant="link"
+                      className="text-sage-800 hover:text-sage-900 font-medium cursor-pointer"
                       onClick={() => router.push(`/admin/surrogates-applications/${app.id}`)}
                     >
                       <Eye className="w-4 h-4 mr-1" />
@@ -315,8 +367,151 @@ export default function SurrogatesApplicationsPage() {
           })}
         </div>
 
-        {filteredApplications.length === 0 && (
-          <div className="text-center py-8 text-sage-500">
+        {/* 分页控件 */}
+        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={page === 1}
+            onClick={() => {
+              const filtered = allApplications.filter(app => {
+                if (!searchTerm) return true
+                const searchLower = searchTerm.toLowerCase()
+                const appData = app.application_data as any
+                const contactInfo = appData?.contact_information || {}
+                return (
+                  contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+                  contactInfo.cell_phone?.includes(searchTerm)
+                )
+              })
+              const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+              const newPage = Math.max(1, page - 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.prevPage', { defaultValue: '上一页' })}
+          </Button>
+          <span className="text-sage-700 text-sm flex items-center gap-2">
+            {t('pagination.page', { defaultValue: '第' })}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={pageInput}
+              onChange={e => {
+                const val = e.target.value.replace(/[^0-9]/g, '')
+                setPageInput(val)
+              }}
+              onBlur={e => {
+                const filtered = allApplications.filter(app => {
+                  if (!searchTerm) return true
+                  const searchLower = searchTerm.toLowerCase()
+                  const appData = app.application_data as any
+                  const contactInfo = appData?.contact_information || {}
+                  return (
+                    contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+                    contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+                    contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+                    contactInfo.cell_phone?.includes(searchTerm)
+                  )
+                })
+                const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+                let val = Number(e.target.value)
+                if (isNaN(val) || val < 1) val = 1
+                if (val > totalPages) val = totalPages
+                setPage(val)
+                setPageInput(String(val))
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const filtered = allApplications.filter(app => {
+                    if (!searchTerm) return true
+                    const searchLower = searchTerm.toLowerCase()
+                    const appData = app.application_data as any
+                    const contactInfo = appData?.contact_information || {}
+                    return (
+                      contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+                      contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+                      contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+                      contactInfo.cell_phone?.includes(searchTerm)
+                    )
+                  })
+                  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+                  let val = Number((e.target as HTMLInputElement).value)
+                  if (isNaN(val) || val < 1) val = 1
+                  if (val > totalPages) val = totalPages
+                  setPage(val)
+                  setPageInput(String(val))
+                }
+              }}
+              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+              aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
+            />
+            {t('pagination.of', { defaultValue: '共' })} {(() => {
+              const filtered = allApplications.filter(app => {
+                if (!searchTerm) return true
+                const searchLower = searchTerm.toLowerCase()
+                const appData = app.application_data as any
+                const contactInfo = appData?.contact_information || {}
+                return (
+                  contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+                  contactInfo.cell_phone?.includes(searchTerm)
+                )
+              })
+              return Math.max(1, Math.ceil(filtered.length / pageSize))
+            })()} {t('pagination.pages', { defaultValue: '页' })}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={(() => {
+              const filtered = allApplications.filter(app => {
+                if (!searchTerm) return true
+                const searchLower = searchTerm.toLowerCase()
+                const appData = app.application_data as any
+                const contactInfo = appData?.contact_information || {}
+                return (
+                  contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+                  contactInfo.cell_phone?.includes(searchTerm)
+                )
+              })
+              const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+              return page >= totalPages
+            })()}
+            onClick={() => {
+              const filtered = allApplications.filter(app => {
+                if (!searchTerm) return true
+                const searchLower = searchTerm.toLowerCase()
+                const appData = app.application_data as any
+                const contactInfo = appData?.contact_information || {}
+                return (
+                  contactInfo.first_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.last_name?.toLowerCase().includes(searchLower) ||
+                  contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+                  contactInfo.cell_phone?.includes(searchTerm)
+                )
+              })
+              const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+              const newPage = Math.min(totalPages, page + 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.nextPage', { defaultValue: '下一页' })}
+          </Button>
+        </div>
+
+        {applications.length === 0 && (
+          <div className="text-center py-8 text-sage-800 font-medium">
             {t('noApplications', { defaultValue: '暂无申请记录' })}
           </div>
         )}

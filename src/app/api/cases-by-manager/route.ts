@@ -14,7 +14,9 @@ export async function GET(req: Request) {
         created_at
         updated_at
         process_status
-        trust_account_balance
+        trust_account_balance_changes(order_by: {created_at: desc}, limit: 1) {
+          balance_after
+        }
         surrogate_mother {
           id
           email

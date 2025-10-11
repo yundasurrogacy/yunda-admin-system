@@ -21,7 +21,12 @@ export default function IntendedParents() {
       setLoading(true)
       setError('')
       try {
-        const surrogateId = localStorage.getItem('surrogateId') || ''
+        function getCookie(name: string) {
+          if (typeof document === 'undefined') return undefined;
+          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return match ? match[2] : undefined;
+        }
+        const surrogateId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
         // 2. 通过代孕母id获取case，兼容多种返回结构
         const caseRes = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`)
         if (!caseRes.ok) throw new Error(t('intendedParents.error.fetchCaseFailed'))
@@ -96,9 +101,9 @@ export default function IntendedParents() {
     <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
       <div className="flex items-center justify-between pt-6 pb-2">
         <h1 className="text-2xl font-medium text-sage-800">{t('intendedParents.title')}</h1>
-        <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
+        {/* <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
           {t('intendedParents.status.matched', '已匹配')}
-        </Badge>
+        </Badge> */}
       </div>
 
       {/* 基本信息卡片 */}
@@ -143,12 +148,12 @@ export default function IntendedParents() {
             </div>
             
             {/* 信托账户余额显示 */}
-            <div className="text-right">
+            {/* <div className="text-right">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <Label className="text-sage-600 text-sm">{t('intendedParents.trustAccount.title')}</Label>
                 <p className="text-2xl font-bold text-green-700">${parentInfo?.trust_account_balance ?? 0}</p>
               </div>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>

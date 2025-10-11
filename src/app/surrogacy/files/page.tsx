@@ -5,9 +5,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
-// import { useTranslation } from 'next-i18next';
 import { useTranslation } from 'react-i18next';
 
+
+const getCategories = (t: (key: string) => string) => [
+  { key: 'EmbryoDocs', label: t('files.categories.embryoDocs') },
+  { key: 'SurrogateInfo', label: t('files.categories.surrogateInfo') },
+  { key: 'LegalDocs', label: t('files.categories.legalDocs') },
+  { key: 'Other', label: t('files.categories.other') },
+];
 
 function FilesPageInner() {
   const { t } = useTranslation('common');
@@ -16,13 +22,6 @@ function FilesPageInner() {
   const stage = searchParams.get('stage');
   const title = searchParams.get('title');
   const journeyId = searchParams.get('journeyId'); // 可选
-
-  const categories = [
-    { key: 'EmbryoDocs', label: t('files.categories.embryoDocs') },
-    { key: 'SurrogateInfo', label: t('files.categories.surrogateInfo') },
-    { key: 'LegalDocs', label: t('files.categories.legalDocs') },
-    { key: 'Other', label: t('files.categories.other') },
-  ];
 
   const [uploading, setUploading] = useState(false);
   // 文件列表结构调整为 journey 及其文件
@@ -36,8 +35,12 @@ function FilesPageInner() {
       category: string;
       file_type: string;
       created_at: string;
+      note?: string;
     }>;
   }>>([]);
+
+  const categories = getCategories(t);
+
   // 页面初始化时获取 journey 及文件
   useEffect(() => {
     if (!caseId) return;
@@ -56,6 +59,7 @@ function FilesPageInner() {
                 category: f.category,
                 file_type: f.file_type,
                 created_at: f.created_at,
+                note: f.note,
               }))
             }))
           );
@@ -63,47 +67,59 @@ function FilesPageInner() {
       });
   }, [caseId]);
 
-  // 只读模式：不允许上传文件，隐藏上传相关逻辑
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold mb-8">{t('files.title')}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-        {categories.map((cat) => (
-          <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] font-serif text-[#271F18]">
-            <div className="flex items-center mb-2">
-              <h2 className="text-xl font-serif">{cat.label}</h2>
-              {/* 只读模式不显示上传按钮 */}
-            </div>
-            {/* 按 journey 分组展示文件 */}
-            {journeyFiles.map((journey) => (
-              journey.files.filter((f) => f.category === cat.key).map((file, idx) => (
-                <div key={file.id} className="mb-4">
-                  <div className="flex justify-between items-center">
-                    <span>{file.file_type || t('files.file')}</span>
-                    <span className="text-xs">{t('files.uploaded')}</span>
+    <>
+      <div className="p-8">
+        {/* 返回按钮 */}
+        <button
+          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-sage-800 font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+          onClick={() => window.history.back()}
+        >
+          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {t('back', '返回')}
+        </button>
+        <h1 className="text-2xl font-bold text-sage-800 mb-8">{t('files.title', '文件管理')}</h1>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {categories.map((cat) => (
+            <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] text-sage-800">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-xl font-bold text-sage-800">{cat.label}</h2>
+              </div>
+              {/* 按 journey 分组展示文件 */}
+              {journeyFiles.map((journey) => (
+                journey.files.filter((f) => f.category === cat.key).map((file, idx) => (
+                  <div key={file.id} className="mb-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-base font-medium">{file.file_type || t('files.file', '文件')}</span>
+                      <span className="text-xs text-sage-500">{t('files.uploaded', '上传时间')}</span>
+                    </div>
+                    <div className="text-xs mb-1 text-sage-600">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
+                    {file.note && <div className="text-xs text-sage-500 mb-1">{t('files.note', '描述')}: {file.note}</div>}
+                    <Button
+                      className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
+                      onClick={() => window.open(file.file_url, '_blank')}
+                      aria-label={t('files.download', '下载')}
+                    >
+                      {t('files.download', '下载')}
+                    </Button>
+                    <hr className="my-2" />
                   </div>
-                  <div className="text-xs mb-1">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
-                  <Button
-                    className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E3E3]"
-                    onClick={() => window.open(file.file_url, '_blank')}
-                  >
-                    {t('files.download')}
-                  </Button>
-                  <hr className="my-2" />
-                </div>
-              ))
-            ))}
-          </Card>
-        ))}
+                ))
+              ))}
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 export default function FilesPage() {
   return (
-    <Suspense fallback={<div className="p-8">加载中...</div>}>
+    <Suspense fallback={<div className="p-8">{useTranslation('common').t('loadingText', '加载中...')}</div>}>
       <FilesPageInner />
     </Suspense>
   );

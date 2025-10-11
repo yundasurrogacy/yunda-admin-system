@@ -9,6 +9,14 @@ export async function GET() {
         id
         created_at
         updated_at
+        trust_account_balance_changes(order_by: {created_at: desc}, limit: 1) {
+          balance_after
+        }
+        journeys {
+          id
+          stage
+          title
+        }
         surrogate_mother {
           id
           email

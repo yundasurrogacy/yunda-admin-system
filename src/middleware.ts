@@ -44,10 +44,33 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 检查用户认证状态（从cookie或header中获取）
-  const userRole = request.cookies.get('userRole')?.value
-  const userEmail = request.cookies.get('userEmail')?.value
-  const userId = request.cookies.get('userId')?.value
+  // 多端 cookie 名称映射
+  const cookieKeyMap: Record<string, { role: string, email: string, id: string }> = {
+    admin: {
+      role: 'userRole_admin',
+      email: 'userEmail_admin',
+      id: 'userId_admin',
+    },
+    client: {
+      role: 'userRole_client',
+      email: 'userEmail_client',
+      id: 'userId_client',
+    },
+    manager: {
+      role: 'userRole_manager',
+      email: 'userEmail_manager',
+      id: 'userId_manager',
+    },
+    surrogacy: {
+      role: 'userRole_surrogacy',
+      email: 'userEmail_surrogacy',
+      id: 'userId_surrogacy',
+    },
+  }
+  const keys = cookieKeyMap[requiredRole]
+  const userRole = request.cookies.get(keys.role)?.value
+  const userEmail = request.cookies.get(keys.email)?.value
+  const userId = request.cookies.get(keys.id)?.value
 
   // 如果未认证，重定向到对应的登录页面
   if (!userRole || !userEmail || !userId) {

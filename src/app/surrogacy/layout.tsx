@@ -12,7 +12,7 @@ export default function SurrogacyLoginLayout({ children }: { children: React.Rea
   const { isAuthenticated } = useAuth()
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative text-sage-800 font-medium">
       {/* Sidebar */}
       <CommonSidebar
         isOpen={sidebarOpen}
@@ -20,7 +20,6 @@ export default function SurrogacyLoginLayout({ children }: { children: React.Rea
         groups={surrogacySidebarConfig()}
         type="surrogacy"
       />
-
       {/* Main content */}
       <div className="min-h-screen flex flex-col">
         <CommonHeader

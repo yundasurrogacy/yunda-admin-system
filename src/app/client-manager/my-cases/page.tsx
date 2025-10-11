@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
@@ -17,34 +17,40 @@ interface CaseItem {
   ivf_clinics: { id: string; type?: string; created_at: string; data?: string }[];
   process_status: string;
   trust_account_balance?: number;
+  trust_account_balance_changes?: { balance_after: number | null }[];
 }
 
 const MyCasesPage = () => {
   const router = useRouter();
   const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(true);
-  const [cases, setCases] = useState<CaseItem[]>([]);
-  const [filteredCases, setFilteredCases] = useState<CaseItem[]>([]);
+  const [allCases, setAllCases] = useState<CaseItem[]>([]);
   const [selectedParent, setSelectedParent] = useState<string>('');
   const [selectedSurrogate, setSelectedSurrogate] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState('1');
+  const [pageSize, setPageSize] = useState(8); // 默认 8 条
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // 获取案例数据
   const fetchCases = async () => {
     setIsLoading(true);
     try {
-      const managerId = localStorage.getItem('managerId');
+      function getCookie(name: string) {
+        if (typeof document === 'undefined') return undefined;
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : undefined;
+      }
+      const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
       if (!managerId) {
-        setCases([]);
-        setFilteredCases([]);
+        setAllCases([]);
         setIsLoading(false);
         return;
       }
       const res = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
       const data = await res.json();
-      console.log('Cases data:', data);
-      setCases(data);
-      setFilteredCases(data); // 初始化时显示所有案例
+      setAllCases(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch cases:', error);
     } finally {
@@ -56,19 +62,42 @@ const MyCasesPage = () => {
     fetchCases();
   }, []);
 
-  // 根据选择筛选案例
+  // 自适应 pageSize
   useEffect(() => {
-    // console.log('筛选条件变化:', { selectedParent, selectedSurrogate, selectedStatus });
-    const newFilteredCases = cases.filter(c => {
-      // 使用 '==' 来处理字符串和数字ID不匹配的问题
-      const parentMatch = !selectedParent || (c.intended_parent && c.intended_parent.id == selectedParent);
-      const surrogateMatch = !selectedSurrogate || (c.surrogate_mother && c.surrogate_mother.id == selectedSurrogate);
-      const statusMatch = !selectedStatus || c.process_status === selectedStatus;
-      return parentMatch && surrogateMatch && statusMatch;
-    });
-    console.log('筛选结果:', newFilteredCases);
-    setFilteredCases(newFilteredCases);
-  }, [selectedParent, selectedSurrogate, selectedStatus, cases]);
+    function calcPageSize() {
+      if (!containerRef.current) return;
+      const width = containerRef.current.offsetWidth;
+      // 340px 卡片宽度 + 32px 间距
+      const cardWidth = 340 + 32;
+      const columns = Math.max(1, Math.floor(width / cardWidth));
+      setPageSize(columns * 2); // 2 行
+    }
+    calcPageSize();
+    window.addEventListener('resize', calcPageSize);
+    return () => window.removeEventListener('resize', calcPageSize);
+  }, []);
+
+  // 根据选择筛选案例
+
+  // 只保留筛选条件
+  const filteredAllCases = allCases.filter(c => {
+    const parentMatch = !selectedParent || (c.intended_parent && c.intended_parent.id == selectedParent);
+    const surrogateMatch = !selectedSurrogate || (c.surrogate_mother && c.surrogate_mother.id == selectedSurrogate);
+    const statusMatch = !selectedStatus || c.process_status === selectedStatus;
+    return parentMatch && surrogateMatch && statusMatch;
+  });
+
+  // 分页
+  const totalPages = Math.max(1, Math.ceil(filteredAllCases.length / pageSize));
+  const pagedCases = filteredAllCases.slice((page - 1) * pageSize, page * pageSize);
+
+  // 翻页时如果超出总页数，自动回到最后一页
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+      setPageInput(String(totalPages));
+    }
+  }, [totalPages, page]);
 
   const stageMap: Record<string, string> = {
     Matching: t("matching"),
@@ -79,9 +108,9 @@ const MyCasesPage = () => {
   }
 
   // 为筛选器获取唯一的准父母和代孕母亲列表
-  const uniqueParents = [...new Map(cases.map(c => c.intended_parent).filter(Boolean).map(p => [p!.id, p])).values()];
-  const uniqueSurrogates = [...new Map(cases.map(c => c.surrogate_mother).filter(Boolean).map(s => [s!.id, s])).values()];
-  const uniqueStatuses = [...new Set(cases.map(c => c.process_status).filter(Boolean))];
+  const uniqueParents = [...new Map(allCases.map(c => c.intended_parent).filter(Boolean).map(p => [p!.id, p])).values()];
+  const uniqueSurrogates = [...new Map(allCases.map(c => c.surrogate_mother).filter(Boolean).map(s => [s!.id, s])).values()];
+  const uniqueStatuses = [...new Set(allCases.map(c => c.process_status).filter(Boolean))];
   const getParentName = (parent: any) => {
     if (!parent) return '';
     if (parent.basic_information) {
@@ -151,10 +180,10 @@ const MyCasesPage = () => {
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">{t('MY CASES')}</h1>
 
-        <div className="flex flex-wrap gap-4 mb-6">
+        <div className="flex flex-wrap gap-4 mb-6 items-center">
           <select
             value={selectedParent}
-            onChange={(e) => setSelectedParent(e.target.value)}
+            onChange={(e) => { setSelectedParent(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
           >
             <option value="">{t('allIntendedParents')}</option>
@@ -164,10 +193,9 @@ const MyCasesPage = () => {
               </option>
             ))}
           </select>
-
           <select
             value={selectedSurrogate}
-            onChange={(e) => setSelectedSurrogate(e.target.value)}
+            onChange={(e) => { setSelectedSurrogate(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
           >
             <option value="">{t('allSurrogateMothers')}</option>
@@ -177,10 +205,9 @@ const MyCasesPage = () => {
               </option>
             ))}
           </select>
-
           <select
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
           >
             <option value="">{t('allStatuses')}</option>
@@ -194,6 +221,7 @@ const MyCasesPage = () => {
 
         <div
           className="w-full"
+          ref={containerRef}
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
@@ -203,10 +231,10 @@ const MyCasesPage = () => {
         >
           {isLoading ? (
             <div className="text-center py-8">{t('loadingText')}</div>
-          ) : filteredCases.length === 0 ? (
+          ) : pagedCases.length === 0 ? (
             <div className="text-center py-8 col-span-full text-gray-500">{t('noCases')}</div>
           ) : (
-            filteredCases.map((item) => (
+            pagedCases.map((item) => (
               <div
                 key={item.id}
                 className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
@@ -223,7 +251,11 @@ const MyCasesPage = () => {
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
-                    <span>{item.trust_account_balance ?? '-'}</span>
+                    <span className="cursor-pointer text-blue-600 underline" onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}>
+                      {item.trust_account_balance_changes && item.trust_account_balance_changes.length > 0 && item.trust_account_balance_changes[0].balance_after !== null && item.trust_account_balance_changes[0].balance_after !== undefined
+                        ? `$${Number(item.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                        : '-'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('intendedParentLabel')}</span>
@@ -240,7 +272,6 @@ const MyCasesPage = () => {
                           }
                           return item.intended_parent.email;
                         })()}
-                        {/* <span className="text-xs text-sage-400">({item.intended_parent.email})</span> */}
                       </span>
                     ) : (
                       <span className="text-gray-400">-</span>
@@ -269,13 +300,66 @@ const MyCasesPage = () => {
                 </div>
                 <hr className="my-3 border-sage-100" />
                 <div className="flex flex-wrap gap-2 text-sm">
-                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journal?caseId=${item.id}`)}>孕母动态</span> */}
-                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journey?caseId=${item.id}`)}>{t('journey.title')}</span>
-                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/ivf-clinic?caseId=${item.id}`)}>{t('ivfClinic.title')}</span>
+                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journey?caseId=${item.id}`)}>{t('myCases.journey', 'JOURNEY')}</span> */}
+                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journey`)}>{t('myCases.journey', 'JOURNEY')}</span> */}
+                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/client-journey?caseId=${item.id}`)}>{t('myCases.intendedParentsJourney', 'Intended Parents Journey ')}</span>
+                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/surrogacy-journey?caseId=${item.id}`)}>{t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey ')}</span>
+                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/ivf-clinic?caseId=${item.id}`)}>{t('myCases.ivfClinic', 'IVF CLINIC')}</span> */}
+                  {/* <span className="text-purple-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/appointments?caseId=${item.id}`)}>{t('myCases.appointments', 'APPOINTMENTS')}</span> */}
+                  {/* <span className="text-pink-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/medication?caseId=${item.id}`)}>{t('myCases.medication', 'MEDICATION')}</span> */}
+                  <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/client-manager/client-ivf-clinic?caseId=${item.id}`)}>{t('myCases.intendedParentsIvfClinic')}</span>
+                  <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/client-manager/surrogate-ivf-clinic?caseId=${item.id}`)}>{t('myCases.gestationalCarrierIvfClinic')}</span>
                 </div>
               </div>
             ))
           )}
+        </div>
+
+        {/* 分页控件 */}
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <Button variant="outline" size="sm" onClick={() => {
+            const newPage = Math.max(1, page - 1);
+            setPage(newPage);
+            setPageInput(String(newPage));
+          }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</Button>
+          <span>
+            {t('pagination.page', '第')}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={pageInput}
+              onChange={e => {
+                // 只允许数字
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                setPageInput(val);
+              }}
+              onBlur={e => {
+                let val = Number(e.target.value);
+                if (isNaN(val) || val < 1) val = 1;
+                if (val > totalPages) val = totalPages;
+                setPage(val);
+                setPageInput(String(val));
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  let val = Number((e.target as HTMLInputElement).value);
+                  if (isNaN(val) || val < 1) val = 1;
+                  if (val > totalPages) val = totalPages;
+                  setPage(val);
+                  setPageInput(String(val));
+                }
+              }}
+              className="w-12 border rounded text-center mx-1"
+              style={{height: 28}}
+            />
+            {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
+          </span>
+          <Button variant="outline" size="sm" onClick={() => {
+            const newPage = Math.min(totalPages, page + 1);
+            setPage(newPage);
+            setPageInput(String(newPage));
+          }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</Button>
         </div>
       </div>
     </ManagerLayout>

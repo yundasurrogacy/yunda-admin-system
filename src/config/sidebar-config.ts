@@ -69,25 +69,38 @@ export function getSurrogacySidebarConfig() {
       items: [
         { label: t('DASHBOARD'), href: "/surrogacy/dashboard", icon: LayoutDashboard },
         { label: t('MY PROFILE'), href: "/surrogacy/profile", icon: UserCircle },
-        { label: t('MY CASES'), href: "/surrogacy/my-cases", icon: Briefcase },
+        // { label: t('MY CASES'), href: "/surrogacy/my-cases", icon: Briefcase },
         // { label: t('MY INTENDED PARENTS'), href: "/surrogacy/intended-parents", icon: UserCircle },
       ]
     },
-    // {
-    //   items: [
-    //     // { label: t('MY PROFILE'), href: "/surrogacy/profile", icon: UserCircle },
-    //     // { label: t('myJourney'), href: "/surrogacy/journey", icon: Briefcase },
-    //     // { label: t('MY JOURNAL'), href: "/surrogacy/journal", icon: Briefcase },
-    //     // { label: t('LEGAL FILES'), href: "/surrogacy/legal-files", icon: FolderOpen },
-    //     // { label: t('MEDICATION TRACKER'), href: "/surrogacy/medication", icon: Stethoscope },
-    //     // { label: t('APPOINTMENTS'), href: "/surrogacy/appointments", icon: MessageCircle },
-    //   ]
-    // },
+    {
+      items: [
+        { label: t('myCases.trust-account'), href: (item: any) => `/surrogacy/trust-account`, color: 'blue' },
+        { label: t('myCases.journey'), href: (item: any) => `/surrogacy/journey`, color: 'blue' },
+        { label: t('myCases.ivfClinic'), href: (item: any) => `/surrogacy/ivf-clinic`, color: 'blue' },
+        // { label: t('myCases.My Intended Parents'), href: (item: any) => `/surrogacy/intended-parents`, color: 'green' },
+        // { label: t('myCases.journal'), href: (item: any) => `/surrogacy/journal`, color: 'green' },
+        // { label: t('MY PROFILE'), href: "/surrogacy/profile", icon: UserCircle },
+        // { label: t('myJourney'), href: "/surrogacy/journey", icon: Briefcase },
+        // { label: t('MY JOURNAL'), href: "/surrogacy/journal", icon: Briefcase },
+        // { label: t('LEGAL FILES'), href: "/surrogacy/legal-files", icon: FolderOpen },
+        // { label: t('MEDICATION TRACKER'), href: "/surrogacy/medication", icon: Stethoscope },
+        // { label: t('APPOINTMENTS'), href: "/surrogacy/appointments", icon: MessageCircle },
+      ]
+    },
     {
       items: [
         // { label: t('MY CASES'), href: "/surrogacy/my-cases", icon: Briefcase },
         // { label: t('MESSAGES'), href: "/surrogacy/messages", icon: MessageCircle },
         // { label: t('SUPPORT'), href: "/surrogacy/support", icon: Bell },
+        // { label: t('myCases.My Intended Parents'), href: (item: any) => `/surrogacy/intended-parents`, color: 'green' },
+        // { label: t('myCases.trust-account'), href: (item: any) => `/surrogacy/trust-account`, color: 'blue' },
+        // { label: t('myCases.journey'), href: (item: any) => `/surrogacy/journey`, color: 'blue' },
+        // { label: t('myCases.ivfClinic'), href: (item: any) => `/surrogacy/ivf-clinic`, color: 'blue' },
+        { label: t('myCases.My Intended Parents'), href: (item: any) => `/surrogacy/intended-parents`, color: 'green' },
+        { label: t('myCases.journal'), href: (item: any) => `/surrogacy/journal`, color: 'green' },
+        // { label: t('myCases.appointments', 'APPOINTMENTS'), href: (item: any) => `/surrogacy/appointments`, color: 'purple' },
+        // { label: t('myCases.medication', 'MEDICATION'), href: (item: any) => `/surrogacy/medication`, color: 'pink' },
       ]
     }
   ]

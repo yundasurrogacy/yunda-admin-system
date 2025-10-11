@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,8 +35,13 @@ interface Filters {
 export default function ClientProfilesPage() {
   const router = useRouter()
   const { t } = useTranslation('common')
-  const [clients, setClients] = React.useState<ClientProfile[]>([])
+  const [allClients, setAllClients] = React.useState<ClientProfile[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [searchTerm, setSearchTerm] = React.useState('')
+  const [page, setPage] = React.useState(1)
+  const [pageInput, setPageInput] = React.useState('1')
+  const [pageSize, setPageSize] = React.useState(9) // 默认 3 列 3 行
+  const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [filters, setFilters] = React.useState<Filters>({
     search: '',
@@ -46,18 +52,36 @@ export default function ClientProfilesPage() {
 
   // 处理搜索
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, search: event.target.value }));
-  };
+    setSearchTerm(event.target.value)
+    setPage(1)
+  }
 
-  const debouncedSearch = useDebounce(filters.search, 500);
+  // 自适应 pageSize
+  React.useEffect(() => {
+    function calcPageSize() {
+      if (!containerRef.current) return;
+      const width = containerRef.current.offsetWidth;
+      // 340px 卡片宽度 + 24px 间距
+      const cardWidth = 340 + 24;
+      const columns = Math.max(1, Math.floor(width / cardWidth));
+      setPageSize(columns * 2); // 2 行
+    }
+    calcPageSize();
+    window.addEventListener('resize', calcPageSize);
+    return () => window.removeEventListener('resize', calcPageSize);
+  }, []);
 
   // 获取所有case并批量获取准父母详情
   const fetchClients = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // 1. 获取当前经理id（localStorage 或默认值）
-      const managerId = typeof window !== 'undefined' ? localStorage.getItem('managerId') || '3' : '3';
+      function getCookie(name: string) {
+        if (typeof document === 'undefined') return undefined;
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? match[2] : undefined;
+      }
+      const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
       // 2. 获取所有case
       const caseRes = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
       if (!caseRes.ok) throw new Error('获取案子失败');
@@ -85,7 +109,7 @@ export default function ClientProfilesPage() {
           });
         }
       }
-      setClients(parentDetails);
+      setAllClients(parentDetails);
     } catch (err) {
       console.error('获取客户列表失败:', err);
       setError('获取客户列表失败，请稍后重试');
@@ -123,55 +147,125 @@ export default function ClientProfilesPage() {
     )
   }
 
+  // 搜索和分页
+  const filteredAllClients = allClients.filter(client => {
+    const search = searchTerm.trim().toLowerCase();
+    if (!search) return true;
+    return (
+      (client.name && client.name.toLowerCase().includes(search)) ||
+      (client.country && client.country.toLowerCase().includes(search)) ||
+      (client.email && client.email.toLowerCase().includes(search)) ||
+      (client.phone && client.phone.toLowerCase().includes(search))
+    );
+  });
+  const totalPages = Math.max(1, Math.ceil(filteredAllClients.length / pageSize));
+  const pagedClients = filteredAllClients.slice((page - 1) * pageSize, page * pageSize);
+  React.useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+      setPageInput(String(totalPages));
+    }
+  }, [totalPages, page]);
+
   return (
     <ManagerLayout>
-      <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
+      <div className="p-8 min-h-screen bg-main-bg">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold font-serif text-[#271F18]">{t('clientProfiles.title')}</h1>
+          <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
           <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94A3B8] h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
             <Input
               type="text"
               placeholder={t('clientProfiles.searchPlaceholder')}
-              value={filters.search}
+              value={searchTerm}
               onChange={handleSearch}
-              className="pl-9 bg-[#F8F9FC] w-full font-serif text-[#271F18] rounded-full"
+              className="pl-9 bg-white w-full font-medium text-sage-800 rounded-full"
             />
           </div>
         </div>
         {isLoading ? (
-          <div className="font-serif text-[#271F18]">{t('loadingText')}</div>
+          <div className="font-medium text-sage-800">{t('loadingText')}</div>
         ) : (
-          <div className="grid grid-cols-3 gap-6">
-            {clients.map(client => (
-              <Card 
-                key={client.id} 
-                className="relative p-6 rounded-xl bg-white hover:shadow-lg transition-shadow font-serif text-[#271F18]"
-                onMouseEnter={() => setHoveredId(client.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-lg font-semibold font-serif text-[#271F18]">{client.name}</h3>
-                    <p className="text-sm font-serif text-[#271F18] opacity-60">{client.country}</p>
+          <>
+            <div
+              className="grid grid-cols-3 gap-6"
+              ref={containerRef}
+            >
+              {pagedClients.map(client => (
+                <Card 
+                  key={client.id} 
+                  className="relative p-6 rounded-xl bg-white hover:shadow-lg transition-shadow text-sage-800 font-medium"
+                  onMouseEnter={() => setHoveredId(client.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="text-lg font-semibold text-sage-800">{client.name}</h3>
+                      <p className="text-sm text-sage-800 opacity-60">{client.country}</p>
+                    </div>
+                    <Button 
+                      variant={hoveredId === client.id ? "outline" : "ghost"}
+                      size="sm"
+                      className={
+                        hoveredId === client.id
+                          ? "rounded bg-white border border-sage-200 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
+                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none border border-sage-200"
+                      }
+                      onClick={() => handleViewDetails(client.id)}
+                    >
+                      {t('clientProfiles.view')}
+                    </Button>
                   </div>
-                  <Button 
-                    variant={hoveredId === client.id ? "outline" : "ghost"}
-                    size="sm"
-                    className={
-                      hoveredId === client.id
-                        ? "rounded bg-white border border-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-sm shadow-none"
-                        : "rounded bg-[#E3E8E3] text-[#271F18] font-serif px-4 py-1 text-sm shadow-none border border-[#D9D9D9]"
+                  <p className="text-sm text-sage-800 opacity-60">{client.status === 'Matched' ? t('clientProfiles.clientStatus') : client.status}</p>
+                </Card>
+              ))}
+            </div>
+            {/* 分页控件 */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <Button variant="outline" size="sm" onClick={() => {
+                const newPage = Math.max(1, page - 1);
+                setPage(newPage);
+                setPageInput(String(newPage));
+              }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</Button>
+              <span>
+                {t('pagination.page', '第')}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={pageInput}
+                  onChange={e => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setPageInput(val);
+                  }}
+                  onBlur={e => {
+                    let val = Number(e.target.value);
+                    if (isNaN(val) || val < 1) val = 1;
+                    if (val > totalPages) val = totalPages;
+                    setPage(val);
+                    setPageInput(String(val));
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      let val = Number((e.target as HTMLInputElement).value);
+                      if (isNaN(val) || val < 1) val = 1;
+                      if (val > totalPages) val = totalPages;
+                      setPage(val);
+                      setPageInput(String(val));
                     }
-                    onClick={() => handleViewDetails(client.id)}
-                  >
-                    {t('clientProfiles.view')}
-                  </Button>
-                </div>
-                <p className="text-sm font-serif text-[#271F18] opacity-60">{client.status === 'Matched' ? t('clientProfiles.clientStatus') : client.status}</p>
-              </Card>
-            ))}
-          </div>
+                  }}
+                  className="w-12 border rounded text-center mx-1"
+                  style={{height: 28}}
+                />
+                {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
+              </span>
+              <Button variant="outline" size="sm" onClick={() => {
+                const newPage = Math.min(totalPages, page + 1);
+                setPage(newPage);
+                setPageInput(String(newPage));
+              }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</Button>
+            </div>
+          </>
         )}
       </div>
     </ManagerLayout>

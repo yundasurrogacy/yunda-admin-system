@@ -21,21 +21,52 @@ import { useAdminAuth } from "@/hooks/usePageAuth"
 
 export default function ClientProfilesPage() {
   const { t } = useTranslation('common')
-  const { isAuthenticated, isLoading } = useAdminAuth()
-  const [clients, setClients] = useState<any[]>([])
+  const router = useRouter()
+  // 只认 admin cookie，不依赖 useAdminAuth
+  function getCookie(name: string) {
+    if (typeof document === 'undefined') return undefined;
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : undefined;
+  }
+  const userRole = typeof document !== 'undefined' ? getCookie('userRole_admin') : undefined;
+  const userEmail = typeof document !== 'undefined' ? getCookie('userEmail_admin') : undefined;
+  const userId = typeof document !== 'undefined' ? getCookie('userId_admin') : undefined;
+  const isAuthenticated = !!(userRole && userEmail && userId && userRole === 'admin');
+  const isLoading = false;
+  // 分页相关
+  const [allClients, setAllClients] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageInput, setPageInput] = useState('1')
+  const [pageSize, setPageSize] = useState(10)
   const [showDialog, setShowDialog] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [resetClientId, setResetClientId] = useState<number | null>(null)
   const [resetPassword, setResetPassword] = useState("")
   const [resetLoading, setResetLoading] = useState(false)
   const { register, handleSubmit, reset } = useForm()
-  const router = useRouter()
 
+  // 自适应每页条数，始终两行，宽度自适应
+  useEffect(() => {
+    function calcPageSize() {
+      // 卡片宽度约340px+gap，左右padding 32px
+      const containerWidth = window.innerWidth - 64
+      const cardWidth = 340 + 32
+      const rowCount = Math.max(1, Math.floor(containerWidth / cardWidth))
+      const colCount = 2 // 固定两行
+      const newPageSize = rowCount * colCount
+      setPageSize(newPageSize)
+    }
+    calcPageSize()
+    window.addEventListener('resize', calcPageSize)
+    return () => window.removeEventListener('resize', calcPageSize)
+  }, [])
+
+  // 获取所有数据
   useEffect(() => {
     async function fetchClients() {
-      const data = await getIntendedParents(10, 0)
-      setClients(data)
+      const data = await getIntendedParents(10000, 0)
+      setAllClients(data)
     }
     fetchClients()
   }, [])
@@ -119,8 +150,9 @@ export default function ClientProfilesPage() {
     setShowDialog(false)
     reset()
     // 刷新列表
-    const dataList = await getIntendedParents(10, 0)
-    setClients(dataList)
+    const dataList = await getIntendedParents(10000, 0)
+    setAllClients(dataList)
+    setPage(1)
   }
 
   // 重置密码弹窗提交
@@ -148,55 +180,50 @@ export default function ClientProfilesPage() {
     setResetLoading(false)
   }
 
-  // 加载状态
-  if (isLoading) {
+  // 简单的认证检查
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace('/admin/login')
+      return;
+    }
+  }, [isAuthenticated, router])
+
+  // 未认证状态
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div>Loading...</div>
       </div>
     )
   }
 
-  // 未认证状态
-  if (!isAuthenticated) {
-    return null // 会被认证检查重定向
-  }
+  // 搜索和分页
+  const filteredAllClients = allClients.filter(client => {
+    const basic = client.basic_information || {}
+    const contact = client.contact_information || {}
+    const name = `${basic.firstName || ''} ${basic.lastName || ''}`.toLowerCase()
+    const phone = `${contact.cell_phone_country_code || ''}${contact.cell_phone || ''}`.toLowerCase()
+    return (
+      name.includes(searchTerm.toLowerCase()) ||
+      phone.includes(searchTerm.toLowerCase()) ||
+      (contact.email_address || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })
+  const total = filteredAllClients.length
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const pagedClients = filteredAllClients.slice((page - 1) * pageSize, page * pageSize)
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages)
+      setPageInput(String(totalPages))
+    }
+  }, [totalPages, page])
 
   return (
     <AdminLayout>
       <PageContent>
         <PageHeader 
           title={t('CLIENT PROFILES')}
-          // rightContent={
-          //   <div className="flex items-center gap-4">
-          //     <Button
-          //       onClick={handleAddNewClient}
-          //       className="bg-sage-200 text-sage-800 hover:bg-sage-250"
-          //     >
-          //       <Plus className="w-4 h-4 mr-2" />
-          //       {t('addNewClient')}
-          //     </Button>
-          //     <DropdownMenu>
-          //       <DropdownMenuTrigger asChild>
-          //         <Button variant="outline" className="bg-white">
-          //           <Filter className="w-4 h-4 mr-2" />
-          //           {t('filterBy')}
-          //         </Button>
-          //       </DropdownMenuTrigger>
-          //       <DropdownMenuContent align="end" className="w-48">
-          //         <DropdownMenuItem>
-          //           {t('status')}
-          //         </DropdownMenuItem>
-          //         <DropdownMenuItem>
-          //           {t('serviceType')}
-          //         </DropdownMenuItem>
-          //         <DropdownMenuItem>
-          //           {t('location')}
-          //         </DropdownMenuItem>
-          //       </DropdownMenuContent>
-          //     </DropdownMenu>
-          //   </div>
-          // }
         />
 
         {/* Search Bar */}
@@ -207,7 +234,7 @@ export default function ClientProfilesPage() {
             placeholder={t('searchClients')}
             className="pl-10 bg-white"
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
           />
         </div>
 
@@ -220,81 +247,137 @@ export default function ClientProfilesPage() {
             alignItems: 'stretch',
           }}
         >
-          {clients
-            .filter(client => {
-              const basic = client.basic_information || {}
-              const contact = client.contact_information || {}
-              const name = `${basic.firstName || ''} ${basic.lastName || ''}`.toLowerCase()
-              const phone = `${contact.cell_phone_country_code || ''}${contact.cell_phone || ''}`.toLowerCase()
-              return (
-                name.includes(searchTerm.toLowerCase()) ||
-                phone.includes(searchTerm.toLowerCase()) ||
-                (contact.email_address || '').toLowerCase().includes(searchTerm.toLowerCase())
-              )
-            })
-            .map((client) => {
-              const basic = client.basic_information || {}
-              const contact = client.contact_information || {}
-              const family = client.family_profile || {}
-              const service = client.program_interests?.interested_services_selected_keys || "-"
-              return (
-                <div
-                  key={client.id}
-                  className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
-                >
-                  <div className="flex items-center gap-4 mb-2">
-                    <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-7 w-7 text-sage-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-lg text-sage-800 truncate">{basic.firstName} {basic.lastName}</div>
-                      <div className="text-sage-500 text-sm truncate">{client.id}</div>
-                    </div>
-                    <div className="flex flex-col gap-2 items-end">
-                      <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('active')}</span>
-                      <span className={`px-3 py-1 text-xs rounded-full ${getServiceColor(service)}`}>{t(service)}</span>
-                    </div>
+          {pagedClients.map((client) => {
+            const basic = client.basic_information || {}
+            const contact = client.contact_information || {}
+            const family = client.family_profile || {}
+            const service = client.program_interests?.interested_services_selected_keys || "-"
+            return (
+              <div
+                key={client.id}
+                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
+              >
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="h-7 w-7 text-sage-400" />
                   </div>
-                  <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
-                    <div className="flex items-center gap-2 truncate">
-                      <Mail className="w-4 h-4 text-sage-400" />
-                      <span className="truncate">{contact.email_address}</span>
-                    </div>
-                    <div className="flex items-center gap-2 truncate">
-                      <Phone className="w-4 h-4 text-sage-400" />
-                      <span className="truncate">{contact.cell_phone_country_code ? `+${contact.cell_phone_country_code} ` : ""}{contact.cell_phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 truncate">
-                      <MapPin className="w-4 h-4 text-sage-400" />
-                      <span className="truncate">{family.city}, {family.state_or_province}, {family.country}</span>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-lg text-sage-800 truncate">{basic.firstName} {basic.lastName}</div>
+                    <div className="text-sage-500 text-sm truncate">{client.id}</div>
                   </div>
-                  <hr className="my-3 border-sage-100" />
-                  <div className="flex items-center justify-between text-sage-500 text-sm">
-                    <span>
-                      {t('lastUpdate')}:<br />{client.updated_at?.slice(0, 10) || "-"}
-                    </span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="link"
-                        className="text-sage-700 px-0"
-                        onClick={() => router.push(`/admin/client-profiles/${client.id}`)}
-                      >
-                        {t('viewProfile')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="text-sage-700 px-2 py-1 border-sage-300"
-                        onClick={() => { setShowResetDialog(true); setResetClientId(client.id); }}
-                      >
-                        {t('resetPassword')}
-                      </Button>
-                    </div>
+                  <div className="flex flex-col gap-2 items-end">
+                    <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('active')}</span>
+                    <span className={`px-3 py-1 text-xs rounded-full ${getServiceColor(service)}`}>{t(service)}</span>
                   </div>
                 </div>
-              )
-            })}
+                <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+                  <div className="flex items-center gap-2 truncate">
+                    <Mail className="w-4 h-4 text-sage-400" />
+                    <span className="truncate">{contact.email_address}</span>
+                  </div>
+                  <div className="flex items-center gap-2 truncate">
+                    <Phone className="w-4 h-4 text-sage-400" />
+                    <span className="truncate">{contact.cell_phone_country_code ? `+${contact.cell_phone_country_code} ` : ""}{contact.cell_phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 truncate">
+                    <MapPin className="w-4 h-4 text-sage-400" />
+                    <span className="truncate">{family.city}, {family.state_or_province}, {family.country}</span>
+                  </div>
+                </div>
+                <hr className="my-3 border-sage-100" />
+                <div className="flex items-center justify-between text-sage-500 text-sm">
+                  <span>
+                    {t('lastUpdate')}:<br />{client.updated_at?.slice(0, 10) || "-"}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="link"
+                      className="text-sage-700 px-0 cursor-pointer"
+                      onClick={() => router.push(`/admin/client-profiles/${client.id}`)}
+                    >
+                      {t('viewProfile')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="text-sage-700 px-2 py-1 border-sage-300 cursor-pointer"
+                      onClick={() => { setShowResetDialog(true); setResetClientId(client.id); }}
+                    >
+                      {t('resetPassword')}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
+
+        {/* 分页控件 */}
+        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={page === 1}
+            onClick={() => {
+              const newPage = Math.max(1, page - 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.prevPage', { defaultValue: '上一页' })}
+          </Button>
+          <span className="text-sage-700 text-sm flex items-center gap-2">
+            {t('pagination.page', { defaultValue: '第' })}
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={pageInput}
+              onChange={e => {
+                const val = e.target.value.replace(/[^0-9]/g, '')
+                setPageInput(val)
+              }}
+              onBlur={e => {
+                let val = Number(e.target.value)
+                if (isNaN(val) || val < 1) val = 1
+                if (val > totalPages) val = totalPages
+                setPage(val)
+                setPageInput(String(val))
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  let val = Number((e.target as HTMLInputElement).value)
+                  if (isNaN(val) || val < 1) val = 1
+                  if (val > totalPages) val = totalPages
+                  setPage(val)
+                  setPageInput(String(val))
+                }
+              }}
+              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+              aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
+            />
+            {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="cursor-pointer"
+            disabled={page >= totalPages}
+            onClick={() => {
+              const newPage = Math.min(totalPages, page + 1)
+              setPage(newPage)
+              setPageInput(String(newPage))
+            }}
+          >
+            {t('pagination.nextPage', { defaultValue: '下一页' })}
+          </Button>
+        </div>
+
+        {pagedClients.length === 0 && (
+          <div className="text-center py-8 text-sage-500">
+            {t('noApplications', { defaultValue: '暂无申请记录' })}
+          </div>
+        )}
 
         {/* 新建准父母弹窗表单 */}
         {/* 重置密码弹窗 */}
@@ -311,8 +394,8 @@ export default function ClientProfilesPage() {
               />
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50" onClick={() => { setShowResetDialog(false); setResetPassword(""); setResetClientId(null); }}>{t('cancel')}</Button>
-              <Button type="button" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition" onClick={handleResetPassword} disabled={resetLoading || !resetPassword}>{resetLoading ? t('resetting') : t('confirmReset')}</Button>
+              <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50 cursor-pointer" onClick={() => { setShowResetDialog(false); setResetPassword(""); setResetClientId(null); }}>{t('cancel')}</Button>
+              <Button type="button" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer" onClick={handleResetPassword} disabled={resetLoading || !resetPassword}>{resetLoading ? t('resetting') : t('confirmReset')}</Button>
             </div>
           </Dialog>
         )}
@@ -445,8 +528,8 @@ export default function ClientProfilesPage() {
                   </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-end gap-2 md:gap-4 mt-8">
-                  <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50" onClick={() => { setShowDialog(false); reset(); }}>取消</Button>
-                  <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition">保存</Button>
+                  <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50 cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>取消</Button>
+                  <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer">保存</Button>
                 </div>
               </form>
             </div>

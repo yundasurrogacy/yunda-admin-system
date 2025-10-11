@@ -2,20 +2,27 @@
 @import "tailwindcss";
 @import "./client-manager/animations.css";
 @import "./client-manager/colors.css";
+@import '../..//public/assets/css/fonts.css';
 
 :root {
   /* --background: #ffffff; */
-  --background: #FBF0DA75;
+  --background: rgba(250, 241, 224, 0.25); /* #faf1e0 25% 透明 */
+  --card-background: rgba(250, 241, 224, 0.20); /* #faf1e0 20% 透明 */
   --bg-background: var(--background);
   --foreground: #271F18;
   --font-serif: 'Source Serif 4', serif;
+  --font-family: var(--font-primary);
 }
 
 
 body {
   background: var(--background);
+/* 卡片全局样式建议 */
+.card-bg, .bg-card, .card, .Card, .unocss-card {
+  background: var(--card-background) !important;
+}
   color: var(--foreground);
-  font-family: var(--font-serif), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-family), var(--font-serif), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

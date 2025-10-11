@@ -16,26 +16,20 @@ export default function ManagerLayout({
   const { isAuthenticated } = useAuth()
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative text-sage-800 font-medium">
       {/* Sidebar */}
       <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
-        // theme="blue"
-        // groups={managerSidebarConfig as any}
         groups={managerSidebarConfig()}
-        // title="YUNDA MANAGER"
         type="manager"
       />
-      
       {/* Main content */}
       <div className="min-h-screen flex flex-col">
         <CommonHeader 
           showMenuButton={true} 
           onMenuClick={() => setSidebarOpen(!sidebarOpen)} 
-          // theme="blue"
-          // title="YUNDA MANAGER"
-          type="client-manager"
+          type="manager"
         />
         <main className={cn(
           "flex-1 transition-all duration-300 ease-in-out p-4 md:p-6",

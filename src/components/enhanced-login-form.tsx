@@ -63,9 +63,9 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
     >
       <div className="flex flex-col gap-4">
         <div>
-          <label 
-            htmlFor="email" 
-            className="block text-base font-serif text-[#3C2B1C] mb-2"
+          <label
+            htmlFor="email"
+            className="block text-base font-medium text-sage-800 mb-2"
           >
             {t('emailLabel', { defaultValue: '邮箱' })}
           </label>
@@ -90,26 +90,17 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
               width: "100%",
               padding: "0 20px"
             }}
-            className="font-serif text-[#3C2B1C] transition-colors disabled:opacity-50"
+            className="font-medium text-sage-800 transition-colors disabled:opacity-50"
             placeholder={t('emailPlaceholder', { defaultValue: '请输入邮箱地址' })}
           />
           {formErrors.username && (
-            <p className="text-red-500 text-sm mt-1 font-serif">{formErrors.username}</p>
+            <p className="text-red-500 text-sm mt-1 font-medium">{formErrors.username}</p>
           )}
-          <div className="text-right mt-2">
-            <a 
-              href="/admin/forgot-password" 
-              className="text-xs text-[#3C2B1C] hover:underline transition-colors"
-            >
-              {t('forgotPassword', { defaultValue: '忘记密码？' })}
-            </a>
-          </div>
         </div>
-        
         <div>
-          <label 
-            htmlFor="password" 
-            className="block text-base font-serif text-[#3C2B1C] mb-2"
+          <label
+            htmlFor="password"
+            className="block text-base font-medium text-sage-800 mb-2"
           >
             {t('passwordLabel', { defaultValue: '密码' })}
           </label>
@@ -134,15 +125,14 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
               width: "100%",
               padding: "0 20px"
             }}
-            className="font-serif text-[#3C2B1C] transition-colors disabled:opacity-50"
+            className="font-medium text-sage-800 transition-colors disabled:opacity-50"
             placeholder={t('passwordPlaceholder', { defaultValue: '请输入密码' })}
           />
           {formErrors.password && (
-            <p className="text-red-500 text-sm mt-1 font-serif">{formErrors.password}</p>
+            <p className="text-red-500 text-sm mt-1 font-medium">{formErrors.password}</p>
           )}
         </div>
       </div>
-      
       <button
         type="submit"
         disabled={loading}
@@ -161,7 +151,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
           margin: "auto 0",
           transition: "all 0.3s ease"
         }}
-        className="font-serif flex items-center justify-center hover:shadow-lg"
+        className="font-semibold flex items-center justify-center hover:shadow-lg text-sage-800"
       >
         {loading ? (
           <div className="flex items-center gap-2">

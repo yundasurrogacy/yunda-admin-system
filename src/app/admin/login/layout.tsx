@@ -13,23 +13,18 @@ export default function AdminLoginLayout({ children }: { children: React.ReactNo
   const { isAuthenticated } = useAuth()
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col text-sage-800 font-medium">
       {/* Sidebar */}
       <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
-        // theme="purple"
-        // groups={adminSidebarConfig}
         groups={getAdminSidebarConfig()}
-        // title="管理员"
+        type="admin"
       />
-      
       {/* Header */}
       <CommonHeader 
         showMenuButton={true}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        // theme="purple"
-        // title="YUNDA 管理员"
         type="admin"
       />
       {children}

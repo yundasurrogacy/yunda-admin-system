@@ -736,6 +736,10 @@ export type Cases = {
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['bigint']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance: Scalars['numeric']['output'];
+  /** An array relationship */
+  trust_account_balance_changes: Array<Trust_Account_Balance_Changes>;
+  /** An aggregate relationship */
+  trust_account_balance_changes_aggregate: Trust_Account_Balance_Changes_Aggregate;
   updated_at: Scalars['timestamptz']['output'];
 };
 
@@ -817,6 +821,26 @@ export type CasesPosts_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']['input']>;
   order_by?: InputMaybe<Array<Posts_Order_By>>;
   where?: InputMaybe<Posts_Bool_Exp>;
+};
+
+
+/** columns and relationships of "cases" */
+export type CasesTrust_Account_Balance_ChangesArgs = {
+  distinct_on?: InputMaybe<Array<Trust_Account_Balance_Changes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Trust_Account_Balance_Changes_Order_By>>;
+  where?: InputMaybe<Trust_Account_Balance_Changes_Bool_Exp>;
+};
+
+
+/** columns and relationships of "cases" */
+export type CasesTrust_Account_Balance_Changes_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Trust_Account_Balance_Changes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Trust_Account_Balance_Changes_Order_By>>;
+  where?: InputMaybe<Trust_Account_Balance_Changes_Bool_Exp>;
 };
 
 /** aggregated selection of "cases" */
@@ -932,6 +956,8 @@ export type Cases_Bool_Exp = {
   surrogate_mother?: InputMaybe<Surrogate_Mothers_Bool_Exp>;
   surrogate_mother_surrogate_mothers?: InputMaybe<Bigint_Comparison_Exp>;
   trust_account_balance?: InputMaybe<Numeric_Comparison_Exp>;
+  trust_account_balance_changes?: InputMaybe<Trust_Account_Balance_Changes_Bool_Exp>;
+  trust_account_balance_changes_aggregate?: InputMaybe<Trust_Account_Balance_Changes_Aggregate_Bool_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -962,6 +988,7 @@ export type Cases_Files = {
   journey?: Maybe<Journeys>;
   /** 和journey相关的文件 */
   journey_journeys?: Maybe<Scalars['bigint']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
   updated_at: Scalars['timestamptz']['output'];
 };
 
@@ -1061,6 +1088,7 @@ export type Cases_Files_Bool_Exp = {
   id?: InputMaybe<Bigint_Comparison_Exp>;
   journey?: InputMaybe<Journeys_Bool_Exp>;
   journey_journeys?: InputMaybe<Bigint_Comparison_Exp>;
+  note?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -1095,6 +1123,7 @@ export type Cases_Files_Insert_Input = {
   journey?: InputMaybe<Journeys_Obj_Rel_Insert_Input>;
   /** 和journey相关的文件 */
   journey_journeys?: InputMaybe<Scalars['bigint']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
 
@@ -1113,6 +1142,7 @@ export type Cases_Files_Max_Fields = {
   id?: Maybe<Scalars['bigint']['output']>;
   /** 和journey相关的文件 */
   journey_journeys?: Maybe<Scalars['bigint']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
 };
 
@@ -1130,6 +1160,7 @@ export type Cases_Files_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   /** 和journey相关的文件 */
   journey_journeys?: InputMaybe<Order_By>;
+  note?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -1148,6 +1179,7 @@ export type Cases_Files_Min_Fields = {
   id?: Maybe<Scalars['bigint']['output']>;
   /** 和journey相关的文件 */
   journey_journeys?: Maybe<Scalars['bigint']['output']>;
+  note?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
 };
 
@@ -1165,6 +1197,7 @@ export type Cases_Files_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   /** 和journey相关的文件 */
   journey_journeys?: InputMaybe<Order_By>;
+  note?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -1195,6 +1228,7 @@ export type Cases_Files_Order_By = {
   id?: InputMaybe<Order_By>;
   journey?: InputMaybe<Journeys_Order_By>;
   journey_journeys?: InputMaybe<Order_By>;
+  note?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -1220,6 +1254,8 @@ export enum Cases_Files_Select_Column {
   /** column name */
   JourneyJourneys = 'journey_journeys',
   /** column name */
+  Note = 'note',
+  /** column name */
   UpdatedAt = 'updated_at'
 }
 
@@ -1237,6 +1273,7 @@ export type Cases_Files_Set_Input = {
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 和journey相关的文件 */
   journey_journeys?: InputMaybe<Scalars['bigint']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
 
@@ -1319,6 +1356,7 @@ export type Cases_Files_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 和journey相关的文件 */
   journey_journeys?: InputMaybe<Scalars['bigint']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
 
@@ -1357,6 +1395,8 @@ export enum Cases_Files_Update_Column {
   Id = 'id',
   /** column name */
   JourneyJourneys = 'journey_journeys',
+  /** column name */
+  Note = 'note',
   /** column name */
   UpdatedAt = 'updated_at'
 }
@@ -1461,6 +1501,7 @@ export type Cases_Insert_Input = {
   surrogate_mother_surrogate_mothers?: InputMaybe<Scalars['bigint']['input']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Scalars['numeric']['input']>;
+  trust_account_balance_changes?: InputMaybe<Trust_Account_Balance_Changes_Arr_Rel_Insert_Input>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
 
@@ -1573,6 +1614,7 @@ export type Cases_Order_By = {
   surrogate_mother?: InputMaybe<Surrogate_Mothers_Order_By>;
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   trust_account_balance?: InputMaybe<Order_By>;
+  trust_account_balance_changes_aggregate?: InputMaybe<Trust_Account_Balance_Changes_Aggregate_Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -2168,10 +2210,6 @@ export type Intended_Parents = {
   referral?: Maybe<Scalars['jsonb']['output']>;
   /** 信托账户余额 */
   trust_account_balance: Scalars['numeric']['output'];
-  /** An array relationship */
-  trust_account_balance_changes: Array<Trust_Account_Balance_Changes>;
-  /** An aggregate relationship */
-  trust_account_balance_changes_aggregate: Trust_Account_Balance_Changes_Aggregate;
   updated_at: Scalars['timestamptz']['output'];
 };
 
@@ -2245,26 +2283,6 @@ export type Intended_ParentsReferralArgs = {
   path?: InputMaybe<Scalars['String']['input']>;
 };
 
-
-/** 准父母表 */
-export type Intended_ParentsTrust_Account_Balance_ChangesArgs = {
-  distinct_on?: InputMaybe<Array<Trust_Account_Balance_Changes_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  order_by?: InputMaybe<Array<Trust_Account_Balance_Changes_Order_By>>;
-  where?: InputMaybe<Trust_Account_Balance_Changes_Bool_Exp>;
-};
-
-
-/** 准父母表 */
-export type Intended_ParentsTrust_Account_Balance_Changes_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Trust_Account_Balance_Changes_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  order_by?: InputMaybe<Array<Trust_Account_Balance_Changes_Order_By>>;
-  where?: InputMaybe<Trust_Account_Balance_Changes_Bool_Exp>;
-};
-
 /** aggregated selection of "intended_parents" */
 export type Intended_Parents_Aggregate = {
   __typename?: 'intended_parents_aggregate';
@@ -2336,8 +2354,6 @@ export type Intended_Parents_Bool_Exp = {
   program_interests?: InputMaybe<Jsonb_Comparison_Exp>;
   referral?: InputMaybe<Jsonb_Comparison_Exp>;
   trust_account_balance?: InputMaybe<Numeric_Comparison_Exp>;
-  trust_account_balance_changes?: InputMaybe<Trust_Account_Balance_Changes_Bool_Exp>;
-  trust_account_balance_changes_aggregate?: InputMaybe<Trust_Account_Balance_Changes_Aggregate_Bool_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
@@ -2420,7 +2436,6 @@ export type Intended_Parents_Insert_Input = {
   referral?: InputMaybe<Scalars['jsonb']['input']>;
   /** 信托账户余额 */
   trust_account_balance?: InputMaybe<Scalars['numeric']['input']>;
-  trust_account_balance_changes?: InputMaybe<Trust_Account_Balance_Changes_Arr_Rel_Insert_Input>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
 
@@ -2489,7 +2504,6 @@ export type Intended_Parents_Order_By = {
   program_interests?: InputMaybe<Order_By>;
   referral?: InputMaybe<Order_By>;
   trust_account_balance?: InputMaybe<Order_By>;
-  trust_account_balance_changes_aggregate?: InputMaybe<Trust_Account_Balance_Changes_Aggregate_Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
 
@@ -2696,6 +2710,8 @@ export type Intended_Parents_Variance_Fields = {
 /** 体外受精诊所记录信息 */
 export type Ivf_Clinics = {
   __typename?: 'ivf_clinics';
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** An object relationship */
   case?: Maybe<Cases>;
   /** 外键，关联cases表 */
@@ -2804,6 +2820,7 @@ export type Ivf_Clinics_Bool_Exp = {
   _and?: InputMaybe<Array<Ivf_Clinics_Bool_Exp>>;
   _not?: InputMaybe<Ivf_Clinics_Bool_Exp>;
   _or?: InputMaybe<Array<Ivf_Clinics_Bool_Exp>>;
+  about_role?: InputMaybe<String_Comparison_Exp>;
   case?: InputMaybe<Cases_Bool_Exp>;
   case_cases?: InputMaybe<Bigint_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -2846,6 +2863,8 @@ export type Ivf_Clinics_Inc_Input = {
 
 /** input type for inserting data into table "ivf_clinics" */
 export type Ivf_Clinics_Insert_Input = {
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   /** 外键，关联cases表 */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
@@ -2861,6 +2880,8 @@ export type Ivf_Clinics_Insert_Input = {
 /** aggregate max on columns */
 export type Ivf_Clinics_Max_Fields = {
   __typename?: 'ivf_clinics_max_fields';
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** 外键，关联cases表 */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -2872,6 +2893,8 @@ export type Ivf_Clinics_Max_Fields = {
 
 /** order by max() on columns of table "ivf_clinics" */
 export type Ivf_Clinics_Max_Order_By = {
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Order_By>;
   /** 外键，关联cases表 */
   case_cases?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -2884,6 +2907,8 @@ export type Ivf_Clinics_Max_Order_By = {
 /** aggregate min on columns */
 export type Ivf_Clinics_Min_Fields = {
   __typename?: 'ivf_clinics_min_fields';
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** 外键，关联cases表 */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -2895,6 +2920,8 @@ export type Ivf_Clinics_Min_Fields = {
 
 /** order by min() on columns of table "ivf_clinics" */
 export type Ivf_Clinics_Min_Order_By = {
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Order_By>;
   /** 外键，关联cases表 */
   case_cases?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -2922,6 +2949,7 @@ export type Ivf_Clinics_On_Conflict = {
 
 /** Ordering options when selecting data from "ivf_clinics". */
 export type Ivf_Clinics_Order_By = {
+  about_role?: InputMaybe<Order_By>;
   case?: InputMaybe<Cases_Order_By>;
   case_cases?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -2945,6 +2973,8 @@ export type Ivf_Clinics_Prepend_Input = {
 /** select columns of table "ivf_clinics" */
 export enum Ivf_Clinics_Select_Column {
   /** column name */
+  AboutRole = 'about_role',
+  /** column name */
   CaseCases = 'case_cases',
   /** column name */
   CreatedAt = 'created_at',
@@ -2960,6 +2990,8 @@ export enum Ivf_Clinics_Select_Column {
 
 /** input type for updating data in table "ivf_clinics" */
 export type Ivf_Clinics_Set_Input = {
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   /** 外键，关联cases表 */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -3026,6 +3058,8 @@ export type Ivf_Clinics_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Ivf_Clinics_Stream_Cursor_Value_Input = {
+  /** 角色关于可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   /** 外键，关联cases表 */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -3054,6 +3088,8 @@ export type Ivf_Clinics_Sum_Order_By = {
 
 /** update columns of table "ivf_clinics" */
 export enum Ivf_Clinics_Update_Column {
+  /** column name */
+  AboutRole = 'about_role',
   /** column name */
   CaseCases = 'case_cases',
   /** column name */
@@ -7151,6 +7187,8 @@ export type Trust_Account_Balance_Changes = {
   balance_after?: Maybe<Scalars['numeric']['output']>;
   /** 变动前的余额 */
   balance_before?: Maybe<Scalars['numeric']['output']>;
+  /** An object relationship */
+  case: Cases;
   /** 外键，关联case */
   case_cases: Scalars['bigint']['output'];
   /** 变动金额 */
@@ -7159,10 +7197,6 @@ export type Trust_Account_Balance_Changes = {
   change_type: Scalars['String']['output'];
   created_at: Scalars['timestamptz']['output'];
   id: Scalars['bigint']['output'];
-  /** An object relationship */
-  intended_parent: Intended_Parents;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents: Scalars['bigint']['output'];
   /** 备注 */
   remark?: Maybe<Scalars['String']['output']>;
   updated_at: Scalars['timestamptz']['output'];
@@ -7243,8 +7277,6 @@ export type Trust_Account_Balance_Changes_Avg_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by avg() on columns of table "trust_account_balance_changes" */
@@ -7258,8 +7290,6 @@ export type Trust_Account_Balance_Changes_Avg_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "trust_account_balance_changes". All fields are combined with a logical 'AND'. */
@@ -7269,13 +7299,12 @@ export type Trust_Account_Balance_Changes_Bool_Exp = {
   _or?: InputMaybe<Array<Trust_Account_Balance_Changes_Bool_Exp>>;
   balance_after?: InputMaybe<Numeric_Comparison_Exp>;
   balance_before?: InputMaybe<Numeric_Comparison_Exp>;
+  case?: InputMaybe<Cases_Bool_Exp>;
   case_cases?: InputMaybe<Bigint_Comparison_Exp>;
   change_amount?: InputMaybe<Numeric_Comparison_Exp>;
   change_type?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Bigint_Comparison_Exp>;
-  intended_parent?: InputMaybe<Intended_Parents_Bool_Exp>;
-  intended_parent_intended_parents?: InputMaybe<Bigint_Comparison_Exp>;
   remark?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -7297,8 +7326,6 @@ export type Trust_Account_Balance_Changes_Inc_Input = {
   /** 变动金额 */
   change_amount?: InputMaybe<Scalars['numeric']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
 };
 
 /** input type for inserting data into table "trust_account_balance_changes" */
@@ -7307,6 +7334,7 @@ export type Trust_Account_Balance_Changes_Insert_Input = {
   balance_after?: InputMaybe<Scalars['numeric']['input']>;
   /** 变动前的余额 */
   balance_before?: InputMaybe<Scalars['numeric']['input']>;
+  case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   /** 外键，关联case */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   /** 变动金额 */
@@ -7315,9 +7343,6 @@ export type Trust_Account_Balance_Changes_Insert_Input = {
   change_type?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  intended_parent?: InputMaybe<Intended_Parents_Obj_Rel_Insert_Input>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   /** 备注 */
   remark?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -7338,8 +7363,6 @@ export type Trust_Account_Balance_Changes_Max_Fields = {
   change_type?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
   /** 备注 */
   remark?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -7359,8 +7382,6 @@ export type Trust_Account_Balance_Changes_Max_Order_By = {
   change_type?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
   /** 备注 */
   remark?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -7381,8 +7402,6 @@ export type Trust_Account_Balance_Changes_Min_Fields = {
   change_type?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
   /** 备注 */
   remark?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
@@ -7402,8 +7421,6 @@ export type Trust_Account_Balance_Changes_Min_Order_By = {
   change_type?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
   /** 备注 */
   remark?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -7429,13 +7446,12 @@ export type Trust_Account_Balance_Changes_On_Conflict = {
 export type Trust_Account_Balance_Changes_Order_By = {
   balance_after?: InputMaybe<Order_By>;
   balance_before?: InputMaybe<Order_By>;
+  case?: InputMaybe<Cases_Order_By>;
   case_cases?: InputMaybe<Order_By>;
   change_amount?: InputMaybe<Order_By>;
   change_type?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  intended_parent?: InputMaybe<Intended_Parents_Order_By>;
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
   remark?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -7462,8 +7478,6 @@ export enum Trust_Account_Balance_Changes_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  IntendedParentIntendedParents = 'intended_parent_intended_parents',
-  /** column name */
   Remark = 'remark',
   /** column name */
   UpdatedAt = 'updated_at'
@@ -7483,8 +7497,6 @@ export type Trust_Account_Balance_Changes_Set_Input = {
   change_type?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   /** 备注 */
   remark?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -7502,8 +7514,6 @@ export type Trust_Account_Balance_Changes_Stddev_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev() on columns of table "trust_account_balance_changes" */
@@ -7517,8 +7527,6 @@ export type Trust_Account_Balance_Changes_Stddev_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
@@ -7533,8 +7541,6 @@ export type Trust_Account_Balance_Changes_Stddev_Pop_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_pop() on columns of table "trust_account_balance_changes" */
@@ -7548,8 +7554,6 @@ export type Trust_Account_Balance_Changes_Stddev_Pop_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
@@ -7564,8 +7568,6 @@ export type Trust_Account_Balance_Changes_Stddev_Samp_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by stddev_samp() on columns of table "trust_account_balance_changes" */
@@ -7579,8 +7581,6 @@ export type Trust_Account_Balance_Changes_Stddev_Samp_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "trust_account_balance_changes" */
@@ -7605,8 +7605,6 @@ export type Trust_Account_Balance_Changes_Stream_Cursor_Value_Input = {
   change_type?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   /** 备注 */
   remark?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -7624,8 +7622,6 @@ export type Trust_Account_Balance_Changes_Sum_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['numeric']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
 };
 
 /** order by sum() on columns of table "trust_account_balance_changes" */
@@ -7639,8 +7635,6 @@ export type Trust_Account_Balance_Changes_Sum_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "trust_account_balance_changes" */
@@ -7659,8 +7653,6 @@ export enum Trust_Account_Balance_Changes_Update_Column {
   CreatedAt = 'created_at',
   /** column name */
   Id = 'id',
-  /** column name */
-  IntendedParentIntendedParents = 'intended_parent_intended_parents',
   /** column name */
   Remark = 'remark',
   /** column name */
@@ -7688,8 +7680,6 @@ export type Trust_Account_Balance_Changes_Var_Pop_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_pop() on columns of table "trust_account_balance_changes" */
@@ -7703,8 +7693,6 @@ export type Trust_Account_Balance_Changes_Var_Pop_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
@@ -7719,8 +7707,6 @@ export type Trust_Account_Balance_Changes_Var_Samp_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by var_samp() on columns of table "trust_account_balance_changes" */
@@ -7734,8 +7720,6 @@ export type Trust_Account_Balance_Changes_Var_Samp_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
@@ -7750,8 +7734,6 @@ export type Trust_Account_Balance_Changes_Variance_Fields = {
   /** 变动金额 */
   change_amount?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
 };
 
 /** order by variance() on columns of table "trust_account_balance_changes" */
@@ -7765,6 +7747,4 @@ export type Trust_Account_Balance_Changes_Variance_Order_By = {
   /** 变动金额 */
   change_amount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 关联外键，对应的准父母 */
-  intended_parent_intended_parents?: InputMaybe<Order_By>;
 };
