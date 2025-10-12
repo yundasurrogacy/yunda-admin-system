@@ -7,7 +7,7 @@ import { useParams } from "next/navigation"
 import { getSurrogateMotherById } from "@/lib/graphql/applications"
 import type { SurrogateMother } from "@/types/surrogate_mother"
 import { ChevronRight, User, MessageSquare, FileText, Calendar, Activity, ArrowLeft } from "lucide-react"
-import { Button } from "../../../../components/ui/button"
+import { CustomButton } from "../../../../components/ui/CustomButton"
 import { Label } from "../../../../components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card"
 import { Badge } from "../../../../components/ui/badge"
@@ -177,25 +177,25 @@ export default function SurrogateProfileDetailPage() {
     <AdminLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12 text-sage-800 font-medium">
             {/* 返回按钮 */}
-            <button
-              className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+            <CustomButton
+              className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
               onClick={() => router.back()}
             >
-              <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
                 <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               {t('back', '返回')}
-            </button>
+            </CustomButton>
         <div className="flex items-center justify-between pt-6 pb-2">
           <h1 className="text-2xl font-semibold text-sage-800">{t('surrogateProfile')}</h1>
           <div className="flex items-center gap-4">
             {!editMode && (
-              <Button variant="default" className="bg-sage-600 text-white font-medium cursor-pointer" onClick={handleEdit}>{t('edit', '编辑')}</Button>
+              <CustomButton className="bg-sage-600 text-white font-medium cursor-pointer" onClick={handleEdit}>{t('edit', '编辑')}</CustomButton>
             )}
             {editMode && (
               <>
-                <Button variant="outline" className="font-medium cursor-pointer" onClick={handleCancel} disabled={saving || isUploadingPhotos}>{t('cancel', '取消')}</Button>
-                <Button variant="default" className="bg-sage-600 text-white font-medium cursor-pointer" onClick={handleSave} disabled={saving || isUploadingPhotos}>{saving ? t('saving', '保存中...') : t('save', '保存')}</Button>
+                <CustomButton className="font-medium cursor-pointer border border-sage-300 bg-white text-sage-800" onClick={handleCancel} disabled={saving || isUploadingPhotos}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="bg-sage-600 text-white font-medium cursor-pointer" onClick={handleSave} disabled={saving || isUploadingPhotos}>{saving ? t('saving', '保存中...') : t('save', '保存')}</CustomButton>
                 {isUploadingPhotos && (
                   <span className="text-xs text-red-500 ml-2">{t('photoUploadingTip', '有图片正在上传，请等待上传完成后再保存')}</span>
                 )}
@@ -320,14 +320,13 @@ export default function SurrogateProfileDetailPage() {
                     });
                   }}
                 />
-                <Button
+                <CustomButton
                   type="button"
-                  variant="outline"
-                  className="font-medium cursor-pointer"
+                  className="font-medium cursor-pointer border border-sage-300 bg-white text-sage-800"
                   onClick={() => document.getElementById('custom-file-upload')?.click()}
                 >
                   {t('chooseFile', '选择文件')}
-                </Button>
+                </CustomButton>
               </div>
               <div className="text-xs text-sage-500">{t('uploadPhotoTip', '支持多张图片上传，保存后生效')}</div>
             </>
@@ -444,7 +443,7 @@ export default function SurrogateProfileDetailPage() {
                   <div className="flex justify-between">
                     <span className="text-sage-500">{t('surrogateProfileDetail.isFormerSurrogate', '是否曾为代孕母')}:</span>
                     <span className="text-sage-800">{editMode ? (
-                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={typeof ay?.is_former_surrogate === 'boolean' ? (ay.is_former_surrogate ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'is_former_surrogate', e.target.value === 'yes')}>
+                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={typeof ay?.is_former_surrogate === 'boolean' ? (ay.is_former_surrogate ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'is_former_surrogate', e.target.value === 'yes')}>
                         <option value="yes">{t('surrogateProfileDetail.yes', '是')}</option>
                         <option value="no">{t('surrogateProfileDetail.no', '否')}</option>
                       </select>
@@ -463,7 +462,7 @@ export default function SurrogateProfileDetailPage() {
                   <div className="flex justify-between">
                     <span className="text-sage-500">{t('surrogateProfileDetail.hasHighSchoolDiploma', '有高中毕业证')}:</span>
                     <span className="text-sage-800">{editMode ? (
-                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={typeof ay?.has_high_school_diploma === 'boolean' ? (ay.has_high_school_diploma ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'has_high_school_diploma', e.target.value === 'yes')}>
+                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={typeof ay?.has_high_school_diploma === 'boolean' ? (ay.has_high_school_diploma ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'has_high_school_diploma', e.target.value === 'yes')}>
                         <option value="yes">{t('surrogateProfileDetail.yes', '是')}</option>
                         <option value="no">{t('surrogateProfileDetail.no', '否')}</option>
                       </select>
@@ -583,7 +582,7 @@ export default function SurrogateProfileDetailPage() {
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm">{t('hasGivenBirth')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.has_given_birth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_given_birth', e.target.value === 'yes')}>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.has_given_birth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_given_birth', e.target.value === 'yes')}>
                     <option value="yes">{t('yes')}</option>
                     <option value="no">{t('no')}</option>
                   </select>
@@ -594,7 +593,7 @@ export default function SurrogateProfileDetailPage() {
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm">{t('isCurrentlyPregnant')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.is_currently_pregnant ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_currently_pregnant', e.target.value === 'yes')}>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.is_currently_pregnant ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_currently_pregnant', e.target.value === 'yes')}>
                     <option value="yes">{t('yes')}</option>
                     <option value="no">{t('no')}</option>
                   </select>
@@ -605,7 +604,7 @@ export default function SurrogateProfileDetailPage() {
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm">{t('isBreastfeeding')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.is_breastfeeding ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_breastfeeding', e.target.value === 'yes')}>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.is_breastfeeding ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_breastfeeding', e.target.value === 'yes')}>
                     <option value="yes">{t('yes')}</option>
                     <option value="no">{t('no')}</option>
                   </select>
@@ -616,7 +615,7 @@ export default function SurrogateProfileDetailPage() {
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm">{t('hasStillbirth')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.has_stillbirth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_stillbirth', e.target.value === 'yes')}>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.has_stillbirth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_stillbirth', e.target.value === 'yes')}>
                     <option value="yes">{t('yes')}</option>
                     <option value="no">{t('no')}</option>
                   </select>
@@ -635,7 +634,7 @@ export default function SurrogateProfileDetailPage() {
               <div className="space-y-1 col-span-2">
                 <Label className="text-sage-600 text-sm">{t('isTakingMedications')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.is_taking_medications ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_taking_medications', e.target.value === 'yes')}>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.is_taking_medications ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_taking_medications', e.target.value === 'yes')}>
                     <option value="yes">{t('yes')}</option>
                     <option value="no">{t('no')}</option>
                   </select>
@@ -833,7 +832,7 @@ export default function SurrogateProfileDetailPage() {
                     <span className="text-sage-500">{t('hipaaRelease')}:</span>
                     {editMode ? (
                       <select
-                        className="border rounded px-2 py-1 w-full font-medium text-sage-800 bg-white border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-400"
+                        className="border rounded px-2 py-1 w-full font-medium text-sage-800 bg-white border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer"
                         value={interview?.hipaa_release_willing ? 'yes' : 'no'}
                         onChange={e => handleFieldChange('gestational_surrogacy_interview', 'hipaa_release_willing', e.target.value === 'yes')}
                       >
@@ -848,7 +847,7 @@ export default function SurrogateProfileDetailPage() {
                     <span className="text-sage-500">{t('multipleReduction')}:</span>
                     {editMode ? (
                       <select
-                        className="border rounded px-2 py-1 w-full font-medium text-sage-800 bg-white border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-400"
+                        className="border rounded px-2 py-1 w-full font-medium text-sage-800 bg-white border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer"
                         value={interview?.multiple_reduction_willing ? 'yes' : 'no'}
                         onChange={e => handleFieldChange('gestational_surrogacy_interview', 'multiple_reduction_willing', e.target.value === 'yes')}
                       >
@@ -863,7 +862,7 @@ export default function SurrogateProfileDetailPage() {
                     <span className="text-sage-500">{t('terminationWilling')}:</span>
                     {editMode ? (
                       <select
-                        className="border rounded px-2 py-1 w-full font-medium text-sage-800 bg-white border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-400"
+                        className="border rounded px-2 py-1 w-full font-medium text-sage-800 bg-white border-sage-300 focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer"
                         value={interview?.termination_willing ? 'yes' : 'no'}
                         onChange={e => handleFieldChange('gestational_surrogacy_interview', 'termination_willing', e.target.value === 'yes')}
                       >

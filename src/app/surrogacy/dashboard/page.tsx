@@ -1,12 +1,9 @@
-  // 新增：保存最新 caseId 和 journal 更新时间
-
-
 "use client"
 
 import React, { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
-
+import { CustomButton } from '@/components/ui/CustomButton'
 
 interface JourneyStage {
   stage: string
@@ -131,13 +128,12 @@ export default function SurrogacyDashboard() {
   <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t("dashboard.title", { defaultValue: "DASHBOARD" })}</h1>
   <p className="mb-8 text-sage-800">{t("dashboard.welcome", { defaultValue: "Welcome to your dashboard! Access your priorities, important information, helpful tips, guides, and a variety of resources to support your journey." })}</p>
       {/* Current Status（进度条和状态） */}
-      <div
-        className="rounded-xl bg-[rgba(251,240,218,0.25)] p-6 mb-6 text-sage-800 font-medium cursor-pointer transition-all hover:shadow-md"
+      <CustomButton
+        className="rounded-xl bg-[rgba(251,240,218,0.25)] p-6 mb-6 text-sage-800 font-medium w-full text-left transition-all hover:shadow-md"
         onClick={() => caseId && router.push(`/surrogacy/my-cases`)}
       >
         <h2 className="text-xl font-medium mb-2 text-sage-800">{t("dashboard.currentStatus", { defaultValue: "Current Status" })}</h2>
         <div className="flex justify-between items-center">
-          {/* <span className="font-medium text-sage-800">{t('dashboard.caseStatus', { defaultValue: 'Case Status' })}</span> */}
           <span className="font-medium text-sage-800"></span>
           <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
             {(() => {
@@ -173,7 +169,7 @@ export default function SurrogacyDashboard() {
           })}
         </div>
         <div className="text-sm mt-2 text-sage-800">{currentStatusDate ? t("dashboard.updatedAt", { date: currentStatusDate, defaultValue: `Updated at ${currentStatusDate}` }) : t("dashboard.updatedToday", { defaultValue: "Updated today" })}</div>
-      </div>
+      </CustomButton>
       {/* Next Steps */}
       <div className="rounded-xl bg-[rgba(251,240,218,0.25)] p-6 mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sage-800 font-medium">
         {journeyStages.map((stage) => (
@@ -210,8 +206,8 @@ export default function SurrogacyDashboard() {
         <div className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
           <h2 className="font-serif text-lg mb-4">{t("dashboard.quickAccess", { defaultValue: "Quick Access" })}</h2>
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/surrogacy/journal')}>
-              <span className="bg-[#E3E8E3] rounded p-2">📝</span>
+            <CustomButton className="flex items-center gap-2 bg-[#E3E8E3] rounded p-2 w-full font-serif text-[#271F18]" onClick={() => router.push('/surrogacy/journal')}>
+              <span>📝</span>
               <span>{t("dashboard.uploadJournal", { defaultValue: "Upload Journal" })}</span>
               <span className="text-xs ml-auto">
                 {loadingJournal
@@ -223,7 +219,7 @@ export default function SurrogacyDashboard() {
                       })
                     : t("dashboard.noJournal", { defaultValue: "No journal yet" })}
               </span>
-            </div>
+            </CustomButton>
             {/* <div className="flex items-center gap-2">
               <span className="bg-[#E3E8E3] rounded p-2">🖼️</span>
               <span>{t("dashboard.uploadUltrasound", { defaultValue: "Upload Ultrasound Image" })}</span>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { useAuth } from "@/hooks/useAuth"
 import { useTranslation } from "react-i18next"
 
@@ -165,8 +165,8 @@ export default function ClientDashboardPage() {
       {/* Current Status Section（可根据实际数据动态渲染） */}
       <div className="space-y-2">
         <h2 className="text-lg font-semibold text-gray-800">{t('dashboard.currentStatus', { defaultValue: 'Current Status' })}</h2>
-        <div
-          className="bg-sage-50 border border-sage-200 rounded-md p-4 cursor-pointer hover:shadow-lg transition"
+        <CustomButton
+          className="bg-sage-50 border border-sage-200 rounded-md p-4 w-full text-left hover:shadow-lg transition"
           style={{ cursor: 'pointer' }}
           onClick={() => router.push('/client/my-cases')}
         >
@@ -214,7 +214,7 @@ export default function ClientDashboardPage() {
           <div className="text-xs text-gray-500 mt-2">
             {currentStatusDate ? t('dashboard.updatedAt', { date: new Date(currentStatusDate).toLocaleString(), defaultValue: `Updated at ${new Date(currentStatusDate).toLocaleString()}` }) : ''}
           </div>
-        </div>
+  </CustomButton>
       </div>
 
       {/* Next Steps Section - 动态渲染并可交互 */}

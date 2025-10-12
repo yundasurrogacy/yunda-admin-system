@@ -28,7 +28,7 @@ import "../../../i18n"
 import { getSurrogateMotherById } from "@/lib/graphql/applications"
 import type { SurrogateMother } from "@/types/surrogate_mother"
 import { ChevronRight, User, MessageSquare, FileText, Calendar, Activity, ArrowLeft } from "lucide-react"
-import { Button } from "../../../components/ui/button"
+import { CustomButton } from "../../../components/ui/CustomButton"
 import { Label } from "../../../components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
 import { Badge } from "../../../components/ui/badge"
@@ -154,14 +154,13 @@ export default function SurrogateProfileDetailPage() {
           <p className="text-sage-600 text-sm mt-1">{t('matchedSurrogateDesc', '以下是为您匹配的代孕母详细信息')}</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
+          <CustomButton
             onClick={() => router.push('/client/my-cases')}
             className="bg-white cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" />
+            {/* <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" /> */}
             {t('backToCases', '返回我的案例')}
-          </Button>
+          </CustomButton>
         </div>
       </div>
 

@@ -972,6 +972,8 @@ export enum Cases_Constraint {
 /** 案子的相关文件 */
 export type Cases_Files = {
   __typename?: 'cases_files';
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** An object relationship */
   case?: Maybe<Cases>;
   /** 外键，关联cases */
@@ -1079,6 +1081,7 @@ export type Cases_Files_Bool_Exp = {
   _and?: InputMaybe<Array<Cases_Files_Bool_Exp>>;
   _not?: InputMaybe<Cases_Files_Bool_Exp>;
   _or?: InputMaybe<Array<Cases_Files_Bool_Exp>>;
+  about_role?: InputMaybe<String_Comparison_Exp>;
   case?: InputMaybe<Cases_Bool_Exp>;
   case_cases?: InputMaybe<Bigint_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
@@ -1109,6 +1112,8 @@ export type Cases_Files_Inc_Input = {
 
 /** input type for inserting data into table "cases_files" */
 export type Cases_Files_Insert_Input = {
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   /** 外键，关联cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
@@ -1130,6 +1135,8 @@ export type Cases_Files_Insert_Input = {
 /** aggregate max on columns */
 export type Cases_Files_Max_Fields = {
   __typename?: 'cases_files_max_fields';
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** 外键，关联cases */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   /** 文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other */
@@ -1148,6 +1155,8 @@ export type Cases_Files_Max_Fields = {
 
 /** order by max() on columns of table "cases_files" */
 export type Cases_Files_Max_Order_By = {
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Order_By>;
   /** 外键，关联cases */
   case_cases?: InputMaybe<Order_By>;
   /** 文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other */
@@ -1167,6 +1176,8 @@ export type Cases_Files_Max_Order_By = {
 /** aggregate min on columns */
 export type Cases_Files_Min_Fields = {
   __typename?: 'cases_files_min_fields';
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** 外键，关联cases */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   /** 文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other */
@@ -1185,6 +1196,8 @@ export type Cases_Files_Min_Fields = {
 
 /** order by min() on columns of table "cases_files" */
 export type Cases_Files_Min_Order_By = {
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Order_By>;
   /** 外键，关联cases */
   case_cases?: InputMaybe<Order_By>;
   /** 文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other */
@@ -1219,6 +1232,7 @@ export type Cases_Files_On_Conflict = {
 
 /** Ordering options when selecting data from "cases_files". */
 export type Cases_Files_Order_By = {
+  about_role?: InputMaybe<Order_By>;
   case?: InputMaybe<Cases_Order_By>;
   case_cases?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
@@ -1239,6 +1253,8 @@ export type Cases_Files_Pk_Columns_Input = {
 
 /** select columns of table "cases_files" */
 export enum Cases_Files_Select_Column {
+  /** column name */
+  AboutRole = 'about_role',
   /** column name */
   CaseCases = 'case_cases',
   /** column name */
@@ -1261,6 +1277,8 @@ export enum Cases_Files_Select_Column {
 
 /** input type for updating data in table "cases_files" */
 export type Cases_Files_Set_Input = {
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   /** 外键，关联cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   /** 文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other */
@@ -1344,6 +1362,8 @@ export type Cases_Files_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Cases_Files_Stream_Cursor_Value_Input = {
+  /** 用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   /** 外键，关联cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   /** 文件分类：1.EmbryoDocs 2.SurrogateInfo 3.LegalDocs 4.Other */
@@ -1381,6 +1401,8 @@ export type Cases_Files_Sum_Order_By = {
 
 /** update columns of table "cases_files" */
 export enum Cases_Files_Update_Column {
+  /** column name */
+  AboutRole = 'about_role',
   /** column name */
   CaseCases = 'case_cases',
   /** column name */
@@ -3171,6 +3193,8 @@ export type Ivf_Clinics_Variance_Order_By = {
 /** 代孕旅程 */
 export type Journeys = {
   __typename?: 'journeys';
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** An object relationship */
   case?: Maybe<Cases>;
   /** 关联外键，cases */
@@ -3181,7 +3205,9 @@ export type Journeys = {
   cases_files_aggregate: Cases_Files_Aggregate;
   created_at: Scalars['timestamptz']['output'];
   id: Scalars['bigint']['output'];
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: Maybe<Scalars['String']['output']>;
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['bigint']['output']>;
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
@@ -3277,7 +3303,7 @@ export type Journeys_Avg_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3286,7 +3312,7 @@ export type Journeys_Avg_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
@@ -3295,12 +3321,14 @@ export type Journeys_Bool_Exp = {
   _and?: InputMaybe<Array<Journeys_Bool_Exp>>;
   _not?: InputMaybe<Journeys_Bool_Exp>;
   _or?: InputMaybe<Array<Journeys_Bool_Exp>>;
+  about_role?: InputMaybe<String_Comparison_Exp>;
   case?: InputMaybe<Cases_Bool_Exp>;
   case_cases?: InputMaybe<Bigint_Comparison_Exp>;
   cases_files?: InputMaybe<Cases_Files_Bool_Exp>;
   cases_files_aggregate?: InputMaybe<Cases_Files_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Bigint_Comparison_Exp>;
+  process_status?: InputMaybe<String_Comparison_Exp>;
   stage?: InputMaybe<Bigint_Comparison_Exp>;
   title?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -3317,19 +3345,23 @@ export type Journeys_Inc_Input = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Scalars['bigint']['input']>;
 };
 
 /** input type for inserting data into table "journeys" */
 export type Journeys_Insert_Input = {
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   /** 关联外键，cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   cases_files?: InputMaybe<Cases_Files_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: InputMaybe<Scalars['String']['input']>;
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Scalars['bigint']['input']>;
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
@@ -3339,11 +3371,15 @@ export type Journeys_Insert_Input = {
 /** aggregate max on columns */
 export type Journeys_Max_Fields = {
   __typename?: 'journeys_max_fields';
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: Maybe<Scalars['String']['output']>;
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['bigint']['output']>;
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
@@ -3352,11 +3388,15 @@ export type Journeys_Max_Fields = {
 
 /** order by max() on columns of table "journeys" */
 export type Journeys_Max_Order_By = {
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Order_By>;
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: InputMaybe<Order_By>;
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
   /** 标题 */
   title?: InputMaybe<Order_By>;
@@ -3366,11 +3406,15 @@ export type Journeys_Max_Order_By = {
 /** aggregate min on columns */
 export type Journeys_Min_Fields = {
   __typename?: 'journeys_min_fields';
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: Maybe<Scalars['String']['output']>;
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: Maybe<Scalars['String']['output']>;
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['bigint']['output']>;
   /** 标题 */
   title?: Maybe<Scalars['String']['output']>;
@@ -3379,11 +3423,15 @@ export type Journeys_Min_Fields = {
 
 /** order by min() on columns of table "journeys" */
 export type Journeys_Min_Order_By = {
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Order_By>;
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: InputMaybe<Order_By>;
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
   /** 标题 */
   title?: InputMaybe<Order_By>;
@@ -3415,11 +3463,13 @@ export type Journeys_On_Conflict = {
 
 /** Ordering options when selecting data from "journeys". */
 export type Journeys_Order_By = {
+  about_role?: InputMaybe<Order_By>;
   case?: InputMaybe<Cases_Order_By>;
   case_cases?: InputMaybe<Order_By>;
   cases_files_aggregate?: InputMaybe<Cases_Files_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  process_status?: InputMaybe<Order_By>;
   stage?: InputMaybe<Order_By>;
   title?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
@@ -3433,11 +3483,15 @@ export type Journeys_Pk_Columns_Input = {
 /** select columns of table "journeys" */
 export enum Journeys_Select_Column {
   /** column name */
+  AboutRole = 'about_role',
+  /** column name */
   CaseCases = 'case_cases',
   /** column name */
   CreatedAt = 'created_at',
   /** column name */
   Id = 'id',
+  /** column name */
+  ProcessStatus = 'process_status',
   /** column name */
   Stage = 'stage',
   /** column name */
@@ -3448,11 +3502,15 @@ export enum Journeys_Select_Column {
 
 /** input type for updating data in table "journeys" */
 export type Journeys_Set_Input = {
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   /** 关联外键，cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: InputMaybe<Scalars['String']['input']>;
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Scalars['bigint']['input']>;
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
@@ -3465,7 +3523,7 @@ export type Journeys_Stddev_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3474,7 +3532,7 @@ export type Journeys_Stddev_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
@@ -3484,7 +3542,7 @@ export type Journeys_Stddev_Pop_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3493,7 +3551,7 @@ export type Journeys_Stddev_Pop_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
@@ -3503,7 +3561,7 @@ export type Journeys_Stddev_Samp_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3512,7 +3570,7 @@ export type Journeys_Stddev_Samp_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
@@ -3526,11 +3584,15 @@ export type Journeys_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Journeys_Stream_Cursor_Value_Input = {
+  /** 用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother */
+  about_role?: InputMaybe<Scalars['String']['input']>;
   /** 关联外键，cases */
   case_cases?: InputMaybe<Scalars['bigint']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 步骤序号：1-7 */
+  /** 进度状态：1.pending 2.finished */
+  process_status?: InputMaybe<Scalars['String']['input']>;
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Scalars['bigint']['input']>;
   /** 标题 */
   title?: InputMaybe<Scalars['String']['input']>;
@@ -3543,7 +3605,7 @@ export type Journeys_Sum_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['bigint']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['bigint']['output']>;
 };
 
@@ -3552,18 +3614,22 @@ export type Journeys_Sum_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "journeys" */
 export enum Journeys_Update_Column {
   /** column name */
+  AboutRole = 'about_role',
+  /** column name */
   CaseCases = 'case_cases',
   /** column name */
   CreatedAt = 'created_at',
   /** column name */
   Id = 'id',
+  /** column name */
+  ProcessStatus = 'process_status',
   /** column name */
   Stage = 'stage',
   /** column name */
@@ -3587,7 +3653,7 @@ export type Journeys_Var_Pop_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3596,7 +3662,7 @@ export type Journeys_Var_Pop_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
@@ -3606,7 +3672,7 @@ export type Journeys_Var_Samp_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3615,7 +3681,7 @@ export type Journeys_Var_Samp_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 
@@ -3625,7 +3691,7 @@ export type Journeys_Variance_Fields = {
   /** 关联外键，cases */
   case_cases?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: Maybe<Scalars['Float']['output']>;
 };
 
@@ -3634,7 +3700,7 @@ export type Journeys_Variance_Order_By = {
   /** 关联外键，cases */
   case_cases?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 步骤序号：1-7 */
+  /** 步骤序号：1-8 */
   stage?: InputMaybe<Order_By>;
 };
 

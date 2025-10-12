@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { CustomButton } from '@/components/ui/CustomButton';
 import { Progress } from '@/components/ui/progress';
 import { useTranslation } from 'react-i18next';
 // import { console } from 'inspector';
@@ -21,8 +21,18 @@ interface CaseItem {
 }
 
 const MyCasesPage = () => {
+  const { t, i18n } = useTranslation("common")
+  // 状态枚举和映射
+  const STATUS_ENUM = [
+    { value: 'Matching', label: t('matching', { defaultValue: 'Matching' }) },
+    { value: 'LegalStage', label: t('legalStage', { defaultValue: 'Legal Stage' }) },
+    { value: 'CyclePrep', label: t('cyclePrep', { defaultValue: 'Cycle Prep' }) },
+    { value: 'Pregnant', label: t('pregnancy', { defaultValue: 'Pregnancy' }) },
+    { value: 'Transferred', label: t('transferred', { defaultValue: 'Transferred' }) },
+  ];
+  const [statusDropdownCaseId, setStatusDropdownCaseId] = useState<string | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
   const router = useRouter();
-  const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(true);
   const [allCases, setAllCases] = useState<CaseItem[]>([]);
   const [selectedParent, setSelectedParent] = useState<string>('');
@@ -237,7 +247,8 @@ const MyCasesPage = () => {
             pagedCases.map((item) => (
               <div
                 key={item.id}
-                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
+                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-visible relative"
+                style={{ overflow: 'visible', zIndex: 1 }}
               >
                 <div className="flex items-center gap-4 mb-2">
                   <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -245,7 +256,53 @@ const MyCasesPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-lg text-sage-800 truncate">{t('caseIdLabel')}{item.id}</div>
-                    <div className="text-sage-500 text-sm truncate">{t('statusLabel')}{stageMap[item.process_status as keyof typeof stageMap] || item.process_status || '-'}</div>
+                    <div className="text-sage-500 text-sm truncate font-medium">
+                      {t('statusLabel')}
+                      <span
+                        className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100"
+                        onClick={() => setStatusDropdownCaseId(statusDropdownCaseId === item.id ? null : item.id)}
+                        style={{ minWidth: 80 }}
+                      >
+                        {stageMap[item.process_status as keyof typeof stageMap] || item.process_status || '-'}
+                        <span className="ml-1 text-xs text-sage-400">▼</span>
+                      </span>
+                    </div>
+                    {/* 状态下拉菜单绝对定位悬浮，不挤压内容 */}
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      {statusDropdownCaseId === item.id && (
+                        <div
+                          className="z-[999] mt-2 bg-white border border-sage-200 rounded shadow-2xl"
+                          style={{ minWidth: 180, position: 'absolute', left: 0, top: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', overflow: 'visible', maxHeight: '320px' }}
+                        >
+                          <div style={{overflowY: 'auto', maxHeight: '280px'}}>
+                            {STATUS_ENUM.map((opt) => (
+                              <div
+                                key={opt.value}
+                                className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 ${item.process_status === opt.value ? 'font-bold bg-sage-50' : ''}`}
+                                onClick={async () => {
+                                  if (statusUpdating) return;
+                                  setStatusUpdating(true);
+                                  await fetch('/api/cases-update-status', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ case_id: item.id, process_status: opt.value })
+                                  });
+                                  setStatusDropdownCaseId(null);
+                                  setStatusUpdating(false);
+                                  await fetchCases();
+                                }}
+                              >
+                                {opt.label}
+                              </div>
+                            ))}
+                          </div>
+                          <div
+                            className="px-4 py-2 cursor-pointer text-sage-400 hover:bg-sage-100 border-t border-sage-100"
+                            onClick={() => setStatusDropdownCaseId(null)}
+                          >{t('cancel')}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
@@ -317,11 +374,17 @@ const MyCasesPage = () => {
 
         {/* 分页控件 */}
         <div className="flex items-center justify-center gap-4 mt-8">
-          <Button variant="outline" size="sm" onClick={() => {
-            const newPage = Math.max(1, page - 1);
-            setPage(newPage);
-            setPageInput(String(newPage));
-          }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</Button>
+          <CustomButton
+            className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm shadow hover:bg-sage-50 cursor-pointer"
+            onClick={() => {
+              const newPage = Math.max(1, page - 1);
+              setPage(newPage);
+              setPageInput(String(newPage));
+            }}
+            disabled={page === 1}
+          >
+            {t('pagination.prevPage', '上一页')}
+          </CustomButton>
           <span>
             {t('pagination.page', '第')}
             <input
@@ -355,11 +418,17 @@ const MyCasesPage = () => {
             />
             {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
           </span>
-          <Button variant="outline" size="sm" onClick={() => {
-            const newPage = Math.min(totalPages, page + 1);
-            setPage(newPage);
-            setPageInput(String(newPage));
-          }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</Button>
+          <CustomButton
+            className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm shadow hover:bg-sage-50 cursor-pointer"
+            onClick={() => {
+              const newPage = Math.min(totalPages, page + 1);
+              setPage(newPage);
+              setPageInput(String(newPage));
+            }}
+            disabled={page === totalPages}
+          >
+            {t('pagination.nextPage', '下一页')}
+          </CustomButton>
         </div>
       </div>
     </ManagerLayout>

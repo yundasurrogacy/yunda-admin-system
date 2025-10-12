@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 // import ManagerLayout from '@/components/manager-layout';
 import { AdminLayout } from '../../../components/admin-layout'
 import { Card } from '@/components/ui/card';
+import { CustomButton } from '@/components/ui/CustomButton';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useRouter} from 'next/navigation'
@@ -196,15 +197,15 @@ function TrustAccountPageInner() {
     <AdminLayout>
       <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
-        <button
-          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8]"
           onClick={() => router.back()}
         >
-          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </button>
+        </CustomButton>
         <h1 className="text-2xl font-bold text-sage-800 mb-2">{t('trustAccount.title', 'Trust Account')}</h1>
         <p className="text-sage-800 mb-8">{t('trustAccount.description', 'View your current account balance and financial transactions related to your trust account')}</p>
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
@@ -280,13 +281,13 @@ function TrustAccountPageInner() {
                   />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800 cursor-pointer" onClick={() => setShowForm(false)} style={{ cursor: 'pointer' }}>{t('cancel', 'Cancel')}</button>
-                  <button
+                  <CustomButton type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800" onClick={() => setShowForm(false)}>{t('cancel', 'Cancel')}</CustomButton>
+                  <CustomButton
                     type="submit"
-                    className="px-3 py-1 rounded bg-sage-600 text-white cursor-pointer"
-                    style={{ cursor: formSubmitting ? 'not-allowed' : 'pointer', opacity: formSubmitting ? 0.5 : 1 }}
+                    className="px-3 py-1 rounded bg-sage-600 text-white"
+                    style={{ opacity: formSubmitting ? 0.5 : 1 }}
                     disabled={formSubmitting}
-                  >{t('save', 'Save')}</button>
+                  >{t('save', 'Save')}</CustomButton>
                 </div>
               </form>
             </Card>
@@ -295,14 +296,14 @@ function TrustAccountPageInner() {
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.history', 'Transaction History')}</h2>
-            <button
-              className="bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 cursor-pointer"
-              style={{ cursor: addBtnDisabled ? 'not-allowed' : 'pointer', opacity: addBtnDisabled ? 0.5 : 1 }}
+            <CustomButton
+              className="bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700"
+              style={{ opacity: addBtnDisabled ? 0.5 : 1 }}
               onClick={handleAdd}
               disabled={addBtnDisabled}
             >
               {t('add', 'Add')}
-            </button>
+            </CustomButton>
           </div>
           {loading ? <div>{t('loadingText', 'Loading...')}</div> : (
             <>
@@ -372,11 +373,11 @@ function TrustAccountPageInner() {
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-6">
-                <button
-                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
+                <CustomButton
+                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                >{t('pagination.prevPage', 'Previous')}</button>
+                >{t('pagination.prevPage', 'Previous')}</CustomButton>
                 <span>
                   {t('pagination.page', 'Page')}
                   <input
@@ -412,11 +413,11 @@ function TrustAccountPageInner() {
                   />
                   {t('pagination.of', 'of')} {totalPages} {t('pagination.pages', 'pages')}
                 </span>
-                <button
-                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
+                <CustomButton
+                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', 'Next')}</button>
+                >{t('pagination.nextPage', 'Next')}</CustomButton>
               </div>
             </>
           )}

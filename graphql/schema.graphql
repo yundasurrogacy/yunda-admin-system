@@ -1174,6 +1174,9 @@ enum cases_constraint {
 
 """案子的相关文件"""
 type cases_files {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """An object relationship"""
   case: cases
 
@@ -1292,6 +1295,7 @@ input cases_files_bool_exp {
   _and: [cases_files_bool_exp!]
   _not: cases_files_bool_exp
   _or: [cases_files_bool_exp!]
+  about_role: String_comparison_exp
   case: cases_bool_exp
   case_cases: bigint_comparison_exp
   category: String_comparison_exp
@@ -1331,6 +1335,8 @@ input cases_files_inc_input {
 input type for inserting data into table "cases_files"
 """
 input cases_files_insert_input {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
   case: cases_obj_rel_insert_input
 
   """外键，关联cases"""
@@ -1356,6 +1362,9 @@ input cases_files_insert_input {
 
 """aggregate max on columns"""
 type cases_files_max_fields {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """外键，关联cases"""
   case_cases: bigint
 
@@ -1380,6 +1389,9 @@ type cases_files_max_fields {
 order by max() on columns of table "cases_files"
 """
 input cases_files_max_order_by {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: order_by
+
   """外键，关联cases"""
   case_cases: order_by
 
@@ -1402,6 +1414,9 @@ input cases_files_max_order_by {
 
 """aggregate min on columns"""
 type cases_files_min_fields {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """外键，关联cases"""
   case_cases: bigint
 
@@ -1426,6 +1441,9 @@ type cases_files_min_fields {
 order by min() on columns of table "cases_files"
 """
 input cases_files_min_order_by {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: order_by
+
   """外键，关联cases"""
   case_cases: order_by
 
@@ -1468,6 +1486,7 @@ input cases_files_on_conflict {
 
 """Ordering options when selecting data from "cases_files"."""
 input cases_files_order_by {
+  about_role: order_by
   case: cases_order_by
   case_cases: order_by
   category: order_by
@@ -1490,6 +1509,9 @@ input cases_files_pk_columns_input {
 select columns of table "cases_files"
 """
 enum cases_files_select_column {
+  """column name"""
+  about_role
+
   """column name"""
   case_cases
 
@@ -1522,6 +1544,9 @@ enum cases_files_select_column {
 input type for updating data in table "cases_files"
 """
 input cases_files_set_input {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """外键，关联cases"""
   case_cases: bigint
 
@@ -1621,6 +1646,9 @@ input cases_files_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input cases_files_stream_cursor_value_input {
+  """用于区分是谁的file，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """外键，关联cases"""
   case_cases: bigint
 
@@ -1667,6 +1695,9 @@ input cases_files_sum_order_by {
 update columns of table "cases_files"
 """
 enum cases_files_update_column {
+  """column name"""
+  about_role
+
   """column name"""
   case_cases
 
@@ -3850,6 +3881,9 @@ input ivf_clinics_variance_order_by {
 
 """代孕旅程"""
 type journeys {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """An object relationship"""
   case: cases
 
@@ -3894,7 +3928,10 @@ type journeys {
   created_at: timestamptz!
   id: bigint!
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: String
+
+  """步骤序号：1-8"""
   stage: bigint
 
   """标题"""
@@ -3971,7 +4008,7 @@ type journeys_avg_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -3983,7 +4020,7 @@ input journeys_avg_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -3994,12 +4031,14 @@ input journeys_bool_exp {
   _and: [journeys_bool_exp!]
   _not: journeys_bool_exp
   _or: [journeys_bool_exp!]
+  about_role: String_comparison_exp
   case: cases_bool_exp
   case_cases: bigint_comparison_exp
   cases_files: cases_files_bool_exp
   cases_files_aggregate: cases_files_aggregate_bool_exp
   created_at: timestamptz_comparison_exp
   id: bigint_comparison_exp
+  process_status: String_comparison_exp
   stage: bigint_comparison_exp
   title: String_comparison_exp
   updated_at: timestamptz_comparison_exp
@@ -4023,7 +4062,7 @@ input journeys_inc_input {
   case_cases: bigint
   id: bigint
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: bigint
 }
 
@@ -4031,6 +4070,8 @@ input journeys_inc_input {
 input type for inserting data into table "journeys"
 """
 input journeys_insert_input {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
   case: cases_obj_rel_insert_input
 
   """关联外键，cases"""
@@ -4039,7 +4080,10 @@ input journeys_insert_input {
   created_at: timestamptz
   id: bigint
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: String
+
+  """步骤序号：1-8"""
   stage: bigint
 
   """标题"""
@@ -4049,12 +4093,18 @@ input journeys_insert_input {
 
 """aggregate max on columns"""
 type journeys_max_fields {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """关联外键，cases"""
   case_cases: bigint
   created_at: timestamptz
   id: bigint
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: String
+
+  """步骤序号：1-8"""
   stage: bigint
 
   """标题"""
@@ -4066,12 +4116,18 @@ type journeys_max_fields {
 order by max() on columns of table "journeys"
 """
 input journeys_max_order_by {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: order_by
+
   """关联外键，cases"""
   case_cases: order_by
   created_at: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: order_by
+
+  """步骤序号：1-8"""
   stage: order_by
 
   """标题"""
@@ -4081,12 +4137,18 @@ input journeys_max_order_by {
 
 """aggregate min on columns"""
 type journeys_min_fields {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """关联外键，cases"""
   case_cases: bigint
   created_at: timestamptz
   id: bigint
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: String
+
+  """步骤序号：1-8"""
   stage: bigint
 
   """标题"""
@@ -4098,12 +4160,18 @@ type journeys_min_fields {
 order by min() on columns of table "journeys"
 """
 input journeys_min_order_by {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: order_by
+
   """关联外键，cases"""
   case_cases: order_by
   created_at: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: order_by
+
+  """步骤序号：1-8"""
   stage: order_by
 
   """标题"""
@@ -4143,11 +4211,13 @@ input journeys_on_conflict {
 
 """Ordering options when selecting data from "journeys"."""
 input journeys_order_by {
+  about_role: order_by
   case: cases_order_by
   case_cases: order_by
   cases_files_aggregate: cases_files_aggregate_order_by
   created_at: order_by
   id: order_by
+  process_status: order_by
   stage: order_by
   title: order_by
   updated_at: order_by
@@ -4163,6 +4233,9 @@ select columns of table "journeys"
 """
 enum journeys_select_column {
   """column name"""
+  about_role
+
+  """column name"""
   case_cases
 
   """column name"""
@@ -4170,6 +4243,9 @@ enum journeys_select_column {
 
   """column name"""
   id
+
+  """column name"""
+  process_status
 
   """column name"""
   stage
@@ -4185,12 +4261,18 @@ enum journeys_select_column {
 input type for updating data in table "journeys"
 """
 input journeys_set_input {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """关联外键，cases"""
   case_cases: bigint
   created_at: timestamptz
   id: bigint
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: String
+
+  """步骤序号：1-8"""
   stage: bigint
 
   """标题"""
@@ -4204,7 +4286,7 @@ type journeys_stddev_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -4216,7 +4298,7 @@ input journeys_stddev_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -4226,7 +4308,7 @@ type journeys_stddev_pop_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -4238,7 +4320,7 @@ input journeys_stddev_pop_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -4248,7 +4330,7 @@ type journeys_stddev_samp_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -4260,7 +4342,7 @@ input journeys_stddev_samp_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -4277,12 +4359,18 @@ input journeys_stream_cursor_input {
 
 """Initial value of the column from where the streaming should start"""
 input journeys_stream_cursor_value_input {
+  """用于区分是谁的journey，可选：1.intended_parent 2.surrogate_mother"""
+  about_role: String
+
   """关联外键，cases"""
   case_cases: bigint
   created_at: timestamptz
   id: bigint
 
-  """步骤序号：1-7"""
+  """进度状态：1.pending 2.finished"""
+  process_status: String
+
+  """步骤序号：1-8"""
   stage: bigint
 
   """标题"""
@@ -4296,7 +4384,7 @@ type journeys_sum_fields {
   case_cases: bigint
   id: bigint
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: bigint
 }
 
@@ -4308,7 +4396,7 @@ input journeys_sum_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -4317,6 +4405,9 @@ update columns of table "journeys"
 """
 enum journeys_update_column {
   """column name"""
+  about_role
+
+  """column name"""
   case_cases
 
   """column name"""
@@ -4324,6 +4415,9 @@ enum journeys_update_column {
 
   """column name"""
   id
+
+  """column name"""
+  process_status
 
   """column name"""
   stage
@@ -4352,7 +4446,7 @@ type journeys_var_pop_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -4364,7 +4458,7 @@ input journeys_var_pop_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -4374,7 +4468,7 @@ type journeys_var_samp_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -4386,7 +4480,7 @@ input journeys_var_samp_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 
@@ -4396,7 +4490,7 @@ type journeys_variance_fields {
   case_cases: Float
   id: Float
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: Float
 }
 
@@ -4408,7 +4502,7 @@ input journeys_variance_order_by {
   case_cases: order_by
   id: order_by
 
-  """步骤序号：1-7"""
+  """步骤序号：1-8"""
   stage: order_by
 }
 

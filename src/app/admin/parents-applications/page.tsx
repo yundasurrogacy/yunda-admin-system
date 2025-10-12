@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { Search, Filter, User, Mail, Phone, MapPin, Plus, Eye, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react'
 import { AdminLayout } from '../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -210,19 +210,19 @@ export default function ParentsApplicationsPage() {
           title={t('parentsApplications', { defaultValue: '意向父母申请表' })}
           rightContent={
             <div className="flex items-center gap-4">
-              <Button
+              <CustomButton
                 onClick={() => window.open('https://www.yundasurrogacy.com/be-parents', '_blank')}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                {/* <Plus className="w-4 h-4 mr-2" /> */}
                 {t('addNewApplication', { defaultValue: '添加新申请' })}
-              </Button>
+              </CustomButton>
               <DropdownMenu open={filterMenuOpen} onOpenChange={setFilterMenuOpen}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white cursor-pointer">
-                    <Filter className="w-4 h-4 mr-2" />
+                  <CustomButton className="bg-white cursor-pointer border border-sage-300 text-sage-800">
+                    {/* <Filter className="w-4 h-4 mr-2" /> */}
                     {t('filterBy', { defaultValue: '筛选' })}
-                  </Button>
+                  </CustomButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-white" style={{ background: '#fff', opacity: 1 }}>
                   {[
@@ -369,33 +369,29 @@ export default function ParentsApplicationsPage() {
                   <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
                       <>
-                        <Button 
-                          size="sm" 
-                          className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer"
+                        <CustomButton 
+                          className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer px-3 py-1 text-sm rounded"
                           onClick={() => handleStatusUpdate(app.id, 'approved')}
                         >
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {/* <CheckCircle className="w-3 h-3 mr-1" /> */}
                           {t('approve', { defaultValue: '通过' })}
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="text-red-600 hover:bg-red-50 cursor-pointer"
+                        </CustomButton>
+                        <CustomButton 
+                          className="text-red-600 hover:bg-red-50 cursor-pointer border border-red-200 bg-white px-3 py-1 text-sm rounded"
                           onClick={() => handleStatusUpdate(app.id, 'rejected')}
                         >
-                          <XCircle className="w-3 h-3 mr-1" />
+                          {/* <XCircle className="w-3 h-3 mr-1" /> */}
                           {t('reject', { defaultValue: '拒绝' })}
-                        </Button>
+                        </CustomButton>
                       </>
                     )}
-                    <Button 
-                      variant="link" 
-                      className="text-sage-600 hover:text-sage-800 cursor-pointer"
+                    <CustomButton 
+                      className="text-sage-600 hover:text-sage-800 cursor-pointer bg-transparent"
                       onClick={() => router.push(`/admin/parents-applications/${app.id}`)}
                     >
-                      <Eye className="w-4 h-4 mr-1" />
+                      {/* <Eye className="w-4 h-4 mr-1" /> */}
                       {t('viewDetails', { defaultValue: '查看详情' })}
-                    </Button>
+                    </CustomButton>
                   </div>
                 </div>
               </div>
@@ -405,10 +401,8 @@ export default function ParentsApplicationsPage() {
 
         {/* 分页控件 */}
         <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page === 1}
             onClick={() => {
               const newPage = Math.max(1, page - 1)
@@ -417,7 +411,7 @@ export default function ParentsApplicationsPage() {
             }}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </Button>
+          </CustomButton>
           <span className="text-sage-700 text-sm flex items-center gap-2">
             {t('pagination.page', { defaultValue: '第' })}
             <input
@@ -450,10 +444,8 @@ export default function ParentsApplicationsPage() {
             />
             {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page >= totalPages}
             onClick={() => {
               const newPage = Math.min(totalPages, page + 1)
@@ -462,7 +454,7 @@ export default function ParentsApplicationsPage() {
             }}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </Button>
+          </CustomButton>
         </div>
 
         {pagedApplications.length === 0 && (

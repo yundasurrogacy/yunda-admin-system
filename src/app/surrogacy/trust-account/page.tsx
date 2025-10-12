@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-
+import { CustomButton } from '@/components/ui/CustomButton'
 interface BalanceChange {
   id: number;
   case_cases: number;
@@ -157,7 +157,7 @@ function TrustAccountPageInner() {
                   <thead>
                     <tr>
                       <th
-                        className="py-2 px-4 font-semibold select-none"
+                        className="py-2 px-4 font-semibold select-none cursor-pointer"
                         style={{ cursor: 'pointer' }}
                         onClick={() => setSortDateDesc(v => !v)}
                         title={t('trustAccount.sortByDate', 'Sort by date')}
@@ -173,7 +173,7 @@ function TrustAccountPageInner() {
                           <select
                             value={filterType ?? ''}
                             onChange={e => { setFilterType(e.target.value || null); setPage(1); }}
-                            style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', borderRadius: 4, border: '1px solid #ddd', background: '#f8f8f8', color: '#333' }}
+                            style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', borderRadius: 4, border: '1px solid #ddd', background: '#f8f8f8', color: '#333', cursor: 'pointer' }}
                           >
                             <option value="">{t('trustAccount.allTypes', 'All Types')}</option>
                             {Array.from(new Set(changes.map(c => c.change_type))).map(type => (
@@ -212,11 +212,11 @@ function TrustAccountPageInner() {
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-6">
-                <button
-                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
+                <CustomButton
+                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50 cursor-pointer"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                >{t('pagination.prevPage', 'Previous')}</button>
+                >{t('pagination.prevPage', 'Previous')}</CustomButton>
                 <span>
                   {t('pagination.page', 'Page')}
                   <input
@@ -252,11 +252,11 @@ function TrustAccountPageInner() {
                   />
                   {t('pagination.of', 'of')} {totalPages} {t('pagination.pages', 'pages')}
                 </span>
-                <button
-                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
+                <CustomButton
+                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50 cursor-pointer"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', 'Next')}</button>
+                >{t('pagination.nextPage', 'Next')}</CustomButton>
               </div>
             </>
           )}

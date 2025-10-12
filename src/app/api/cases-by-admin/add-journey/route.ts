@@ -3,18 +3,19 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 
 export async function POST(req: Request) {
   try {
-    const { caseId, stage, title } = await req.json();
+  const { caseId, stage, title, about_role = 'intended_parent' } = await req.json();
     if (!caseId || !stage || !title) {
       return NextResponse.json({ error: "参数不完整" }, { status: 400 });
     }
     // 管理端适配：自动判断 case_id/case_cases 字段
     // 推荐先用 case_id，如失败再尝试 case_cases
     const mutation = `
-      mutation AddJourney($case_id: bigint!, $stage: bigint!, $title: String!) {
-        insert_journeys_one(object: {case_id: $case_id, stage: $stage, title: $title}) {
+      mutation AddJourney($case_id: bigint!, $stage: bigint!, $title: String!, $about_role: String) {
+        insert_journeys_one(object: {case_id: $case_id, stage: $stage, title: $title, about_role: $about_role}) {
           id
           stage
           title
+          about_role
         }
       }
     `;
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
         case_id: Number(caseId),
         stage: Number(stage),
         title,
+        about_role,
       },
     });
     if (res.insert_journeys_one) {
@@ -32,11 +34,12 @@ export async function POST(req: Request) {
     }
     // fallback: case_cases 兼容
     const fallbackMutation = `
-      mutation AddJourney($case_cases: bigint!, $stage: bigint!, $title: String!) {
-        insert_journeys_one(object: {case_cases: $case_cases, stage: $stage, title: $title}) {
+      mutation AddJourney($case_cases: bigint!, $stage: bigint!, $title: String!, $about_role: String) {
+        insert_journeys_one(object: {case_cases: $case_cases, stage: $stage, title: $title, about_role: $about_role}) {
           id
           stage
           title
+          about_role
         }
       }
     `;
@@ -46,6 +49,7 @@ export async function POST(req: Request) {
         case_cases: Number(caseId),
         stage: Number(stage),
         title,
+        about_role,
       },
     });
     return NextResponse.json(fallbackRes.insert_journeys_one);

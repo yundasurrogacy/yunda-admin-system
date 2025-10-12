@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ManagerLayout from '@/components/manager-layout'
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress';
 import { useTranslation } from 'react-i18next';
@@ -178,9 +178,9 @@ export default function DashboardPage() {
                         <td className="py-2 px-4">{item.next_appointment_date}</td>
                         <td className="py-2 px-4">{item.process_status}</td>
                         <td className="py-2 px-4">
-                          <Button className="rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
+                          <CustomButton className="rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
                             onClick={() => handleCaseClick(item.id)}
-                          >{t('dashboard.view_details')}</Button>
+                          >{t('dashboard.view_details')}</CustomButton>
                         </td>
                       </tr>
                     ))
@@ -211,10 +211,10 @@ export default function DashboardPage() {
                         </Avatar>
                         <p className="font-medium text-sage-800 truncate">{getParentName(update.intended_parent)}</p>
                         <p className="text-sm text-sage-800 opacity-60 mb-3">{new Date(update.updated_at || '').toLocaleDateString()}</p>
-                        <Button 
+                        <CustomButton 
                           className="rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
                           onClick={() => handleCaseClick(update.id)}
-                        >{t('dashboard.view_details')}</Button>
+                        >{t('dashboard.view_details')}</CustomButton>
                       </div>
                     </div>
                   ))}
@@ -227,18 +227,18 @@ export default function DashboardPage() {
         </Card>
         {/* Action Buttons */}
         <div className="mt-8 flex gap-4">
-          <Button 
+          <CustomButton 
             className="rounded bg-sage-100 text-sage-800 font-medium px-6 py-2 text-sm shadow-none"
             onClick={() => router.push('/client-manager/client-profiles')}
           >
             {t('dashboard.client_portal')}
-          </Button>
-          <Button 
+          </CustomButton>
+          <CustomButton 
             className="rounded bg-sage-100 text-sage-800 font-medium px-6 py-2 text-sm shadow-none"
             onClick={() => router.push('/client-manager/surrogate-profiles')}
           >
             {t('dashboard.surrogate_portal')}
-          </Button>
+          </CustomButton>
         </div>
       </div>
     </ManagerLayout>

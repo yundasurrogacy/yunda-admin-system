@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Heart, FileText, CheckCircle, XCircle, Clock, Activity, Baby, Shield } from 'lucide-react'
 import { AdminLayout } from '../../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { Badge } from '@/components/ui/badge'
 import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
@@ -123,31 +123,29 @@ export default function SurrogateApplicationDetailPage() {
           title={t('surrogateApplicationDetails')}
           rightContent={
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
+              <CustomButton
+                className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800"
                 onClick={() => router.back()}
-                className="bg-white font-medium cursor-pointer"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                {t('backToApplications')}
-              </Button>
+                {/* <ArrowLeft className="w-4 h-4 mr-2" /> */}
+                {t('Back To Applications')}
+              </CustomButton>
               {application.status === 'pending' && (
                 <>
-                  <Button
-                    className="bg-green-100 text-green-800 hover:bg-green-200 font-medium cursor-pointer"
+                  <CustomButton
+                    className="bg-green-100 text-green-800 hover:bg-green-200 font-medium cursor-pointer px-3 py-1 text-sm rounded"
                     onClick={() => handleStatusUpdate('approved')}
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {/* <CheckCircle className="w-4 h-4 mr-2" /> */}
                     {t('approve')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                  </CustomButton>
+                  <CustomButton
+                    className="text-red-600 hover:bg-red-50 font-medium cursor-pointer border border-red-200 bg-white px-3 py-1 text-sm rounded"
                     onClick={() => handleStatusUpdate('rejected')}
                   >
-                    <XCircle className="w-4 h-4 mr-2" />
+                    {/* <XCircle className="w-4 h-4 mr-2" /> */}
                     {t('reject')}
-                  </Button>
+                  </CustomButton>
                 </>
               )}
             </div>

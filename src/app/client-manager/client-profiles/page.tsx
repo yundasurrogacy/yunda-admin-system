@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -203,18 +203,17 @@ export default function ClientProfilesPage() {
                       <h3 className="text-lg font-semibold text-sage-800">{client.name}</h3>
                       <p className="text-sm text-sage-800 opacity-60">{client.country}</p>
                     </div>
-                    <Button 
-                      variant={hoveredId === client.id ? "outline" : "ghost"}
-                      size="sm"
+                    <CustomButton
                       className={
-                        hoveredId === client.id
+                        (hoveredId === client.id
                           ? "rounded bg-white border border-sage-200 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
                           : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none border border-sage-200"
+                        ) + " cursor-pointer"
                       }
                       onClick={() => handleViewDetails(client.id)}
                     >
                       {t('clientProfiles.view')}
-                    </Button>
+                    </CustomButton>
                   </div>
                   <p className="text-sm text-sage-800 opacity-60">{client.status === 'Matched' ? t('clientProfiles.clientStatus') : client.status}</p>
                 </Card>
@@ -222,11 +221,11 @@ export default function ClientProfilesPage() {
             </div>
             {/* 分页控件 */}
             <div className="flex items-center justify-center gap-4 mt-8">
-              <Button variant="outline" size="sm" onClick={() => {
+              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => {
                 const newPage = Math.max(1, page - 1);
                 setPage(newPage);
                 setPageInput(String(newPage));
-              }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</Button>
+              }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
               <span>
                 {t('pagination.page', '第')}
                 <input
@@ -259,11 +258,11 @@ export default function ClientProfilesPage() {
                 />
                 {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
               </span>
-              <Button variant="outline" size="sm" onClick={() => {
+              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => {
                 const newPage = Math.min(totalPages, page + 1);
                 setPage(newPage);
                 setPageInput(String(newPage));
-              }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</Button>
+              }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
             </div>
           </>
         )}

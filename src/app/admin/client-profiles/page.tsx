@@ -6,7 +6,7 @@ import { getIntendedParents, insertIntendedParent } from "@/lib/graphql/applicat
 import { Search, Filter, User, MapPin, Phone, Mail, Plus } from "lucide-react"
 import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
@@ -290,20 +290,18 @@ export default function ClientProfilesPage() {
                     {t('lastUpdate')}:<br />{client.updated_at?.slice(0, 10) || "-"}
                   </span>
                   <div className="flex gap-2">
-                    <Button
-                      variant="link"
-                      className="text-sage-700 px-0 cursor-pointer"
+                    <CustomButton
+                      className="text-sage-700 px-0 cursor-pointer bg-transparent"
                       onClick={() => router.push(`/admin/client-profiles/${client.id}`)}
                     >
                       {t('viewProfile')}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="text-sage-700 px-2 py-1 border-sage-300 cursor-pointer"
+                    </CustomButton>
+                    <CustomButton
+                      className="text-sage-700 px-2 py-1 border border-sage-300 cursor-pointer bg-white"
                       onClick={() => { setShowResetDialog(true); setResetClientId(client.id); }}
                     >
                       {t('resetPassword')}
-                    </Button>
+                    </CustomButton>
                   </div>
                 </div>
               </div>
@@ -313,10 +311,8 @@ export default function ClientProfilesPage() {
 
         {/* 分页控件 */}
         <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page === 1}
             onClick={() => {
               const newPage = Math.max(1, page - 1)
@@ -325,7 +321,7 @@ export default function ClientProfilesPage() {
             }}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </Button>
+          </CustomButton>
           <span className="text-sage-700 text-sm flex items-center gap-2">
             {t('pagination.page', { defaultValue: '第' })}
             <input
@@ -358,10 +354,8 @@ export default function ClientProfilesPage() {
             />
             {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page >= totalPages}
             onClick={() => {
               const newPage = Math.min(totalPages, page + 1)
@@ -370,7 +364,7 @@ export default function ClientProfilesPage() {
             }}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </Button>
+          </CustomButton>
         </div>
 
         {pagedClients.length === 0 && (
@@ -394,8 +388,8 @@ export default function ClientProfilesPage() {
               />
             </div>
             <div className="flex justify-end gap-2 mt-6">
-              <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50 cursor-pointer" onClick={() => { setShowResetDialog(false); setResetPassword(""); setResetClientId(null); }}>{t('cancel')}</Button>
-              <Button type="button" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer" onClick={handleResetPassword} disabled={resetLoading || !resetPassword}>{resetLoading ? t('resetting') : t('confirmReset')}</Button>
+              <CustomButton type="button" className="px-6 py-2 rounded-lg border border-sage-300 bg-white hover:bg-sage-50 cursor-pointer" onClick={() => { setShowResetDialog(false); setResetPassword(""); setResetClientId(null); }}>{t('cancel')}</CustomButton>
+              <CustomButton type="button" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer" onClick={handleResetPassword} disabled={resetLoading || !resetPassword}>{resetLoading ? t('resetting') : t('confirmReset')}</CustomButton>
             </div>
           </Dialog>
         )}
@@ -528,8 +522,8 @@ export default function ClientProfilesPage() {
                   </div>
                 </div>
                 <div className="flex flex-col md:flex-row justify-end gap-2 md:gap-4 mt-8">
-                  <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50 cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>取消</Button>
-                  <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer">保存</Button>
+                  <CustomButton type="button" className="px-6 py-2 rounded-lg border border-sage-300 bg-white hover:bg-sage-50 cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>取消</CustomButton>
+                  <CustomButton type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer">保存</CustomButton>
                 </div>
               </form>
             </div>

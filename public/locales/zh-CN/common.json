@@ -10,6 +10,7 @@
     "inputAria": "输入页码"
   },
   "add":"添加",
+  "DOCUMENTS": "文件",
   "allClientManagers": "所有客户经理",
   "searchManagers": "搜索客户经理",
   "resetClientPassword": "重置客户密码",
@@ -62,9 +63,13 @@
   "SURROGATE PROFILES": "代孕母资料",
   "ALL CASES": "所有案子",
   "MY CASES": "我的案子",
+  "MY CASE": "我的案子",
   "CLIENT MANAGERS": "客户经理",
   "MANAGERS": "管理员",
   "BLOGS": "博客",
+  "Blog Management": "博客管理",
+  "Add Blog": "添加博客",
+  "Delete": "删除",
   "logOut": "登出",
   "logOutAction": "登出",
   "logIn": "登录",
@@ -286,6 +291,7 @@
   "pregnancyHistory": "怀孕历史",
   "surrogateApplicationDetails": "代孕母申请详情",
   "backToApplications": "返回申请列表",
+  "Back To Applications": "返回申请列表",
   "emotionalSupport": "情感支持",
   "languagesSpoken": "会说的语言",
   "motivation": "代孕动机",
@@ -515,6 +521,11 @@
   },
   "journey": {
     "title": "旅程",
+    "status": {
+      "pending": "待完成",
+      "finished": "已完成",
+      "switch": "切换"
+    },
     "Intended Parents Journey": "准父母旅程",
     "Gestational Carrier Journey": "代孕母旅程",
     "description": "通过可视化路线图访问和跟踪您的旅程状态。",
@@ -645,7 +656,7 @@
       "initialQuestions": "初步问题"
     }
   },
-  "edit": "编辑个人资料",
+  "edit": "编辑",
   "back": "返回",
   "save": "保存",
   "saving": "保存中...",

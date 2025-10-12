@@ -1,20 +1,22 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useAppType } from "@/context/app-type-context"
 import { useRouter } from "next/navigation"
 import { cn } from "../lib/utils"
 import '../i18n' 
 import { useTranslation } from "react-i18next"
 import { useToast } from "@/hooks/useToast"
 import { useAuth } from "@/hooks/useAuth"
+import { useSidebar } from "@/context/sidebar-context";
 
 interface CommonHeaderProps {
-  onMenuClick?: () => void
-  showMenuButton?: boolean
-  isLoggedIn?: boolean
-  theme?: "sage" | "blue" | "purple" | "default" // 不同端的主题色
-  title?: string // 标题可以自定义
-  type?: "admin" | "client" | "surrogacy" | "manager" | "client-manager" // 标识不同的端
+  onMenuClick?: () => void;
+  showMenuButton?: boolean;
+  isLoggedIn?: boolean;
+  theme?: "sage" | "blue" | "purple" | "default"; // 不同端的主题色
+  title?: string; // 标题可以自定义
+  type?: "admin" | "client" | "surrogacy" | "manager" | "client-manager"; // 标识不同的端（可选，优先用全局）
 }
 
 export function CommonHeader({ 
@@ -22,8 +24,12 @@ export function CommonHeader({
   showMenuButton = true, 
   isLoggedIn: isLoggedInProp,
   theme = "sage",
-  type = "client"
+  type: propType
 }: CommonHeaderProps) {
+  const { setSidebarOpen } = useSidebar();
+  // 优先用全局 type
+  const { appType } = useAppType();
+  const type = propType || appType;
   const router = useRouter()
   const { t, i18n } = useTranslation("common")
   // 多端 session 支持，type 传递给 useAuth，'client-manager' 映射为 'manager'
@@ -109,6 +115,8 @@ export function CommonHeader({
   }
 
   const handleLogin = () => {
+    // 打印当前 type 方便调试
+    // console.log('[CommonHeader] 当前 type:', type, 'normalizedType:', normalizedType);
     // 登录时统一用normalizedType
     const loginPath = getLoginPath(normalizedType)
     // 获取当前用户信息（如有）
@@ -200,9 +208,9 @@ export function CommonHeader({
     >
       {/* 左侧按钮，固定宽度40px */}
       <div className="flex items-center" style={{ minWidth: 40 }}>
-        {showMenuButton && onMenuClick && (
+        {showMenuButton && (
           <button
-            onClick={onMenuClick}
+            onClick={() => setSidebarOpen(true)}
             className="w-10 h-10 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-sage-400 rounded transition-all duration-100 active:scale-95 hover:bg-sage-100"
             tabIndex={0}
             aria-label={t('menu')}
@@ -210,7 +218,7 @@ export function CommonHeader({
             <img src="/images/left_icon.svg" alt="Menu" className="w-10 h-10" />
           </button>
         )}
-  <span className="ml-2 text-lg font-medium text-sage-800 tracking-widest">{t("menu")}</span>
+        <span className="ml-2 text-lg font-medium text-sage-800 tracking-widest">{t("menu")}</span>
       </div>
 
       {/* 中间logo区域，移动端自适应，桌面端内容宽度 */}

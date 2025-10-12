@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 // import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { CustomButton } from '@/components/ui/CustomButton';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'next/navigation'
 
 
 const getCategories = (t: (key: string) => string) => [
@@ -16,6 +17,7 @@ const getCategories = (t: (key: string) => string) => [
 ];
 
 function FilesPageInner() {
+  const router = useRouter();
   const { t } = useTranslation('common');
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
@@ -72,15 +74,15 @@ function FilesPageInner() {
     <>
       <div className="p-8">
         {/* 返回按钮 */}
-        <button
-          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-sage-800 font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
-          onClick={() => window.history.back()}
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold"
+          onClick={() => router.back()}
         >
-          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </button>
+        </CustomButton>
         <h1 className="text-2xl font-bold text-sage-800 mb-8">{t('files.title', '文件管理')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {categories.map((cat) => (
@@ -98,13 +100,13 @@ function FilesPageInner() {
                     </div>
                     <div className="text-xs mb-1 text-sage-600">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
                     {file.note && <div className="text-xs text-sage-500 mb-1">{t('files.note', '描述')}: {file.note}</div>}
-                    <Button
+                    <CustomButton
                       className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
                       onClick={() => window.open(file.file_url, '_blank')}
                       aria-label={t('files.download', '下载')}
                     >
                       {t('files.download', '下载')}
-                    </Button>
+                    </CustomButton>
                     <hr className="my-2" />
                   </div>
                 ))

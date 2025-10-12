@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { CustomButton } from '@/components/ui/CustomButton';
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -247,14 +248,14 @@ export default function MyCasesPage() {
       </div>
       {/* 分页控件 */}
       <div className="flex items-center justify-center gap-4 mt-8">
-        <button
+        <CustomButton
           className="border rounded px-3 py-1 cursor-pointer"
           onClick={() => setPage(p => Math.max(1, p - 1))}
           disabled={page === 1}
           aria-label={t('pagination.prevPageAria', '上一页')}
         >
           {t('pagination.prevPage', '上一页')}
-        </button>
+        </CustomButton>
         <span>
           {t('pagination.page', '第')}
           <input
@@ -293,14 +294,14 @@ export default function MyCasesPage() {
           {totalPages}
           {t('pagination.pages', '页')}
         </span>
-        <button
+        <CustomButton
           className="border rounded px-3 py-1 cursor-pointer"
           onClick={() => setPage(p => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
           aria-label={t('pagination.nextPageAria', '下一页')}
         >
           {t('pagination.nextPage', '下一页')}
-        </button>
+        </CustomButton>
       </div>
     </div>
   );

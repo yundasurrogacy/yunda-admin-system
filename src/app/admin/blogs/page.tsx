@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -52,10 +52,10 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       body: fd,
     });
     const data = await res.json();
-    console.log('Upload response:', data); // 添加调试信息
+    // console.log('Upload response:', data); // 添加调试信息
     if (data.success) {
       const imageUrl = data.data.url || data.data;
-      console.log('Image URL:', imageUrl); // 添加调试信息
+      // console.log('Image URL:', imageUrl); // 添加调试信息
       setForm({ ...form, cover_img_url: imageUrl });
       setImageError(false); // 重置错误状态
       alert(t('uploadSuccess'));
@@ -266,21 +266,20 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
           </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-sage-100 mt-2">
-            <Button 
+            <CustomButton 
               type="submit" 
               disabled={uploading}
-              className="min-w-[120px] px-6 py-2 text-base font-semibold bg-sage-700 text-white rounded-lg hover:bg-sage-800 transition-colors shadow"
+              className="min-w-[120px] px-6 py-2 text-base font-semibold bg-sage-700 text-white rounded-lg hover:bg-sage-800 transition-colors shadow cursor-pointer"
             >
               {uploading ? t('uploading') : (form.id ? t('save') : t('add'))}
-            </Button>
-            <Button 
+            </CustomButton>
+            <CustomButton 
               type="button" 
-              variant="outline" 
               onClick={() => onOpenChange(false)}
-              className="min-w-[100px] px-6 py-2 text-base font-semibold border-sage-300 text-sage-700 rounded-lg hover:bg-sage-50 transition-colors"
+              className="min-w-[100px] px-6 py-2 text-base font-semibold border-sage-300 text-sage-700 rounded-lg hover:bg-sage-50 transition-colors cursor-pointer"
             >
               {t('cancel')}
-            </Button>
+            </CustomButton>
           </div>
         </form>
       </div>
@@ -390,9 +389,9 @@ function AdminBlogsPage() {
   return (
     <AdminLayout>
       <PageContent>
-        <PageHeader title={t('blogs') || '博客管理'}
+        <PageHeader title={t('Blog Management') || '博客管理'}
           rightContent={
-            <Button className="font-medium text-sage-800 cursor-pointer" onClick={handleAdd}>{t('addBlog')}</Button>
+            <CustomButton className="font-medium text-sage-800 cursor-pointer" onClick={handleAdd}>{t('Add Blog')}</CustomButton>
           }
         />
         <BlogForm
@@ -435,7 +434,7 @@ function AdminBlogsPage() {
                         <div className="text-sage-500 text-sm truncate font-medium">{blog.category}</div>
                       </div>
                       <div className="flex flex-col gap-2 items-end">
-                        <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full font-medium">{t('blog')}</span>
+                        {/* <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full font-medium">{t('blog')}</span> */}
                       </div>
                     </div>
                     <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
@@ -460,8 +459,8 @@ function AdminBlogsPage() {
                         {t('createdAt')}<br />{blog.created_at ? new Date(blog.created_at).toLocaleString() : "-"}
                       </span>
                       <div className="flex gap-2">
-                        <Button size="sm" className="font-medium cursor-pointer" onClick={() => handleEdit(blog)}>{t('edit')}</Button>
-                        <Button size="sm" variant="outline" className="font-medium cursor-pointer" onClick={() => handleDelete(blog.id)}>{t('delete')}</Button>
+                        <CustomButton className="font-medium cursor-pointer px-3 py-1 text-sm" onClick={() => handleEdit(blog)}>{t('edit')}</CustomButton>
+                        <CustomButton className="font-medium cursor-pointer border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm" onClick={() => handleDelete(blog.id)}>{t('Delete')}</CustomButton>
                       </div>
                     </div>
                   </div>
@@ -469,7 +468,7 @@ function AdminBlogsPage() {
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-8">
-                <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</Button>
+                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
                 <span>
                   {t('pagination.page', '第')}
                   <input
@@ -505,7 +504,7 @@ function AdminBlogsPage() {
                   />
                   {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
                 </span>
-                <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</Button>
+                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
               </div>
             </>
           )}

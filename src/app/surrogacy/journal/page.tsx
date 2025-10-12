@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from 'next-i18next';
 import { useSearchParams } from 'next/navigation';
+import { CustomButton } from '@/components/ui/CustomButton';
 function JournalPageInner() {
   const { t } = useTranslation('common');
   const searchParams = useSearchParams();
@@ -164,8 +165,8 @@ function JournalPageInner() {
                       <div className="text-lg font-semibold text-sage-800 flex-1 min-w-0 truncate">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
                       <div className="text-xs text-sage-800 opacity-60 ml-0 md:ml-4 flex-shrink-0 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
                     </div>
-                    <button
-                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start"
+                    <CustomButton
+                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start cursor-pointer"
                       onClick={() => {
                         if (activePostId === post.id) {
                           setActivePostId(null);
@@ -176,7 +177,7 @@ function JournalPageInner() {
                       }}
                     >
                       {activePostId === post.id ? t('cancel', '关闭评论') : t('viewDetails', '查看评论')}
-                    </button>
+                    </CustomButton>
 
                     {activePostId === post.id && (
                       <div className="mt-2">
@@ -217,10 +218,10 @@ function JournalPageInner() {
                             value={commentText}
                             onChange={e => setCommentText(e.target.value)}
                           />
-                          <button
-                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium"
+                          <CustomButton
+                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium cursor-pointer"
                             onClick={() => handleComment(post.id)}
-                          >{t('submit', '发表评论')}</button>
+                          >{t('submit', '发表评论')}</CustomButton>
                         </div>
                       </div>
                     )}
@@ -265,13 +266,13 @@ function JournalPageInner() {
                   className="accent-[#271F18] w-4 h-4 rounded"
                 />
               </label>
-              <button
-                className="w-full sm:w-auto ml-0 sm:ml-auto px-6 py-2 bg-[#271F18] text-white rounded-full font-semibold shadow hover:bg-[#3a2c1e] transition"
+              <CustomButton
+                className="w-full sm:w-auto ml-0 sm:ml-auto px-6 py-2 bg-[#271F18] text-white rounded-full font-semibold shadow hover:bg-[#3a2c1e] transition cursor-pointer"
                 onClick={handlePost}
                 disabled={loading}
               >
                 {t('myCases.publishUpdate', '发布动态')}
-              </button>
+              </CustomButton>
             </div>
           </div>
         </div>

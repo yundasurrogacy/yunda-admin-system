@@ -2,7 +2,7 @@
 import React, { useState, Suspense } from 'react'
 import { useEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -207,7 +207,7 @@ function IVFClinicContent() {
                     </ul>
                   </div>
                   <div className="py-2 px-6 flex items-center justify-center">
-                    {/* <Button className="w-full rounded bg-[#D9D9D9] px-0 py-2 text-[#271F18] text-xs cursor-pointer text-center">{t('ivfClinic.view')}</Button> */}
+                    {/* <CustomButton className="w-full rounded bg-[#D9D9D9] px-0 py-2 text-[#271F18] text-xs cursor-pointer text-center">{t('ivfClinic.view')}</CustomButton> */}
                   </div>
                 </div>
               ))}
@@ -243,7 +243,7 @@ function IVFClinicContent() {
                   <div className="py-2 px-6 text-center text-sage-800">{m.start}</div>
                   <div className="py-2 px-6 text-center text-sage-800">{m.notes}</div>
                   <div className="py-2 px-6 flex items-center justify-center">
-                    {/* <Button className="w-full rounded bg-[#D9D9D9] px-0 py-2 text-[#271F18] text-xs cursor-pointer text-center">{t('ivfClinic.view')}</Button> */}
+                    {/* <CustomButton className="w-full rounded bg-[#D9D9D9] px-0 py-2 text-[#271F18] text-xs cursor-pointer text-center">{t('ivfClinic.view')}</CustomButton> */}
                   </div>
                 </div>
               ))}
@@ -275,12 +275,12 @@ function IVFClinicContent() {
                     {note.note}
                   </div>
                   {/* 右侧按钮（暂时注释） */}
-                  {/* <Button
+                  {/* <CustomButton
                     className="ml-6 bg-[#D9D9D9] hover:bg-[#C2A87A] text-[#271F18] hover:text-white px-6 py-2 text-sm rounded-lg font-serif font-medium transition-colors cursor-pointer"
                     style={{cursor:'pointer', minWidth:'110px'}}
                   >
                     {t('ivfClinic.viewDetails') || 'View Details'}
-                  </Button> */}
+                  </CustomButton> */}
                 </div>
               ))}
             </div>

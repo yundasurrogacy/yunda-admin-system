@@ -10,8 +10,9 @@ const getCategories = (t: (key: string) => string) => [
 import React, { Suspense, useEffect, useState } from 'react'
 import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
+// import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
@@ -107,6 +108,12 @@ function JourneyInner() {
   const categories = getCategories(t);
   const caseId = searchParams.get('caseId');
 
+  // 国际化进度状态选项
+  const statusOptions = [
+    { value: 'pending', label: t('journey.status.pending', '待完成') },
+    { value: 'finished', label: t('journey.status.finished', '已完成') },
+  ];
+
   const [processStatus, setProcessStatus] = useState<string>('');
   const [updatedAt, setUpdatedAt] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -121,6 +128,27 @@ function JourneyInner() {
     'Transferred': 'Post-delivery',
   };
 
+  // 切换并保存 journey 状态
+  const handleStatusClick = async (item: { id: any; process_status?: string }) => {
+    if (!item.id) return;
+    const newStatus = item.process_status;
+    try {
+      const res = await fetch('/api/journey-update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journeyId: item.id, process_status: newStatus }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Network error');
+    }
+  };
+
   // 获取案例数据并设置当前case的process_status和updated_at
   useEffect(() => {
     const fetchCases = async () => {
@@ -130,7 +158,7 @@ function JourneyInner() {
       const baseTimeline = staticTimelineData().map((stage, idx) => ({
         stage: lang.startsWith('en') ? stage.en.stage : stage.zh.stage,
         description: lang.startsWith('en') ? stage.en.description : stage.zh.description,
-        items: [] as { id: any; title: string }[],
+  items: [] as { id: any; title: string; process_status?: string }[],
         stageNumber: idx + 1,
       }));
       try {
@@ -148,12 +176,15 @@ function JourneyInner() {
             setProcessStatus(currentCase.process_status || '');
             setUpdatedAt(currentCase.updated_at || '');
             if (currentCase.journeys && currentCase.journeys.length > 0) {
-              currentCase.journeys.forEach((journey: any) => {
+              // 只显示 about_role 为 surrogate_mother 的 journey，并渲染 process_status
+              const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'surrogate_mother');
+              filteredJourneys.forEach((journey: any) => {
                 const stageIndex = journey.stage - 1;
                 if (stageIndex >= 0 && stageIndex < 7) {
                   baseTimeline[stageIndex].items.push({
                     id: journey.id,
                     title: journey.title,
+                    process_status: journey.process_status,
                   });
                 }
               });
@@ -163,7 +194,8 @@ function JourneyInner() {
             return;
           }
         }
-        // 没有 caseId 或 caseId 查不到时，使用 surrogacyId 查询
+        // 没有 caseId 或 caseId 查不到时，使用 managerId 查询
+        // const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
         const surrogacyId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
         if (!surrogacyId) {
           setIsLoading(false);
@@ -172,18 +204,14 @@ function JourneyInner() {
         }
         const res = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogacyId}`);
         const data = await res.json();
-        // console.log('data', data);
+        // const casesArr = Array.isArray(data) ? data : (data.cases || data.data || []);
+        // const currentCase = casesArr.find((c: any) => c.id?.toString() === caseId?.toString());
         const casesArr = Array.isArray(data) ? data : (data.cases || data.data || []);
-        let realCaseId = caseId;
-        if (!realCaseId && casesArr.length > 0) {
-          // 自动选 updated_at 最大的那个 case
-          const latestCase = casesArr.reduce((max: any, cur: any) => {
-            if (!max) return cur;
-            return new Date(cur.updated_at) > new Date(max.updated_at) ? cur : max;
-          }, null);
-          if (latestCase) realCaseId = latestCase.id;
+        let currentCase = casesArr.find((c: any) => c.id?.toString() === caseId?.toString());
+        // 如果没查到，自动 fallback 到第一个有数据的 case
+        if (!currentCase && casesArr.length > 0) {
+          currentCase = casesArr[0];
         }
-        const currentCase = casesArr.find((c: any) => c.id?.toString() === realCaseId?.toString());
         // console.log('currentCase', currentCase);
         if (currentCase) {
           setProcessStatus(currentCase.process_status || '');
@@ -228,7 +256,7 @@ function JourneyInner() {
       const journey = currentStage.items.find((item: any) => item.title === itemTitle);
       if (journey && journey.id) journeyId = journey.id;
     }
-    router.push(`/client-manager/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
+    router.push(`/surrogacy/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
   };
 
   // 添加 journey 弹窗表单
@@ -295,7 +323,7 @@ function JourneyInner() {
       const res = await fetch('/api/cases-by-manager/add-journey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId, stage: addStage, title: addTitle, files: filesToUpload }),
+        body: JSON.stringify({ caseId, stage: addStage, title: addTitle, files: filesToUpload, about_role: 'surrogate_mother' }),
       });
       if (res.ok) {
         setShowAddModal(false);
@@ -311,8 +339,18 @@ function JourneyInner() {
   };
 
   return (
-      <>
+    <>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
+        {/* 返回按钮 */}
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
+          onClick={() => router.back()}
+        >
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {t('back', '返回')}
+        </CustomButton>
         <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('journey.Gestational Carrier Journey')}</h1>
         {/* <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p> */}
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
@@ -345,18 +383,37 @@ function JourneyInner() {
                   <h3 className="font-serif text-lg mb-2">{stagePrefix}{step.stage}</h3>
                   <div className="mb-2 text-[#6B5B3A] text-sm whitespace-pre-line">{step.description}</div>
                   <ul className="mb-2">
-                    {step.items.map((item: { id: any; title: string }) => (
-                      <li key={item.id} className="py-1 flex items-center justify-between">
-                        <span>{item.title}</span>
-                        <Button
-                          className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] cursor-pointer ml-4"
+                    {step.items.map((item: { id: any; title: string; process_status?: string }) => (
+                      <li key={item.id} className="flex justify-between items-center py-1">
+                        <div className="flex flex-col">
+                          <span>{item.title}</span>
+                          <select
+                            className="text-xs text-gray-700 mt-1 border border-gray-300 rounded px-2 py-1 w-fit bg-white cursor-pointer"
+                            value={item.process_status || 'pending'}
+                            onChange={e => handleStatusClick({ ...item, process_status: e.target.value })}
+                            title={t('journey.switchStatus', '切换进度状态')}
+                          >
+                            {statusOptions.map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <CustomButton
+                          className="rounded px-4 py-1 text-xs cursor-pointer"
                           onClick={() => handleViewClick(step.stageNumber, item.title)}
                         >
                           {t('viewDetails')}
-                        </Button>
+                        </CustomButton>
                       </li>
                     ))}
                   </ul>
+                  <CustomButton
+                    className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
+                    style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
+                    onClick={() => handleAddJourneyClick(step.stageNumber)}
+                  >
+                    +
+                  </CustomButton>
                 </div>
               );
             })}
@@ -392,12 +449,12 @@ function JourneyInner() {
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-serif font-semibold text-[#271F18] text-lg">{t('files.fileList', '文件列表')}</span>
-                  <Button
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] text-base font-serif font-bold shadow hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all duration-200 cursor-pointer"
+                  <CustomButton
+                    className="px-4 py-2 rounded-full text-base font-bold cursor-pointer"
                     onClick={() => document.getElementById('file-upload-input')?.click()}
                   >
                     {t('files.uploadFiles', '上传文件')}
-                  </Button>
+                  </CustomButton>
                   <input
                     id="file-upload-input"
                     type="file"
@@ -439,7 +496,7 @@ function JourneyInner() {
                           </td>
                           <td className="px-4 py-2">
                             <select
-                              className="border border-[#E3E8E3] rounded-lg px-2 py-1 w-full font-serif text-sm bg-white focus:ring-2 focus:ring-[#BFC9BF] focus:outline-none transition-all"
+                              className="border border-[#E3E8E3] rounded-lg px-2 py-1 w-full font-serif text-sm bg-white focus:ring-2 focus:ring-[#BFC9BF] focus:outline-none transition-all cursor-pointer"
                               value={f.category || ''}
                               onChange={e => handleFileMetaChange(idx, 'category', e.target.value)}
                             >
@@ -458,7 +515,7 @@ function JourneyInner() {
                             />
                           </td>
                           <td className="px-4 py-2">
-                            <Button className="px-3 py-1 text-xs rounded-full bg-[#F0F0F0] text-[#271F18] hover:bg-[#E3E8E3] hover:text-red-500 transition-all w-full cursor-pointer" onClick={() => handleRemoveFileField(idx)}>{t('delete', '删除')}</Button>
+                            <CustomButton className="px-3 py-1 text-xs rounded-full w-full cursor-pointer" onClick={() => handleRemoveFileField(idx)}>{t('delete', '删除')}</CustomButton>
                           </td>
                         </tr>
                       ))}
@@ -468,14 +525,14 @@ function JourneyInner() {
               </div>
               {/* 底部操作按钮 */}
               <div className="flex justify-end gap-6 mt-4">
-                <Button className="px-7 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-lg font-semibold shadow hover:bg-[#D9D9D9] transition-all cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</Button>
-                <Button className="px-7 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] font-serif text-lg font-bold shadow-lg hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</Button>
+                <CustomButton className="px-7 py-2 rounded-full text-lg font-semibold cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="px-7 py-2 rounded-full text-lg font-bold cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</CustomButton>
               </div>
             </div>
           </div>
         </Modal>
       )}
-      </>
+    </>
   )
 }
 

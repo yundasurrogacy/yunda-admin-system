@@ -11,6 +11,7 @@
     "inputAria": "Enter page number"
   },
   "add":"Add",
+  "DOCUMENTS": "DOCUMENTS",
   "allClientManagers": "All Client Managers",
   "searchManagers": "Search Client Managers",
   "resetClientPassword": "Reset Client Password",
@@ -54,6 +55,8 @@
   "logOutAction": "Log out",
   "logIn": "LOG IN",
   "adminTitle": "ADMIN",
+  "MY CASES": "MY CASES",
+  "MY CASE": "MY CASE",
   "loginSubtitle": "Log in using your email address",
   "emailLabel": "Email Address",
   "passwordLabel": "Password",
@@ -77,6 +80,10 @@
   "managerLoginSuccess": "Welcome back, Client Manager!",
   "clientLoginSuccess": "Welcome back!",
   "surrogacyLoginSuccess": "Welcome back!",
+  "BLOGS": "BLOGS",
+  "Blog Management": "Blog Management",
+  "Add Blog": "Add Blog",
+  "Delete": "Delete",
   "comments": "Comments",
   "none": "None",
   "chooseFile": "Choose File",
@@ -286,6 +293,7 @@
   "allIntendedParents": "All Intended Parents",
   "allSurrogateMothers": "All Surrogate Mothers",
   "allStatuses": "All Statuses",
+  "Back To Applications": "Back To Applications",
   "clickToChange": "Click to change image",
   "statusMapping": {
     "Matching": "Matching",
@@ -424,6 +432,11 @@
   },
   "journey": {
     "title": "Journey",
+    "status": {
+      "pending": "pending",
+      "finished": "finished",
+      "switch": "switch"
+    },
     "Intended Parents Journey": "Intended Parents Journey",
     "Gestational Carrier Journey": "Gestational Carrier Journey",
     "description": "Access and track your journey status with a visual roadmap.",
@@ -680,7 +693,7 @@
       "initialQuestions": "Initial Questions"
     }
   },
-  "edit": "Edit Profile",
+  "edit": "Edit",
   "back": "Back",
   "save": "Save",
   "saving": "Saving...",

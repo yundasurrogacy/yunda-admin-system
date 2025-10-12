@@ -16,6 +16,8 @@ export async function GET() {
           id
           stage
           title
+          about_role
+          process_status
         }
         surrogate_mother {
           id

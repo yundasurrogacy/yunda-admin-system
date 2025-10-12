@@ -3,8 +3,10 @@ import React, { useEffect, useState, useRef } from 'react';
 // 不再使用全屏 Modal，直接在页面内渲染表单卡片
 import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
+import { CustomButton } from '@/components/ui/CustomButton';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useRouter} from 'next/navigation'
 
 interface BalanceChange {
   id: number;
@@ -18,6 +20,7 @@ interface BalanceChange {
 }
 
 function TrustAccountPageInner() {
+  const router = useRouter();
   // 统一关闭弹窗并恢复添加按钮
   function closeForm() {
     setShowForm(false);
@@ -235,15 +238,16 @@ function TrustAccountPageInner() {
             {toast.message}
           </div>
         )}
-        <button
-          onClick={handleBack}
-          className="mb-4 px-4 py-2 rounded bg-sage-100 text-sage-800 font-medium transition-colors"
-          style={{ cursor: 'pointer', background: 'rgb(195,204,194)', transition: 'box-shadow .2s, transform .2s' }}
-          onMouseOver={e => { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'scale(1.04)'; }}
-          onMouseOut={e => { e.currentTarget.style.background = 'rgb(195,204,194)'; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; }}
+        {/* 返回按钮 */}
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
+          onClick={() => router.back()}
         >
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           {t('back', '返回')}
-        </button>
+        </CustomButton>
         <h1 className="text-2xl font-bold text-sage-800 mb-2">{t('trustAccount.title', 'Trust Account')}</h1>
         <p className="text-sage-800 mb-8">{t('trustAccount.description', 'View your current account balance and financial transactions related to your trust account')}</p>
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
@@ -290,7 +294,7 @@ function TrustAccountPageInner() {
                     name="change_type"
                     value={formData.change_type || ''}
                     onChange={handleFormChange}
-                    className="border rounded px-2 py-1 w-full text-sage-800"
+                    className="border rounded px-2 py-1 w-full text-sage-800 cursor-pointer"
                     required
                   >
                     <option value="">{t('pleaseSelect', 'Please select')}</option>
@@ -322,13 +326,13 @@ function TrustAccountPageInner() {
                   />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800 cursor-pointer" onClick={closeForm} style={{ cursor: 'pointer' }}>{t('cancel', 'Cancel')}</button>
-                  <button
+                  <CustomButton type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800 cursor-pointer" onClick={closeForm}>{t('cancel', 'Cancel')}</CustomButton>
+                  <CustomButton
                     type="submit"
                     className="px-3 py-1 rounded bg-sage-600 text-white cursor-pointer"
-                    style={{ cursor: formSubmitting ? 'not-allowed' : 'pointer', opacity: formSubmitting ? 0.5 : 1 }}
+                    style={{ opacity: formSubmitting ? 0.5 : 1 }}
                     disabled={formSubmitting}
-                  >{t('save', 'Save')}</button>
+                  >{t('save', 'Save')}</CustomButton>
                 </div>
               </form>
             </Card>
@@ -337,16 +341,14 @@ function TrustAccountPageInner() {
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.history', 'Transaction History')}</h2>
-            <button
+            <CustomButton
               className="bg-sage-600 text-white px-3 py-1 rounded cursor-pointer"
-              style={{ cursor: addBtnDisabled ? 'not-allowed' : 'pointer', opacity: addBtnDisabled ? 0.5 : 1, background: 'rgb(195,204,194)', transition: 'box-shadow .2s, transform .2s' }}
-              onMouseOver={e => { if (!addBtnDisabled) { e.currentTarget.style.background = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'scale(1.04)'; } }}
-              onMouseOut={e => { if (!addBtnDisabled) { e.currentTarget.style.background = 'rgb(195,204,194)'; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.transform = ''; } }}
+              style={{ opacity: addBtnDisabled ? 0.5 : 1 }}
               onClick={handleAdd}
               disabled={addBtnDisabled}
             >
               {t('add', 'Add')}
-            </button>
+            </CustomButton>
           </div>
           {loading ? <div>{t('loadingText', 'Loading...')}</div> : (
             <>
@@ -371,7 +373,8 @@ function TrustAccountPageInner() {
                           <select
                             value={filterType ?? ''}
                             onChange={e => { setFilterType(e.target.value || null); setPage(1); }}
-                            style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', borderRadius: 4, border: '1px solid #ddd', background: '#f8f8f8', color: '#333' }}
+                            style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', borderRadius: 4, border: '1px solid #ddd', background: '#f8f8f8', color: '#333', cursor: 'pointer' }}
+                            className="cursor-pointer"
                           >
                             <option value="">{t('trustAccount.allTypes', 'All Types')}</option>
                             {Array.from(new Set(changes.map(c => c.change_type))).map(type => (
@@ -393,7 +396,7 @@ function TrustAccountPageInner() {
                     {pagedChanges.length === 0 ? (
                       <tr><td colSpan={4} className="py-4 text-center text-gray-400">{t('trustAccount.noRecords', 'No records')}</td></tr>
                     ) : pagedChanges.map((change: BalanceChange) => (
-                      <tr key={change.id} className="transition-colors" style={{ cursor: 'pointer' }}
+                      <tr key={change.id} className="transition-colors cursor-pointer"
                         onMouseOver={e => { e.currentTarget.style.background = '#f8f8f8'; }}
                         onMouseOut={e => { e.currentTarget.style.background = ''; }}
                       >
@@ -413,15 +416,15 @@ function TrustAccountPageInner() {
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-6">
-                <button
-                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
+                <CustomButton
+                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer"
                   onClick={() => {
                     const newPage = Math.max(1, page - 1);
                     setPage(newPage);
                     setPageInput(String(newPage));
                   }}
                   disabled={page === 1}
-                >{t('pagination.prevPage', 'Previous')}</button>
+                >{t('pagination.prevPage', 'Previous')}</CustomButton>
                 <span>
                   {t('pagination.page', 'Page')}
                   <input
@@ -454,15 +457,15 @@ function TrustAccountPageInner() {
                   />
                   {t('pagination.of', 'of')} {totalPages} {t('pagination.pages', 'pages')}
                 </span>
-                <button
-                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
+                <CustomButton
+                  className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer"
                   onClick={() => {
                     const newPage = Math.min(totalPages, page + 1);
                     setPage(newPage);
                     setPageInput(String(newPage));
                   }}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', 'Next')}</button>
+                >{t('pagination.nextPage', 'Next')}</CustomButton>
               </div>
             </>
           )}

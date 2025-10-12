@@ -107,7 +107,7 @@ export default function SurrogacyMyCasesPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">{t('myCases.title')}</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('MY CASE')}</h1>
       <div
         className="w-full"
         style={{
@@ -198,11 +198,12 @@ export default function SurrogacyMyCasesPage() {
               <hr className="my-3 border-sage-100" />
               <div className="flex flex-wrap gap-2 text-sm">
                 {/* <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">动态</Link> */}
-                <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.publishUpdate')}</Link>
+                {/* <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.publishUpdate')}</Link> */}
                 <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey')}</Link>
                 <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic')}</Link>
-                <Link href={`/surrogacy/appointments?caseId=${item.id}`} className="text-purple-600 underline">{t('myCases.appointments', 'Appointments')}</Link>
-                <Link href={`/surrogacy/medication?caseId=${item.id}`} className="text-pink-600 underline">{t('myCases.medication', 'Medication')}</Link>
+                <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.journal')}</Link>
+                {/* <Link href={`/surrogacy/appointments?caseId=${item.id}`} className="text-purple-600 underline">{t('myCases.appointments', 'Appointments')}</Link> */}
+                {/* <Link href={`/surrogacy/medication?caseId=${item.id}`} className="text-pink-600 underline">{t('myCases.medication', 'Medication')}</Link> */}
               </div>
             </div>
           ))

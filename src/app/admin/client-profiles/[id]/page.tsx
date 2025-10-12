@@ -6,7 +6,7 @@ import { useParams } from "next/navigation"
 import { getIntendedParentById } from "@/lib/graphql/applications"
 import type { IntendedParent } from "@/types/intended_parent"
 import { ChevronRight, ChevronDown, User, FileText, Search, ArrowLeft } from "lucide-react"
-import { Button } from "../../../../components/ui/button"
+import { CustomButton } from "../../../../components/ui/CustomButton"
 import { CommonHeader } from "../../../../components/common-header"
 import { useTranslation } from "react-i18next"
 import '../../../../i18n'
@@ -212,25 +212,25 @@ export default function ClientProfileDetailPage() {
     <AdminLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
             {/* 返回按钮 */}
-            <button
-              className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+            <CustomButton
+              className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
               onClick={() => router.back()}
             >
-              <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
                 <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               {t('back', '返回')}
-            </button>
+            </CustomButton>
         <div className="flex items-center justify-between pt-6 pb-2">
           <h1 className="text-2xl font-semibold text-sage-800">{t('clientProfiles.title')}</h1>
           <div className="flex items-center gap-4">
             {!editMode && (
-              <Button variant="default" className="bg-sage-600 text-white font-medium hover:cursor-pointer" onClick={handleEdit}>{t('edit', '编辑')}</Button>
+              <CustomButton className="bg-sage-600 text-white font-medium cursor-pointer" onClick={handleEdit}>{t('edit', '编辑')}</CustomButton>
             )}
             {editMode && (
               <>
-                <Button variant="outline" className="font-medium hover:cursor-pointer" onClick={handleCancel} disabled={saving}>{t('cancel', '取消')}</Button>
-                <Button variant="default" className="bg-sage-600 text-white font-medium hover:cursor-pointer" onClick={handleSave} disabled={saving}>{saving ? t('saving', '保存中...') : t('save', '保存')}</Button>
+                <CustomButton className="font-medium cursor-pointer border border-sage-300 bg-white text-sage-800" onClick={handleCancel} disabled={saving}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="bg-sage-600 text-white font-medium cursor-pointer" onClick={handleSave} disabled={saving}>{saving ? t('saving', '保存中...') : t('save', '保存')}</CustomButton>
               </>
             )}
             {/* <Button
@@ -332,7 +332,7 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('clientProfileDetail.agreeToReceiveMessages'))}:</Label>
                 {editMode ? (
-                  <select className="border rounded px-2 py-1 w-full font-medium text-sage-800" value={contact?.is_agree_cell_phone_receive_messages ? 'yes' : 'no'} onChange={e => handleFieldChange('contact_information', 'is_agree_cell_phone_receive_messages', e.target.value === 'yes')}>
+                  <select className="border rounded px-2 py-1 w-full font-medium text-sage-800 cursor-pointer" value={contact?.is_agree_cell_phone_receive_messages ? 'yes' : 'no'} onChange={e => handleFieldChange('contact_information', 'is_agree_cell_phone_receive_messages', e.target.value === 'yes')}>
                     <option value="yes">{t('yes', '是')}</option>
                     <option value="no">{t('no', '否')}</option>
                   </select>

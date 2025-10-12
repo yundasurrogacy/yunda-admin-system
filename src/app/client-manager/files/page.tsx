@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { CustomButton } from '@/components/ui/CustomButton';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -153,29 +153,29 @@ function FilesPageInner() {
     <ManagerLayout>
       <div className="p-8">
         {/* 返回按钮 */}
-        <button
-          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-sage-800 font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-sage-800 font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
           onClick={() => window.history.back()}
         >
-          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </button>
+        </CustomButton>
         <h1 className="text-2xl font-bold text-sage-800 mb-8">{t('files.title', '文件管理')}</h1>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {categories.map((cat) => (
             <Card key={cat.key} className="p-6 rounded-xl bg-[#FBF0DA40] text-sage-800">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-bold text-sage-800">{cat.label}</h2>
-                <Button
-                  className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
+                <CustomButton
+                  className="rounded px-4 py-1 text-xs font-normal bg-[#D9D9D9] text-sage-800 shadow-none hover:bg-[#E3E8E3] cursor-pointer"
                   onClick={() => handleUpload(cat.key)}
                   disabled={uploading}
                   aria-label={t('files.upload', '上传')}
                 >
-                  {`+ ${t('files.upload', '上传')}`}
-                </Button>
+                  {`${t('files.upload', '上传')}`}
+                </CustomButton>
               </div>
               {/* 按 journey 分组展示文件 */}
               {journeyFiles.map((journey) => (
@@ -187,13 +187,13 @@ function FilesPageInner() {
                     </div>
                     <div className="text-xs mb-1 text-sage-600">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
                     {file.note && <div className="text-xs text-sage-500 mb-1">{t('files.note', '描述')}: {file.note}</div>}
-                    <Button
-                      className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
+                    <CustomButton
+                      className="rounded px-4 py-1 text-xs font-normal bg-[#D9D9D9] text-sage-800 shadow-none hover:bg-[#E3E8E3] cursor-pointer"
                       onClick={() => window.open(file.file_url, '_blank')}
                       aria-label={t('files.download', '下载')}
                     >
                       {t('files.download', '下载')}
-                    </Button>
+                    </CustomButton>
                     <hr className="my-2" />
                   </div>
                 ))
@@ -206,9 +206,9 @@ function FilesPageInner() {
         {showUploadModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="bg-white rounded-2xl shadow-xl p-8 min-w-[320px] max-w-[90vw] w-full max-w-md relative">
-              <button className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100" onClick={() => setShowUploadModal(false)} aria-label={t('close', '关闭')}>
+              <CustomButton className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 cursor-pointer" onClick={() => setShowUploadModal(false)} aria-label={t('close', '关闭')}>
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
+              </CustomButton>
               <h2 className="text-xl font-bold mb-4">{t('files.uploadFile', 'Upload File')}</h2>
               <div className="mb-4">
                 <label className="block mb-1 text-sm font-medium text-gray-700" htmlFor="file-input">{t('files.selectFile', 'Select File')}</label>
@@ -240,8 +240,8 @@ function FilesPageInner() {
                 />
               </div>
               <div className="flex justify-end gap-4">
-                <Button onClick={() => setShowUploadModal(false)}>{t('cancel', '取消')}</Button>
-                <Button onClick={handleUploadSubmit} disabled={uploading || !uploadFile}>{uploading ? t('loadingText', '上传中...') : t('save', '保存')}</Button>
+                <CustomButton className="cursor-pointer" onClick={() => setShowUploadModal(false)}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="cursor-pointer" onClick={handleUploadSubmit} disabled={uploading || !uploadFile}>{uploading ? t('loadingText', '上传中...') : t('save', '保存')}</CustomButton>
               </div>
             </div>
           </div>

@@ -1,8 +1,8 @@
-'use client'
+"use client"
 import React, { useState, Suspense } from 'react'
 import { useEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '../../../components/ui/CustomButton'
 import ManagerLayout from '@/components/manager-layout';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -186,6 +186,16 @@ function IVFClinicContent() {
 
   return (
     <div className="p-8 min-h-screen bg-main-bg">
+        {/* 返回按钮 */}
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
+          onClick={() => router.back()}
+        >
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {t('back', '返回')}
+        </CustomButton>
       <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
       <p className="text-sage-800 mb-8 font-medium">{t('ivfClinic.description')}</p>
       {/* Clinic Overview 折叠卡片 */}
@@ -243,20 +253,19 @@ function IVFClinicContent() {
             <div className="flex justify-between items-center mb-6">
               <h4 className="font-serif text-lg text-[#271F18] font-medium">{t('ivfClinic.editClinicOverview')}</h4>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  className="px-4 py-2 text-sm cursor-pointer"
+                <CustomButton 
+                  className="px-4 py-2 text-sm cursor-pointer border border-[#C2A87A] bg-white text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white" 
                   onClick={handleCancelEdit}
                 >
                   {t('ivfClinic.cancel')}
-                </Button>
-                <Button 
-                  className="px-4 py-2 bg-[#C2A87A] text-white hover:bg-[#a88a5c] text-sm cursor-pointer"
+                </CustomButton>
+                <CustomButton 
+                  className="px-4 py-2 bg-[#C2A87A] text-white hover:bg-[#a88a5c] text-sm cursor-pointer" 
                   onClick={handleSaveEdit}
                   disabled={loading}
                 >
                   {loading ? t('ivfClinic.saving') : t('ivfClinic.save')}
-                </Button>
+                </CustomButton>
               </div>
             </div>
             
@@ -395,12 +404,12 @@ function IVFClinicContent() {
               </div>
             </div>
             <div className="mt-6 text-center">
-                <Button 
+                <CustomButton 
                   className="px-8 py-3 bg-transparent text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white border border-[#C2A87A] transition rounded-lg font-medium cursor-pointer" 
                   onClick={() => handleAdd('ClinicOverview', formData)}
                 >
                   {t('ivfClinic.addClinicOverview')}
-                </Button>
+                </CustomButton>
             </div>
           </div>
         )}
@@ -448,7 +457,7 @@ function IVFClinicContent() {
                                 value={timelineAddValue.date}
                                 onChange={e => setTimelineAddValue({ ...timelineAddValue, date: e.target.value })}
                               />
-                                <Button
+                                <CustomButton
                                   className="px-3 py-1 bg-transparent text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white border border-[#C2A87A] text-xs rounded transition"
                                   onClick={async () => {
                                     if (timelineAddValue.label || timelineAddValue.date) {
@@ -457,15 +466,14 @@ function IVFClinicContent() {
                                       setTimelineAddIndex(null);
                                     }
                                   }}
-                                >{t('ivfClinic.save')}</Button>
-                                <Button
-                                  variant="outline"
+                                >{t('ivfClinic.save')}</CustomButton>
+                                <CustomButton
                                   className="px-3 py-1 bg-transparent text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white border border-[#C2A87A] text-xs rounded transition"
                                   onClick={() => {
                                     setTimelineAddValue({ label: '', date: '' });
                                     setTimelineAddIndex(null);
                                   }}
-                                >{t('ivfClinic.cancel')}</Button>
+                                >{t('ivfClinic.cancel')}</CustomButton>
                             </div>
                           ) : (
                             <div className="ml-6 mb-6">
@@ -529,7 +537,7 @@ function IVFClinicContent() {
                                   value={embryoAddValue.status}
                                   onChange={e => setEmbryoAddValue({ ...embryoAddValue, status: e.target.value })}
                                 />
-                                <Button
+                                <CustomButton
                                   className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded"
                                   onClick={async () => {
                                     if (embryoAddValue.grade || embryoAddValue.id || embryoAddValue.status) {
@@ -538,15 +546,14 @@ function IVFClinicContent() {
                                       setEmbryoAddActive(false);
                                     }
                                   }}
-                                >{t('ivfClinic.save')}</Button>
-                                <Button
-                                  variant="outline"
+                                >{t('ivfClinic.save')}</CustomButton>
+                                <CustomButton
                                   className="px-3 py-1 text-xs rounded"
                                   onClick={() => {
                                     setEmbryoAddValue({ grade: '', id: '', status: '' });
                                     setEmbryoAddActive(false);
                                   }}
-                                >{t('ivfClinic.cancel')}</Button>
+                                >{t('ivfClinic.cancel')}</CustomButton>
                               </div>
                             ) : (
                               <div>
@@ -626,12 +633,16 @@ function IVFClinicContent() {
                   onMouseLeave={e => { e.currentTarget.removeAttribute('title'); }}
                 />
                 <div className="flex items-center justify-center px-6 h-full">
-                  <Button className="w-1/2 px-0 py-2 rounded bg-[#C2A87A] text-white hover:bg-[#a88a5c] transition cursor-pointer h-full text-center mx-auto" style={{display:'block'}} onClick={() => { 
-                    if (newAppointment.date || newAppointment.type || newAppointment.doctor || newAppointment.medication || newAppointment.instructions) {
-                      handleAdd('SurrogateAppointments', [...(surrogateAppointmentsData || []), { ...newAppointment, instructions: newAppointment.instructions.split(',').filter(i => i.trim()) }]); 
-                      setNewAppointment({ date: '', type: '', doctor: '', medication: '', instructions: '' }); 
-                    }
-                  }}>{t('ivfClinic.add')}</Button>
+                  <CustomButton 
+                    className="w-1/2 flex items-center justify-center px-0 py-2 rounded-lg bg-[#B0BEB7] text-white font-bold text-lg shadow hover:bg-[#a3b1a8] transition cursor-pointer h-full mx-auto border-none" 
+                    style={{display:'flex'}} 
+                    onClick={() => { 
+                      if (newAppointment.date || newAppointment.type || newAppointment.doctor || newAppointment.medication || newAppointment.instructions) {
+                        handleAdd('SurrogateAppointments', [...(surrogateAppointmentsData || []), { ...newAppointment, instructions: newAppointment.instructions.split(',').filter(i => i.trim()) }]); 
+                        setNewAppointment({ date: '', type: '', doctor: '', medication: '', instructions: '' }); 
+                      }
+                    }}
+                  >{t('ivfClinic.add')}</CustomButton>
                 </div>
               </div>
             </div>
@@ -677,12 +688,16 @@ function IVFClinicContent() {
                 <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.startDate')} value={newMedication.start} onChange={e => setNewMedication({ ...newMedication, start: e.target.value })} />
                 <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.notes')} value={newMedication.notes} onChange={e => setNewMedication({ ...newMedication, notes: e.target.value })} />
                 <div className="flex items-center justify-center px-6 h-full">
-                  <Button className="w-1/2 px-0 py-2 rounded bg-[#C2A87A] text-white hover:bg-[#a88a5c] transition cursor-pointer h-full text-center mx-auto" style={{display:'block'}} onClick={() => { 
-                    if (newMedication.name || newMedication.dosage || newMedication.frequency || newMedication.start || newMedication.notes) {
-                      handleAdd('MedicationTracker', [...(medicationTrackerData || []), newMedication]); 
-                      setNewMedication({ name: '', dosage: '', frequency: '', start: '', notes: '' }); 
-                    }
-                  }}>{t('ivfClinic.add')}</Button>
+                  <CustomButton 
+                    className="w-1/2 flex items-center justify-center px-0 py-2 rounded-lg bg-[#B0BEB7] text-white font-bold text-lg shadow hover:bg-[#a3b1a8] transition cursor-pointer h-full mx-auto border-none" 
+                    style={{display:'flex'}} 
+                    onClick={() => { 
+                      if (newMedication.name || newMedication.dosage || newMedication.frequency || newMedication.start || newMedication.notes) {
+                        handleAdd('MedicationTracker', [...(medicationTrackerData || []), newMedication]); 
+                        setNewMedication({ name: '', dosage: '', frequency: '', start: '', notes: '' }); 
+                      }
+                    }}
+                  >{t('ivfClinic.add')}</CustomButton>
                 </div>
               </div>
             </div>
@@ -738,12 +753,16 @@ function IVFClinicContent() {
                   onMouseLeave={e => { e.currentTarget.removeAttribute('title'); }}
                 />
                 <div className="flex items-center justify-center px-6 h-full">
-                  <Button className="w-1/2 px-0 py-2 rounded bg-[#C2A87A] text-white hover:bg-[#a88a5c] transition cursor-pointer h-full text-center mx-auto" style={{display:'block'}} onClick={() => { 
-                    if (newNote.date || newNote.doctor || newNote.note) {
-                      handleAdd('DoctorNotes', [...(doctorsNotesData || []), newNote]); 
-                      setNewNote({ date: '', doctor: '', note: '' }); 
-                    }
-                  }}>{t('ivfClinic.add')}</Button>
+                  <CustomButton 
+                    className="w-1/2 flex items-center justify-center px-0 py-2 rounded-lg bg-[#B0BEB7] text-white font-bold text-lg shadow hover:bg-[#a3b1a8] transition cursor-pointer h-full mx-auto border-none" 
+                    style={{display:'flex'}} 
+                    onClick={() => { 
+                      if (newNote.date || newNote.doctor || newNote.note) {
+                        handleAdd('DoctorNotes', [...(doctorsNotesData || []), newNote]); 
+                        setNewNote({ date: '', doctor: '', note: '' }); 
+                      }
+                    }}
+                  >{t('ivfClinic.add')}</CustomButton>
                 </div>
               </div>
             </div>

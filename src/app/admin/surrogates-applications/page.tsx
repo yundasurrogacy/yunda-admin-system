@@ -7,7 +7,7 @@ import i18n from '@/i18n'
 import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus, Eye, CheckCircle, XCircle, Clock, Mail, Phone } from 'lucide-react'
 import { AdminLayout } from '../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -151,19 +151,19 @@ export default function SurrogatesApplicationsPage() {
           title={t('surrogatesApplications')}
           rightContent={
             <div className="flex items-center gap-4">
-              <Button
+              <CustomButton
                 onClick={() => window.open('https://www.yundasurrogacy.com/be-parents', '_blank')}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                {/* <Plus className="w-4 h-4 mr-2" /> */}
                 {t('addNewApplication')}
-              </Button>
+              </CustomButton>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-white font-medium cursor-pointer">
-                    <Filter className="w-4 h-4 mr-2" />
+                  <CustomButton className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800">
+                    {/* <Filter className="w-4 h-4 mr-2" /> */}
                     {t('filterBy')}
-                  </Button>
+                  </CustomButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
@@ -333,33 +333,29 @@ export default function SurrogatesApplicationsPage() {
                   <div className="flex gap-2 flex-wrap">
                     {app.status === 'pending' && (
                       <>
-                        <Button
-                          size="sm"
-                          className="bg-green-100 text-green-800 hover:bg-green-200 font-medium cursor-pointer"
+                        <CustomButton
+                          className="bg-green-100 text-green-800 hover:bg-green-200 font-medium cursor-pointer px-3 py-1 text-sm rounded"
                           onClick={() => handleStatusUpdate(app.id, 'approved')}
                         >
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {/* <CheckCircle className="w-3 h-3 mr-1" /> */}
                           {t('approve', { defaultValue: '通过' })}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:bg-red-50 font-medium cursor-pointer"
+                        </CustomButton>
+                        <CustomButton
+                          className="text-red-600 hover:bg-red-50 font-medium cursor-pointer border border-red-200 bg-white px-3 py-1 text-sm rounded"
                           onClick={() => handleStatusUpdate(app.id, 'rejected')}
                         >
-                          <XCircle className="w-3 h-3 mr-1" />
+                          {/* <XCircle className="w-3 h-3 mr-1" /> */}
                           {t('reject', { defaultValue: '拒绝' })}
-                        </Button>
+                        </CustomButton>
                       </>
                     )}
-                    <Button
-                      variant="link"
-                      className="text-sage-800 hover:text-sage-900 font-medium cursor-pointer"
+                    <CustomButton
+                      className="text-sage-800 hover:text-sage-900 font-medium cursor-pointer bg-transparent"
                       onClick={() => router.push(`/admin/surrogates-applications/${app.id}`)}
                     >
-                      <Eye className="w-4 h-4 mr-1" />
+                      {/* <Eye className="w-4 h-4 mr-1" /> */}
                       {t('viewDetails', { defaultValue: '查看详情' })}
-                    </Button>
+                    </CustomButton>
                   </div>
                 </div>
               </div>
@@ -369,10 +365,8 @@ export default function SurrogatesApplicationsPage() {
 
         {/* 分页控件 */}
         <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page === 1}
             onClick={() => {
               const filtered = allApplications.filter(app => {
@@ -394,7 +388,7 @@ export default function SurrogatesApplicationsPage() {
             }}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </Button>
+          </CustomButton>
           <span className="text-sage-700 text-sm flex items-center gap-2">
             {t('pagination.page', { defaultValue: '第' })}
             <input
@@ -467,10 +461,8 @@ export default function SurrogatesApplicationsPage() {
               return Math.max(1, Math.ceil(filtered.length / pageSize))
             })()} {t('pagination.pages', { defaultValue: '页' })}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={(() => {
               const filtered = allApplications.filter(app => {
                 if (!searchTerm) return true
@@ -507,7 +499,7 @@ export default function SurrogatesApplicationsPage() {
             }}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </Button>
+          </CustomButton>
         </div>
 
         {applications.length === 0 && (

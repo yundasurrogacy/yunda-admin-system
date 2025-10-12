@@ -3,7 +3,7 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 
 export async function POST(req: Request) {
   try {
-    const { caseId, stage, title, files } = await req.json();
+  const { caseId, stage, title, files, about_role = 'intended_parent' } = await req.json();
     if (!caseId || !stage || !title) {
       return NextResponse.json({ error: "参数不完整" }, { status: 400 });
     }
@@ -25,11 +25,12 @@ export async function POST(req: Request) {
     // 但 Hasura 事务里不能引用前面插入的 id，只能分两步
     // 所以先插入 journey，再插入 files
     const journeyMutation = `
-      mutation AddJourney($case_cases: bigint!, $stage: bigint!, $title: String!) {
-        insert_journeys_one(object: {case_cases: $case_cases, stage: $stage, title: $title}) {
+      mutation AddJourney($case_cases: bigint!, $stage: bigint!, $title: String!, $about_role: String) {
+        insert_journeys_one(object: {case_cases: $case_cases, stage: $stage, title: $title, about_role: $about_role}) {
           id
           stage
           title
+          about_role
         }
       }
     `;
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
         case_cases: Number(caseId),
         stage: Number(stage),
         title,
+        about_role,
       },
     });
     const journey = journeyRes.insert_journeys_one;

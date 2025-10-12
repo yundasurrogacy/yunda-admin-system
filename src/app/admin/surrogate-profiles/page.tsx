@@ -7,7 +7,7 @@ import type { SurrogateMother } from "@/types/surrogate_mother"
 import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus } from "lucide-react"
 import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
 import { Dialog } from "@/components/ui/dialog"
 import { useForm } from "react-hook-form"
@@ -404,23 +404,21 @@ export default function SurrogateProfilesPage() {
                 </div>
 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
-                  <Button
-                    variant="link"
-                    className="text-sage-600 hover:text-sage-800 font-medium cursor-pointer"
+                  <CustomButton
+                    className="text-sage-600 hover:text-sage-800 font-medium cursor-pointer bg-transparent"
                     onClick={() => router.push(`/admin/surrogate-profiles/${surrogate.id}`)}
                   >
                     {t('viewProfile')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="ml-2 text-sage-600 border-sage-300 font-medium cursor-pointer"
+                  </CustomButton>
+                  <CustomButton
+                    className="ml-2 text-sage-600 border border-sage-300 font-medium cursor-pointer bg-white"
                     onClick={() => {
                       setSelectedSurrogateId(surrogate.id)
                       setShowPasswordDialog(true)
                     }}
                   >
                     {t('setOrResetPassword')}
-                  </Button>
+                  </CustomButton>
                 </div>
               </div>
             )
@@ -429,10 +427,8 @@ export default function SurrogateProfilesPage() {
 
         {/* 分页控件 */}
         <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page === 1}
             onClick={() => {
               const filtered = allSurrogates.filter(surrogate => {
@@ -457,7 +453,7 @@ export default function SurrogateProfilesPage() {
             }}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </Button>
+          </CustomButton>
           <span className="text-sage-700 text-sm flex items-center gap-2">
             {t('pagination.page', { defaultValue: '第' })}
             <input
@@ -539,10 +535,8 @@ export default function SurrogateProfilesPage() {
               return Math.max(1, Math.ceil(filtered.length / pageSize))
             })()} {t('pagination.pages', { defaultValue: '页' })}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={(() => {
               const filtered = allSurrogates.filter(surrogate => {
                 const ci = surrogate.contact_information
@@ -585,7 +579,7 @@ export default function SurrogateProfilesPage() {
             }}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </Button>
+          </CustomButton>
         </div>
 
         {surrogates.length === 0 && (
@@ -837,8 +831,8 @@ export default function SurrogateProfilesPage() {
                 </div>
               </div>
               <div className="flex flex-col md:flex-row justify-end gap-2 md:gap-4 mt-8">
-                <Button type="button" variant="outline" className="px-6 py-2 rounded-lg border-sage-300 hover:bg-sage-50 cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>{t('cancel')}</Button>
-                <Button type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer">{t('save')}</Button>
+                <CustomButton type="button" className="px-6 py-2 rounded-lg border border-sage-300 bg-white hover:bg-sage-50 cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>{t('cancel')}</CustomButton>
+                <CustomButton type="submit" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer">{t('save')}</CustomButton>
               </div>
             </form>
             <button className="absolute top-4 right-4 text-sage-400 hover:text-sage-600 text-xl cursor-pointer" onClick={() => { setShowDialog(false); reset(); }}>&times;</button>
@@ -859,12 +853,12 @@ export default function SurrogateProfilesPage() {
             />
             {passwordError && <div className="text-red-500 text-sm mb-2 text-center w-full">{passwordError}</div>}
             <div className="flex justify-end gap-4 w-full mt-2">
-              <Button variant="outline" className="px-6 py-2 rounded-lg text-base cursor-pointer" onClick={() => { setShowPasswordDialog(false); setPasswordValue(""); setPasswordError(""); }}>
+              <CustomButton className="px-6 py-2 rounded-lg text-base border border-sage-300 bg-white cursor-pointer" onClick={() => { setShowPasswordDialog(false); setPasswordValue(""); setPasswordError(""); }}>
                 {t('cancel')}
-              </Button>
-              <Button className="px-6 py-2 rounded-lg text-base bg-sage-600 text-white hover:bg-sage-700 cursor-pointer" onClick={handleResetPassword} disabled={passwordLoading}>
+              </CustomButton>
+              <CustomButton className="px-6 py-2 rounded-lg text-base bg-sage-600 text-white hover:bg-sage-700 cursor-pointer" onClick={handleResetPassword} disabled={passwordLoading}>
                 {passwordLoading ? t('processing') : t('confirmReset')}
-              </Button>
+              </CustomButton>
             </div>
           </>
         </Dialog>

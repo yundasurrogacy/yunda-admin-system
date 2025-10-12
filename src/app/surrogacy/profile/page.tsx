@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { CustomButton } from "@/components/ui/CustomButton";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,14 +145,14 @@ export default function SurrogacyProfile() {
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
               onClick={e => e.stopPropagation()}
             />
-            <button
+            <CustomButton
               className="absolute top-8 right-8 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-70 transition"
               onClick={() => setPreviewUrl(null)}
               aria-label="Close preview"
               style={{ cursor: 'pointer' }}
             >
               ×
-            </button>
+            </CustomButton>
           </div>
         )}
       </div>

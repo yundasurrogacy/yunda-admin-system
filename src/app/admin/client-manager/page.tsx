@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
 import { Dialog } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -97,9 +97,9 @@ export default function ClientManagerPage() {
       <PageContent>
         <PageHeader title={t('clientManagerManagement')}
           rightContent={
-            <Button className="font-medium text-sage-800 cursor-pointer" onClick={() => setAddOpen(true)}>
+            <CustomButton className="font-medium text-sage-800 cursor-pointer bg-sage-100 border border-sage-300" onClick={() => setAddOpen(true)}>
               {t('addClientManager')}
-            </Button>
+            </CustomButton>
           }
         />
         {/* 新增客户经理弹窗（无遮罩，仅内容） */}
@@ -116,8 +116,8 @@ export default function ClientManagerPage() {
                 <Input id="password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-sage-300" />
               </div>
               <div className="flex justify-end gap-3 mt-2">
-                <Button type="submit" disabled={addLoading} className="font-medium cursor-pointer px-6 py-2 bg-sage-600 text-white rounded-md shadow">{addLoading ? t('processing') : t('submit')}</Button>
-                <Button type="button" variant="outline" className="font-medium cursor-pointer px-6 py-2 rounded-md" onClick={() => setAddOpen(false)}>{t('cancel')}</Button>
+                <CustomButton type="submit" disabled={addLoading} className="font-medium cursor-pointer px-6 py-2 bg-sage-600 text-white rounded-md shadow">{addLoading ? t('processing') : t('submit')}</CustomButton>
+                <CustomButton type="button" className="font-medium cursor-pointer px-6 py-2 rounded-md border border-sage-300 bg-white" onClick={() => setAddOpen(false)}>{t('cancel')}</CustomButton>
               </div>
             </form>
           </div>
@@ -180,15 +180,13 @@ export default function ClientManagerPage() {
             </div>
             {/* 分页控件 */}
             <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-              <Button
-                size="sm"
-                variant="outline"
-                className="cursor-pointer"
+              <CustomButton
+                className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
               >
                 {t('pagination.prevPage', { defaultValue: '上一页' })}
-              </Button>
+              </CustomButton>
               <span className="text-sage-700 text-sm flex items-center gap-2">
                 {t('pagination.page', { defaultValue: '第' })}
                 <input
@@ -224,15 +222,13 @@ export default function ClientManagerPage() {
                 />
                 {t('pagination.of', { defaultValue: '共' })} {Math.max(1, Math.ceil(total / pageSize))} {t('pagination.pages', { defaultValue: '页' })}
               </span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="cursor-pointer"
+              <CustomButton
+                className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
                 disabled={page >= Math.ceil(total / pageSize)}
                 onClick={() => setPage(page + 1)}
               >
                 {t('pagination.nextPage', { defaultValue: '下一页' })}
-              </Button>
+              </CustomButton>
             </div>
           </>
         )}

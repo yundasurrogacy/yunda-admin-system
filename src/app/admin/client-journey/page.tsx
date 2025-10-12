@@ -12,7 +12,7 @@ import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
 import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
@@ -102,9 +102,41 @@ const staticTimelineData = () => [
 import { useTranslation as useTranslationOrigin } from 'react-i18next';
 
 function JourneyInner() {
+  const { t, i18n } = useTranslationOrigin('common');
+  // 国际化进度状态选项
+  const statusOptions = [
+    { value: 'pending', label: t('journey.status.pending', '待完成') },
+    { value: 'finished', label: t('journey.status.finished', '已完成') },
+  ];
+  // const { t, i18n } = useTranslationOrigin('common');
+  // 国际化进度状态选项，只声明一次
+  // 进度状态选项
+  // 已在下方声明，无需重复声明
+  // 切换并保存 journey 状态
+  const handleStatusClick = async (item: { id: any; process_status?: string }) => {
+    if (!item.id) return;
+    const newStatus = item.process_status;
+    try {
+      const res = await fetch('/api/journey-update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journeyId: item.id, process_status: newStatus }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        // 可以添加错误处理逻辑
+        alert('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Network error');
+    }
+  };
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, i18n } = useTranslationOrigin('common');
+  // 只声明一次
+  // const { t, i18n } = useTranslationOrigin('common');
   const categories = getCategories(t);
   const caseId = searchParams.get('caseId');
 
@@ -129,10 +161,10 @@ function JourneyInner() {
       // 国际化语言判断，en显示英文，zh显示中文，其他默认中文
       const lang = i18n.language || 'zh';
       const baseTimeline = staticTimelineData().map((stage, idx) => ({
-        stage: lang.startsWith('en') ? stage.en.stage : stage.zh.stage,
-        description: lang.startsWith('en') ? stage.en.description : stage.zh.description,
-        items: [] as { id: any; title: string }[],
-        stageNumber: idx + 1,
+      stage: lang.startsWith('en') ? stage.en.stage : stage.zh.stage,
+      description: lang.startsWith('en') ? stage.en.description : stage.zh.description,
+      items: [] as { id: any; title: string; process_status?: string }[],
+      stageNumber: idx + 1,
       }));
       try {
         function getCookie(name: string) {
@@ -149,12 +181,14 @@ function JourneyInner() {
             setProcessStatus(currentCase.process_status || '');
             setUpdatedAt(currentCase.updated_at || '');
             if (currentCase.journeys && currentCase.journeys.length > 0) {
-              currentCase.journeys.forEach((journey: any) => {
+              const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'intended_parent');
+              filteredJourneys.forEach((journey: any) => {
                 const stageIndex = journey.stage - 1;
                 if (stageIndex >= 0 && stageIndex < 7) {
                   baseTimeline[stageIndex].items.push({
                     id: journey.id,
                     title: journey.title,
+                    process_status: journey.process_status,
                   });
                 }
               });
@@ -219,7 +253,7 @@ function JourneyInner() {
       const journey = currentStage.items.find((item: any) => item.title === itemTitle);
       if (journey && journey.id) journeyId = journey.id;
     }
-    router.push(`/client-manager/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
+    router.push(`/admin/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
   };
 
   // 添加 journey 弹窗表单
@@ -286,7 +320,7 @@ function JourneyInner() {
       const res = await fetch('/api/cases-by-manager/add-journey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caseId, stage: addStage, title: addTitle, files: filesToUpload }),
+        body: JSON.stringify({ caseId, stage: addStage, title: addTitle, files: filesToUpload, about_role: 'intended_parent' }),
       });
       if (res.ok) {
         setShowAddModal(false);
@@ -305,15 +339,15 @@ function JourneyInner() {
     <AdminLayout>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         {/* 返回按钮 */}
-        <button
-          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
           onClick={() => router.back()}
         >
-          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </button>
+        </CustomButton>
         <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('journey.Intended Parents Journey')}</h1>
         {/* <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p> */}
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
@@ -346,35 +380,42 @@ function JourneyInner() {
                   <h3 className="font-serif text-lg mb-2">{stagePrefix}{step.stage}</h3>
                   <div className="mb-2 text-[#6B5B3A] text-sm whitespace-pre-line">{step.description}</div>
                   <ul className="mb-2">
-                    {step.items.map((item: { id: any; title: string }) => (
+                    {step.items.map((item: { id: any; title: string; process_status?: string }) => (
                       <li key={item.id} className="flex justify-between items-center py-1">
-                        <span>{item.title}</span>
-                        <Button
-                          className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] cursor-pointer"
+                        <div className="flex flex-col">
+                          <span>{item.title}</span>
+                          <select
+                            className="text-xs text-gray-700 mt-1 border border-gray-300 rounded px-2 py-1 w-fit bg-white cursor-pointer"
+                            value={item.process_status || 'pending'}
+                            onChange={e => handleStatusClick({ ...item, process_status: e.target.value })}
+                            title={t('journey.switchStatus', '切换进度状态')}
+                          >
+                            {statusOptions.map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <CustomButton
+                          className="rounded px-4 py-1 text-xs cursor-pointer"
                           onClick={() => handleViewClick(step.stageNumber, item.title)}
                         >
                           {t('viewDetails')}
-                        </Button>
+                        </CustomButton>
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    className="rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] font-serif px-5 py-2 text-sm mt-2 shadow hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all flex items-center gap-2 cursor-pointer"
+                  <CustomButton
+                    className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
                     style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
                     onClick={() => handleAddJourneyClick(step.stageNumber)}
                   >
                     <span
-                      className="inline-block transition-transform duration-200 ease-in-out"
+                      className="inline-block transition-transform duration-200 ease-in-out cursor-pointer"
                       style={{ fontSize: '1.5rem' }}
                     >
                       +
                     </span>
-                    <style jsx>{`
-                      button:hover span {
-                        transform: scale(1.5);
-                      }
-                    `}</style>
-                  </Button>
+                  </CustomButton>
                 </div>
               );
             })}
@@ -410,12 +451,12 @@ function JourneyInner() {
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-serif font-semibold text-[#271F18] text-lg">{t('files.fileList', '文件列表')}</span>
-                  <Button
-                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] text-base font-serif font-bold shadow hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all duration-200 cursor-pointer"
+                  <CustomButton
+                    className="px-4 py-2 rounded-full text-base font-bold cursor-pointer"
                     onClick={() => document.getElementById('file-upload-input')?.click()}
                   >
                     {t('files.uploadFiles', '上传文件')}
-                  </Button>
+                  </CustomButton>
                   <input
                     id="file-upload-input"
                     type="file"
@@ -476,7 +517,7 @@ function JourneyInner() {
                             />
                           </td>
                           <td className="px-4 py-2">
-                            <Button className="px-3 py-1 text-xs rounded-full bg-[#F0F0F0] text-[#271F18] hover:bg-[#E3E8E3] hover:text-red-500 transition-all w-full cursor-pointer" onClick={() => handleRemoveFileField(idx)}>{t('delete', '删除')}</Button>
+                            <CustomButton className="px-3 py-1 text-xs rounded-full w-full cursor-pointer" onClick={() => handleRemoveFileField(idx)}>{t('delete', '删除')}</CustomButton>
                           </td>
                         </tr>
                       ))}
@@ -486,8 +527,8 @@ function JourneyInner() {
               </div>
               {/* 底部操作按钮 */}
               <div className="flex justify-end gap-6 mt-4">
-                <Button className="px-7 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-lg font-semibold shadow hover:bg-[#D9D9D9] transition-all cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</Button>
-                <Button className="px-7 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] font-serif text-lg font-bold shadow-lg hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</Button>
+                <CustomButton className="px-7 py-2 rounded-full text-lg font-semibold cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="px-7 py-2 rounded-full text-lg font-bold cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</CustomButton>
               </div>
             </div>
           </div>

@@ -6,7 +6,7 @@ import { useParams } from "next/navigation"
 import { getIntendedParentById } from "@/lib/graphql/applications"
 import type { IntendedParent } from "@/types/intended_parent"
 import { ChevronRight, ChevronDown, User, FileText, Search, ArrowLeft } from "lucide-react"
-import { Button } from "../../../../components/ui/button"
+import { CustomButton } from "../../../../components/ui/CustomButton"
 import { CommonHeader } from "../../../../components/common-header"
 import { useTranslation } from "react-i18next"
 import '../../../../i18n'
@@ -157,14 +157,13 @@ export default function ClientProfileDetailPage() {
         <div className="flex items-center justify-between pt-6 pb-2">
           <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
+            <CustomButton
+              className="bg-white font-medium text-sage-800 border border-sage-200 rounded px-4 py-2 cursor-pointer"
               onClick={() => router.push('/client-manager/client-profiles')}
-              className="bg-white font-medium text-sage-800"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              {/* <ArrowLeft className="w-4 h-4 mr-2" /> */}
               {t('backToClientProfiles')}
-            </Button>
+            </CustomButton>
           </div>
         </div>
 

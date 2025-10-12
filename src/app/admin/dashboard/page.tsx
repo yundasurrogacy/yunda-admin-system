@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { AdminLayout } from "../../../components/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
-import { Button } from "../../../components/ui/button"
+import { CustomButton } from "../../../components/ui/CustomButton"
 import { Alert, AlertDescription } from "../../../components/ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -201,15 +201,13 @@ export default function DashboardPage() {
                     {item.count}
                   </div>
                   <div className="flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-transparent text-brand-brown border-brand-brown-light hover:bg-[#E8E2D5] hover:text-brand-brown text-xs px-4 py-2 rounded-md font-medium cursor-pointer transition-colors duration-200"
+                    <CustomButton
+                      className="bg-transparent text-brand-brown border border-brand-brown-light hover:bg-[#E8E2D5] hover:text-brand-brown text-xs px-4 py-2 rounded-md font-medium cursor-pointer transition-colors duration-200"
                       style={{ textDecoration: 'none' }}
                       onClick={() => router.push("/admin/client-manager")}
                     >
                       {t("viewDetails")}
-                    </Button>
+                    </CustomButton>
                   </div>
                 </div>
               ))}

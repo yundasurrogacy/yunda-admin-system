@@ -9,9 +9,12 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { User, Phone, Mail, MapPin, Heart, Calendar, FileText } from 'lucide-react'
 import '../../../i18n'
+import { CustomButton } from '@/components/ui/CustomButton';
+import { useRouter} from 'next/navigation'
 
 export default function IntendedParents() {
   const { t } = useTranslation('common')
+  const router = useRouter();
   const [parentInfo, setParentInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -100,6 +103,16 @@ export default function IntendedParents() {
   return (
     <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
       <div className="flex items-center justify-between pt-6 pb-2">
+              {/* 返回按钮 */}
+              <CustomButton
+                className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
+                onClick={() => router.back()}
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+                  <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {t('back', '返回')}
+              </CustomButton>
         <h1 className="text-2xl font-medium text-sage-800">{t('intendedParents.title')}</h1>
         {/* <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
           {t('intendedParents.status.matched', '已匹配')}
@@ -267,7 +280,7 @@ export default function IntendedParents() {
       </Card>
 
       {/* 账户信息 */}
-      <Card className="bg-white border-sage-200 animate-slide-in-left">
+      {/* <Card className="bg-white border-sage-200 animate-slide-in-left">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-sage-800 text-lg font-medium">
             <Calendar className="w-5 h-5" />
@@ -286,7 +299,7 @@ export default function IntendedParents() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   )
 }

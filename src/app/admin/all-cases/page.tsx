@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@/components/ui/dialog"
 // 不再使用mock hook，全部用API
-import { Button } from "@/components/ui/button"
+import { CustomButton } from "@/components/ui/CustomButton"
 import { AdminLayout } from "@/components/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Plus, UserPlus } from "lucide-react"
@@ -13,6 +13,17 @@ import { Download, Plus, UserPlus } from "lucide-react"
 export default function AllCasesPage() {
   // ...existing code...
   const { t, i18n } = useTranslation("common")
+  // 状态枚举和映射（必须在 t 获取后定义）
+  const STATUS_ENUM = [
+    { value: 'Matching', label: t('matching', { defaultValue: 'Matching' }) },
+    { value: 'LegalStage', label: t('legalStage', { defaultValue: 'Legal Stage' }) },
+    { value: 'CyclePrep', label: t('cyclePrep', { defaultValue: 'Cycle Prep' }) },
+    { value: 'Pregnant', label: t('pregnancy', { defaultValue: 'Pregnancy' }) },
+    { value: 'Transferred', label: t('transferred', { defaultValue: 'Transferred' }) },
+  ];
+  // 状态下拉相关
+  const [statusDropdownCaseId, setStatusDropdownCaseId] = useState<number | null>(null)
+  const [statusUpdating, setStatusUpdating] = useState(false)
   // 国际化由 i18n 控制，无需本地 language 状态
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showAssignDialog, setShowAssignDialog] = useState(false)
@@ -65,10 +76,10 @@ export default function AllCasesPage() {
 
   useEffect(() => {
     // 调试打印所有数据
-    console.log('cases:', cases);
-    console.log('surrogates:', surrogates);
-    console.log('clients:', clients);
-    console.log('managers:', managers);
+    // console.log('cases:', cases);
+    // console.log('surrogates:', surrogates);
+    // console.log('clients:', clients);
+    // console.log('managers:', managers);
   }, [cases, surrogates, clients, managers]);
 
   // 自适应每页条数，始终两行，宽度自适应
@@ -128,9 +139,10 @@ export default function AllCasesPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold tracking-wider text-sage-800">{t('allCases')}</h1>
           <div className="flex gap-2">
-            <Button onClick={() => setShowCreateDialog(true)} className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer">
-              <Plus className="w-4 h-4 mr-2" />{t('addNewCase')}
-            </Button>
+            <CustomButton onClick={() => setShowCreateDialog(true)} className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer">
+              {/* <Plus className="w-4 h-4 mr-2" /> */}
+              {t('addNewCase')}
+            </CustomButton>
           </div>
         </div>
         {/* 筛选器 */}
@@ -222,13 +234,11 @@ export default function AllCasesPage() {
         >
           {pagedCases.map((c: any) => {
             // 状态国际化映射，必须在t可用后定义
-            const stageMap: Record<string, string> = {
-              Matching: t("matching"),
-              LegalStage: t("legalStage"),
-              CyclePrep: t("cyclePrep"),
-              Pregnant: t("pregnancy"),
-              Transferred: t("transferred"),
-            };
+            // 状态映射
+            const stageMap: Record<string, string> = STATUS_ENUM.reduce((acc, cur) => {
+              acc[cur.value] = cur.label;
+              return acc;
+            }, {} as Record<string, string>);
             const parentName = c.intended_parent?.basic_information ?? c.intended_parent?.contact_information ?? c.intended_parent?.email ?? "-";
             const surrogateName = c.surrogate_mother?.contact_information ?? c.surrogate_mother?.basic_information ?? c.surrogate_mother?.email ?? "-";
             const managerName = c.client_manager?.name ?? c.client_manager?.email ?? "-";
@@ -241,7 +251,8 @@ export default function AllCasesPage() {
             return (
               <div
                 key={c.id}
-                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
+                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-visible relative"
+                style={{ overflow: 'visible', zIndex: 1 }}
               >
                 <div className="flex items-center gap-4 mb-2">
                   <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -249,7 +260,51 @@ export default function AllCasesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-lg text-sage-800 truncate">{t('caseId')}{c.id}</div>
-                    <div className="text-sage-500 text-sm truncate font-medium">{t('status')}{statusText}</div>
+                    <div className="text-sage-500 text-sm truncate font-medium">
+                      {t('status')}
+                      <span
+                        className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100"
+                        onClick={() => setStatusDropdownCaseId(statusDropdownCaseId === c.id ? null : c.id)}
+                        style={{ minWidth: 80 }}
+                      >
+                        {statusText}
+                        <span className="ml-1 text-xs text-sage-400">▼</span>
+                      </span>
+                    </div>
+                    {/* 状态下拉菜单绝对定位悬浮，不挤压内容 */}
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      {statusDropdownCaseId === c.id && (
+                        <div
+                          className="z-50 mt-2 bg-white border border-sage-200 rounded shadow-lg"
+                          style={{ minWidth: 160, position: 'absolute', left: 0, top: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+                        >
+                          {STATUS_ENUM.map((opt) => (
+                            <div
+                              key={opt.value}
+                              className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 ${c.process_status === opt.value ? 'font-bold bg-sage-50' : ''}`}
+                              onClick={async () => {
+                                if (statusUpdating) return;
+                                setStatusUpdating(true);
+                                await fetch('/api/cases-update-status', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ case_id: c.id, process_status: opt.value })
+                                });
+                                setStatusDropdownCaseId(null);
+                                setStatusUpdating(false);
+                                await fetchAllData();
+                              }}
+                            >
+                              {opt.label}
+                            </div>
+                          ))}
+                          <div
+                            className="px-4 py-2 cursor-pointer text-sage-400 hover:bg-sage-100"
+                            onClick={() => setStatusDropdownCaseId(null)}
+                          >{t('cancel')}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
@@ -290,9 +345,10 @@ export default function AllCasesPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
                   {managerName === "-" && (
-                    <Button size="sm" variant="outline" className="font-medium cursor-pointer" onClick={() => { setSelectedCaseId(c.id); setShowAssignDialog(true); }}>
-                      <UserPlus className="w-4 h-4 mr-1" />{t('assignClientManager')}
-                    </Button>
+                    <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer" onClick={() => { setSelectedCaseId(c.id); setShowAssignDialog(true); }}>
+                      {/* <UserPlus className="w-4 h-4 mr-1" /> */}
+                      {t('assignClientManager')}
+                    </CustomButton>
                   )}
                 </div>
               </div>
@@ -302,10 +358,8 @@ export default function AllCasesPage() {
 
         {/* 分页控件 */}
         <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer"
             disabled={page === 1}
             onClick={() => {
               const newPage = Math.max(1, page - 1)
@@ -314,7 +368,7 @@ export default function AllCasesPage() {
             }}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </Button>
+          </CustomButton>
           <span className="text-sage-700 text-sm flex items-center gap-2">
             {t('pagination.page', { defaultValue: '第' })}
             <input
@@ -347,10 +401,8 @@ export default function AllCasesPage() {
             />
             {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            className="cursor-pointer"
+          <CustomButton
+            className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer"
             disabled={page >= totalPages}
             onClick={() => {
               const newPage = Math.min(totalPages, page + 1)
@@ -359,10 +411,10 @@ export default function AllCasesPage() {
             }}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </Button>
+          </CustomButton>
         </div>
 
-        {pagedCases.length === 0 && (
+        {pagedCases.length === 0 && !loading && total > 0 && (
           <div className="text-center py-8 text-sage-500">
             {t('noApplications', { defaultValue: '暂无记录' })}
           </div>
@@ -387,7 +439,7 @@ export default function AllCasesPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <Button onClick={async () => {
+                <CustomButton onClick={async () => {
                   if (!selectedSurrogateId || !selectedParentId) return
                   setLoading(true)
                   await fetch("/api/cases-create", {
@@ -403,8 +455,8 @@ export default function AllCasesPage() {
                   setSelectedSurrogateId(null)
                   setSelectedParentId(null)
                   await fetchAllData()
-                }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAdd')}</Button>
-                <Button variant="outline" className="cursor-pointer" onClick={() => setShowCreateDialog(false)}>{t('cancel')}</Button>
+                }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAdd')}</CustomButton>
+                <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => setShowCreateDialog(false)}>{t('cancel')}</CustomButton>
               </div>
             </div>
           </div>
@@ -422,7 +474,7 @@ export default function AllCasesPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <Button onClick={async () => {
+                <CustomButton onClick={async () => {
                   if (!selectedCaseId || !selectedManagerId) return
                   setLoading(true)
                   await fetch("/api/cases-assign-manager", {
@@ -435,8 +487,8 @@ export default function AllCasesPage() {
                   setSelectedCaseId(null)
                   setSelectedManagerId(null)
                   await fetchAllData()
-                }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAssign')}</Button>
-                <Button variant="outline" className="cursor-pointer" onClick={() => setShowAssignDialog(false)}>{t('cancel')}</Button>
+                }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAssign')}</CustomButton>
+                <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => setShowAssignDialog(false)}>{t('cancel')}</CustomButton>
               </div>
             </div>
           </div>

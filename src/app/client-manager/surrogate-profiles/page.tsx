@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import ManagerLayout from '@/components/manager-layout'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -135,23 +135,23 @@ export default function SurrogateProfiles() {
                     <div className="text-sm mb-2 text-sage-800">{surrogate.status}</div>
                   </div>
                   <div className="flex justify-end">
-                    <Button
-                      className={`rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-xs shadow-none border border-sage-200 transition-colors ${hovered === surrogate.id ? 'bg-sage-200 border-sage-800' : ''}`}
+                    <CustomButton
+                      className={`rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-xs shadow-none border border-sage-200 transition-colors cursor-pointer ${hovered === surrogate.id ? 'bg-sage-200 border-sage-800' : ''}`}
                       onClick={() => router.push(`/client-manager/surrogate-profiles/${surrogate.id}`)}
                     >
                       {t('surrogateProfiles.view')}
-                    </Button>
+                    </CustomButton>
                   </div>
                 </div>
               ))}
             </div>
             {/* 分页控件 */}
             <div className="flex items-center justify-center gap-4 mt-8">
-              <Button variant="outline" size="sm" onClick={() => {
+              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => {
                 const newPage = Math.max(1, page - 1);
                 setPage(newPage);
                 setPageInput(String(newPage));
-              }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</Button>
+              }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
               <span>
                 {t('pagination.page', '第')}
                 <input
@@ -184,11 +184,11 @@ export default function SurrogateProfiles() {
                 />
                 {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
               </span>
-              <Button variant="outline" size="sm" onClick={() => {
+              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => {
                 const newPage = Math.min(totalPages, page + 1);
                 setPage(newPage);
                 setPageInput(String(newPage));
-              }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</Button>
+              }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
             </div>
           </>
         )}

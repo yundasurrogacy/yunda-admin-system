@@ -19,6 +19,7 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
+// isOpen/onClose 现在由全局 SidebarContext 控制
 interface CommonSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -96,7 +97,7 @@ export function CommonSidebar({
     }
     if (showLoginTip) setShowLoginTip(false);
     router.push(href);
-    onClose();
+    // onClose();
   }
 
   // ...existing code...
@@ -151,7 +152,7 @@ export function CommonSidebar({
                       loginPath = getLoginPath(type);
                   }
                   router.push(loginPath);
-                  onClose();
+                  // onClose();
                 }}
               >
                 去登录

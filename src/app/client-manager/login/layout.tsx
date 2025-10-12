@@ -23,13 +23,13 @@ export default function ManagerLoginLayout({ children }: { children: React.React
         title="客户经理"
       />
       {/* Header */}
-      <CommonHeader 
+      {/* <CommonHeader 
         showMenuButton={true} 
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         theme="blue"
         title="YUNDA 客户经理"
         type="client-manager"
-      />
+      /> */}
       {children}
     </div>
   )

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getSurrogateMotherById } from "@/lib/graphql/applications";
 import type { SurrogateMother } from "@/types/surrogate_mother";
 import { User, MessageSquare, FileText, Calendar, Activity, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CustomButton } from "@/components/ui/CustomButton";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -88,15 +88,13 @@ export default function SurrogateProfileDetailPage() {
             <p className="text-sage-600 text-sm mt-1">{t('surrogateProfileDetail.description', '查看代孕母个人信息')}</p>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
+            <CustomButton
+              className="bg-white font-medium text-sage-800 border border-sage-200 rounded px-4 py-2 cursor-pointer"
               onClick={() => router.push('/client-manager/surrogate-profiles')}
-              className="bg-white font-medium text-sage-800 cursor-pointer"
-              style={{ cursor: 'pointer' }}
             >
-              <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" style={{ cursor: 'pointer' }} />
+              {/* <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" style={{ cursor: 'pointer' }} /> */}
               {t('backToSurrogateProfiles', '返回列表')}
-            </Button>
+            </CustomButton>
           </div>
         </div>
 

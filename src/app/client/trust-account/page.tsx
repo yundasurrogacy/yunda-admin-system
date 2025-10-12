@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-
+import { CustomButton } from '@/components/ui/CustomButton';
 interface BalanceChange {
   id: number;
   case_cases: number;
@@ -138,13 +138,15 @@ function TrustAccountPageInner() {
   return (
       <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
-        <button
-          className="mb-4 px-4 py-2 rounded bg-[#F5F4ED] text-[#271F18] font-medium hover:bg-[#C2A87A] hover:text-white transition-colors cursor-pointer"
-          style={{cursor:'pointer'}}
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold"
           onClick={handleBack}
         >
-          ← {t('common.back') || '返回'}
-        </button>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {t('back', '返回')}
+        </CustomButton>
         <h1 className="text-2xl font-bold text-sage-800 mb-2">{t('trustAccount.title', 'Trust Account')}</h1>
         <p className="text-sage-800 mb-8">{t('trustAccount.description', 'View your current account balance and financial transactions related to your trust account')}</p>
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
@@ -227,11 +229,11 @@ function TrustAccountPageInner() {
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-6">
-                <button
+                <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                >{t('pagination.prevPage', 'Previous')}</button>
+                >{t('pagination.prevPage', 'Previous')}</CustomButton>
                 <span>
                   {t('pagination.page', 'Page')}
                   <input
@@ -267,11 +269,11 @@ function TrustAccountPageInner() {
                   />
                   {t('pagination.of', 'of')} {totalPages} {t('pagination.pages', 'pages')}
                 </span>
-                <button
+                <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', 'Next')}</button>
+                >{t('pagination.nextPage', 'Next')}</CustomButton>
               </div>
             </>
           )}

@@ -11,7 +11,7 @@ import React, { Suspense, useEffect, useState } from 'react'
 import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
@@ -225,7 +225,7 @@ function JourneyInner() {
       const journey = currentStage.items.find((item: any) => item.title === itemTitle);
       if (journey && journey.id) journeyId = journey.id;
     }
-    router.push(`/client-manager/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
+    router.push(`/client/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
   };
 
   // 添加 journey 弹窗表单
@@ -311,15 +311,15 @@ function JourneyInner() {
     <>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         {/* 返回按钮 */}
-        <button
-          className="mb-4 px-5 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] transition-all cursor-pointer flex items-center gap-2"
+        <CustomButton
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold"
           onClick={() => router.back()}
         >
-          <svg width="18" height="18" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </button>
+        </CustomButton>
         <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('journey.Intended Parents Journey')}</h1>
         {/* <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p> */}
         <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
@@ -356,12 +356,12 @@ function JourneyInner() {
                       {step.items.map((item: { id: any; title: string }) => (
                         <li key={item.id} className="py-1 flex items-center justify-between">
                           <span>{item.title}</span>
-                          <Button
+                          <CustomButton
                             className="rounded bg-[#D9D9D9] text-[#271F18] font-serif px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] cursor-pointer ml-4"
                             onClick={() => handleViewClick(step.stageNumber, item.title)}
                           >
                             {t('viewDetails')}
-                          </Button>
+                          </CustomButton>
                         </li>
                       ))}
                     </ul>
@@ -401,12 +401,12 @@ function JourneyInner() {
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-serif font-semibold text-[#271F18] text-lg">{t('files.fileList', '文件列表')}</span>
-                  <Button
+                  <CustomButton
                     className="px-4 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] text-base font-serif font-bold shadow hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all duration-200 cursor-pointer"
                     onClick={() => document.getElementById('file-upload-input')?.click()}
                   >
                     {t('files.uploadFiles', '上传文件')}
-                  </Button>
+                  </CustomButton>
                   <input
                     id="file-upload-input"
                     type="file"
@@ -467,7 +467,7 @@ function JourneyInner() {
                             />
                           </td>
                           <td className="px-4 py-2">
-                            <Button className="px-3 py-1 text-xs rounded-full bg-[#F0F0F0] text-[#271F18] hover:bg-[#E3E8E3] hover:text-red-500 transition-all w-full cursor-pointer" onClick={() => handleRemoveFileField(idx)}>{t('delete', '删除')}</Button>
+                            <CustomButton className="px-3 py-1 text-xs rounded-full bg-[#F0F0F0] text-[#271F18] hover:bg-[#E3E8E3] hover:text-red-500 transition-all w-full cursor-pointer" onClick={() => handleRemoveFileField(idx)}>{t('delete', '删除')}</CustomButton>
                           </td>
                         </tr>
                       ))}
@@ -477,8 +477,8 @@ function JourneyInner() {
               </div>
               {/* 底部操作按钮 */}
               <div className="flex justify-end gap-6 mt-4">
-                <Button className="px-7 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-lg font-semibold shadow hover:bg-[#D9D9D9] transition-all cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</Button>
-                <Button className="px-7 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] font-serif text-lg font-bold shadow-lg hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</Button>
+                <CustomButton className="px-7 py-2 rounded-full bg-[#E3E8E3] text-[#271F18] font-serif text-lg font-semibold shadow hover:bg-[#D9D9D9] transition-all cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="px-7 py-2 rounded-full bg-gradient-to-r from-[#BFC9BF] to-[#E3E8E3] text-[#271F18] font-serif text-lg font-bold shadow-lg hover:from-[#A3B18A] hover:to-[#D9D9D9] transition-all cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</CustomButton>
               </div>
             </div>
           </div>
