@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Dialog } from "@/components/ui/dialog"
 // 不再使用mock hook，全部用API
 import { CustomButton } from "@/components/ui/CustomButton"
-import { AdminLayout } from "@/components/admin-layout"
+// import { AdminLayout } from "@/components/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Plus, UserPlus } from "lucide-react"
 
@@ -133,7 +133,7 @@ export default function AllCasesPage() {
   }, [totalPages, page])
 
   return (
-    <AdminLayout>
+    // <AdminLayout>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
@@ -151,7 +151,7 @@ export default function AllCasesPage() {
           <select
             value={selectedParent}
             onChange={e => { setSelectedParent(e.target.value); setPage(1); }}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allIntendedParents', '全部准父母')}</option>
             {Array.from(
@@ -169,7 +169,7 @@ export default function AllCasesPage() {
           <select
             value={selectedSurrogate}
             onChange={e => { setSelectedSurrogate(e.target.value); setPage(1); }}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allSurrogateMothers', '全部代孕母')}</option>
             {Array.from(
@@ -187,7 +187,7 @@ export default function AllCasesPage() {
           <select
             value={selectedManager}
             onChange={e => { setSelectedManager(e.target.value); setPage(1); }}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allClientManagers', '全部客户经理')}</option>
             {Array.from(
@@ -205,7 +205,7 @@ export default function AllCasesPage() {
           <select
             value={selectedStatus}
             onChange={e => { setSelectedStatus(e.target.value); setPage(1); }}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500"
+            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allStatuses', '全部状态')}</option>
             {Array.from(new Set(allCases.map(c => c.process_status).filter(Boolean))).map(status => (
@@ -222,7 +222,7 @@ export default function AllCasesPage() {
             ))}
           </select>
         </div>
-        {/* Cases Card Grid */}
+        {/* Cases Card Grid，始终有最小高度，无数据时显示占位 */}
         <div
           className="w-full"
           style={{
@@ -230,130 +230,130 @@ export default function AllCasesPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
             gap: '32px',
             alignItems: 'stretch',
+            minHeight: '400px', // 可根据实际页面调整
           }}
         >
-          {pagedCases.map((c: any) => {
-            // 状态国际化映射，必须在t可用后定义
-            // 状态映射
-            const stageMap: Record<string, string> = STATUS_ENUM.reduce((acc, cur) => {
-              acc[cur.value] = cur.label;
-              return acc;
-            }, {} as Record<string, string>);
-            const parentName = c.intended_parent?.basic_information ?? c.intended_parent?.contact_information ?? c.intended_parent?.email ?? "-";
-            const surrogateName = c.surrogate_mother?.contact_information ?? c.surrogate_mother?.basic_information ?? c.surrogate_mother?.email ?? "-";
-            const managerName = c.client_manager?.name ?? c.client_manager?.email ?? "-";
-            // 信托账户余额
-            const trustBalance = c.trust_account_balance_changes && c.trust_account_balance_changes.length > 0 && c.trust_account_balance_changes[0].balance_after !== null && c.trust_account_balance_changes[0].balance_after !== undefined
-              ? `$${Number(c.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-              : '-';
-            // 国际化状态
-            const statusText = stageMap[c.process_status] || c.process_status || "-";
-            return (
-              <div
-                key={c.id}
-                className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-visible relative"
-                style={{ overflow: 'visible', zIndex: 1 }}
-              >
-                <div className="flex items-center gap-4 mb-2">
-                  <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-sage-400 text-xl font-semibold">{String(c.id).slice(-2)}</span>
+          {pagedCases.length > 0 ? (
+            pagedCases.map((c: any) => {
+              // ...existing code...
+              const stageMap: Record<string, string> = STATUS_ENUM.reduce((acc, cur) => {
+                acc[cur.value] = cur.label;
+                return acc;
+              }, {} as Record<string, string>);
+              const parentName = c.intended_parent?.basic_information ?? c.intended_parent?.contact_information ?? c.intended_parent?.email ?? "-";
+              const surrogateName = c.surrogate_mother?.contact_information ?? c.surrogate_mother?.basic_information ?? c.surrogate_mother?.email ?? "-";
+              const managerName = c.client_manager?.name ?? c.client_manager?.email ?? "-";
+              const trustBalance = c.trust_account_balance_changes && c.trust_account_balance_changes.length > 0 && c.trust_account_balance_changes[0].balance_after !== null && c.trust_account_balance_changes[0].balance_after !== undefined
+                ? `$${Number(c.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                : '-';
+              const statusText = stageMap[c.process_status] || c.process_status || "-";
+              return (
+                <div
+                  key={c.id}
+                  className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-visible relative"
+                  style={{ overflow: 'visible', zIndex: 1 }}
+                >
+                  {/* ...existing card content... */}
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-sage-400 text-xl font-semibold">{String(c.id).slice(-2)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-lg text-sage-800 truncate">{t('caseId')}{c.id}</div>
+                      <div className="text-sage-500 text-sm truncate font-medium">
+                        {t('status')}
+                        <span
+                          className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100"
+                          onClick={() => setStatusDropdownCaseId(statusDropdownCaseId === c.id ? null : c.id)}
+                          style={{ minWidth: 80 }}
+                        >
+                          {statusText}
+                          <span className="ml-1 text-xs text-sage-400">▼</span>
+                        </span>
+                      </div>
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        {statusDropdownCaseId === c.id && (
+                          <div
+                            className="z-50 mt-2 bg-white border border-sage-200 rounded shadow-lg"
+                            style={{ minWidth: 160, position: 'absolute', left: 0, top: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
+                          >
+                            {STATUS_ENUM.map((opt) => (
+                              <div
+                                key={opt.value}
+                                className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 ${c.process_status === opt.value ? 'font-bold bg-sage-50' : ''}`}
+                                onClick={async () => {
+                                  if (statusUpdating) return;
+                                  setStatusUpdating(true);
+                                  await fetch('/api/cases-update-status', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ case_id: c.id, process_status: opt.value })
+                                  });
+                                  setStatusDropdownCaseId(null);
+                                  setStatusUpdating(false);
+                                  await fetchAllData();
+                                }}
+                              >
+                                {opt.label}
+                              </div>
+                            ))}
+                            <div
+                              className="px-4 py-2 cursor-pointer text-sage-400 hover:bg-sage-100"
+                              onClick={() => setStatusDropdownCaseId(null)}
+                            >{t('cancel')}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-lg text-sage-800 truncate">{t('caseId')}{c.id}</div>
-                    <div className="text-sage-500 text-sm truncate font-medium">
-                      {t('status')}
-                      <span
-                        className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100"
-                        onClick={() => setStatusDropdownCaseId(statusDropdownCaseId === c.id ? null : c.id)}
-                        style={{ minWidth: 80 }}
-                      >
-                        {statusText}
-                        <span className="ml-1 text-xs text-sage-400">▼</span>
+                  <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
+                      <span className="cursor-pointer text-blue-600 underline" onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}>
+                        {trustBalance}
                       </span>
                     </div>
-                    {/* 状态下拉菜单绝对定位悬浮，不挤压内容 */}
-                    <div style={{ position: 'relative', display: 'inline-block' }}>
-                      {statusDropdownCaseId === c.id && (
-                        <div
-                          className="z-50 mt-2 bg-white border border-sage-200 rounded shadow-lg"
-                          style={{ minWidth: 160, position: 'absolute', left: 0, top: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
-                        >
-                          {STATUS_ENUM.map((opt) => (
-                            <div
-                              key={opt.value}
-                              className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 ${c.process_status === opt.value ? 'font-bold bg-sage-50' : ''}`}
-                              onClick={async () => {
-                                if (statusUpdating) return;
-                                setStatusUpdating(true);
-                                await fetch('/api/cases-update-status', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ case_id: c.id, process_status: opt.value })
-                                });
-                                setStatusDropdownCaseId(null);
-                                setStatusUpdating(false);
-                                await fetchAllData();
-                              }}
-                            >
-                              {opt.label}
-                            </div>
-                          ))}
-                          <div
-                            className="px-4 py-2 cursor-pointer text-sage-400 hover:bg-sage-100"
-                            onClick={() => setStatusDropdownCaseId(null)}
-                          >{t('cancel')}</div>
-                        </div>
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-mono text-xs text-sage-400">{t('intendedParent')}：</span>
+                      <span className="text-green-600 cursor-pointer underline font-medium" onClick={() => router.push(`/admin/client-profiles/${c.intended_parent?.id}`)}>{parentName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-mono text-xs text-sage-400">{t('surrogateMother')}：</span>
+                      <span className="text-blue-600 cursor-pointer underline font-medium" onClick={() => router.push(`/admin/surrogate-profiles/${c.surrogate_mother?.id}`)}>{surrogateName}</span>
+                    </div>
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="font-mono text-xs text-sage-400">{t('clientManager')}：</span>
+                      {managerName !== "-" ? (
+                        <span className="font-medium">{managerName}</span>
+                      ) : (
+                        <span className="text-gray-400 font-medium">{t('notAssigned')}</span>
                       )}
                     </div>
                   </div>
-                </div>
-                <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
-                    <span className="cursor-pointer text-blue-600 underline" onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}>
-                      {trustBalance}
-                    </span>
+                  <hr className="my-3 border-sage-100" />
+                  <div className="flex flex-wrap gap-2 text-sm font-medium">
+                    {/* ...existing card links... */}
+                    <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/client-journey?caseId=${c.id}`)}>{t('myCases.intendedParentsJourney', 'Intended Parents Journey ')}</span> 
+                    <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/surrogacy-journey?caseId=${c.id}`)}>{t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey ')}</span>
+                    <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/client-ivf-clinic?caseId=${c.id}`)}>{t('myCases.intendedParentsIvfClinic')}</span>
+                    <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/surrogate-ivf-clinic?caseId=${c.id}`)}>{t('myCases.gestationalCarrierIvfClinic')}</span>
                   </div>
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">{t('intendedParent')}：</span>
-                    <span className="text-green-600 cursor-pointer underline font-medium" onClick={() => router.push(`/admin/client-profiles/${c.intended_parent?.id}`)}>{parentName}</span>
-                  </div>
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">{t('surrogateMother')}：</span>
-                    <span className="text-blue-600 cursor-pointer underline font-medium" onClick={() => router.push(`/admin/surrogate-profiles/${c.surrogate_mother?.id}`)}>{surrogateName}</span>
-                  </div>
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-xs text-sage-400">{t('clientManager')}：</span>
-                    {managerName !== "-" ? (
-                      <span className="font-medium">{managerName}</span>
-                    ) : (
-                      <span className="text-gray-400 font-medium">{t('notAssigned')}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
+                    {managerName === "-" && (
+                      <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer" onClick={() => { setSelectedCaseId(c.id); setShowAssignDialog(true); }}>
+                        {t('assignClientManager')}
+                      </CustomButton>
                     )}
                   </div>
                 </div>
-                <hr className="my-3 border-sage-100" />
-                <div className="flex flex-wrap gap-2 text-sm font-medium">
-                  {/* <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/journey?caseId=${c.id}`)}>{t('myCases.journey')}</span>
-                  */}
-                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/client-journey?caseId=${c.id}`)}>{t('myCases.intendedParentsJourney', 'Intended Parents Journey ')}</span> 
-                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/surrogacy-journey?caseId=${c.id}`)}>{t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey ')}</span>
-                  {/* <span className="text-purple-600 underline cursor-pointer" onClick={() => router.push(`/admin/appointments?caseId=${c.id}`)}>{t('myCases.appointments', 'APPOINTMENTS')}</span> */}
-                  {/* <span className="text-pink-600 underline cursor-pointer" onClick={() => router.push(`/admin/medication?caseId=${c.id}`)}>{t('myCases.medication', 'MEDICATION')}</span> */}
-                  <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/client-ivf-clinic?caseId=${c.id}`)}>{t('myCases.intendedParentsIvfClinic')}</span>
-                  <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/surrogate-ivf-clinic?caseId=${c.id}`)}>{t('myCases.gestationalCarrierIvfClinic')}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
-                  {managerName === "-" && (
-                    <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer" onClick={() => { setSelectedCaseId(c.id); setShowAssignDialog(true); }}>
-                      {/* <UserPlus className="w-4 h-4 mr-1" /> */}
-                      {t('assignClientManager')}
-                    </CustomButton>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="col-span-full flex items-center justify-center w-full h-full text-sage-500">
+              {t('noApplications', { defaultValue: '暂无记录' })}
+            </div>
+          )}
         </div>
 
         {/* 分页控件 */}
@@ -426,16 +426,26 @@ export default function AllCasesPage() {
               <h2 className="text-xl font-bold mb-4">{t('addNewCase')}</h2>
               <div className="mb-4">
                 <label className="block mb-2">{t('selectSurrogateMother')}</label>
-                <select className="w-full border rounded px-2 py-1" value={selectedSurrogateId ?? ""} onChange={e => setSelectedSurrogateId(Number(e.target.value))}>
+                <select className="w-full border rounded px-2 py-1 cursor-pointer" value={selectedSurrogateId ?? ""} onChange={e => setSelectedSurrogateId(Number(e.target.value))}>
                   <option value="">{t('pleaseSelect')}</option>
-                  {surrogates.map((s: any) => <option key={s.id} value={s.id}>{getFirstName(s.contact_information) || s.name}</option>)}
+                  {/* 过滤掉已有案例中的代孕母 */}
+                  {surrogates
+                    .filter((s: any) => !allCases.some((c: any) => c.surrogate_mother?.id === s.id))
+                    .map((s: any) => (
+                      <option key={s.id} value={s.id}>{getFirstName(s.contact_information) || s.name}</option>
+                    ))}
                 </select>
               </div>
               <div className="mb-4">
                 <label className="block mb-2">{t('selectIntendedParent')}</label>
-                <select className="w-full border rounded px-2 py-1" value={selectedParentId ?? ""} onChange={e => setSelectedParentId(Number(e.target.value))}>
+                <select className="w-full border rounded px-2 py-1 cursor-pointer" value={selectedParentId ?? ""} onChange={e => setSelectedParentId(Number(e.target.value))}>
                   <option value="">{t('pleaseSelect')}</option>
-                  {clients.map((p: any) => <option key={p.id} value={p.id}>{getFirstName(p.basic_information) || p.name}</option>)}
+                  {/* 过滤掉已有案例中的准父母 */}
+                  {clients
+                    .filter((p: any) => !allCases.some((c: any) => c.intended_parent?.id === p.id))
+                    .map((p: any) => (
+                      <option key={p.id} value={p.id}>{getFirstName(p.basic_information) || p.name}</option>
+                    ))}
                 </select>
               </div>
               <div className="flex justify-end gap-2">
@@ -468,7 +478,7 @@ export default function AllCasesPage() {
               <h2 className="text-xl font-bold mb-4">{t('assignClientManager')}</h2>
               <div className="mb-4">
                 <label className="block mb-2">{t('selectClientManager')}</label>
-                <select className="w-full border rounded px-2 py-1" value={selectedManagerId ?? ""} onChange={e => setSelectedManagerId(Number(e.target.value))}>
+                <select className="w-full border rounded px-2 py-1 cursor-pointer" value={selectedManagerId ?? ""} onChange={e => setSelectedManagerId(Number(e.target.value))}>
                   <option value="">{t('pleaseSelect')}</option>
                   {managers.map((m: any) => <option key={m.id} value={m.id}>{m.name || m.email}</option>)}
                 </select>
@@ -494,6 +504,6 @@ export default function AllCasesPage() {
           </div>
         )}
       </div>
-    </AdminLayout>
+    // </AdminLayout>
   )
 }

@@ -1,9 +1,9 @@
 "use client"
-import React, { useState, Suspense } from 'react'
+import React, { useState, Suspense, useMemo, useCallback } from 'react'
 import { useEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { CustomButton } from '../../../components/ui/CustomButton'
-import ManagerLayout from '@/components/manager-layout';
+// import ManagerLayout from '@/components/manager-layout';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -46,9 +46,16 @@ function IVFClinicContent() {
   const [embryoAddActive, setEmbryoAddActive] = useState(false);
   const [embryoAddValue, setEmbryoAddValue] = useState({ grade: '', id: '', status: '' });
 
+  // GC sections state
+  const [newSurrogateMedicalRecord, setNewSurrogateMedicalRecord] = useState({ date: '', category: '', summary: '', fileUrl: '' });
+  const [newSurrogateScreening, setNewSurrogateScreening] = useState({ date: '', category: '', name: '', result: '', fileUrl: '' });
+  const [newSurrogateEarlyUS, setNewSurrogateEarlyUS] = useState({ date: '', category: '', name: '', result: '', fileUrl: '' });
+  const [deliveryBoard, setDeliveryBoard] = useState({ obHospital: '', obDoctor: '', pboStatus: '', pboFileUrl: '', pboRemark: '' });
+  const [newPrenatalRecord, setNewPrenatalRecord] = useState({ status: '', date: '', name: '', remark: '', fileUrl: '' });
+
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/ivf-clinic-get?caseId=${caseId}`)
+    fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=surrogate_mother`)
       .then(res => res.json())
       .then(data => {
         setClinics(data.ivf_clinics || []);
@@ -56,12 +63,13 @@ function IVFClinicContent() {
       .finally(() => setLoading(false));
   }, [caseId]);
 
-  // 获取各类型数据
-  const clinicOverview = clinics.find(c => c.type === 'ClinicOverview')?.data;
-  const embryoJourneyData = clinics.find(c => c.type === 'EmbryoJourney')?.data;
-  const surrogateAppointmentsData = clinics.find(c => c.type === 'SurrogateAppointments')?.data;
-  const medicationTrackerData = clinics.find(c => c.type === 'MedicationTracker')?.data;
-  const doctorsNotesData = clinics.find(c => c.type === 'DoctorNotes')?.data;
+  // 获取各类型数据（memoized）
+  const clinicOverview = useMemo(() => clinics.find(c => c.type === 'ClinicOverview')?.data, [clinics]);
+  const embryoJourneyData = useMemo(() => clinics.find(c => c.type === 'EmbryoJourney')?.data, [clinics]);
+  const surrogateMedicalRecordsData = useMemo(() => clinics.find(c => c.type === 'SurrogateMedicalRecords')?.data, [clinics]);
+  const surrogateScreeningData = useMemo(() => clinics.find(c => c.type === 'SurrogateMedicalScreening')?.data, [clinics]);
+  const surrogateEarlyUSData = useMemo(() => clinics.find(c => c.type === 'SurrogatePregnancyConfirmation')?.data, [clinics]);
+  const prenatalDeliveryData = useMemo(() => clinics.find(c => c.type === 'SurrogatePrenatalDelivery')?.data, [clinics]);
 
   // 初始化编辑数据
   const initEditData = () => {
@@ -96,12 +104,13 @@ function IVFClinicContent() {
         body: JSON.stringify({
           caseId: caseId,
           type: 'ClinicOverview',
-          data: editData
+          data: editData,
+          aboutRole: 'surrogate_mother'
         })
       });
       if (response.ok) {
         // 重新获取数据
-        const updatedResponse = await fetch(`/api/ivf-clinic-get?caseId=${caseId}`);
+        const updatedResponse = await fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=surrogate_mother`);
         const updatedData = await updatedResponse.json();
         setClinics(updatedData.ivf_clinics || []);
         setEditingClinic(false);
@@ -119,45 +128,37 @@ function IVFClinicContent() {
     initEditData(); // 重置数据
   };
 
-  // 新增功能
-  // EmbryoJourney合并数据后再提交
-  const handleAdd = async (type: string, data: any) => {
+  // 新增功能（memoized）
+  const handleAdd = useCallback(async (type: string, data: any) => {
     setLoading(true);
     let mergedData = data;
     let apiEndpoint = '/api/ivf-clinic-create';
     let apiMethod = 'POST';
     
-    // 检查是否已存在该类型的数据
     const existingRecord = clinics.find(c => c.type === type);
     
     if (existingRecord) {
-      // 如果已存在，使用更新API
       apiEndpoint = '/api/ivf-clinic-update';
-      
       if (type === 'EmbryoJourney') {
-        // 获取当前数据
         const current = existingRecord.data || { timeline: [], embryos: [] };
-        // 合并 timeline
         if (data.timeline && Array.isArray(data.timeline)) {
           mergedData.timeline = [...(current.timeline || []), ...data.timeline.filter((e: { label?: string; date?: string }) => e.label || e.date)];
         } else {
           mergedData.timeline = current.timeline || [];
         }
-        // 合并 embryos
         if (data.embryos && Array.isArray(data.embryos)) {
           mergedData.embryos = [...(current.embryos || []), ...data.embryos.filter((e: { grade?: string; id?: string; status?: string }) => e.grade || e.id || e.status)];
         } else {
           mergedData.embryos = current.embryos || [];
         }
       } else {
-        // 对于其他类型（SurrogateAppointments, MedicationTracker, DoctorNotes），直接使用传入的合并数据
         mergedData = data;
       }
     }
     
     const requestBody = apiEndpoint === '/api/ivf-clinic-update' 
-      ? { caseId: caseId, type, data: mergedData }
-      : { ivf_clinic: { type, data: mergedData, case_cases: caseId } };
+      ? { caseId: caseId, type, data: mergedData, aboutRole: 'surrogate_mother' }
+      : { ivf_clinic: { type, data: mergedData, case_cases: caseId }, aboutRole: 'surrogate_mother' };
     
     const res = await fetch(apiEndpoint, {
       method: apiMethod,
@@ -167,7 +168,7 @@ function IVFClinicContent() {
     const result = await res.json();
     if (result.ivf_clinic || res.ok) {
       // 成功后重新拉取接口数据，保证 clinics 最新
-      const fetchRes = await fetch(`/api/ivf-clinic-get?caseId=${caseId}`);
+      const fetchRes = await fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=surrogate_mother`);
       const fetchData = await fetchRes.json();
       setClinics(fetchData.ivf_clinics || []);
       setFormData({
@@ -182,7 +183,20 @@ function IVFClinicContent() {
       });
     }
     setLoading(false);
-  };
+  }, [clinics, caseId]);
+
+  // 文件上传（单文件） memoized
+  const uploadSingleFile = useCallback(async (file: File): Promise<string> => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch('/api/upload/form', { method: 'POST', body: form });
+    const data = await res.json();
+    if (res.ok && data?.data) {
+      const url = Array.isArray(data.data) ? data.data[0]?.url : data.data?.url;
+      return url || '';
+    }
+    return '';
+  }, []);
 
   return (
     <div className="p-8 min-h-screen bg-main-bg">
@@ -198,573 +212,252 @@ function IVFClinicContent() {
         </CustomButton>
       <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
       <p className="text-sage-800 mb-8 font-medium">{t('ivfClinic.description')}</p>
-      {/* Clinic Overview 折叠卡片 */}
-      <div className="rounded-xl bg-white p-0 text-sage-800 mb-6">
-        <button
-          className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer"
-          style={{cursor:'pointer'}}
-          onClick={() => setOpen(open === 'Clinic Overview' ? null : 'Clinic Overview')}
-        >
-          <span>{t('ivfClinic.clinicOverview')}</span>
-          {/* <span className="text-xs">{clinicOverview?.location || ''}</span> */}
-          <span className={`ml-2 transition-transform ${open === 'Clinic Overview' ? 'rotate-90' : ''}`}>▼</span>
+      {/* Clinic Overview 已移除 */}
+      {/* Embryo Journey 已移除 */}
+      {/* 代母医疗记录与心理评估 */}
+  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Medical Records' ? null : 'Surrogate Medical Records')}>
+          <span>{t('ivfClinic.surrogateMedicalRecords','代母医疗记录与心理评估')}</span>
+          <span className={`text-xl transition-transform ${open === 'Surrogate Medical Records' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
-        {open === 'Clinic Overview' && clinicOverview && !editingClinic && (
+        {open === 'Surrogate Medical Records' && (
           <div className="px-6 py-4">
-            {/* 顶部医院名称和地址，字体统一，简洁分布 */}
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold text-[#271F18]">{(clinicOverview.location || '').split(',')[0] || ''}</span>
-              <span className="text-lg font-semibold text-[#271F18]">{(clinicOverview.location || '').split(',')[1] || ''}</span>
-            </div>
-            {/* 医生和协调员卡片，灰色背景，内容严格按设计图，不显示地址 */}
-            <div className="flex gap-4">
-              {/* Doctor */}
-              <div className="flex-1 bg-[#F5F4ED] rounded-lg p-6 flex gap-4 items-center cursor-pointer" onClick={() => setEditingClinic(true)}>
-                <Avatar className="w-12 h-12 flex-shrink-0">
-                  <AvatarFallback className="bg-[#D9D9D9] text-[#271F18] text-lg font-medium">{clinicOverview?.doctor?.name?.slice(0,2) || 'JD'}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="text-lg font-semibold text-[#271F18] mb-1">{clinicOverview?.doctor?.name}</div>
-                  <div className="text-sm text-sage-600 mb-1">{clinicOverview?.doctor?.role}</div>
-                  <div className="text-sm text-sage-800 mb-1">{clinicOverview?.doctor?.email}</div>
-                  <div className="text-sm text-sage-800 mb-1">{clinicOverview?.doctor?.phone}</div>
-                  <div className="text-sm text-sage-800 leading-relaxed">{clinicOverview?.doctor?.desc}</div>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-sage-800">
+                <thead className="bg-[#F8F9FA] border-b">
+                  <tr>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.date','时间')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.category','类别')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.summary','简述')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.file','文件')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(surrogateMedicalRecordsData) && surrogateMedicalRecordsData.map((r:any, i:number) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                      <td className="py-3 px-6">{r.date}</td>
+                      <td className="py-3 px-6">{r.category}</td>
+                      <td className="py-3 px-6">{r.summary}</td>
+                      <td className="py-3 px-6">{r.fileUrl ? <a className="text-[#C2A87A] underline" href={r.fileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看')}</a> : '-'}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="py-3 px-6"><input type="date" className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.date','时间')} value={newSurrogateMedicalRecord.date} onChange={e=>setNewSurrogateMedicalRecord({ ...newSurrogateMedicalRecord, date: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.category','类别')} value={newSurrogateMedicalRecord.category} onChange={e=>setNewSurrogateMedicalRecord({ ...newSurrogateMedicalRecord, category: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.summary','简述')} value={newSurrogateMedicalRecord.summary} onChange={e=>setNewSurrogateMedicalRecord({ ...newSurrogateMedicalRecord, summary: e.target.value })} /></td>
+                    <td className="py-3 px-6">
+                      <input type="file" onChange={async (e)=>{ const f=e.target.files?.[0]; if(f){ const url=await uploadSingleFile(f); setNewSurrogateMedicalRecord(prev=>({ ...prev, fileUrl: url })); } }} />
+                      <div className="mt-2">
+                        <CustomButton className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded" onClick={() => {
+                          const list = Array.isArray(surrogateMedicalRecordsData) ? surrogateMedicalRecordsData : [];
+                          if (newSurrogateMedicalRecord.date || newSurrogateMedicalRecord.category || newSurrogateMedicalRecord.fileUrl) {
+                            handleAdd('SurrogateMedicalRecords', [...list, newSurrogateMedicalRecord]);
+                            setNewSurrogateMedicalRecord({ date: '', category: '', summary: '', fileUrl: '' });
+                          }
+                        }}>{t('ivfClinic.add','新增')}</CustomButton>
                 </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
               </div>
-              {/* Coordinator */}
-              <div className="flex-1 bg-[#F5F4ED] rounded-lg p-6 flex gap-4 items-center cursor-pointer" onClick={() => setEditingClinic(true)}>
-                <Avatar className="w-12 h-12 flex-shrink-0">
-                  <AvatarFallback className="bg-[#D9D9D9] text-[#271F18] text-lg font-medium">{clinicOverview?.coordinator?.name?.slice(0,2) || 'JD'}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="text-lg font-semibold text-[#271F18] mb-1">{clinicOverview?.coordinator?.name}</div>
-                  <div className="text-sm text-sage-600 mb-1">{clinicOverview?.coordinator?.role}</div>
-                  <div className="text-sm text-sage-800 mb-1">{clinicOverview?.coordinator?.email}</div>
-                  <div className="text-sm text-sage-800 mb-1">{clinicOverview?.coordinator?.phone}</div>
-                  <div className="text-sm text-sage-800 leading-relaxed">{clinicOverview?.coordinator?.desc}</div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
-        {/* 编辑模式 */}
-        {open === 'Clinic Overview' && clinicOverview && editingClinic && (
+      </div>
+
+      {/* 代母医学筛查 */}
+  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Screening' ? null : 'Surrogate Screening')}>
+          <span>{t('ivfClinic.surrogateScreening','代母医学筛查')}</span>
+          <span className={`text-xl transition-transform ${open === 'Surrogate Screening' ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        {open === 'Surrogate Screening' && (
           <div className="px-6 py-4">
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="font-serif text-lg text-[#271F18] font-medium">{t('ivfClinic.editClinicOverview')}</h4>
-              <div className="flex gap-2">
-                <CustomButton 
-                  className="px-4 py-2 text-sm cursor-pointer border border-[#C2A87A] bg-white text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white" 
-                  onClick={handleCancelEdit}
-                >
-                  {t('ivfClinic.cancel')}
-                </CustomButton>
-                <CustomButton 
-                  className="px-4 py-2 bg-[#C2A87A] text-white hover:bg-[#a88a5c] text-sm cursor-pointer" 
-                  onClick={handleSaveEdit}
-                  disabled={loading}
-                >
-                  {loading ? t('ivfClinic.saving') : t('ivfClinic.save')}
-                </CustomButton>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-sage-800">
+                <thead className="bg-[#F8F9FA] border-b">
+                  <tr>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.date','时间')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.category','类别')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.name','名称')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.result','结果')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.file','文件')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(surrogateScreeningData) && surrogateScreeningData.map((r:any, i:number) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                      <td className="py-3 px-6">{r.date}</td>
+                      <td className="py-3 px-6">{r.category}</td>
+                      <td className="py-3 px-6">{r.name}</td>
+                      <td className="py-3 px-6">{r.result}</td>
+                      <td className="py-3 px-6">{r.fileUrl ? <a className="text-[#C2A87A] underline" href={r.fileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看')}</a> : '-'}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="py-3 px-6"><input type="date" className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.date','时间')} value={newSurrogateScreening.date} onChange={e=>setNewSurrogateScreening({ ...newSurrogateScreening, date: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.category','类别')} value={newSurrogateScreening.category} onChange={e=>setNewSurrogateScreening({ ...newSurrogateScreening, category: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.name','名称')} value={newSurrogateScreening.name} onChange={e=>setNewSurrogateScreening({ ...newSurrogateScreening, name: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.result','结果')} value={newSurrogateScreening.result} onChange={e=>setNewSurrogateScreening({ ...newSurrogateScreening, result: e.target.value })} /></td>
+                    <td className="py-3 px-6">
+                      <input type="file" onChange={async (e)=>{ const f=e.target.files?.[0]; if(f){ const url=await uploadSingleFile(f); setNewSurrogateScreening(prev=>({ ...prev, fileUrl: url })); } }} />
+                      <div className="mt-2">
+                        <CustomButton className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded" onClick={() => {
+                          const list = Array.isArray(surrogateScreeningData) ? surrogateScreeningData : [];
+                          if (newSurrogateScreening.date || newSurrogateScreening.name || newSurrogateScreening.fileUrl) {
+                            handleAdd('SurrogateMedicalScreening', [...list, newSurrogateScreening]);
+                            setNewSurrogateScreening({ date: '', category: '', name: '', result: '', fileUrl: '' });
+                          }
+                        }}>{t('ivfClinic.add','新增')}</CustomButton>
+                </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
               </div>
+          </div>
+        )}
+      </div>
+
+      {/* 代母怀孕确认与早期B超 */}
+  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Early Ultrasound' ? null : 'Surrogate Early Ultrasound')}>
+          <span>{t('ivfClinic.surrogateEarlyUS','代母怀孕确认与早期B超')}</span>
+          <span className={`text-xl transition-transform ${open === 'Surrogate Early Ultrasound' ? 'rotate-90' : ''}`}>&gt;</span>
+        </button>
+        {open === 'Surrogate Early Ultrasound' && (
+          <div className="px-6 py-4">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-sage-800">
+                <thead className="bg-[#F8F9FA] border-b">
+                  <tr>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.date','时间')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.category','类别')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.name','名称')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.result','结果')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.file','文件')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(surrogateEarlyUSData) && surrogateEarlyUSData.map((r:any, i:number) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                      <td className="py-3 px-6">{r.date}</td>
+                      <td className="py-3 px-6">{r.category}</td>
+                      <td className="py-3 px-6">{r.name}</td>
+                      <td className="py-3 px-6">{r.result}</td>
+                      <td className="py-3 px-6">{r.fileUrl ? <a className="text-[#C2A87A] underline" href={r.fileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看')}</a> : '-'}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="py-3 px-6"><input type="date" className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.date','时间')} value={newSurrogateEarlyUS.date} onChange={e=>setNewSurrogateEarlyUS({ ...newSurrogateEarlyUS, date: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.category','类别')} value={newSurrogateEarlyUS.category} onChange={e=>setNewSurrogateEarlyUS({ ...newSurrogateEarlyUS, category: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.name','名称（第X周）')} value={newSurrogateEarlyUS.name} onChange={e=>setNewSurrogateEarlyUS({ ...newSurrogateEarlyUS, name: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.result','结果（一句话）')} value={newSurrogateEarlyUS.result} onChange={e=>setNewSurrogateEarlyUS({ ...newSurrogateEarlyUS, result: e.target.value })} /></td>
+                    <td className="py-3 px-6">
+                      <input type="file" onChange={async (e)=>{ const f=e.target.files?.[0]; if(f){ const url=await uploadSingleFile(f); setNewSurrogateEarlyUS(prev=>({ ...prev, fileUrl: url })); } }} />
+                      <div className="mt-2">
+                        <CustomButton className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded" onClick={() => {
+                          const list = Array.isArray(surrogateEarlyUSData) ? surrogateEarlyUSData : [];
+                          if (newSurrogateEarlyUS.date || newSurrogateEarlyUS.name || newSurrogateEarlyUS.fileUrl) {
+                            handleAdd('SurrogatePregnancyConfirmation', [...list, newSurrogateEarlyUS]);
+                            setNewSurrogateEarlyUS({ date: '', category: '', name: '', result: '', fileUrl: '' });
+                          }
+                        }}>{t('ivfClinic.add','新增')}</CustomButton>
+                  </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+                  </div>
+                </div>
+        )}
             </div>
             
-            {/* 医生和协调员信息编辑 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 医生信息编辑 */}
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h5 className="font-serif mb-4 text-md text-[#271F18] font-medium">{t('ivfClinic.doctorInfo')}</h5>
-                <div className="space-y-3">
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.doctorName')}
-                    value={editData.doctor.name} 
-                    onChange={e => setEditData({ ...editData, doctor: { ...editData.doctor, name: e.target.value } })} 
-                  />
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.doctorRole')}
-                    value={editData.doctor.role} 
-                    onChange={e => setEditData({ ...editData, doctor: { ...editData.doctor, role: e.target.value } })} 
-                  />
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.doctorEmail')}
-                    value={editData.doctor.email} 
-                    onChange={e => setEditData({ ...editData, doctor: { ...editData.doctor, email: e.target.value } })} 
-                  />
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.doctorPhone')}
-                    value={editData.doctor.phone} 
-                    onChange={e => setEditData({ ...editData, doctor: { ...editData.doctor, phone: e.target.value } })} 
-                  />
-                  <textarea 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent resize-none" 
-                    placeholder={t('ivfClinic.doctorDesc')}
-                    rows={3} 
-                    value={editData.doctor.desc} 
-                    onChange={e => setEditData({ ...editData, doctor: { ...editData.doctor, desc: e.target.value } })} 
-                  />
-                </div>
-              </div>
-
-              {/* 协调员信息编辑 */}
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h5 className="font-serif mb-4 text-md text-[#271F18] font-medium">{t('ivfClinic.coordinatorInfo')}</h5>
-                <div className="space-y-3">
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.coordinatorName')}
-                    value={editData.coordinator.name} 
-                    onChange={e => setEditData({ ...editData, coordinator: { ...editData.coordinator, name: e.target.value } })} 
-                  />
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.coordinatorRole')}
-                    value={editData.coordinator.role} 
-                    onChange={e => setEditData({ ...editData, coordinator: { ...editData.coordinator, role: e.target.value } })} 
-                  />
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.coordinatorEmail')}
-                    value={editData.coordinator.email} 
-                    onChange={e => setEditData({ ...editData, coordinator: { ...editData.coordinator, email: e.target.value } })} 
-                  />
-                  <input 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                    placeholder={t('ivfClinic.coordinatorPhone')}
-                    value={editData.coordinator.phone} 
-                    onChange={e => setEditData({ ...editData, coordinator: { ...editData.coordinator, phone: e.target.value } })} 
-                  />
-                  <textarea 
-                    className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent resize-none" 
-                    placeholder={t('ivfClinic.coordinatorDesc')}
-                    rows={3} 
-                    value={editData.coordinator.desc} 
-                    onChange={e => setEditData({ ...editData, coordinator: { ...editData.coordinator, desc: e.target.value } })} 
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* 诊所地址编辑 */}
-            <div className="mt-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h5 className="font-serif mb-4 text-md text-[#271F18] font-medium">{t('ivfClinic.clinicAddress')}</h5>
-                <input 
-                  className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                  placeholder={t('ivfClinic.enterClinicAddress')}
-                  value={editData.location} 
-                  onChange={e => setEditData({ ...editData, location: e.target.value })} 
-                />
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 仅在没有数据时显示新增表单 */}
-        {open === 'Clinic Overview' && !clinicOverview && (
-          <div className="px-6 py-4">
-            <h4 className="font-serif mb-6 text-lg text-[#271F18]">{t('ivfClinic.addClinicOverview')}</h4>
-            {/* 诊所地址部分（移到最上面） */}
-            <div className="mb-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h5 className="font-serif mb-4 text-md text-[#271F18] font-medium">{t('ivfClinic.clinicAddress')}</h5>
-                <input 
-                  className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" 
-                  placeholder={t('ivfClinic.clinicAddressHint')}
-                  value={formData.location || ''} 
-                  onChange={e => setFormData({ ...formData, location: e.target.value })} 
-                />
-              </div>
-            </div>
-            {/* 医生和协调员信息 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 医生信息部分 */}
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h5 className="font-serif mb-4 text-md text-[#271F18] font-medium">{t('ivfClinic.doctorInfo')}</h5>
-                <div className="space-y-3">
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.doctorName')} value={formData.doctor.name} onChange={e => setFormData({ ...formData, doctor: { ...formData.doctor, name: e.target.value } })} />
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.doctorRole')} value={formData.doctor.role} onChange={e => setFormData({ ...formData, doctor: { ...formData.doctor, role: e.target.value } })} />
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.doctorEmail')} value={formData.doctor.email} onChange={e => setFormData({ ...formData, doctor: { ...formData.doctor, email: e.target.value } })} />
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.doctorPhone')} value={formData.doctor.phone} onChange={e => setFormData({ ...formData, doctor: { ...formData.doctor, phone: e.target.value } })} />
-                  <textarea className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent resize-none" placeholder={t('ivfClinic.doctorDesc')} rows={3} value={formData.doctor.desc} onChange={e => setFormData({ ...formData, doctor: { ...formData.doctor, desc: e.target.value } })}></textarea>
-                </div>
-              </div>
-              {/* 协调员信息部分 */}
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h5 className="font-serif mb-4 text-md text-[#271F18] font-medium">{t('ivfClinic.coordinatorInfo')}</h5>
-                <div className="space-y-3">
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.coordinatorName')} value={formData.coordinator.name} onChange={e => setFormData({ ...formData, coordinator: { ...formData.coordinator, name: e.target.value } })} />
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.coordinatorRole')} value={formData.coordinator.role} onChange={e => setFormData({ ...formData, coordinator: { ...formData.coordinator, role: e.target.value } })} />
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.coordinatorEmail')} value={formData.coordinator.email} onChange={e => setFormData({ ...formData, coordinator: { ...formData.coordinator, email: e.target.value } })} />
-                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent" placeholder={t('ivfClinic.coordinatorPhone')} value={formData.coordinator.phone} onChange={e => setFormData({ ...formData, coordinator: { ...formData.coordinator, phone: e.target.value } })} />
-                  <textarea className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent resize-none" placeholder={t('ivfClinic.coordinatorDesc')} rows={3} value={formData.coordinator.desc} onChange={e => setFormData({ ...formData, coordinator: { ...formData.coordinator, desc: e.target.value } })}></textarea>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 text-center">
-                <CustomButton 
-                  className="px-8 py-3 bg-transparent text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white border border-[#C2A87A] transition rounded-lg font-medium cursor-pointer" 
-                  onClick={() => handleAdd('ClinicOverview', formData)}
-                >
-                  {t('ivfClinic.addClinicOverview')}
-                </CustomButton>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* Embryo Journey 折叠卡片 */}
-  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-  <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Embryo Journey' ? null : 'Embryo Journey')}>
-          <span>{t('ivfClinic.embryoJourney')}</span>
-          <span className={`text-xl transition-transform ${open === 'Embryo Journey' ? 'rotate-90' : ''}`}>&gt;</span>
+      {/* 代母产检与生产安排 */}
+      <div className="rounded-xl bg-white p-0 text-sage-800 mb-8">
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Prenatal & Delivery' ? null : 'Surrogate Prenatal & Delivery')}>
+          <span>{t('ivfClinic.surrogatePrenatalDelivery','代母产检与生产安排')}</span>
+          <span className={`text-xl transition-transform ${open === 'Surrogate Prenatal & Delivery' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
-        {open === 'Embryo Journey' && (
-          <div className="px-6 py-4">
-            {/* 显示已有的 Embryo Journey 数据 */}
-            {embryoJourneyData && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* 左侧时间线展示 */}
-                <div className="relative">
-                  <h3 className="text-lg font-semibold mb-4 text-sage-800">{t('ivfClinic.timeline')}</h3>
-                  <div className="relative pl-8">
-                    {/* 竖线 */}
-                    <div className="absolute left-4 top-0 bottom-0 w-px bg-[#C2A87A]"></div>
-                    {embryoJourneyData?.timeline?.map((item: any, i: number) => (
-                      <React.Fragment key={i}>
-                        <div className="relative mb-6 last:mb-0 flex items-start">
-                          {/* 圆点 */}
-                          <div className="absolute left-0 w-2 h-2 rounded-full bg-white border-2 border-[#C2A87A] mt-2"></div>
-                          <div className="ml-6">
-                            <div className="text-base font-medium text-sage-800 mb-1">{item.label}</div>
-                            <div className="text-sm text-sage-600">{item.date}</div>
-                          </div>
-                        </div>
-                        {/* 只在最后一条下方显示加号和输入区域，且左对齐 */}
-                        {i === embryoJourneyData.timeline.length - 1 && (
-                          timelineAddIndex === i ? (
-                            <div className="flex gap-2 items-center mb-6 ml-6">
-                              <input
-                                className="border border-gray-200 rounded-lg px-2 py-1 w-32 focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent"
-                                placeholder={t('ivfClinic.eventName')}
-                                value={timelineAddValue.label}
-                                onChange={e => setTimelineAddValue({ ...timelineAddValue, label: e.target.value })}
-                              />
-                              <input
-                                className="border border-gray-200 rounded-lg px-2 py-1 w-32 focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent"
-                                placeholder={t('ivfClinic.eventDate')}
-                                value={timelineAddValue.date}
-                                onChange={e => setTimelineAddValue({ ...timelineAddValue, date: e.target.value })}
-                              />
-                                <CustomButton
-                                  className="px-3 py-1 bg-transparent text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white border border-[#C2A87A] text-xs rounded transition"
-                                  onClick={async () => {
-                                    if (timelineAddValue.label || timelineAddValue.date) {
-                                      await handleAdd('EmbryoJourney', { timeline: [timelineAddValue], embryos: [] });
-                                      setTimelineAddValue({ label: '', date: '' });
-                                      setTimelineAddIndex(null);
-                                    }
-                                  }}
-                                >{t('ivfClinic.save')}</CustomButton>
-                                <CustomButton
-                                  className="px-3 py-1 bg-transparent text-[#C2A87A] hover:bg-[#C2A87A] hover:text-white border border-[#C2A87A] text-xs rounded transition"
-                                  onClick={() => {
-                                    setTimelineAddValue({ label: '', date: '' });
-                                    setTimelineAddIndex(null);
-                                  }}
-                                >{t('ivfClinic.cancel')}</CustomButton>
-                            </div>
-                          ) : (
-                            <div className="ml-6 mb-6">
-                              <button
-                                className="text-[#C2A87A] text-lg px-2 py-0 hover:bg-sage-50 rounded-full cursor-pointer"
-                                onClick={() => {
-                                  setTimelineAddIndex(i);
-                                  setTimelineAddValue({ label: '', date: '' });
-                                }}
-                                title={t('ivfClinic.addTimelineEvent')}
-                                style={{cursor:'pointer'}}
-                              >＋</button>
-                            </div>
-                          )
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* 右侧胚胎表格展示 */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 text-sage-800">{t('ivfClinic.embryos')}</h3>
-                  <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <table className="w-full text-sage-800">
-                      <thead className="bg-[#F8F9FA] border-b">
-                        <tr>
-                          <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.grade')}</th>
-                          <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.id')}</th>
-                          <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.status')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {embryoJourneyData?.embryos?.map((e: any, i: number) => (
-                          <tr key={i} className="border-b border-gray-100 last:border-b-0">
-                            <td className="py-3 px-6 text-base font-medium">{e.grade}</td>
-                            <td className="py-3 px-6 text-base font-medium">{e.id}</td>
-                            <td className="py-3 px-6 text-base font-medium">{e.status}</td>
-                          </tr>
-                        ))}
-                        {/* 表格最后一行下方加号和输入区，左对齐 */}
-                        <tr>
-                          <td colSpan={3} className="pt-2 pb-4 px-6">
-                            {embryoAddActive ? (
-                              <div className="flex gap-2 items-center">
-                                <input
-                                  className="border border-gray-200 rounded-lg px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent"
-                                  placeholder={t('ivfClinic.grade')}
-                                  value={embryoAddValue.grade}
-                                  onChange={e => setEmbryoAddValue({ ...embryoAddValue, grade: e.target.value })}
-                                />
-                                <input
-                                  className="border border-gray-200 rounded-lg px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent"
-                                  placeholder={t('ivfClinic.id')}
-                                  value={embryoAddValue.id}
-                                  onChange={e => setEmbryoAddValue({ ...embryoAddValue, id: e.target.value })}
-                                />
-                                <input
-                                  className="border border-gray-200 rounded-lg px-2 py-1 w-24 focus:outline-none focus:ring-2 focus:ring-[#C2A87A] focus:border-transparent"
-                                  placeholder={t('ivfClinic.status')}
-                                  value={embryoAddValue.status}
-                                  onChange={e => setEmbryoAddValue({ ...embryoAddValue, status: e.target.value })}
-                                />
-                                <CustomButton
-                                  className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded"
-                                  onClick={async () => {
-                                    if (embryoAddValue.grade || embryoAddValue.id || embryoAddValue.status) {
-                                      await handleAdd('EmbryoJourney', { timeline: [], embryos: [embryoAddValue] });
-                                      setEmbryoAddValue({ grade: '', id: '', status: '' });
-                                      setEmbryoAddActive(false);
-                                    }
-                                  }}
-                                >{t('ivfClinic.save')}</CustomButton>
-                                <CustomButton
-                                  className="px-3 py-1 text-xs rounded"
-                                  onClick={() => {
-                                    setEmbryoAddValue({ grade: '', id: '', status: '' });
-                                    setEmbryoAddActive(false);
-                                  }}
-                                >{t('ivfClinic.cancel')}</CustomButton>
-                              </div>
-                            ) : (
-                              <div>
-                                <button
-                                  className="text-[#C2A87A] text-lg px-2 py-0 hover:bg-sage-50 rounded-full cursor-pointer"
-                                  onClick={() => {
-                                    setEmbryoAddActive(true);
-                                    setEmbryoAddValue({ grade: '', id: '', status: '' });
-                                  }}
-                                  title={t('ivfClinic.addEmbryoInfo')}
-                                  style={{cursor:'pointer'}}
-                                >＋</button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+        {open === 'Surrogate Prenatal & Delivery' && (
+          <div className="px-6 py-4 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-[#F5F4ED] rounded-lg p-4">
+                <div className="text-sm text-sage-600 mb-2">{t('ivfClinic.obHospital','生产医院')}</div>
+                <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.obHospital','生产医院')} value={deliveryBoard.obHospital} onChange={e=>setDeliveryBoard({...deliveryBoard, obHospital: e.target.value})} />
+                <div className="text-sm text-sage-600 mt-3 mb-2">{t('ivfClinic.obDoctor','生产医生')}</div>
+                <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.obDoctor','生产医生')} value={deliveryBoard.obDoctor} onChange={e=>setDeliveryBoard({...deliveryBoard, obDoctor: e.target.value})} />
               </div>
-            )}
-
-            {/* 新增胚胎旅程表单 - 左右分区独立添加 */}
-            {/* 已移除右侧批量新增区域，交互已集成到表格下方加号 */}
-          </div>
-        )}
-      </div>
-      {/* Surrogate Appointments 折叠卡片 */}
-  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-  <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Appointments' ? null : 'Surrogate Appointments')}>
-          <span>{t('ivfClinic.surrogateAppointments')}</span>
-          <span className={`text-xl transition-transform ${open === 'Surrogate Appointments' ? 'rotate-90' : ''}`}>&gt;</span>
-        </button>
-        {open === 'Surrogate Appointments' && (
-          <div className="px-6 py-4">
-            <div className="w-full">
-              <div className="grid grid-cols-6 border-b border-[#C2A87A] bg-white">
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.date')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.type')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.doctor')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.medication')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.instructions')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800"></div>
-              </div>
-              {/* 数据区 */}
-              {Array.isArray(surrogateAppointmentsData) && surrogateAppointmentsData.map((a: any, i: number) => (
-                <div key={i} className="grid grid-cols-6 border-b border-[#F0E6D6] bg-white">
-                  <div className="py-2 px-6 text-center text-sage-800">{a.date}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{a.type}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{a.doctor}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{a.medication}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">
-                    <ul className="list-disc pl-4 text-sm inline-block text-left">
-                      {a.instructions?.map((ins: string, idx: number) => <li key={idx}>{ins}</li>)}
-                    </ul>
+              <div className="bg-[#F5F4ED] rounded-lg p-4 md:col-span-2">
+                <div className="text-sm text-sage-600 mb-2">{t('ivfClinic.pboProgress','PBO进程')}</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                  <select className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" value={deliveryBoard.pboStatus} onChange={e=>setDeliveryBoard({...deliveryBoard, pboStatus: e.target.value})}>
+                    <option value="">{t('ivfClinic.select','请选择')}</option>
+                    <option value="draft">{t('ivfClinic.pboDraft','已起草')}</option>
+                    <option value="submitted">{t('ivfClinic.pboSubmitted','已递交')}</option>
+                    <option value="completed">{t('ivfClinic.pboCompleted','已完成')}</option>
+                  </select>
+                  <div>
+                    <input type="file" onChange={async (e)=>{ const f=e.target.files?.[0]; if(f){ const url=await uploadSingleFile(f); setDeliveryBoard(prev=>({ ...prev, pboFileUrl: url })); } }} />
                   </div>
-                  <div className="py-2 px-6 flex items-center justify-center">
-                    {/* <Button className="w-full rounded bg-[#D9D9D9] px-0 py-2 text-[#271F18] text-xs cursor-pointer text-center">{t('ivfClinic.view')}</Button> */}
-                  </div>
+                  <input className="border border-gray-200 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.remark','备注')} value={deliveryBoard.pboRemark} onChange={e=>setDeliveryBoard({...deliveryBoard, pboRemark: e.target.value})} />
                 </div>
-              ))}
-              {/* 输入区 */}
-              <div className="grid grid-cols-6 border-t border-b border-[#C2A87A] bg-[#F7F3ED] items-center">
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.date')} value={newAppointment.date} onChange={e => setNewAppointment({ ...newAppointment, date: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.type')} value={newAppointment.type} onChange={e => setNewAppointment({ ...newAppointment, type: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.doctor')} value={newAppointment.doctor} onChange={e => setNewAppointment({ ...newAppointment, doctor: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.medication')} value={newAppointment.medication} onChange={e => setNewAppointment({ ...newAppointment, medication: e.target.value })} />
-                <input
-                  className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400"
-                  style={{boxShadow:'none'}}
-                  placeholder={t('ivfClinic.instructionsHint')}
-                  title={t('ivfClinic.instructionsHint')}
-                  value={newAppointment.instructions}
-                  onChange={e => setNewAppointment({ ...newAppointment, instructions: e.target.value })}
-                  onMouseEnter={e => { e.currentTarget.setAttribute('title', t('ivfClinic.instructionsHint')); }}
-                  onMouseLeave={e => { e.currentTarget.removeAttribute('title'); }}
-                />
-                <div className="flex items-center justify-center px-6 h-full">
-                  <CustomButton 
-                    className="w-1/2 flex items-center justify-center px-0 py-2 rounded-lg bg-[#B0BEB7] text-white font-bold text-lg shadow hover:bg-[#a3b1a8] transition cursor-pointer h-full mx-auto border-none" 
-                    style={{display:'flex'}} 
-                    onClick={() => { 
-                      if (newAppointment.date || newAppointment.type || newAppointment.doctor || newAppointment.medication || newAppointment.instructions) {
-                        handleAdd('SurrogateAppointments', [...(surrogateAppointmentsData || []), { ...newAppointment, instructions: newAppointment.instructions.split(',').filter(i => i.trim()) }]); 
-                        setNewAppointment({ date: '', type: '', doctor: '', medication: '', instructions: '' }); 
-                      }
-                    }}
-                  >{t('ivfClinic.add')}</CustomButton>
+                <div className="mt-3">
+                  <CustomButton className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded" onClick={() => {
+                    const toSave = { board: deliveryBoard, records: Array.isArray(prenatalDeliveryData?.records) ? prenatalDeliveryData.records : [] };
+                    handleAdd('SurrogatePrenatalDelivery', toSave);
+                  }}>{t('ivfClinic.save','保存')}</CustomButton>
                 </div>
               </div>
             </div>
-
-          </div>
-        )}
-      </div>
-      {/* Medication Tracker 折叠卡片 */}
-  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-  <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Medication Tracker' ? null : 'Medication Tracker')}>
-          <span>{t('ivfClinic.medicationTracker')}</span>
-          <span className={`text-xl transition-transform ${open === 'Medication Tracker' ? 'rotate-90' : ''}`}>&gt;</span>
-        </button>
-        {open === 'Medication Tracker' && (
-          <div className="px-6 py-4">
-            <div className="w-full">
-              <div className="grid grid-cols-6 border-b border-[#C2A87A] bg-white">
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.medication')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.dosage')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.frequency')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.startDate')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800">{t('ivfClinic.notes')}</div>
-                <div className="py-2 px-6 text-center font-semibold text-base text-sage-800"></div>
-              </div>
-              {/* 数据区 */}
-              {Array.isArray(medicationTrackerData) && medicationTrackerData.map((m: any, i: number) => (
-                <div key={i} className="grid grid-cols-6 border-b border-[#F0E6D6] bg-white">
-                  <div className="py-2 px-6 text-center text-sage-800">{m.name}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{m.dosage}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{m.frequency}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{m.start}</div>
-                  <div className="py-2 px-6 text-center text-sage-800">{m.notes}</div>
-                  <div className="py-2 px-6 flex items-center justify-center">
-                    {/* <Button className="w-full rounded bg-[#D9D9D9] px-0 py-2 text-[#271F18] text-xs cursor-pointer text-center">{t('ivfClinic.view')}</Button> */}
-                  </div>
-                </div>
-              ))}
-              {/* 输入区 */}
-              <div className="grid grid-cols-6 border-t border-b border-[#C2A87A] bg-[#F7F3ED] items-center">
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.medication')} value={newMedication.name} onChange={e => setNewMedication({ ...newMedication, name: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.dosage')} value={newMedication.dosage} onChange={e => setNewMedication({ ...newMedication, dosage: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.frequency')} value={newMedication.frequency} onChange={e => setNewMedication({ ...newMedication, frequency: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.startDate')} value={newMedication.start} onChange={e => setNewMedication({ ...newMedication, start: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.notes')} value={newMedication.notes} onChange={e => setNewMedication({ ...newMedication, notes: e.target.value })} />
-                <div className="flex items-center justify-center px-6 h-full">
-                  <CustomButton 
-                    className="w-1/2 flex items-center justify-center px-0 py-2 rounded-lg bg-[#B0BEB7] text-white font-bold text-lg shadow hover:bg-[#a3b1a8] transition cursor-pointer h-full mx-auto border-none" 
-                    style={{display:'flex'}} 
-                    onClick={() => { 
-                      if (newMedication.name || newMedication.dosage || newMedication.frequency || newMedication.start || newMedication.notes) {
-                        handleAdd('MedicationTracker', [...(medicationTrackerData || []), newMedication]); 
-                        setNewMedication({ name: '', dosage: '', frequency: '', start: '', notes: '' }); 
-                      }
-                    }}
-                  >{t('ivfClinic.add')}</CustomButton>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-      </div>
-      {/* Doctor's Notes 折叠卡片 */}
-  <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-  <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === "Doctor's Notes" ? null : "Doctor's Notes")}> 
-          <span>{t('ivfClinic.doctorsNotes')}</span>
-          <span className={`text-xl transition-transform ${open === "Doctor's Notes" ? 'rotate-90' : ''}`}>&gt;</span>
-        </button>
-        {open === "Doctor's Notes" && (
-          <div className="px-6 py-4">
-            {/* Doctor's Notes 严格设计图渲染 */}
-            <div className="space-y-4 mb-8">
-              {Array.isArray(doctorsNotesData) && doctorsNotesData.map((note: any, i: number) => (
-                <div key={i} className="bg-[#F5F4ED] rounded-xl px-6 py-4 flex items-center justify-between font-serif border border-[#E5E1D8]">
-                  {/* 左侧 日期+医生 */}
-                  <div className="flex flex-col min-w-[160px] mr-6">
-                    <span className="text-base font-semibold text-[#271F18] mb-1">{note.date}</span>
-                    <span className="text-base font-semibold text-[#271F18]">Dr. {note.doctor}</span>
-                  </div>
-                  {/* 中间内容 单行省略 */}
-                  <div className="flex-1 text-base text-[#271F18] font-serif whitespace-nowrap overflow-hidden text-ellipsis px-2">
-                    {note.note}
-                  </div>
-                  {/* 右侧按钮（暂时注释） */}
-                  {/* <Button
-                    className="ml-6 bg-[#D9D9D9] hover:bg-[#C2A87A] text-[#271F18] hover:text-white px-6 py-2 text-sm rounded-lg font-serif font-medium transition-colors cursor-pointer"
-                    style={{cursor:'pointer', minWidth:'110px'}}
-                  >
-                    {t('ivfClinic.viewDetails') || 'View Details'}
-                  </Button> */}
-                </div>
-              ))}
-            </div>
-            
-            {/* 新增 DoctorNotes 输入区域 */}
-            <div className="w-full mt-2">
-              <div className="grid grid-cols-4 border-t border-b border-[#C2A87A] bg-[#F7F3ED] items-center">
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.date')} value={newNote.date} onChange={e => setNewNote({ ...newNote, date: e.target.value })} />
-                <input className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400" style={{boxShadow:'none'}} placeholder={t('ivfClinic.doctorName')} value={newNote.doctor} onChange={e => setNewNote({ ...newNote, doctor: e.target.value })} />
-                <input
-                  className="w-full border-0 border-b border-[#C2A87A] bg-[#F7F3ED] px-6 py-2 text-center focus:outline-none focus:border-[#C2A87A] focus:shadow-none placeholder:text-sage-400"
-                  style={{boxShadow:'none'}}
-                  placeholder={t('ivfClinic.noteContent')}
-                  title={t('ivfClinic.noteContent')}
-                  value={newNote.note}
-                  onChange={e => setNewNote({ ...newNote, note: e.target.value })}
-                  onMouseEnter={e => { e.currentTarget.setAttribute('title', t('ivfClinic.noteContent')); }}
-                  onMouseLeave={e => { e.currentTarget.removeAttribute('title'); }}
-                />
-                <div className="flex items-center justify-center px-6 h-full">
-                  <CustomButton 
-                    className="w-1/2 flex items-center justify-center px-0 py-2 rounded-lg bg-[#B0BEB7] text-white font-bold text-lg shadow hover:bg-[#a3b1a8] transition cursor-pointer h-full mx-auto border-none" 
-                    style={{display:'flex'}} 
-                    onClick={() => { 
-                      if (newNote.date || newNote.doctor || newNote.note) {
-                        handleAdd('DoctorNotes', [...(doctorsNotesData || []), newNote]); 
-                        setNewNote({ date: '', doctor: '', note: '' }); 
-                      }
-                    }}
-                  >{t('ivfClinic.add')}</CustomButton>
-                </div>
-              </div>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <table className="w-full text-sage-800">
+                <thead className="bg-[#F8F9FA] border-b">
+                  <tr>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.status','状态')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.date','时间')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.name','名称')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.file','文件')}</th>
+                    <th className="py-3 px-6 text-left font-semibold text-base">{t('ivfClinic.remark','备注')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.isArray(prenatalDeliveryData?.records) && prenatalDeliveryData.records.map((r:any, i:number) => (
+                    <tr key={i} className="border-b border-gray-100 last:border-b-0">
+                      <td className="py-3 px-6">{r.status}</td>
+                      <td className="py-3 px-6">{r.date}</td>
+                      <td className="py-3 px-6">{r.name}</td>
+                      <td className="py-3 px-6">{r.fileUrl ? <a className="text-[#C2A87A] underline" href={r.fileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看')}</a> : '-'}</td>
+                      <td className="py-3 px-6">{r.remark}</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="py-3 px-6">
+                      <select className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" value={newPrenatalRecord.status} onChange={e=>setNewPrenatalRecord({ ...newPrenatalRecord, status: e.target.value })}>
+                        <option value="">{t('ivfClinic.select','请选择')}</option>
+                        <option value="scheduled">{t('ivfClinic.scheduled','已预约')}</option>
+                        <option value="done">{t('ivfClinic.completed','已完成')}</option>
+                      </select>
+                    </td>
+                    <td className="py-3 px-6"><input type="date" className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.date','时间')} value={newPrenatalRecord.date} onChange={e=>setNewPrenatalRecord({ ...newPrenatalRecord, date: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.name','名称（如：第10周产检）')} value={newPrenatalRecord.name} onChange={e=>setNewPrenatalRecord({ ...newPrenatalRecord, name: e.target.value })} /></td>
+                    <td className="py-3 px-6"><input type="file" onChange={async (e)=>{ const f=e.target.files?.[0]; if(f){ const url=await uploadSingleFile(f); setNewPrenatalRecord(prev=>({ ...prev, fileUrl: url })); } }} /></td>
+                    <td className="py-3 px-6">
+                      <div className="flex items-center gap-2">
+                        <input className="border border-gray-200 rounded-lg px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-[#C2A87A]" placeholder={t('ivfClinic.remark','备注')} value={newPrenatalRecord.remark} onChange={e=>setNewPrenatalRecord({ ...newPrenatalRecord, remark: e.target.value })} />
+                        <CustomButton className="px-3 py-1 bg-[#C2A87A] text-white text-xs rounded" onClick={() => {
+                          const board = prenatalDeliveryData?.board || deliveryBoard;
+                          const records = Array.isArray(prenatalDeliveryData?.records) ? prenatalDeliveryData.records : [];
+                          if (newPrenatalRecord.name || newPrenatalRecord.date || newPrenatalRecord.fileUrl) {
+                            handleAdd('SurrogatePrenatalDelivery', { board, records: [...records, newPrenatalRecord] });
+                            setNewPrenatalRecord({ status: '', date: '', name: '', remark: '', fileUrl: '' });
+                          }
+                        }}>{t('ivfClinic.add','新增')}</CustomButton>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -776,10 +469,8 @@ function IVFClinicContent() {
 // 主组件使用 Suspense 包装内部组件
 export default function IVFClinic() {
   return (
-    <ManagerLayout>
       <Suspense fallback={<div className="p-8 min-h-screen">Loading...</div>}>
         <IVFClinicContent />
       </Suspense>
-    </ManagerLayout>
   )
 }

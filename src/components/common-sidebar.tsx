@@ -204,6 +204,7 @@ export function CommonSidebar({
                         key={href}
                         className={cn(
                           "px-6 py-3 text-sm font-medium cursor-pointer transition-colors duration-200",
+                          "cursor-pointer",
                           themeClasses.text,
                           themeClasses.hoverBg,
                           pathname === href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
@@ -234,6 +235,7 @@ export function CommonSidebar({
                         key={href}
                         className={cn(
                           "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
+                          "cursor-pointer",
                           themeClasses.text,
                           themeClasses.hoverBg,
                           pathname === href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
@@ -267,6 +269,7 @@ export function CommonSidebar({
                         key={href}
                         className={cn(
                           "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
+                          "cursor-pointer",
                           themeClasses.text,
                           themeClasses.hoverBg,
                           pathname === href && cn(themeClasses.activeBg, themeClasses.activeText, "font-semibold"),
@@ -289,6 +292,7 @@ export function CommonSidebar({
         <button
           className={cn(
             "absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer",
+            "cursor-pointer",
             themeClasses.hoverBg
           )}
           style={{ cursor: 'pointer' }}

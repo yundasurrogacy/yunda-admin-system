@@ -14,10 +14,20 @@ export async function GET() {
         }
         journeys {
           id
+          created_at
+          updated_at
+          case_cases
           stage
           title
-          about_role
           process_status
+          about_role
+          cases_files {
+            id
+            file_url
+            category
+            note
+            created_at
+          }
         }
         surrogate_mother {
           id
@@ -38,6 +48,9 @@ export async function GET() {
           file_url
           category
           created_at
+          about_role
+          note
+          journey_journeys
         }
         ivf_clinics {
           id
@@ -46,6 +59,23 @@ export async function GET() {
           data(path: "name")
         }
         process_status
+      }
+      journeys {
+        id
+        created_at
+        updated_at
+        case_cases
+        stage
+        title
+        process_status
+        about_role
+        cases_files {
+          id
+          file_url
+          note
+          category
+          created_at
+        }
       }
     }
   `;

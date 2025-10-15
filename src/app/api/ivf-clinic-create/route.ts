@@ -5,7 +5,7 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 export async function POST(req: NextRequest) {
   const body = await req.json();
   // body 应包含 ivf_clinic 相关字段
-  const { ivf_clinic } = body;
+  const { ivf_clinic, aboutRole } = body;
   if (!ivf_clinic) {
     return NextResponse.json({ error: "缺少 ivf_clinic 数据" }, { status: 400 });
   }
@@ -19,12 +19,13 @@ export async function POST(req: NextRequest) {
           type
           data
           case_cases
+          about_role
           created_at
         }
       }
     `;
     const variables = {
-      object: ivf_clinic
+      object: aboutRole ? { ...ivf_clinic, about_role: aboutRole } : ivf_clinic
     };
     const result = await client.execute({ query: mutation, variables });
     return NextResponse.json({ ivf_clinic: result.insert_ivf_clinics_one });

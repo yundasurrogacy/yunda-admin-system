@@ -24,17 +24,19 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
     setAppType("admin");
   }, [setAppType]);
   return (
-    <div className="min-h-screen bg-background relative text-sage-800 font-medium">
+    // <div className="min-h-screen bg-background relative text-sage-800 font-medium">
+    <div className="bg-background relative text-sage-800 font-medium">
       {/* Sidebar */}
-      <CommonSidebar 
+      {/* <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         theme="sage"
         groups={getAdminSidebarConfig()}
         type="admin"
-      />
+      /> */}
       {/* Main content */}
-      <div className="min-h-screen flex flex-col">
+      {/* <div className="min-h-screen flex flex-col"> */}
+      <div className="flex flex-col">
         {/* {showHeader && (
           <CommonHeader 
             showMenuButton={true} 
@@ -42,8 +44,12 @@ export function AdminLayout({ children, showHeader = true, isLoggedIn = true }: 
             type="admin"
           />
         )} */}
-        <main className={cn(
+        {/* <main className={cn(
           "flex-1 transition-all duration-300 ease-in-out p-4 md:p-6",
+          sidebarOpen ? "ml-64" : "ml-0"
+        )}> */}
+        <main className={cn(
+          "flex-1 transition-all duration-300 ease-in-out",
           sidebarOpen ? "ml-64" : "ml-0"
         )}>
           {children}

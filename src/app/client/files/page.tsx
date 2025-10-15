@@ -75,7 +75,7 @@ function FilesPageInner() {
       <div className="p-8">
         {/* 返回按钮 */}
         <CustomButton
-          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold"
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
           onClick={() => router.back()}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
@@ -101,7 +101,7 @@ function FilesPageInner() {
                     <div className="text-xs mb-1 text-sage-600">{file.created_at ? new Date(file.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</div>
                     {file.note && <div className="text-xs text-sage-500 mb-1">{t('files.note', '描述')}: {file.note}</div>}
                     <CustomButton
-                      className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal"
+                      className="rounded bg-[#D9D9D9] text-sage-800 px-4 py-1 text-xs shadow-none hover:bg-[#E3E8E3] font-normal cursor-pointer"
                       onClick={() => window.open(file.file_url, '_blank')}
                       aria-label={t('files.download', '下载')}
                     >

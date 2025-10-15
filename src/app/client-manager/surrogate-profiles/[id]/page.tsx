@@ -9,7 +9,7 @@ import { CustomButton } from "@/components/ui/CustomButton";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import ManagerLayout from '@/components/manager-layout';
+// import ManagerLayout from '@/components/manager-layout';
 
 // 计算年龄的函数
 const calculateAge = (dateOfBirth: string | undefined): string => {
@@ -53,23 +53,23 @@ export default function SurrogateProfileDetailPage() {
 
   if (loading) {
     return (
-      <ManagerLayout>
+      // <ManagerLayout>
         <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
           <div className="flex items-center justify-center h-64">
             <div className="text-lg text-sage-600">{t('loading', '加载中...')}</div>
           </div>
         </div>
-      </ManagerLayout>
+      // </ManagerLayout>
     );
   }
 
   if (error || !data) {
     return (
-      <ManagerLayout>
+      // <ManagerLayout>
         <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
           <div className="text-center py-8 text-red-600">{error || t('notFoundSurrogate', '未找到代孕母信息')}</div>
         </div>
-      </ManagerLayout>
+      // </ManagerLayout>
     );
   }
 
@@ -80,7 +80,7 @@ export default function SurrogateProfileDetailPage() {
   const interview: Partial<SurrogateMother["gestational_surrogacy_interview"]> = data.gestational_surrogacy_interview || {};
 
   return (
-    <ManagerLayout>
+    // <ManagerLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
         <div className="flex items-center justify-between pt-6 pb-2">
           <div>
@@ -470,6 +470,6 @@ export default function SurrogateProfileDetailPage() {
           </div>
         </div>
       </div>
-    </ManagerLayout>
+    // </ManagerLayout>
   );
 }

@@ -9,7 +9,7 @@ const getCategories = (t: (key: string) => string) => [
 
 import React, { Suspense, useEffect, useState } from 'react'
 import Modal from '@/components/ui/modal';
-import ManagerLayout from '@/components/manager-layout';
+// import ManagerLayout from '@/components/manager-layout';
 // import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
@@ -336,7 +336,7 @@ function JourneyInner() {
   };
 
   return (
-    <ManagerLayout>
+    <>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         {/* 返回按钮 */}
         <CustomButton
@@ -404,7 +404,7 @@ function JourneyInner() {
                       </li>
                     ))}
                   </ul>
-                  <CustomButton
+                  {/* <CustomButton
                     className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
                     style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
                     onClick={() => handleAddJourneyClick(step.stageNumber)}
@@ -415,6 +415,13 @@ function JourneyInner() {
                     >
                       +
                     </span>
+                  </CustomButton> */}
+                  <CustomButton
+                    className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
+                    style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
+                    onClick={() => handleAddJourneyClick(step.stageNumber)}
+                  >
+                    <span className="cursor-pointer">+</span>
                   </CustomButton>
                 </div>
               );
@@ -534,7 +541,7 @@ function JourneyInner() {
           </div>
         </Modal>
       )}
-    </ManagerLayout>
+    </>
   )
 }
 

@@ -17,6 +17,27 @@ export async function GET(req: Request) {
         trust_account_balance_changes(order_by: {created_at: desc}, limit: 1) {
           balance_after
         }
+        journeys {
+          id
+          created_at
+          updated_at
+          case_cases
+          stage
+          title
+          process_status
+          about_role
+          cases_files {
+            id
+            file_url
+            category
+            note
+            created_at
+          }
+        }
+        client_manager {
+          id
+          email
+        }
         surrogate_mother {
           id
           email
@@ -32,6 +53,9 @@ export async function GET(req: Request) {
           file_url
           category
           created_at
+          note
+          about_role
+          journey_journeys
         }
         ivf_clinics {
           id

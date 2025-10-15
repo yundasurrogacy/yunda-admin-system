@@ -5,7 +5,7 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 export async function POST(req: NextRequest) {
   const body = await req.json();
   // body 应包含 caseId, type, data
-  const { caseId, type, data } = body;
+  const { caseId, type, data, aboutRole } = body;
   
   if (!caseId || !type || !data) {
     return NextResponse.json({ error: "缺少必要参数: caseId, type, data" }, { status: 400 });
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
             type
             data
             case_cases
+            about_role
             created_at
             updated_at
           }
@@ -31,11 +32,14 @@ export async function POST(req: NextRequest) {
       }
     `;
     
+    const where: any = {
+      case_cases: { _eq: caseId },
+      type: { _eq: type }
+    };
+    if (aboutRole) where.about_role = { _eq: aboutRole };
+    
     const variables = {
-      where: {
-        case_cases: { _eq: caseId },
-        type: { _eq: type }
-      },
+      where,
       set: {
         data: data,
         updated_at: new Date().toISOString()

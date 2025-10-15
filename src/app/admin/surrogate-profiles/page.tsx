@@ -5,7 +5,7 @@ import { getSurrogateMothers, insertSurrogateMother } from "@/lib/graphql/applic
 import { useRouter } from "next/navigation"
 import type { SurrogateMother } from "@/types/surrogate_mother"
 import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus } from "lucide-react"
-import { AdminLayout } from "../../../components/admin-layout"
+// import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
@@ -285,7 +285,6 @@ export default function SurrogateProfilesPage() {
   }
 
   return (
-    <AdminLayout>
       <PageContent>
         <PageHeader 
           title={t('SURROGATE PROFILES')}
@@ -863,6 +862,5 @@ export default function SurrogateProfilesPage() {
           </>
         </Dialog>
       </PageContent>
-    </AdminLayout>
   )
 }

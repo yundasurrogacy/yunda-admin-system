@@ -13,7 +13,7 @@ import '../../../../i18n'
 import { Label } from "../../../../components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card"
 import { Badge } from "../../../../components/ui/badge"
-import ManagerLayout from "@/components/manager-layout"
+// import ManagerLayout from "@/components/manager-layout"
 
 export default function ClientProfileDetailPage() {
   const router = useRouter()
@@ -152,7 +152,6 @@ export default function ClientProfileDetailPage() {
   const formatValue = (val: string | undefined): string => val ? val : "-"
 
   return (
-    <ManagerLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12 font-medium text-sage-800">
         <div className="flex items-center justify-between pt-6 pb-2">
           <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
@@ -312,6 +311,5 @@ export default function ClientProfileDetailPage() {
         {/* 其他区块（原有内容保留） */}
         {/* ...existing code... */}
       </div>
-    </ManagerLayout>
   )
 }

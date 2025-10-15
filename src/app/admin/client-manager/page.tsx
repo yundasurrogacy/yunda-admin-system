@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { AdminLayout } from "@/components/admin-layout"
+// import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
@@ -93,7 +93,7 @@ export default function ClientManagerPage() {
   const pagedManagers = filteredAllManagers.slice((page - 1) * pageSize, page * pageSize)
 
   return (
-    <AdminLayout>
+
       <PageContent>
         <PageHeader title={t('clientManagerManagement')}
           rightContent={
@@ -233,6 +233,5 @@ export default function ClientManagerPage() {
           </>
         )}
       </PageContent>
-    </AdminLayout>
   )
 }

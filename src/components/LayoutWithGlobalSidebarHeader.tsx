@@ -50,7 +50,7 @@ export default function LayoutWithGlobalSidebarHeader({ children }: { children: 
         <CommonHeader showMenuButton={true} />
       </div>
       <GlobalAuthCheck>
-        <div style={{ paddingTop: '64px' /* header高度可根据实际调整 */ }}>
+        <div style={{ paddingTop: '100px' /* header高度可根据实际调整 */ }}>
           {children}
         </div>
       </GlobalAuthCheck>

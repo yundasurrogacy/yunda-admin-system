@@ -158,11 +158,11 @@ export default function MyCasesPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">{t('myCases.title', '我的案子')}</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('MY CASE', '我的案子')}</h1>
       {/* 筛选控件 */}
       <div className="flex flex-wrap gap-4 mb-6 items-center">
         {/* 阶段筛选 */}
-        <select
+        {/* <select
           value={selectedStatus}
           onChange={e => { setSelectedStatus(e.target.value); setPage(1); }}
           className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 min-w-[160px] cursor-pointer"
@@ -173,9 +173,9 @@ export default function MyCasesPage() {
               {t(`statusMapping.${String(status)}`, String(status))}
             </option>
           ))}
-        </select>
+        </select> */}
         {/* 代孕母筛选 */}
-        <select
+        {/* <select
           value={selectedSurrogate}
           onChange={e => { setSelectedSurrogate(e.target.value); setPage(1); }}
           className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 min-w-[160px] cursor-pointer"
@@ -184,7 +184,7 @@ export default function MyCasesPage() {
           {allSurrogateOptions.map(name => (
             <option key={name} value={name} className="cursor-pointer">{name}</option>
           ))}
-        </select>
+        </select> */}
       </div>
       <div
         className="w-full"

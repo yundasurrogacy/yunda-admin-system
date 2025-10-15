@@ -4,7 +4,7 @@ import { getHasuraClient } from '@/config-lib/hasura-graphql-client/hasura-graph
 // 新增信托账户变动记录
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { caseId, change_type, change_amount, balance_before, balance_after, remark } = body;
+  const { caseId, change_type, change_amount, balance_before, balance_after, remark, Visibility } = body;
   if (!caseId || !change_type || change_amount === undefined) {
     return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
   }
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
           balance_before: balance_before !== '' ? Number(balance_before) : null,
           balance_after: balance_after !== '' ? Number(balance_after) : null,
           remark: remark ?? null,
+          Visibility: Visibility ?? 'all',
         },
       },
     });
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
 // 修改信托账户变动记录
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const { id, change_type, change_amount, balance_before, balance_after, remark } = body;
+  const { id, change_type, change_amount, balance_before, balance_after, remark, Visibility } = body;
   if (!id || !change_type || change_amount === undefined) {
     return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
   }
@@ -76,6 +77,7 @@ export async function PUT(req: NextRequest) {
           balance_before: balance_before !== '' ? Number(balance_before) : null,
           balance_after: balance_after !== '' ? Number(balance_after) : null,
           remark: remark ?? null,
+          Visibility: Visibility ?? 'all',
         },
       },
     });

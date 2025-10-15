@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from "react-i18next"
 import i18n from '@/i18n'
 import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus, Eye, CheckCircle, XCircle, Clock, Mail, Phone } from 'lucide-react'
-import { AdminLayout } from '../../../components/admin-layout'
+// import { AdminLayout } from '../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Input } from '@/components/ui/input'
@@ -134,18 +134,18 @@ export default function SurrogatesApplicationsPage() {
 
   if (loading) {
     return (
-      <AdminLayout key={lang}>
+      // <AdminLayout key={lang}>
         <PageContent>
           <div className="flex items-center justify-center h-64">
             <div className="text-lg">{t('loading', { defaultValue: '加载中...' })}</div>
           </div>
         </PageContent>
-      </AdminLayout>
+      // </AdminLayout>
     )
   }
 
   return (
-    <AdminLayout key={lang}>
+    // <AdminLayout key={lang}>
       <PageContent>
         <PageHeader
           title={t('surrogatesApplications')}
@@ -508,6 +508,6 @@ export default function SurrogatesApplicationsPage() {
           </div>
         )}
       </PageContent>
-    </AdminLayout>
+    // </AdminLayout>
   )
 }

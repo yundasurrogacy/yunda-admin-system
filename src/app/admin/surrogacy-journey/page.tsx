@@ -10,7 +10,7 @@ const getCategories = (t: (key: string) => string) => [
 import React, { Suspense, useEffect, useState } from 'react'
 import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
-import { AdminLayout } from "../../../components/admin-layout"
+// import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -332,7 +332,7 @@ function JourneyInner() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         {/* 返回按钮 */}
         <CustomButton
@@ -472,15 +472,15 @@ function JourneyInner() {
                     </colgroup>
                     <thead>
                       <tr className="bg-[#F8F9FA] text-[#271F18]">
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.fileName', '文件名')}</th>
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.category', '分类')}</th>
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.note', '描述')}</th>
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('operation', '操作')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.fileName', 'File Name')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.category', 'Category')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.note', 'Description')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('operation', 'Operation')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {addFiles.length === 0 && (
-                        <tr><td colSpan={4} className="text-center text-gray-400 py-4">{t('files.noFiles', '暂无文件')}</td></tr>
+                        <tr><td colSpan={4} className="text-center text-gray-400 py-4">{t('files.noFiles', 'No Files')}</td></tr>
                       )}
                       {addFiles.map((f, idx) => (
                         <tr key={idx} className="hover:bg-[#F8F9FA] transition-all">
@@ -525,7 +525,7 @@ function JourneyInner() {
           </div>
         </Modal>
       )}
-    </AdminLayout>
+      </>
   )
 }
 

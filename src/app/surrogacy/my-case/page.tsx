@@ -135,7 +135,7 @@ export default function SurrogacyMyCasesPage() {
                 </div>
               </div>
               <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
-                <div className="flex items-center gap-2 truncate">
+                {/* <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400 whitespace-nowrap">{t('myCases.trustBalanceLabel', '信托余额：')}</span>
                   <Link
                     href={`/surrogacy/trust-account?caseId=${item.id}`}
@@ -146,7 +146,7 @@ export default function SurrogacyMyCasesPage() {
                       ? `$${Number(item.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                       : '-'}
                   </Link>
-                </div>
+                </div> */}
                 <div className="flex items-center gap-2 truncate">
                   <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel')}</span>
                   {item.intended_parent ? (

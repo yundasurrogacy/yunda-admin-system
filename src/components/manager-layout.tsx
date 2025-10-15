@@ -22,13 +22,14 @@ export default function ManagerLayout({
   return (
     <div className="min-h-screen bg-background relative text-sage-800 font-medium">
       {/* Sidebar */}
-      <CommonSidebar 
+      {/* <CommonSidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         groups={managerSidebarConfig()}
         type="manager"
-      />
+      /> */}
       {/* Main content */}
+      {/* <div className="flex flex-col"> */}
       <div className="min-h-screen flex flex-col">
         {/* <CommonHeader 
           showMenuButton={true} 
@@ -36,7 +37,7 @@ export default function ManagerLayout({
           type="manager"
         /> */}
         <main className={cn(
-          "flex-1 transition-all duration-300 ease-in-out p-4 md:p-6",
+          "flex-1 transition-all duration-300 ease-in-out",
           sidebarOpen ? "ml-64" : "ml-0"
         )}>
           {children}

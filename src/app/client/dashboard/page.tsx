@@ -2,10 +2,32 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomButton } from "@/components/ui/CustomButton"
+import { Progress } from "@/components/ui/progress"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
 import { useTranslation } from "react-i18next"
+import { 
+  Users, 
+  FileText, 
+  Calendar, 
+  TrendingUp, 
+  CheckCircle, 
+  Clock,
+  BarChart3,
+  Activity,
+  UserCheck,
+  FileCheck,
+  CalendarDays,
+  RefreshCw,
+  Heart,
+  Baby,
+  Home,
+  Settings,
+  MessageCircle,
+  Shield
+} from "lucide-react"
 
 
 // 动态获取 journey 阶段数据
@@ -85,6 +107,11 @@ export default function ClientDashboardPage() {
   const [loadingTimeline, setLoadingTimeline] = useState(true);
   const [currentStatus, setCurrentStatus] = useState<string>("");
   const [currentStatusDate, setCurrentStatusDate] = useState<string>("");
+  // 汇总 about_role 为 intended_parent 的 journey
+  const [journeySummary, setJourneySummary] = useState({ total: 0, finished: 0, pending: 0 });
+  // IVF CLINIC 和 Trust Balance 数据
+  const [ivfClinicData, setIvfClinicData] = useState<any>(null);
+  const [trustBalance, setTrustBalance] = useState<number>(0);
 
   // 获取动态 journey 阶段数据和最新文件/journey
   useEffect(() => {
@@ -94,17 +121,13 @@ export default function ClientDashboardPage() {
       if (!ignore && data) {
         let latestCase = null;
         if (!Array.isArray(data) && data.timeline && (data.latestFile || data.latestJourney)) {
-          // 兼容原有返回结构
           setTimeline(data.timeline);
           setLatestFile(data.latestFile);
           setLatestJourney(data.latestJourney);
-          // 需要重新获取最新 case
-          // 由于 getLatestCaseAndTimeline 内部有 latestCase，可考虑返回 latestCase
-          // 但目前未返回，所以需重新 fetch
         } else if (Array.isArray(data)) {
           setTimeline(data);
         }
-        // 重新获取最新 case 以获取 process_status 和 updated_at
+        // 重新获取最新 case 以获取 process_status 和 updated_at，并统计 intended_parent journey
         (async () => {
           function getCookie(name: string) {
             if (typeof document === 'undefined') return undefined;
@@ -125,6 +148,22 @@ export default function ClientDashboardPage() {
           if (latestCase) {
             setCurrentStatus(latestCase.process_status || "Matching");
             setCurrentStatusDate(latestCase.updated_at || "");
+            // 汇总 about_role 为 intended_parent 的 journey
+            const journeys = Array.isArray(latestCase.journeys) ? latestCase.journeys : [];
+            console.log('[Dashboard] journeys:', journeys);
+            const intendedJourneys = journeys.filter((j: any) => !j.about_role || j.about_role === 'intended_parent');
+            const total = intendedJourneys.length;
+            const finished = intendedJourneys.filter((j: { process_status?: string }) => j.process_status === 'finished').length;
+            const pending = total - finished;
+            setJourneySummary({ total, finished, pending });
+            
+            // 获取 IVF CLINIC 数据
+            if (Array.isArray(latestCase.ivf_clinics) && latestCase.ivf_clinics.length > 0) {
+              setIvfClinicData(latestCase.ivf_clinics[0]);
+            }
+            
+            // 获取 Trust Balance
+            setTrustBalance(latestCase.trust_account_balance || 0);
           }
         })();
       }
@@ -154,43 +193,133 @@ export default function ClientDashboardPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-sage-50 to-brand-yellow">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.clientTitle', 'Client Dashboard')}</h1>
+            <p className="text-sage-600">{t('dashboard.clientWelcome', 'Welcome to your journey! Track your progress and access important information.')}</p>
+          </div>
+          <CustomButton 
+            className="px-6 py-3 bg-sage-600 hover:bg-sage-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('refresh', 'Refresh')}
+          </CustomButton>
+        </div>
+
+        {/* Journey Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Total Journeys */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/client/journey')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.totalJourneysClient', 'Total Journeys')}</p>
+                  <p className="text-3xl font-bold text-sage-800">{journeySummary.total}</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center text-sm text-sage-600">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  {t('dashboard.intendedParentJourneys', 'Intended parent journeys')}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Completed Journeys */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/client/journey')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.completedClient', 'Completed')}</p>
+                  <p className="text-3xl font-bold text-sage-800">{journeySummary.finished}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center text-sm text-sage-600">
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  {t('dashboard.finishedJourneys', 'Finished journeys')}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* In Progress */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/client/journey')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">{t('dashboard.title', { defaultValue: 'DASHBOARD' })}</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          {t('dashboard.welcome', { defaultValue: 'Welcome to your Dashboard! Access your progress, important information, digital signatures, and a variety of references to support your journey.' })}
-        </p>
+                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.inProgressClient', 'In Progress')}</p>
+                  <p className="text-3xl font-bold text-sage-800">{journeySummary.pending}</p>
+      </div>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-orange-600" />
+        </div>
+        </div>
+              <div className="mt-4">
+                <div className="flex items-center text-sm text-sage-600">
+                  <Clock className="w-4 h-4 mr-1" />
+                  {t('dashboard.activeJourneys', 'Active journeys')}
+        </div>
+      </div>
+            </CardContent>
+          </Card>
       </div>
 
-      {/* Current Status Section（可根据实际数据动态渲染） */}
-      <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-gray-800">{t('dashboard.currentStatus', { defaultValue: 'Current Status' })}</h2>
-        <CustomButton
-          className="bg-sage-50 border border-sage-200 rounded-md p-4 w-full text-left hover:shadow-lg transition"
-          style={{ cursor: 'pointer' }}
-          onClick={() => router.push('/client/my-cases')}
+
+        {/* Current Status & Progress */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Current Status */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+          onClick={() => router.push('/client/my-case')}
         >
-          <div className="flex justify-between items-center">
-            <span className="font-medium text-gray-700 hover:underline">
-              {t('dashboard.caseStatus', { defaultValue: 'Case Status' })}
-            </span>
-            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Heart className="w-5 h-5" />
+                {t('dashboard.currentStatus', 'Current Status')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-sage-700">{t('dashboard.caseStatus', 'Case Status')}</span>
+                  <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">
               {(() => {
-                // 状态映射，优先国际化
                 const statusMap: Record<string, string> = {
-                  Matching: t('statusMapping.Matching', { defaultValue: 'Matching' }),
-                  LegalStage: t('statusMapping.LegalStage', { defaultValue: 'Legal Stage' }),
-                  CyclePrep: t('statusMapping.CyclePrep', { defaultValue: 'Cycle Prep' }),
-                  Pregnant: t('statusMapping.Pregnant', { defaultValue: 'Pregnant' }),
-                  Transferred: t('statusMapping.Transferred', { defaultValue: 'Transferred' }),
-                };
-                return statusMap[currentStatus] || t('statusMapping.Matching', { defaultValue: 'Matching' });
+                        Matching: t('statusMapping.Matching', 'Matching'),
+                        LegalStage: t('statusMapping.LegalStage', 'Legal Stage'),
+                        CyclePrep: t('statusMapping.CyclePrep', 'Cycle Prep'),
+                        Pregnant: t('statusMapping.Pregnant', 'Pregnant'),
+                        Transferred: t('statusMapping.Transferred', 'Transferred'),
+                      };
+                      return statusMap[currentStatus] || t('statusMapping.Matching', 'Matching');
               })()}
             </span>
           </div>
-          {/* 进度条只渲染5个状态 */}
-          <div className="flex gap-2 items-center mt-3">
-            {Array.from({ length: 5 }).map((_, idx) => {
+                
+                {/* Progress Steps */}
+                <div className="space-y-3">
+                  {['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'].map((status, idx) => {
               const statusStageMap: Record<string, number> = {
                 Matching: 0,
                 LegalStage: 1,
@@ -199,104 +328,181 @@ export default function ClientDashboardPage() {
                 Transferred: 4,
               };
               const activeIdx = statusStageMap[currentStatus];
-              // 当前状态及之前的都高亮
               const isActive = typeof activeIdx === 'number' && idx <= activeIdx;
+                    const isCurrent = idx === activeIdx;
+                    
               return (
-                <div
-                  key={idx}
-                  className={`w-16 h-2 rounded ${isActive ? "bg-[#271F18]" : "bg-[#D9D9D9]"}`}
-                />
+                      <div key={status} className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                          isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`text-sm font-medium ${
+                            isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
+                          }`}>
+                            {t(`statusMapping.${status}`, status)}
+                          </div>
+                        </div>
+                        {isCurrent && (
+                          <Clock className="w-4 h-4 text-sage-600" />
+                        )}
+                        {isActive && !isCurrent && (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        )}
+                      </div>
               );
             })}
           </div>
-          {/* 显示当前case的状态，方便调试 */}
-          {/* <div className="text-xs text-red-500 mt-1">case状态(process_status): {currentStatus}</div> */}
-          <div className="text-xs text-gray-500 mt-2">
-            {currentStatusDate ? t('dashboard.updatedAt', { date: new Date(currentStatusDate).toLocaleString(), defaultValue: `Updated at ${new Date(currentStatusDate).toLocaleString()}` }) : ''}
-          </div>
-  </CustomButton>
-      </div>
-
-      {/* Next Steps Section - 动态渲染并可交互 */}
-      <div className="space-y-3">
-  <h2 className="text-lg font-semibold text-gray-800">{t('dashboard.nextSteps', { defaultValue: 'Next Steps' })}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {loadingTimeline ? (
-            <span>Loading...</span>
-          ) : (
-            timeline.map(stage => (
-              <Card key={stage.stage} className="p-4 flex flex-col space-y-2 cursor-pointer hover:shadow-lg transition"
-                onClick={() => {
-                  if (stage.items.length > 0 && stage.stage) {
-                    router.push(`/client/files?stage=${stage.stageNumber}&title=${encodeURIComponent(stage.stage)}`)
-                  } else {
-                    router.push('/client/journey');
-                  }
-                }}
-              >
-                {/* 阶段号和标题居中显示 */}
-                <div className="flex flex-col items-center justify-center mb-2">
-                  <div className="w-8 h-8 bg-sage-50 rounded-md flex items-center justify-center border border-sage-200 mb-2">
-                    <span className="text-sage-700 text-base font-bold">{stage.stageNumber}</span>
+                
+                {currentStatusDate && (
+                  <div className="text-xs text-sage-500 pt-2 border-t">
+                    {t('dashboard.lastUpdated', 'Last updated')}: {new Date(currentStatusDate).toLocaleString()}
                   </div>
-                  <span className="text-xs text-gray-700 font-semibold text-center">{stage.stage}</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Journey Progress */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/client/journey')}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <BarChart3 className="w-5 h-5" />
+                {t('dashboard.journeyProgressClient', 'Journey Progress')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgress', 'Completed')}</span>
+                    <span className="text-sm text-sage-600">{journeySummary.finished} ({journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                  </div>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full transition-all duration-500 bg-green-500"
+                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.finished / journeySummary.total) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-700 whitespace-pre-line flex flex-col items-center justify-center text-center">
-                  {stage.items.length > 0 ? stage.items.map((title: string, idx: number) => (
-                    <span key={idx} className="block w-full text-center">{title}</span>
-                  )) : <span className="block w-full text-center">-</span>}
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-sage-700">{t('dashboard.inProgressProgress', 'In Progress')}</span>
+                    <span className="text-sm text-sage-600">{journeySummary.pending} ({journeySummary.total > 0 ? ((journeySummary.pending / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                  </div>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full transition-all duration-500 bg-orange-500"
+                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.pending / journeySummary.total) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-              </Card>
-            ))
-          )}
-        </div>
+                
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-sage-600">{t('dashboard.totalProgress', 'Total Progress')}</span>
+                    <span className="font-medium text-sage-800">
+                      {journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : 0}%
+                    </span>
+                  </div>
+                </div>
+          </div>
+            </CardContent>
+          </Card>
+          </div>
+
+        {/* Quick Actions & Resources */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Settings className="w-5 h-5" />
+                {t('dashboard.quickActionsClient', 'Quick Actions')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <CustomButton 
+                className="w-full justify-start px-4 py-3 bg-sage-100 hover:bg-sage-200 text-sage-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+                onClick={() => router.push('/client/my-case')}
+              >
+                <Home className="w-4 h-4 mr-3" />
+                {t('dashboard.myCases', 'My Case')}
+              </CustomButton>
+              <CustomButton 
+                className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+                onClick={() => router.push('/client/journey')}
+              >
+                <Activity className="w-4 h-4 mr-3" />
+                {t('dashboard.myJourney', 'My Journey')}
+              </CustomButton>
+              <CustomButton 
+                className="w-full justify-start px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+                onClick={() => router.push('/client/documents')}
+              >
+                <FileText className="w-4 h-4 mr-3" />
+                {t('dashboard.documentsClient', 'Documents')}
+  </CustomButton>
+            </CardContent>
+          </Card>
+
+          {/* IVF CLINIC & Trust Balance */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Shield className="w-5 h-5" />
+                {t('dashboard.ivfClinic', 'Ivf Clinic')} & {t('dashboard.trustBalance', 'Trust Balance')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* IVF CLINIC */}
+                <div className="flex items-center justify-between p-4 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                     onClick={() => router.push('/client/ivf-clinic')}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-sage-800">{t('dashboard.ivfClinic', 'Ivf Clinic')}</span>
+                      <p className="text-xs text-sage-600">{t('dashboard.medicalTeamUpdates', 'Medical team & updates')}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-sage-800">
+                      {ivfClinicData ? (ivfClinicData.type || t('dashboard.clinicInfo', 'Clinic Info')) : t('dashboard.noData', 'No Data')}
+                    </p>
+                  </div>
       </div>
 
-      {/* Recent Updates Section（分为文件和journey两块，可点击跳转） */}
-      <div className="space-y-3">
-  <h2 className="text-lg font-semibold text-gray-800">{t('dashboard.recentUpdates', { defaultValue: 'Recent Updates' })}</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* 最新文件块 */}
-          <Card
-            className="p-4 flex items-start space-x-4 cursor-pointer hover:shadow-lg transition"
-            onClick={() => {
-              // 跳转到文件页面
-              router.push('/client/files');
-            }}
-          >
-            <div className="p-2 bg-sage-50 rounded-md border border-sage-200">
-              <svg className="h-5 w-5 text-sage-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <h3 className="text-sm font-medium">{latestFile ? (latestFile.name || latestFile.filename || t('dashboard.newFileUploaded', { defaultValue: 'New File Uploaded' })) : t('dashboard.noFile', { defaultValue: 'No file uploaded yet.' })}</h3>
-                <span className="text-xs text-gray-500">{latestFile && latestFile.updated_at ? new Date(latestFile.updated_at).toLocaleDateString() : ''}</span>
+                {/* Trust Balance */}
+                <div className="flex items-center justify-between p-4 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                     onClick={() => router.push('/client/trust-account')}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <FileCheck className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-sage-800">{t('dashboard.trustBalance', 'Trust Balance')}</span>
+                      <p className="text-xs text-sage-600">{t('dashboard.accountBalance', 'Account balance')}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-sage-800">${trustBalance.toLocaleString()}</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600 mt-1">{latestFile ? t('dashboard.latestFileTip', { defaultValue: 'A new file has been uploaded to your account.' }) : ''}</p>
-            </div>
-          </Card>
-          {/* 最新 journey 块 */}
-          <Card
-            className="p-4 flex items-start space-x-4 cursor-pointer hover:shadow-lg transition"
-            onClick={() => {
-              // 跳转到 journey 页面
-              router.push('/client/journey');
-            }}
-          >
-            <div className="p-2 bg-sage-50 rounded-md border border-sage-200">
-              <svg className="h-5 w-5 text-sage-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <h3 className="text-sm font-medium">{latestJourney ? (latestJourney.title || t('dashboard.journeyUpdated', { defaultValue: 'Journey Updated' })) : t('dashboard.noJourney', { defaultValue: 'No journey updated yet.' })}</h3>
-                <span className="text-xs text-gray-500">{latestJourney && latestJourney.updated_at ? new Date(latestJourney.updated_at).toLocaleDateString() : ''}</span>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">{latestJourney ? t('dashboard.latestJourneyTip', { defaultValue: `Stage: ${latestJourney.stage || '-'} updated.` }) : ''}</p>
-            </div>
+            </CardContent>
           </Card>
         </div>
       </div>

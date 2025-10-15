@@ -1,11 +1,12 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import ManagerLayout from '@/components/manager-layout';
+// import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
 import { CustomButton } from '@/components/ui/CustomButton';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from "next/navigation"
 
 
 const getCategories = (t: (key: string) => string) => [
@@ -17,6 +18,7 @@ const getCategories = (t: (key: string) => string) => [
 
 function FilesPageInner() {
   const { t } = useTranslation('common');
+  const router = useRouter();
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
   const stage = searchParams.get('stage');
@@ -150,12 +152,11 @@ function FilesPageInner() {
   };
 
   return (
-    <ManagerLayout>
       <div className="p-8">
         {/* 返回按钮 */}
         <CustomButton
-          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-sage-800 font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
-          onClick={() => window.history.back()}
+          className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
+          onClick={() => router.back()}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -247,7 +248,6 @@ function FilesPageInner() {
           </div>
         )}
       </div>
-    </ManagerLayout>
   );
 }
 

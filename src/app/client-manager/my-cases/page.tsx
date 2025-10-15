@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import ManagerLayout from '@/components/manager-layout';
+// import ManagerLayout from '@/components/manager-layout';
 import { Card } from '@/components/ui/card';
 import { CustomButton } from '@/components/ui/CustomButton';
 import { Progress } from '@/components/ui/progress';
@@ -186,7 +186,7 @@ const MyCasesPage = () => {
   };
 
   return (
-    <ManagerLayout>
+    // <ManagerLayout>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">{t('MY CASES')}</h1>
 
@@ -431,7 +431,7 @@ const MyCasesPage = () => {
           </CustomButton>
         </div>
       </div>
-    </ManagerLayout>
+    // </ManagerLayout>
   );
 };
 

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import i18n from '@/i18n'
 import { useRouter } from 'next/navigation'
 import { Search, Filter, User, Mail, Phone, MapPin, Plus, Eye, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react'
-import { AdminLayout } from '../../../components/admin-layout'
+// import { AdminLayout } from '../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Input } from '@/components/ui/input'
@@ -192,19 +192,19 @@ export default function ParentsApplicationsPage() {
 
   if (loading) {
     return (
-      <AdminLayout key={lang}>
+      // <AdminLayout key={lang}>
         <PageContent>
           <div className="flex items-center justify-center h-64">
             <div className="text-lg">{t('loading', { defaultValue: '加载中...' })}</div>
           </div>
         </PageContent>
-      </AdminLayout>
+      // </AdminLayout>
     )
   }
 
 
   return (
-    <AdminLayout key={lang}>
+    // <AdminLayout key={lang}>
       <PageContent>
         <PageHeader 
           title={t('parentsApplications', { defaultValue: '意向父母申请表' })}
@@ -463,7 +463,6 @@ export default function ParentsApplicationsPage() {
           </div>
         )}
   </PageContent>
-  {/* 弹窗已移除 */}
-    </AdminLayout>
+    // </AdminLayout>
   )
 }

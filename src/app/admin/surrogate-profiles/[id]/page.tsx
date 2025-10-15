@@ -11,7 +11,7 @@ import { CustomButton } from "../../../../components/ui/CustomButton"
 import { Label } from "../../../../components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card"
 import { Badge } from "../../../../components/ui/badge"
-import { AdminLayout } from "../../../../components/admin-layout"
+// import { AdminLayout } from "../../../../components/admin-layout"
 
 // 计算年龄的函数
 const calculateAge = (dateOfBirth: string | undefined): number => {
@@ -135,23 +135,19 @@ export default function SurrogateProfileDetailPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
         <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
           <div className="flex items-center justify-center h-64">
             <div className="text-lg text-sage-600">{t('loading')}</div>
           </div>
         </div>
-      </AdminLayout>
     )
   }
 
   if (!surrogate) {
     return (
-      <AdminLayout>
         <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
           <div className="text-center py-8 text-red-600">{t('notFoundSurrogate')}</div>
         </div>
-      </AdminLayout>
     )
   }
 
@@ -174,7 +170,6 @@ export default function SurrogateProfileDetailPage() {
   const isUploadingPhotos = editMode && Array.isArray(editData?.upload_photos) && editData.upload_photos.some((p: any) => p.uploading || (!p.url && p.preview));
 
   return (
-    <AdminLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12 text-sage-800 font-medium">
             {/* 返回按钮 */}
             <CustomButton
@@ -893,6 +888,5 @@ export default function SurrogateProfileDetailPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   )
 }

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import { Search } from "lucide-react"
+import { useTranslation } from 'react-i18next'
 
 interface PageHeaderProps {
   title: string
@@ -15,6 +16,8 @@ interface PageContentProps {
 }
 
 export function PageHeader({ title, onSearch, showSearch = false, rightContent, className }: PageHeaderProps) {
+  const { t } = useTranslation('common');
+  
   return (
     <div className={cn("flex items-center justify-between", className)}>
       <h1 className="text-2xl md:text-3xl font-normal tracking-wide text-sage-800">{title}</h1>
@@ -26,7 +29,7 @@ export function PageHeader({ title, onSearch, showSearch = false, rightContent, 
             <input
               type="text"
               onChange={(e) => onSearch?.(e.target.value)}
-              placeholder="搜索..."
+              placeholder={t('pageLayout.searchPlaceholder', 'Search...')}
               className="pl-10 pr-4 py-2 border border-sage-200 rounded-full bg-sage-100/50 text-sage-800 placeholder-sage-500 focus:outline-none focus:ring-2 focus:ring-sage-300"
             />
           </div>
@@ -39,7 +42,7 @@ export function PageHeader({ title, onSearch, showSearch = false, rightContent, 
 
 export function PageContent({ children, className }: PageContentProps) {
   return (
-    <div className={cn("space-y-6 p-6 md:p-8", className)}>
+    <div className={cn("space-y-6 px-6 md:px-8 py-3 md:py-4", className)}>
       {children}
     </div>
   )

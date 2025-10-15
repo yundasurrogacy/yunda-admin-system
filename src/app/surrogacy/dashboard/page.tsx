@@ -3,7 +3,33 @@
 import React, { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
+import { Progress } from '@/components/ui/progress'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { 
+  Users, 
+  FileText, 
+  Calendar, 
+  TrendingUp, 
+  CheckCircle, 
+  Clock,
+  BarChart3,
+  Activity,
+  UserCheck,
+  FileCheck,
+  CalendarDays,
+  RefreshCw,
+  Heart,
+  Baby,
+  Home,
+  Settings,
+  MessageCircle,
+  Shield,
+  BookOpen,
+  Camera,
+  Mail
+} from "lucide-react"
 
 interface JourneyStage {
   stage: string
@@ -16,6 +42,8 @@ interface JourneyRaw {
   stage: number
   title: string
   updated_at?: string
+  process_status?: string
+  about_role?: string
 }
 
 interface CaseRaw {
@@ -51,6 +79,9 @@ export default function SurrogacyDashboard() {
     ? gestationalCarrierStagesRaw.map((item: any) => typeof item === 'string' ? item : `${item.prefix ?? ''}${item.title ?? ''}`)
     : Object.values(gestationalCarrierStagesRaw ?? {}).map((item: any) => typeof item === 'string' ? item : `${item.prefix ?? ''}${item.title ?? ''}`);
 
+  // 汇总 about_role 为 surrogate_mother 的 journey
+  const [journeySummary, setJourneySummary] = useState({ total: 0, finished: 0, pending: 0 });
+
   useEffect(() => {
     async function fetchData() {
       function getCookie(name: string) {
@@ -62,7 +93,6 @@ export default function SurrogacyDashboard() {
       if (!surrogateId) return;
       const res = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`);
       const data = await res.json();
-      // console.log("data: ", data);
       const casesArr: CaseRaw[] = Array.isArray(data) ? data : (data.cases || data.data || []);
       if (!casesArr || casesArr.length === 0) return;
       // 按 updated_at 降序，取最新的case
@@ -72,11 +102,17 @@ export default function SurrogacyDashboard() {
         return bTime - aTime;
       });
       const latestCase = sortedCases[0];
-      // 状态和时间
       setCurrentStatus(latestCase.process_status || "Matching");
       setCurrentStatusDate(latestCase.updated_at || "");
       setCaseId(latestCase.id?.toString() || "");
       let journeys: JourneyRaw[] = latestCase.journeys || [];
+      // 汇总 about_role 为 surrogate_mother 的 journey
+      // 这里假设 journeyRaw 里有 about_role 字段，若无则全部统计
+      const surrogateJourneys = journeys.filter((j: any) => !j.about_role || j.about_role === 'surrogate_mother');
+      const total = surrogateJourneys.length;
+      const finished = surrogateJourneys.filter(j => j.process_status === 'finished').length;
+      const pending = total - finished;
+      setJourneySummary({ total, finished, pending });
       // 国际化阶段渲染，直接从 i18n gestationalCarrierStages 获取
       const baseTimeline: JourneyStage[] = (gestationalCarrierStages || []).map((stage, idx) => ({
         stage,
@@ -124,32 +160,132 @@ export default function SurrogacyDashboard() {
   }, [caseId]);
 
   return (
-    <div className="p-8 min-h-screen bg-[rgba(251,240,218,0.25)] text-sage-800 font-medium">
-  <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t("dashboard.title", { defaultValue: "DASHBOARD" })}</h1>
-  <p className="mb-8 text-sage-800">{t("dashboard.welcome", { defaultValue: "Welcome to your dashboard! Access your priorities, important information, helpful tips, guides, and a variety of resources to support your journey." })}</p>
-      {/* Current Status（进度条和状态） */}
-      <CustomButton
-        className="rounded-xl bg-[rgba(251,240,218,0.25)] p-6 mb-6 text-sage-800 font-medium w-full text-left transition-all hover:shadow-md"
-        onClick={() => caseId && router.push(`/surrogacy/my-cases`)}
-      >
-        <h2 className="text-xl font-medium mb-2 text-sage-800">{t("dashboard.currentStatus", { defaultValue: "Current Status" })}</h2>
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-sage-800"></span>
-          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+    <div className="min-h-screen bg-gradient-to-br from-sage-50 to-brand-yellow">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.surrogacyTitle', 'Surrogate Dashboard')}</h1>
+            <p className="text-sage-600">{t('dashboard.surrogacyWelcome', 'Welcome to your journey! Track your progress and access important information.')}</p>
+          </div>
+          <CustomButton 
+            className="px-6 py-3 bg-sage-600 hover:bg-sage-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('refresh', 'Refresh')}
+          </CustomButton>
+        </div>
+
+        {/* Journey Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Total Journeys */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/surrogacy/journey')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.totalJourneysSurrogacy', 'Total Journeys')}</p>
+                  <p className="text-3xl font-bold text-sage-800">{journeySummary.total}</p>
+                </div>
+                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-pink-600" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center text-sm text-sage-600">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  {t('dashboard.surrogateJourneys', 'Surrogate journeys')}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Completed Journeys */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/surrogacy/journey')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.completedSurrogacy', 'Completed')}</p>
+                  <p className="text-3xl font-bold text-sage-800">{journeySummary.finished}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="flex items-center text-sm text-sage-600">
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  {t('dashboard.finishedJourneysSurrogacy', 'Finished journeys')}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* In Progress */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/surrogacy/journey')}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.inProgressSurrogacy', 'In Progress')}</p>
+                  <p className="text-3xl font-bold text-sage-800">{journeySummary.pending}</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-orange-600" />
+        </div>
+        </div>
+              <div className="mt-4">
+                <div className="flex items-center text-sm text-sage-600">
+                  <Clock className="w-4 h-4 mr-1" />
+                  {t('dashboard.activeJourneysSurrogacy', 'Active journeys')}
+        </div>
+      </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Current Status & Progress */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Current Status */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => caseId && router.push('/surrogacy/my-case')}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Baby className="w-5 h-5" />
+{t('dashboard.currentStatusSurrogacy', 'Current Status')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-sage-700">{t('dashboard.caseStatusSurrogacy', 'Case Status')}</span>
+                  <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">
             {(() => {
               const statusMap: Record<string, string> = {
-                Matching: t('statusMapping.Matching', { defaultValue: 'Matching' }),
-                LegalStage: t('statusMapping.LegalStage', { defaultValue: 'Legal Stage' }),
-                CyclePrep: t('statusMapping.CyclePrep', { defaultValue: 'Cycle Prep' }),
-                Pregnant: t('statusMapping.Pregnant', { defaultValue: 'Pregnant' }),
-                Transferred: t('statusMapping.Transferred', { defaultValue: 'Transferred' }),
-              };
-              return statusMap[currentStatus] || t('statusMapping.Matching', { defaultValue: 'Matching' });
+                        Matching: t('statusMapping.Matching', 'Matching'),
+                        LegalStage: t('statusMapping.LegalStage', 'Legal Stage'),
+                        CyclePrep: t('statusMapping.CyclePrep', 'Cycle Prep'),
+                        Pregnant: t('statusMapping.Pregnant', 'Pregnant'),
+                        Transferred: t('statusMapping.Transferred', 'Transferred'),
+                      };
+                      return statusMap[currentStatus] || t('statusMapping.Matching', 'Matching');
             })()}
           </span>
         </div>
-        <div className="flex gap-2 items-center mt-3">
-          {Array.from({ length: 5 }).map((_, idx) => {
+                
+                {/* Progress Steps */}
+                <div className="space-y-3">
+                  {['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'].map((status, idx) => {
             const statusStageMap: Record<string, number> = {
               Matching: 0,
               LegalStage: 1,
@@ -158,97 +294,170 @@ export default function SurrogacyDashboard() {
               Transferred: 4,
             };
             const activeIdx = statusStageMap[currentStatus];
-            // 当前状态及之前的都高亮
             const isActive = typeof activeIdx === 'number' && idx <= activeIdx;
+                    const isCurrent = idx === activeIdx;
+                    
             return (
-              <div
-                key={idx}
-                className={`w-16 h-2 rounded ${isActive ? "bg-[#271F18]" : "bg-[#D9D9D9]"}`}
-              />
+                      <div key={status} className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                          isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
+                        }`}>
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`text-sm font-medium ${
+                            isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
+                          }`}>
+                            {t(`statusMapping.${status}`, status)}
+                          </div>
+                        </div>
+                        {isCurrent && (
+                          <Clock className="w-4 h-4 text-sage-600" />
+                        )}
+                        {isActive && !isCurrent && (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        )}
+                      </div>
             );
           })}
         </div>
-        <div className="text-sm mt-2 text-sage-800">{currentStatusDate ? t("dashboard.updatedAt", { date: currentStatusDate, defaultValue: `Updated at ${currentStatusDate}` }) : t("dashboard.updatedToday", { defaultValue: "Updated today" })}</div>
-      </CustomButton>
-      {/* Next Steps */}
-      <div className="rounded-xl bg-[rgba(251,240,218,0.25)] p-6 mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sage-800 font-medium">
-        {journeyStages.map((stage) => (
-          <div key={stage.stageNumber} className="flex flex-col items-center">
-            <div
-              className="bg-[#E3E8E3] rounded p-4 mb-2 flex flex-col items-center w-full min-w-[120px] cursor-pointer"
-              onClick={() => {
-                if (stage.items.length > 0 && stage.stage) {
-                  router.push(`/surrogacy/files?stage=${stage.stageNumber}&title=${encodeURIComponent(stage.stage)}`)
-                } else {
-                  router.push('/surrogacy/journey');
-                }
-              }}
-              title={stage.stage}
-            >
-              {/* 阶段名独占一行，宽度自适应内容长度，居中显示 */}
-              <div className="w-full mb-1 flex justify-center">
-                <span className="inline-block text-sm font-medium text-sage-800 break-words text-center whitespace-pre-line px-2" style={{maxWidth: '100%'}}>{stage.stage}</span>
+                
+                {currentStatusDate && (
+                  <div className="text-xs text-sage-500 pt-2 border-t">
+                    {t('dashboard.lastUpdatedSurrogacy', 'Last updated')}: {new Date(currentStatusDate).toLocaleString()}
+                  </div>
+                )}
               </div>
-              {/* 只显示该阶段下所有title，没有title时也允许跳转，不显示内容即可 */}
-              {stage.items.length > 0 ? (
-                <div className="mt-2 w-full text-xs text-sage-800 flex flex-col items-center">
-                  {stage.items.map((title, idx) => (
-                    <div key={idx} className="w-full text-center">{title}</div>
-                  ))}
+            </CardContent>
+          </Card>
+
+          {/* Journey Progress */}
+          <Card 
+            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+            onClick={() => router.push('/surrogacy/journey')}
+          >
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <BarChart3 className="w-5 h-5" />
+{t('dashboard.journeyProgressSurrogacy', 'Journey Progress')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgressSurrogacy', 'Completed')}</span>
+                    <span className="text-sm text-sage-600">{journeySummary.finished} ({journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                  </div>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full transition-all duration-500 bg-green-500"
+                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.finished / journeySummary.total) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-              ) : null}
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* Quick Access & Support Corner */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
-          <h2 className="font-serif text-lg mb-4">{t("dashboard.quickAccess", { defaultValue: "Quick Access" })}</h2>
-          <div className="flex flex-col gap-4">
-            <CustomButton className="flex items-center gap-2 bg-[#E3E8E3] rounded p-2 w-full font-serif text-[#271F18]" onClick={() => router.push('/surrogacy/journal')}>
-              <span>📝</span>
-              <span>{t("dashboard.uploadJournal", { defaultValue: "Upload Journal" })}</span>
-              <span className="text-xs ml-auto">
-                {loadingJournal
-                  ? t("loadingText", { defaultValue: "Loading..." })
-                  : latestJournalTime
-                    ? t("dashboard.updatedAt", {
-                        date: formatJournalDate(latestJournalTime),
-                        defaultValue: `Updated at ${formatJournalDate(latestJournalTime)}`
-                      })
-                    : t("dashboard.noJournal", { defaultValue: "No journal yet" })}
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-sage-700">{t('dashboard.inProgressProgressSurrogacy', 'In Progress')}</span>
+                    <span className="text-sm text-sage-600">{journeySummary.pending} ({journeySummary.total > 0 ? ((journeySummary.pending / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                  </div>
+                  <div className="relative">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full transition-all duration-500 bg-orange-500"
+                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.pending / journeySummary.total) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-sage-600">{t('dashboard.totalProgressSurrogacy', 'Total Progress')}</span>
+                    <span className="font-medium text-sage-800">
+                      {journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : 0}%
               </span>
-            </CustomButton>
-            {/* <div className="flex items-center gap-2">
-              <span className="bg-[#E3E8E3] rounded p-2">🖼️</span>
-              <span>{t("dashboard.uploadUltrasound", { defaultValue: "Upload Ultrasound Image" })}</span>
-              <span className="text-xs ml-auto">{t("dashboard.timeAgo", { time: "2", unit: t("dashboard.hours", { defaultValue: "hours" }), defaultValue: "2 hours ago" })}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="bg-[#E3E8E3] rounded p-2">📩</span>
-              <span>{t("dashboard.checkMessages", { defaultValue: "Check Messages" })}</span>
-              <span className="text-xs ml-auto">{t("dashboard.timeAgo", { time: "2", unit: t("dashboard.hours", { defaultValue: "hours" }), defaultValue: "2 hours ago" })}</span>
-            </div> */}
           </div>
         </div>
-        {/* <div className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
-          <h2 className="font-serif text-lg mb-4">{t("dashboard.supportCorner", { defaultValue: "Support Corner" })}</h2>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#271F18]">
-                {t("dashboard.supportQuote1", { defaultValue: "You are stronger than you think." })}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions & Resources */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Settings className="w-5 h-5" />
+{t('dashboard.quickActionsSurrogacy', 'Quick Actions')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <CustomButton 
+                className="w-full justify-start px-4 py-3 bg-sage-100 hover:bg-sage-200 text-sage-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+                onClick={() => router.push('/surrogacy/my-case')}
+              >
+                <Home className="w-4 h-4 mr-3" />
+{t('dashboard.myCasesSurrogacy', 'My Case')}
+              </CustomButton>
+              <CustomButton 
+                className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+                onClick={() => router.push('/surrogacy/journey')}
+              >
+                <Activity className="w-4 h-4 mr-3" />
+{t('dashboard.myJourneySurrogacy', 'My Journey')}
+              </CustomButton>
+              <CustomButton 
+                className="w-full justify-start px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+                onClick={() => router.push('/surrogacy/documents')}
+              >
+                <FileText className="w-4 h-4 mr-3" />
+{t('dashboard.documentsSurrogacy', 'Documents')}
+      </CustomButton>
+            </CardContent>
+          </Card>
+
+          {/* Journal & Communication */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <BookOpen className="w-5 h-5" />
+{t('dashboard.journalCommunication', 'Journal & Communication')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                     onClick={() => router.push('/surrogacy/journal')}>
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium text-sage-800">{t('dashboard.uploadJournal', 'Upload Journal')}</span>
+                  </div>
+                  <span className="text-xs text-sage-600">
+                {loadingJournal
+                      ? t("loadingText", "Loading...")
+                  : latestJournalTime
+                        ? formatJournalDate(latestJournalTime)
+                        : t("dashboard.noJournal", "No journal yet")}
               </span>
-              <span className="ml-auto text-xs">{t("dashboard.yesterday", { defaultValue: "yesterday" })}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#271F18]">
-                {t("dashboard.supportQuote2", { defaultValue: "Drink plenty of water and rest well this week" })}
-              </span>
-              <span className="ml-auto text-xs">{t("dashboard.today", { defaultValue: "today" })}</span>
+                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                     onClick={() => router.push('/surrogacy/ivf-clinic')}>
+                  <div className="flex items-center gap-3">
+                    <Shield className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium text-sage-800">{t('dashboard.ivfClinicSurrogacy', 'Ivf Clinic')}</span>
+            </div>
+                  <span className="text-xs text-sage-600">{t('dashboard.medicalTeamUpdatesSurrogacy', 'Medical team & updates')}</span>
             </div>
           </div>
-        </div> */}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import ManagerLayout from '@/components/manager-layout'
+// import ManagerLayout from '@/components/manager-layout'
 import { Input } from '@/components/ui/input'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Search } from 'lucide-react'
@@ -97,7 +97,7 @@ export default function SurrogateProfiles() {
   }, [totalPages, page]);
 
   return (
-    <ManagerLayout>
+    // <ManagerLayout>
       <div className="p-8 min-h-screen bg-main-bg">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-medium text-sage-800">{t('surrogateProfiles.title')}</h1>
@@ -193,6 +193,6 @@ export default function SurrogateProfiles() {
           </>
         )}
       </div>
-    </ManagerLayout>
+    // </ManagerLayout>
   )
 }

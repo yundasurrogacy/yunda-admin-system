@@ -9,7 +9,7 @@ const getCategories = (t: (key: string) => string) => [
 
 import React, { Suspense, useEffect, useState } from 'react'
 import Modal from '@/components/ui/modal';
-import ManagerLayout from '@/components/manager-layout';
+// import ManagerLayout from '@/components/manager-layout';
 // import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
@@ -332,7 +332,7 @@ function JourneyInner() {
   };
 
   return (
-    <ManagerLayout>
+    <>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         {/* 返回按钮 */}
         <CustomButton
@@ -525,7 +525,7 @@ function JourneyInner() {
           </div>
         </Modal>
       )}
-    </ManagerLayout>
+    </>
   )
 }
 

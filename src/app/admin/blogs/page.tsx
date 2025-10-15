@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { AdminLayout } from "@/components/admin-layout"
+// import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
@@ -387,7 +387,6 @@ function AdminBlogsPage() {
   }, [totalPages, page]);
 
   return (
-    <AdminLayout>
       <PageContent>
         <PageHeader title={t('Blog Management') || '博客管理'}
           rightContent={
@@ -510,7 +509,6 @@ function AdminBlogsPage() {
           )}
         </div>
       </PageContent>
-    </AdminLayout>
   )
 }
 

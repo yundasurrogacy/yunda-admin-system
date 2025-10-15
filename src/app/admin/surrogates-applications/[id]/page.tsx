@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Heart, FileText, CheckCircle, XCircle, Clock, Activity, Baby, Shield } from 'lucide-react'
-import { AdminLayout } from '../../../../components/admin-layout'
+// import { AdminLayout } from '../../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Badge } from '@/components/ui/badge'
@@ -87,25 +87,21 @@ export default function SurrogateApplicationDetailPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
         <PageContent>
           <div className="flex items-center justify-center h-64">
             <div className="text-lg">{t('loading')}</div>
           </div>
         </PageContent>
-      </AdminLayout>
     )
   }
 
   if (!application) {
     return (
-      <AdminLayout>
         <PageContent>
           <div className="text-center py-8 text-sage-500">
             {t('applicationNotFound')}
           </div>
         </PageContent>
-      </AdminLayout>
     )
   }
 
@@ -117,7 +113,6 @@ export default function SurrogateApplicationDetailPage() {
   const pregnancyHistories = pregnancyHealth.pregnancy_histories || []
 
   return (
-    <AdminLayout>
       <PageContent>
         <PageHeader
           title={t('surrogateApplicationDetails')}
@@ -515,6 +510,5 @@ export default function SurrogateApplicationDetailPage() {
           </div>
         </div>
       </PageContent>
-    </AdminLayout>
   )
 }

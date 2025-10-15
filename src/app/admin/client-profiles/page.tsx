@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getIntendedParents, insertIntendedParent } from "@/lib/graphql/applications"
 import { Search, Filter, User, MapPin, Phone, Mail, Plus } from "lucide-react"
-import { AdminLayout } from "../../../components/admin-layout"
+// import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
@@ -220,7 +220,6 @@ export default function ClientProfilesPage() {
   }, [totalPages, page])
 
   return (
-    <AdminLayout>
       <PageContent>
         <PageHeader 
           title={t('CLIENT PROFILES')}
@@ -530,6 +529,5 @@ export default function ClientProfilesPage() {
           </div>
         </Dialog>
       </PageContent>
-    </AdminLayout>
   )
 }

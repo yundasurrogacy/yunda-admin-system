@@ -10,7 +10,7 @@ import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useDebounce } from "@/hooks/use-debounce"
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
-import ManagerLayout from "@/components/manager-layout"
+// import ManagerLayout from "@/components/manager-layout"
 
 interface ClientProfile {
   id: string
@@ -141,9 +141,9 @@ export default function ClientProfilesPage() {
 
   if (error) {
     return (
-      <ManagerLayout>
+      // <ManagerLayout>
         <div className="text-red-500">{t('clientProfiles.loadingFailed', { error: error })}</div>
-      </ManagerLayout>
+      // </ManagerLayout>
     )
   }
 
@@ -168,7 +168,6 @@ export default function ClientProfilesPage() {
   }, [totalPages, page]);
 
   return (
-    <ManagerLayout>
       <div className="p-8 min-h-screen bg-main-bg">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-medium text-sage-800">{t('clientProfiles.title')}</h1>
@@ -267,6 +266,5 @@ export default function ClientProfilesPage() {
           </>
         )}
       </div>
-    </ManagerLayout>
   )
 }

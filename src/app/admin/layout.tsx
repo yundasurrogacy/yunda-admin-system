@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [setAppType]);
   return (
     <div className="min-h-screen bg-background relative text-sage-800 font-medium">
+    {/* <div className="bg-background relative text-sage-800 font-medium"> */}
       {/* Sidebar */}
       {/* <CommonSidebar 
         isOpen={sidebarOpen} 
@@ -26,10 +27,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       /> */}
       {/* Main content */}
       <div className="min-h-screen flex flex-col">
+      {/* <div className="flex flex-col"> */}
         <main className={cn(
           "flex-1 transition-all duration-300 ease-in-out p-4 md:p-6",
-        //   sidebarOpen ? "ml-64" : "ml-0"
-          "ml-0"
+          sidebarOpen ? "ml-64" : "ml-0"
+          // "ml-0"
         //   sidebarOpen ? "md:ml-64" : "ml-0"
         )}>
           {children}

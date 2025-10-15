@@ -10,7 +10,7 @@ const getCategories = (t: (key: string) => string) => [
 import React, { Suspense, useEffect, useState } from 'react'
 import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
-import { AdminLayout } from "../../../components/admin-layout"
+// import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -336,7 +336,7 @@ function JourneyInner() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
         {/* 返回按钮 */}
         <CustomButton
@@ -404,7 +404,7 @@ function JourneyInner() {
                       </li>
                     ))}
                   </ul>
-                  <CustomButton
+                  {/* <CustomButton
                     className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
                     style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
                     onClick={() => handleAddJourneyClick(step.stageNumber)}
@@ -415,6 +415,13 @@ function JourneyInner() {
                     >
                       +
                     </span>
+                  </CustomButton> */}
+                  <CustomButton
+                    className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
+                    style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
+                    onClick={() => handleAddJourneyClick(step.stageNumber)}
+                  >
+                    <span className="cursor-pointer">+</span>
                   </CustomButton>
                 </div>
               );
@@ -443,19 +450,19 @@ function JourneyInner() {
                   className="w-full border border-[#E3E8E3] rounded-2xl px-6 py-3 mb-2 focus:ring-2 focus:ring-[#BFC9BF] focus:outline-none bg-white text-[#271F18] font-serif text-xl shadow-sm transition-all duration-200"
                   value={addTitle}
                   onChange={e => setAddTitle(e.target.value)}
-                  placeholder={t('journey.itemTitlePlaceholder', '请输入事项标题')}
+                  placeholder={t('journey.itemTitlePlaceholder', 'Enter item title')}
                   style={{ boxShadow: '0 2px 8px 0 #E3E8E355' }}
                 />
               </div>
               {/* 文件表格和添加按钮 */}
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-serif font-semibold text-[#271F18] text-lg">{t('files.fileList', '文件列表')}</span>
+                  <span className="font-serif font-semibold text-[#271F18] text-lg">{t('files.fileList', 'File List')}</span>
                   <CustomButton
                     className="px-4 py-2 rounded-full text-base font-bold cursor-pointer"
                     onClick={() => document.getElementById('file-upload-input')?.click()}
                   >
-                    {t('files.uploadFiles', '上传文件')}
+                    {t('files.uploadFiles', 'Upload Files')}
                   </CustomButton>
                   <input
                     id="file-upload-input"
@@ -481,15 +488,15 @@ function JourneyInner() {
                     </colgroup>
                     <thead>
                       <tr className="bg-[#F8F9FA] text-[#271F18]">
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.fileName', '文件名')}</th>
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.category', '分类')}</th>
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.note', '描述')}</th>
-                        <th className="border-b px-4 py-2 font-semibold text-left">{t('operation', '操作')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.fileName', 'File Name')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.category', 'Category')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('files.note', 'Description')}</th>
+                        <th className="border-b px-4 py-2 font-semibold text-left">{t('operation', 'Operation')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {addFiles.length === 0 && (
-                        <tr><td colSpan={4} className="text-center text-gray-400 py-4">{t('files.noFiles', '暂无文件')}</td></tr>
+                        <tr><td colSpan={4} className="text-center text-gray-400 py-4">{t('files.noFiles', 'No Files')}</td></tr>
                       )}
                       {addFiles.map((f, idx) => (
                         <tr key={idx} className="hover:bg-[#F8F9FA] transition-all">
@@ -534,7 +541,7 @@ function JourneyInner() {
           </div>
         </Modal>
       )}
-    </AdminLayout>
+      </>
   )
 }
 

@@ -5,24 +5,27 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const caseId = searchParams.get("caseId");
+  const aboutRole = searchParams.get("aboutRole");
   if (!caseId) {
     return NextResponse.json({ error: "缺少 caseId 参数" }, { status: 400 });
   }
   const client = getHasuraClient();
   try {
     const query = `
-    query GetIvfClinics($caseId: bigint!) {
-        ivf_clinics(where: { case_cases: { _eq: $caseId } }) {
+    query GetIvfClinics($caseId: bigint!, $aboutRole: String) {
+        ivf_clinics(where: { case_cases: { _eq: $caseId }, ${aboutRole ? "about_role: { _eq: $aboutRole }" : ""} }) {
         id
         type
         data
         case_cases
+        ${aboutRole ? "about_role" : "about_role"}
         created_at
         updated_at
         }
     }
     `;
-    const variables = { caseId: Number(caseId) };
+    const variables: any = { caseId: Number(caseId) };
+    if (aboutRole) variables.aboutRole = aboutRole;
     const result = await client.execute({ query, variables });
     return NextResponse.json({ ivf_clinics: result.ivf_clinics });
   } catch (e) {

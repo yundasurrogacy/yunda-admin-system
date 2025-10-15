@@ -13,7 +13,7 @@ import '../../../../i18n'
 import { Label } from "../../../../components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card"
 import { Badge } from "../../../../components/ui/badge"
-import { AdminLayout } from "../../../../components/admin-layout"
+// import { AdminLayout } from "../../../../components/admin-layout"
 
 export default function ClientProfileDetailPage() {
   const router = useRouter();
@@ -209,7 +209,6 @@ export default function ClientProfileDetailPage() {
   const formatValue = (val: string | undefined): string => val ? capitalize(val) : "-";
 
   return (
-    <AdminLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
             {/* 返回按钮 */}
             <CustomButton
@@ -480,6 +479,5 @@ export default function ClientProfileDetailPage() {
         {/* 其他区块（原有内容保留） */}
         {/* ...existing code... */}
       </div>
-    </AdminLayout>
   )
 }
