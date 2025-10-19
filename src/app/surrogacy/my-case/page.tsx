@@ -1,7 +1,15 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 interface SurrogateMother {
   id: string;
@@ -39,19 +47,77 @@ interface CaseItem {
   ivf_clinics?: IvfClinic[];
 }
 
+// 使用 memo 优化的案例卡片组件
+const CaseCard = memo(({ item, t, getCaseIdDisplay }: { 
+  item: CaseItem; 
+  t: (key: string) => string;
+  getCaseIdDisplay: (id: string) => string;
+}) => (
+  <div className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden">
+    <div className="flex items-center gap-4 mb-2">
+      <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+        <span className="text-sage-400 text-xl font-bold">{getCaseIdDisplay(item.id)}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-lg text-sage-800 truncate">{t('myCases.caseIdLabel')}{item.id}</div>
+        <div className="text-sage-500 text-sm truncate">{t('myCases.statusLabel')}{item.process_status || '-'}</div>
+      </div>
+    </div>
+    <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+      <div className="flex items-center gap-2 truncate">
+        <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel')}</span>
+        {item.intended_parent ? (
+          <Link href={`/surrogacy/intended-parents`} className="text-green-600 underline">
+            {item.intended_parent.name}
+          </Link>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </div>
+    </div>
+    <hr className="my-3 border-sage-100" />
+    <div className="flex flex-wrap gap-2 text-sm">
+      <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey')}</Link>
+      <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic')}</Link>
+      <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.journal')}</Link>
+    </div>
+  </div>
+));
+
+CaseCard.displayName = 'CaseCard';
+
 export default function SurrogacyMyCasesPage() {
+  const router = useRouter();
   const { t } = useTranslation('common');
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 认证检查和 cookie 读取
   useEffect(() => {
-    function getCookie(name: string) {
-      if (typeof document === 'undefined') return undefined;
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? match[2] : undefined;
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_surrogacy')
+      const userEmail = getCookie('userEmail_surrogacy')
+      const userId = getCookie('userId_surrogacy')
+      const authed = !!(userRole && userEmail && userId)
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/surrogacy/login')
+      }
     }
-    const surrogateId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
+  }, [router]);
+
+  // 数据加载 - 只在认证后执行
+  useEffect(() => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+    
+    const surrogateId = getCookie('userId_surrogacy');
     if (!surrogateId) {
       setError(t('myCases.error.noUserId'));
       setLoading(false);
@@ -100,14 +166,32 @@ export default function SurrogacyMyCasesPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, [t, isAuthenticated]);
 
-  if (loading) return <div>{t('loadingText')}</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  // 使用 useMemo 缓存是否有案例
+  const hasCases = useMemo(() => cases.length > 0, [cases.length]);
+
+  // 使用 useCallback 缓存获取案例ID后两位的函数
+  const getCaseIdDisplay = useCallback((id: string) => String(id).slice(-2), []);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return <div className="p-6">{t('loadingText')}</div>;
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (loading) return <div className="p-6">{t('loadingText')}</div>;
+  if (error) return <div className="p-6" style={{ color: 'red' }}>{error}</div>;
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">{t('MY CASE')}</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('dashboard.myCases', ' My Case')}</h1>
       <div
         className="w-full"
         style={{
@@ -117,95 +201,16 @@ export default function SurrogacyMyCasesPage() {
           alignItems: 'stretch',
         }}
       >
-        {cases.length === 0 ? (
+        {!hasCases ? (
           <div className="text-center py-8 col-span-full text-gray-500">{t('myCases.noCases')}</div>
         ) : (
           cases.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
-            >
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sage-400 text-xl font-bold">{String(item.id).slice(-2)}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-lg text-sage-800 truncate">{t('myCases.caseIdLabel')}{item.id}</div>
-                  <div className="text-sage-500 text-sm truncate">{t('myCases.statusLabel')}{item.process_status || '-'}</div>
-                </div>
-              </div>
-              <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
-                {/* <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400 whitespace-nowrap">{t('myCases.trustBalanceLabel', '信托余额：')}</span>
-                  <Link
-                    href={`/surrogacy/trust-account?caseId=${item.id}`}
-                    className="font-semibold text-blue-600 underline hover:bg-sage-50 rounded px-1 py-0.5 transition cursor-pointer"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    {item.trust_account_balance_changes && item.trust_account_balance_changes.length > 0 && item.trust_account_balance_changes[0].balance_after !== null && item.trust_account_balance_changes[0].balance_after !== undefined
-                      ? `$${Number(item.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-                      : '-'}
-                  </Link>
-                </div> */}
-                <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel')}</span>
-                  {item.intended_parent ? (
-                    <Link href={`/surrogacy/intended-parents`} className="text-green-600 underline">
-                      {item.intended_parent.name}
-                    </Link>
-                    ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </div>
-                {/* <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">代孕妈妈：</span>
-                  {item.surrogate_mother ? (
-                    <span className="text-sage-800">{item.surrogate_mother.name}</span>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </div> */}
-                {/* <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">文件：</span>
-                  {item.cases_files && item.cases_files.length > 0 ? (
-                    <ul className="list-disc pl-4">
-                      {item.cases_files.map((f) => (
-                        <li key={f.id}>
-                          <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{f.category}</a>
-                          <span className="ml-2 text-xs text-gray-500">{new Date(f.created_at).toLocaleDateString()}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 truncate">
-                  <span className="font-mono text-xs text-sage-400">诊所：</span>
-                  {item.ivf_clinics && item.ivf_clinics.length > 0 ? (
-                    <ul className="list-disc pl-4">
-                      {item.ivf_clinics.map((c) => (
-                        <li key={c.id}>
-                          {c.name}（{c.type}）<span className="ml-2 text-xs text-gray-500">{new Date(c.created_at).toLocaleDateString()}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </div> */}
-              </div>
-              <hr className="my-3 border-sage-100" />
-              <div className="flex flex-wrap gap-2 text-sm">
-                {/* <Link href={`/surrogacy/journal?caseId=${item.id}`} className="text-blue-600 underline">动态</Link> */}
-                {/* <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.publishUpdate')}</Link> */}
-                <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey')}</Link>
-                <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic')}</Link>
-                <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.journal')}</Link>
-                {/* <Link href={`/surrogacy/appointments?caseId=${item.id}`} className="text-purple-600 underline">{t('myCases.appointments', 'Appointments')}</Link> */}
-                {/* <Link href={`/surrogacy/medication?caseId=${item.id}`} className="text-pink-600 underline">{t('myCases.medication', 'Medication')}</Link> */}
-              </div>
-            </div>
+            <CaseCard 
+              key={item.id} 
+              item={item} 
+              t={t} 
+              getCaseIdDisplay={getCaseIdDisplay}
+            />
           ))
         )}
       </div>

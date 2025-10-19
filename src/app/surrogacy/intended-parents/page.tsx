@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,24 +12,49 @@ import '../../../i18n'
 import { CustomButton } from '@/components/ui/CustomButton';
 import { useRouter} from 'next/navigation'
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
 export default function IntendedParents() {
   const { t } = useTranslation('common')
   const router = useRouter();
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [parentInfo, setParentInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // 认证检查和 cookie 读取
   useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_surrogacy')
+      const userEmail = getCookie('userEmail_surrogacy')
+      const userId = getCookie('userId_surrogacy')
+      const authed = !!(userRole && userEmail && userId)
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/surrogacy/login')
+      }
+    }
+  }, [router]);
+
+  // 数据加载 - 只在认证后执行
+  useEffect(() => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+    
     async function fetchData() {
       setLoading(true)
       setError('')
       try {
-        function getCookie(name: string) {
-          if (typeof document === 'undefined') return undefined;
-          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-          return match ? match[2] : undefined;
-        }
-        const surrogateId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
+        const surrogateId = getCookie('userId_surrogacy');
         // 2. 通过代孕母id获取case，兼容多种返回结构
         const caseRes = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`)
         if (!caseRes.ok) throw new Error(t('intendedParents.error.fetchCaseFailed'))
@@ -80,7 +105,47 @@ export default function IntendedParents() {
       setLoading(false)
     }
     fetchData()
-  }, [])
+  }, [t, isAuthenticated])
+
+  // 使用 useMemo 缓存数据对象
+  const basic = useMemo(() => parentInfo?.basic_information || {}, [parentInfo?.basic_information]);
+  const contact = useMemo(() => parentInfo?.contact_information || {}, [parentInfo?.contact_information]);
+  const family = useMemo(() => parentInfo?.family_profile || {}, [parentInfo?.family_profile]);
+  const program = useMemo(() => parentInfo?.program_interests || {}, [parentInfo?.program_interests]);
+  const referral = useMemo(() => parentInfo?.referral || {}, [parentInfo?.referral]);
+
+  // 使用 useCallback 缓存格式化函数
+  const formatArray = useCallback((arr: string[] | undefined): string => {
+    return Array.isArray(arr) && arr.length ? arr.join(", ") : t('noData', '暂无数据');
+  }, [t]);
+
+  const formatValue = useCallback((val: string | undefined): string => {
+    return val ? val : t('noData', '暂无数据');
+  }, [t]);
+
+  // 使用 useCallback 缓存返回按钮函数
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  // 使用 useMemo 缓存电话显示
+  const phoneDisplay = useMemo(() => {
+    return contact.cell_phone_country_code 
+      ? `+${contact.cell_phone_country_code} ${formatValue(contact.cell_phone)}`
+      : formatValue(contact.cell_phone);
+  }, [contact.cell_phone_country_code, contact.cell_phone, formatValue]);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return <div className="p-8 min-h-screen">{t('loadingText')}</div>;
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return <div className="p-8 min-h-screen">{t('loadingText')}</div>
@@ -89,24 +154,13 @@ export default function IntendedParents() {
     return <div className="p-8 min-h-screen text-red-500">{error}</div>
   }
 
-  // 解析分组信息
-  const basic = parentInfo?.basic_information || {}
-  const contact = parentInfo?.contact_information || {}
-  const family = parentInfo?.family_profile || {}
-  const program = parentInfo?.program_interests || {}
-  const referral = parentInfo?.referral || {}
-
-  // 格式化多选和枚举展示
-  const formatArray = (arr: string[] | undefined): string => Array.isArray(arr) && arr.length ? arr.join(", ") : t('noData', '暂无数据')
-  const formatValue = (val: string | undefined): string => val ? val : t('noData', '暂无数据')
-
   return (
     <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
       <div className="flex items-center justify-between pt-6 pb-2">
               {/* 返回按钮 */}
               <CustomButton
                 className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
-                onClick={() => router.back()}
+                onClick={handleBack}
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
                   <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -183,7 +237,7 @@ export default function IntendedParents() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="text-sage-600 text-sm">{t('intendedParents.contactInfo.cellPhone')}:</Label>
-              <p className="font-medium text-sage-800">{contact.cell_phone_country_code ? `+${contact.cell_phone_country_code} ` : ""}{formatValue(contact.cell_phone)}</p>
+              <p className="font-medium text-sage-800">{phoneDisplay}</p>
             </div>
             <div>
               <Label className="text-sage-600 text-sm">{t('intendedParents.contactInfo.email')}:</Label>

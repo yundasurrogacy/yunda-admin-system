@@ -7,6 +7,12 @@ export async function POST(req: Request) {
     if (!file || !file.case_cases || !file.journey_journeys || !file.file_url) {
       return NextResponse.json({ error: "参数不完整" }, { status: 400 });
     }
+    
+    // 设置默认的 about_role 值
+    const fileData = {
+      ...file,
+      about_role: file.about_role || 'intended_parent' // 默认为 intended_parent
+    };
     const mutation = `
       mutation AddFile($object: cases_files_insert_input!) {
         insert_cases_files_one(object: $object) {
@@ -17,6 +23,7 @@ export async function POST(req: Request) {
           note
           case_cases
           journey_journeys
+          about_role
           created_at
         }
       }
@@ -25,7 +32,7 @@ export async function POST(req: Request) {
     const res = await client.execute({
       query: mutation,
       variables: {
-        object: file,
+        object: fileData,
       },
     });
     return NextResponse.json(res.insert_cases_files_one);

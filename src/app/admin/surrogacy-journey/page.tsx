@@ -1,4 +1,12 @@
 "use client"
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
 // 文件分类选项
 const getCategories = (t: (key: string) => string) => [
   { key: 'EmbryoDocs', label: t('files.categories.embryoDocs') },
@@ -7,10 +15,8 @@ const getCategories = (t: (key: string) => string) => [
   { key: 'Other', label: t('files.categories.other') },
 ];
 
-import React, { Suspense, useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState, useMemo, useCallback } from 'react'
 import Modal from '@/components/ui/modal';
-// import ManagerLayout from '@/components/manager-layout';
-// import { AdminLayout } from "../../../components/admin-layout"
 import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -99,58 +105,67 @@ const staticTimelineData = () => [
   },
 ];
 
-import { useTranslation as useTranslationOrigin } from 'react-i18next';
-
 function JourneyInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, i18n } = useTranslationOrigin('common');
-  const categories = getCategories(t);
-  const caseId = searchParams.get('caseId');
-
-  // 国际化进度状态选项
-  const statusOptions = [
-    { value: 'pending', label: t('journey.status.pending', '待完成') },
-    { value: 'finished', label: t('journey.status.finished', '已完成') },
-  ];
-
+  const { t, i18n } = useTranslation('common');
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [processStatus, setProcessStatus] = useState<string>('');
   const [updatedAt, setUpdatedAt] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [timeline, setTimeline] = useState<any[]>([]);
 
-  // 将后端返回的状态映射到翻译文件中的键
-  const statusKeyMap: { [key: string]: string } = {
+  // 添加 journey 弹窗表单状态
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addStage, setAddStage] = useState<number | null>(null);
+  const [addTitle, setAddTitle] = useState('');
+  const [addFiles, setAddFiles] = useState<Array<{ file?: File; file_url?: string; category?: string; file_type?: string; note?: string }>>([]);
+  const [addLoading, setAddLoading] = useState(false);
+
+  const caseId = searchParams.get('caseId');
+
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_admin')
+      const userEmail = getCookie('userEmail_admin')
+      const userId = getCookie('userId_admin')
+      const authed = !!(userRole && userEmail && userId && userRole === 'admin')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/admin/login')
+      }
+    }
+  }, [router]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存国际化进度状态选项
+  const statusOptions = useMemo(() => [
+    { value: 'pending', label: t('journey.status.pending', '待完成') },
+    { value: 'finished', label: t('journey.status.finished', '已完成') },
+  ], [t]);
+
+  // 使用 useMemo 缓存分类选项
+  const categories = useMemo(() => getCategories(t), [t]);
+
+  // 使用 useMemo 缓存状态映射
+  const statusKeyMap = useMemo(() => ({
     'Matching': 'Matching',
     'LegalStage': 'Legal',
     'CyclePrep': 'Medical',
     'Pregnant': 'Pregnancy',
     'Transferred': 'Post-delivery',
-  };
-
-  // 切换并保存 journey 状态
-  const handleStatusClick = async (item: { id: any; process_status?: string }) => {
-    if (!item.id) return;
-    const newStatus = item.process_status;
-    try {
-      const res = await fetch('/api/journey-update-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ journeyId: item.id, process_status: newStatus }),
-      });
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        alert('Failed to update status');
-      }
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Network error');
-    }
-  };
+  } as Record<string, string>), []);
 
   // 获取案例数据并设置当前case的process_status和updated_at
   useEffect(() => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+    
     const fetchCases = async () => {
       setIsLoading(true);
       // 国际化语言判断，en显示英文，zh显示中文，其他默认中文
@@ -162,11 +177,6 @@ function JourneyInner() {
         stageNumber: idx + 1,
       }));
       try {
-        function getCookie(name: string) {
-          if (typeof document === 'undefined') return undefined;
-          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-          return match ? match[2] : undefined;
-        }
         // 优先 caseId 查询
         if (caseId) {
           const res = await fetch(`/api/cases-list?caseId=${caseId}`);
@@ -236,11 +246,31 @@ function JourneyInner() {
       }
     };
     fetchCases();
-  }, [caseId, i18n.language]);
+  }, [caseId, i18n.language, isAuthenticated]);
 
-  // 跳转到 files 页面并携带参数
+  // 使用 useCallback 缓存事件处理函数
+  // 切换并保存 journey 状态
+  const handleStatusClick = useCallback(async (item: { id: any; process_status?: string }) => {
+    if (!item.id) return;
+    const newStatus = item.process_status;
+    try {
+      const res = await fetch('/api/journey-update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journeyId: item.id, process_status: newStatus }),
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        console.error('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  }, []);
+
   // 跳转到 files 页面并携带 journeyId 参数
-  const handleViewClick = (stageNumber: number, itemTitle: string) => {
+  const handleViewClick = useCallback((stageNumber: number, itemTitle: string) => {
     // 找到当前阶段下的 journey
     const currentStage = timeline.find((step: any) => step.stageNumber === stageNumber);
     let journeyId = '';
@@ -249,26 +279,18 @@ function JourneyInner() {
       const journey = currentStage.items.find((item: any) => item.title === itemTitle);
       if (journey && journey.id) journeyId = journey.id;
     }
-    router.push(`/admin/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}`);
-  };
+    router.push(`/admin/files?caseId=${caseId}&stage=${stageNumber}&title=${encodeURIComponent(itemTitle)}${journeyId ? `&journeyId=${journeyId}` : ''}&about_role=surrogate_mother`);
+  }, [timeline, router, caseId]);
 
-  // 添加 journey 弹窗表单
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [addStage, setAddStage] = useState<number | null>(null);
-  const [addTitle, setAddTitle] = useState('');
-  // 只在添加后才有文件行
-  const [addFiles, setAddFiles] = useState<Array<{ file?: File; file_url?: string; category?: string; file_type?: string; note?: string }>>([]);
-  const [addLoading, setAddLoading] = useState(false);
-
-  const handleAddJourneyClick = (stageNumber: number) => {
+  const handleAddJourneyClick = useCallback((stageNumber: number) => {
     setAddStage(stageNumber);
     setAddTitle('');
     setAddFiles([]); // 弹窗初始为空
     setShowAddModal(true);
-  };
+  }, []);
 
   // 支持多文件批量添加
-  const handleAddFiles = (files: FileList | null) => {
+  const handleAddFiles = useCallback((files: FileList | null) => {
     if (files && files.length > 0) {
       const newFiles = Array.from(files).map(file => ({
         file,
@@ -279,15 +301,17 @@ function JourneyInner() {
       }));
       setAddFiles(prev => [...prev, ...newFiles]);
     }
-  };
-  const handleRemoveFileField = (idx: number) => {
-    setAddFiles(prev => prev.filter((_, i) => i !== idx));
-  };
-  const handleFileMetaChange = (idx: number, key: string, value: string) => {
-    setAddFiles(prev => prev.map((f, i) => i === idx ? { ...f, [key]: value } : f));
-  };
+  }, []);
 
-  const handleAddJourneySubmit = async () => {
+  const handleRemoveFileField = useCallback((idx: number) => {
+    setAddFiles(prev => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const handleFileMetaChange = useCallback((idx: number, key: string, value: string) => {
+    setAddFiles(prev => prev.map((f, i) => i === idx ? { ...f, [key]: value } : f));
+  }, []);
+
+  const handleAddJourneySubmit = useCallback(async () => {
     if (!caseId || !addStage || !addTitle) return;
     setAddLoading(true);
     try {
@@ -321,15 +345,49 @@ function JourneyInner() {
       if (res.ok) {
         setShowAddModal(false);
         window.location.reload();
+        console.log('Journey item added successfully');
       } else {
-        alert(t('journey.addItemFail'));
+        console.error('Failed to add journey item');
       }
     } catch (e: any) {
-      alert(e.message || t('journey.networkError'));
+      console.error('Network error:', e.message || e);
     } finally {
       setAddLoading(false);
     }
-  };
+  }, [caseId, addStage, addTitle, addFiles, t]);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handleCloseModal = useCallback(() => {
+    setShowAddModal(false);
+  }, []);
+
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddTitle(e.target.value);
+  }, []);
+
+  // 缓存阶段前缀数组
+  const zhStages = useMemo(() => ['一','二','三','四','五','六','七','八'], []);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <>
@@ -337,7 +395,7 @@ function JourneyInner() {
         {/* 返回按钮 */}
         <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -350,7 +408,7 @@ function JourneyInner() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-serif">{t('journey.currentStatus')}</h2>
             <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">
-              {isLoading ? t('loadingText') : (processStatus ? t(`statusMapping.${statusKeyMap[processStatus] || processStatus}`, { defaultValue: processStatus }) : t('journey.noStatus'))}
+              {isLoading ? t('loadingText') : (processStatus ? t(`statusMapping.${statusKeyMap[processStatus] || processStatus}`, processStatus) : t('journey.noStatus'))}
             </span>
           </div>
           <div className="text-sm">
@@ -364,7 +422,6 @@ function JourneyInner() {
             {timeline.length > 0 && <div className="absolute left-4 top-0 w-0.5 h-full bg-[#D9D9D9]" />}
             {timeline.map((step, idx) => {
               // 阶段前缀
-              const zhStages = ['一','二','三','四','五','六','七','八'];
               const lang = i18n.language || 'zh';
               const stagePrefix = lang.startsWith('en')
                 ? `Stage ${idx + 1}: `
@@ -415,13 +472,13 @@ function JourneyInner() {
       </div>
       {/* 添加 journey 弹窗表单 */}
       {showAddModal && (
-        <Modal open={showAddModal} onClose={() => setShowAddModal(false)}>
+        <Modal open={showAddModal} onClose={handleCloseModal}>
           <div
             className="p-0 w-full max-w-4xl min-w-[700px] rounded-3xl overflow-hidden shadow-2xl border border-[#E3E8E3] bg-gradient-to-br from-[#F8F9FA] to-[#F3F6F3] animate-fadein relative"
             style={{ boxSizing: 'border-box' }}
           >
             {/* 关闭按钮 */}
-            <button className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 z-10 cursor-pointer" onClick={() => setShowAddModal(false)} aria-label={t('close', '关闭')}>
+            <button className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 z-10 cursor-pointer" onClick={handleCloseModal} aria-label={t('close', '关闭')}>
               <svg width="22" height="22" fill="none" stroke="#271F18" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <div className="px-10 pt-10 pb-4 border-b border-[#F0F0F0] flex items-center">
@@ -433,7 +490,7 @@ function JourneyInner() {
                 <input
                   className="w-full border border-[#E3E8E3] rounded-2xl px-6 py-3 mb-2 focus:ring-2 focus:ring-[#BFC9BF] focus:outline-none bg-white text-[#271F18] font-serif text-xl shadow-sm transition-all duration-200"
                   value={addTitle}
-                  onChange={e => setAddTitle(e.target.value)}
+                  onChange={handleTitleChange}
                   placeholder={t('journey.itemTitlePlaceholder', '请输入事项标题')}
                   style={{ boxShadow: '0 2px 8px 0 #E3E8E355' }}
                 />
@@ -518,7 +575,7 @@ function JourneyInner() {
               </div>
               {/* 底部操作按钮 */}
               <div className="flex justify-end gap-6 mt-4">
-                <CustomButton className="px-7 py-2 rounded-full text-lg font-semibold cursor-pointer" onClick={() => setShowAddModal(false)}>{t('cancel', '取消')}</CustomButton>
+                <CustomButton className="px-7 py-2 rounded-full text-lg font-semibold cursor-pointer" onClick={handleCloseModal}>{t('cancel', '取消')}</CustomButton>
                 <CustomButton className="px-7 py-2 rounded-full text-lg font-bold cursor-pointer" onClick={handleAddJourneySubmit} disabled={addLoading}>{addLoading ? t('loadingText', '保存中...') : t('save', '保存')}</CustomButton>
               </div>
             </div>

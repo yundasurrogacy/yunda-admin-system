@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo, useCallback, memo } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,6 +30,134 @@ import {
   Camera,
   Mail
 } from "lucide-react"
+
+// 状态阶段映射（移到组件外部，避免每次渲染重新创建）
+const STATUS_STAGE_MAP: Record<string, number> = {
+  Matching: 0,
+  LegalStage: 1,
+  CyclePrep: 2,
+  Pregnant: 3,
+  Transferred: 4,
+};
+
+// 状态列表（移到组件外部）
+const STATUS_LIST = ['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'] as const;
+
+// 优化的进度步骤组件
+const ProgressStep = memo(({ 
+  status, 
+  idx, 
+  isActive, 
+  isCurrent, 
+  statusLabel
+}: { 
+  status: string; 
+  idx: number; 
+  isActive: boolean; 
+  isCurrent: boolean; 
+  statusLabel: string;
+}) => (
+  <div className="flex items-center gap-3">
+    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+      isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
+    }`}>
+      {idx + 1}
+    </div>
+    <div className="flex-1">
+      <div className={`text-sm font-medium ${
+        isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
+      }`}>
+        {statusLabel}
+      </div>
+    </div>
+    {isCurrent && (
+      <Clock className="w-4 h-4 text-sage-600" />
+    )}
+    {isActive && !isCurrent && (
+      <CheckCircle className="w-4 h-4 text-green-500" />
+    )}
+  </div>
+));
+
+ProgressStep.displayName = 'ProgressStep';
+
+// 优化的统计卡片组件
+const StatCard = memo(({ 
+  title, 
+  value, 
+  IconComponent, 
+  iconBgColor, 
+  iconColor,
+  subtitle,
+  SubtitleIcon,
+  onClick 
+}: { 
+  title: string; 
+  value: number; 
+  IconComponent: React.ComponentType<{ className?: string }>; 
+  iconBgColor: string;
+  iconColor: string;
+  subtitle: string;
+  SubtitleIcon: React.ComponentType<{ className?: string }>;
+  onClick: () => void;
+}) => (
+  <Card 
+    className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
+    onClick={onClick}
+  >
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-sage-600 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-sage-800">{value}</p>
+        </div>
+        <div className={`w-12 h-12 ${iconBgColor} rounded-lg flex items-center justify-center`}>
+          <IconComponent className={`w-6 h-6 ${iconColor}`} />
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="flex items-center text-sm text-sage-600">
+          <SubtitleIcon className="w-4 h-4 mr-1" />
+          {subtitle}
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+));
+
+StatCard.displayName = 'StatCard';
+
+// 优化的快速操作按钮组件
+const QuickActionButton = memo(({ 
+  label, 
+  IconComponent, 
+  bgColor, 
+  textColor,
+  onClick 
+}: { 
+  label: string; 
+  IconComponent: React.ComponentType<{ className?: string }>; 
+  bgColor: string;
+  textColor: string;
+  onClick: () => void;
+}) => (
+  <CustomButton 
+    className={`w-full justify-start px-4 py-3 ${bgColor} hover:opacity-90 ${textColor} rounded-lg transition-all duration-200 cursor-pointer hover:scale-105`}
+    onClick={onClick}
+  >
+    <IconComponent className="w-4 h-4 mr-3" />
+    {label}
+  </CustomButton>
+));
+
+QuickActionButton.displayName = 'QuickActionButton';
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 interface JourneyStage {
   stage: string
@@ -65,6 +193,10 @@ export default function SurrogacyDashboard() {
   };
   const { t } = useTranslation('common');
   const router = useRouter()
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [journeyStages, setJourneyStages] = useState<JourneyStage[]>([])
   const [currentStatus, setCurrentStatus] = useState<string>("")
   const [currentStatusDate, setCurrentStatusDate] = useState<string>("")
@@ -82,14 +214,27 @@ export default function SurrogacyDashboard() {
   // 汇总 about_role 为 surrogate_mother 的 journey
   const [journeySummary, setJourneySummary] = useState({ total: 0, finished: 0, pending: 0 });
 
+  // 认证检查和 cookie 读取
   useEffect(() => {
-    async function fetchData() {
-      function getCookie(name: string) {
-        if (typeof document === 'undefined') return undefined;
-        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? match[2] : undefined;
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_surrogacy')
+      const userEmail = getCookie('userEmail_surrogacy')
+      const userId = getCookie('userId_surrogacy')
+      const authed = !!(userRole && userEmail && userId)
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/surrogacy/login')
       }
-      const surrogateId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
+    }
+  }, [router]);
+
+  useEffect(() => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+    
+    async function fetchData() {
+      const surrogateId = getCookie('userId_surrogacy');
       if (!surrogateId) return;
       const res = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogateId}`);
       const data = await res.json();
@@ -130,7 +275,7 @@ export default function SurrogacyDashboard() {
       setJourneyStages(baseTimeline);
     }
     fetchData();
-  }, [t]);
+  }, [t, isAuthenticated, gestationalCarrierStages]);
 
   // caseId变化时获取journal最新更新时间
   useEffect(() => {
@@ -159,18 +304,96 @@ export default function SurrogacyDashboard() {
       });
   }, [caseId]);
 
+  // 使用 useCallback 缓存格式化日期函数
+  const formatJournalDateMemo = useCallback((dateStr: string) => {
+    return formatJournalDate(dateStr);
+  }, []);
+
+  // 使用 useMemo 缓存状态映射
+  const statusMap = useMemo<Record<string, string>>(() => ({
+    Matching: t('statusMapping.Matching', 'Matching'),
+    LegalStage: t('statusMapping.LegalStage', 'Legal Stage'),
+    CyclePrep: t('statusMapping.CyclePrep', 'Cycle Prep'),
+    Pregnant: t('statusMapping.Pregnant', 'Pregnant'),
+    Transferred: t('statusMapping.Transferred', 'Transferred'),
+  }), [t]);
+
+  // 使用 useMemo 缓存完成百分比计算
+  const completionPercentage = useMemo(() => {
+    return journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : '0';
+  }, [journeySummary.finished, journeySummary.total]);
+
+  const progressPercentage = useMemo(() => {
+    return journeySummary.total > 0 ? ((journeySummary.pending / journeySummary.total) * 100).toFixed(1) : '0';
+  }, [journeySummary.pending, journeySummary.total]);
+
+  const totalProgressPercentage = useMemo(() => {
+    return journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : '0';
+  }, [journeySummary.finished, journeySummary.total]);
+
+  // 使用 useCallback 缓存导航函数
+  const handleNavigateToJourney = useCallback(() => {
+    router.push('/surrogacy/journey');
+  }, [router]);
+
+  const handleNavigateToMyCase = useCallback(() => {
+    if (caseId) {
+      router.push('/surrogacy/my-case');
+    }
+  }, [router, caseId]);
+
+  const handleNavigateToDocuments = useCallback(() => {
+    router.push('/surrogacy/documents');
+  }, [router]);
+
+  const handleNavigateToJournal = useCallback(() => {
+    router.push('/surrogacy/journal');
+  }, [router]);
+
+  const handleNavigateToIvfClinic = useCallback(() => {
+    router.push('/surrogacy/ivf-clinic');
+  }, [router]);
+
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  // 使用 useMemo 缓存当前状态的索引
+  const currentStatusIdx = useMemo(() => STATUS_STAGE_MAP[currentStatus], [currentStatus]);
+
+  // 使用 useMemo 缓存格式化的更新时间
+  const lastUpdatedDisplay = useMemo(() => {
+    return currentStatusDate ? new Date(currentStatusDate).toLocaleString() : '';
+  }, [currentStatusDate]);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-brand-yellow flex items-center justify-center">
+        <div className="text-lg text-sage-700">{t('loading')}</div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-brand-yellow">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.surrogacyTitle', 'Surrogate Dashboard')}</h1>
-            <p className="text-sage-600">{t('dashboard.surrogacyWelcome', 'Welcome to your journey! Track your progress and access important information.')}</p>
+            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.surrogacyTitle', 'DASHBOARD')}</h1>
+            <p className="text-sage-600">{t('dashboard.surrogacyWelcome', 'Welcome to your Dashboard! Access your progress, important information, digital signatures, and a variety of references to support your journey.')}</p>
           </div>
           <CustomButton 
             className="px-6 py-3 bg-sage-600 hover:bg-sage-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
-            onClick={() => window.location.reload()}
+            onClick={handleRefresh}
           >
             <RefreshCw className="w-4 h-4" />
             {t('refresh', 'Refresh')}
@@ -179,77 +402,38 @@ export default function SurrogacyDashboard() {
 
         {/* Journey Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Total Journeys */}
-          <Card 
-            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/surrogacy/journey')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.totalJourneysSurrogacy', 'Total Journeys')}</p>
-                  <p className="text-3xl font-bold text-sage-800">{journeySummary.total}</p>
-                </div>
-                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
-                  <Activity className="w-6 h-6 text-pink-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-center text-sm text-sage-600">
-                  <TrendingUp className="w-4 h-4 mr-1" />
-                  {t('dashboard.surrogateJourneys', 'Surrogate journeys')}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Completed Journeys */}
-          <Card 
-            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/surrogacy/journey')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.completedSurrogacy', 'Completed')}</p>
-                  <p className="text-3xl font-bold text-sage-800">{journeySummary.finished}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-center text-sm text-sage-600">
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  {t('dashboard.finishedJourneysSurrogacy', 'Finished journeys')}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* In Progress */}
-          <Card 
-            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/surrogacy/journey')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.inProgressSurrogacy', 'In Progress')}</p>
-                  <p className="text-3xl font-bold text-sage-800">{journeySummary.pending}</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-orange-600" />
-        </div>
-        </div>
-              <div className="mt-4">
-                <div className="flex items-center text-sm text-sage-600">
-                  <Clock className="w-4 h-4 mr-1" />
-                  {t('dashboard.activeJourneysSurrogacy', 'Active journeys')}
-        </div>
-      </div>
-            </CardContent>
-          </Card>
+          <StatCard 
+            title={t('dashboard.totalJourneysSurrogacy', 'Total Journeys')}
+            value={journeySummary.total}
+            IconComponent={Activity}
+            iconBgColor="bg-pink-100"
+            iconColor="text-pink-600"
+            subtitle={t('dashboard.surrogateJourneys', 'Surrogate journeys')}
+            SubtitleIcon={TrendingUp}
+            onClick={handleNavigateToJourney}
+          />
+          
+          <StatCard 
+            title={t('dashboard.completedSurrogacy', 'Completed')}
+            value={journeySummary.finished}
+            IconComponent={CheckCircle}
+            iconBgColor="bg-green-100"
+            iconColor="text-green-600"
+            subtitle={t('dashboard.finishedJourneysSurrogacy', 'Finished journeys')}
+            SubtitleIcon={CheckCircle}
+            onClick={handleNavigateToJourney}
+          />
+          
+          <StatCard 
+            title={t('dashboard.inProgressSurrogacy', 'In Progress')}
+            value={journeySummary.pending}
+            IconComponent={Clock}
+            iconBgColor="bg-orange-100"
+            iconColor="text-orange-600"
+            subtitle={t('dashboard.activeJourneysSurrogacy', 'Active journeys')}
+            SubtitleIcon={Clock}
+            onClick={handleNavigateToJourney}
+          />
         </div>
 
         {/* Current Status & Progress */}
@@ -257,7 +441,7 @@ export default function SurrogacyDashboard() {
           {/* Current Status */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => caseId && router.push('/surrogacy/my-case')}
+            onClick={handleNavigateToMyCase}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
@@ -270,61 +454,32 @@ export default function SurrogacyDashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-sage-700">{t('dashboard.caseStatusSurrogacy', 'Case Status')}</span>
                   <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">
-            {(() => {
-              const statusMap: Record<string, string> = {
-                        Matching: t('statusMapping.Matching', 'Matching'),
-                        LegalStage: t('statusMapping.LegalStage', 'Legal Stage'),
-                        CyclePrep: t('statusMapping.CyclePrep', 'Cycle Prep'),
-                        Pregnant: t('statusMapping.Pregnant', 'Pregnant'),
-                        Transferred: t('statusMapping.Transferred', 'Transferred'),
-                      };
-                      return statusMap[currentStatus] || t('statusMapping.Matching', 'Matching');
-            })()}
-          </span>
+                    {statusMap[currentStatus] || statusMap.Matching}
+                  </span>
         </div>
                 
                 {/* Progress Steps */}
                 <div className="space-y-3">
-                  {['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'].map((status, idx) => {
-            const statusStageMap: Record<string, number> = {
-              Matching: 0,
-              LegalStage: 1,
-              CyclePrep: 2,
-              Pregnant: 3,
-              Transferred: 4,
-            };
-            const activeIdx = statusStageMap[currentStatus];
-            const isActive = typeof activeIdx === 'number' && idx <= activeIdx;
-                    const isCurrent = idx === activeIdx;
+                  {STATUS_LIST.map((status, idx) => {
+                    const isActive = typeof currentStatusIdx === 'number' && idx <= currentStatusIdx;
+                    const isCurrent = idx === currentStatusIdx;
                     
-            return (
-                      <div key={status} className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                          isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
-                        }`}>
-                          {idx + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className={`text-sm font-medium ${
-                            isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
-                          }`}>
-                            {t(`statusMapping.${status}`, status)}
-                          </div>
-                        </div>
-                        {isCurrent && (
-                          <Clock className="w-4 h-4 text-sage-600" />
-                        )}
-                        {isActive && !isCurrent && (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                        )}
-                      </div>
-            );
-          })}
+                    return (
+                      <ProgressStep
+                        key={status}
+                        status={status}
+                        idx={idx}
+                        isActive={isActive}
+                        isCurrent={isCurrent}
+                        statusLabel={t(`statusMapping.${status}`, status)}
+                      />
+                    );
+                  })}
         </div>
                 
                 {currentStatusDate && (
                   <div className="text-xs text-sage-500 pt-2 border-t">
-                    {t('dashboard.lastUpdatedSurrogacy', 'Last updated')}: {new Date(currentStatusDate).toLocaleString()}
+                    {t('dashboard.lastUpdatedSurrogacy', 'Last updated')}: {lastUpdatedDisplay}
                   </div>
                 )}
               </div>
@@ -334,7 +489,7 @@ export default function SurrogacyDashboard() {
           {/* Journey Progress */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/surrogacy/journey')}
+            onClick={handleNavigateToJourney}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
@@ -347,13 +502,13 @@ export default function SurrogacyDashboard() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgressSurrogacy', 'Completed')}</span>
-                    <span className="text-sm text-sage-600">{journeySummary.finished} ({journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                    <span className="text-sm text-sage-600">{journeySummary.finished} ({completionPercentage}%)</span>
                   </div>
                   <div className="relative">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="h-2 rounded-full transition-all duration-500 bg-green-500"
-                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.finished / journeySummary.total) * 100 : 0}%` }}
+                        style={{ width: `${completionPercentage}%` }}
                       ></div>
                     </div>
                   </div>
@@ -362,13 +517,13 @@ export default function SurrogacyDashboard() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-sage-700">{t('dashboard.inProgressProgressSurrogacy', 'In Progress')}</span>
-                    <span className="text-sm text-sage-600">{journeySummary.pending} ({journeySummary.total > 0 ? ((journeySummary.pending / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                    <span className="text-sm text-sage-600">{journeySummary.pending} ({progressPercentage}%)</span>
                   </div>
                   <div className="relative">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="h-2 rounded-full transition-all duration-500 bg-orange-500"
-                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.pending / journeySummary.total) * 100 : 0}%` }}
+                        style={{ width: `${progressPercentage}%` }}
                       ></div>
                     </div>
                   </div>
@@ -378,8 +533,8 @@ export default function SurrogacyDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-sage-600">{t('dashboard.totalProgressSurrogacy', 'Total Progress')}</span>
                     <span className="font-medium text-sage-800">
-                      {journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : 0}%
-              </span>
+                      {totalProgressPercentage}%
+                    </span>
             </div>
           </div>
         </div>
@@ -398,27 +553,27 @@ export default function SurrogacyDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <CustomButton 
-                className="w-full justify-start px-4 py-3 bg-sage-100 hover:bg-sage-200 text-sage-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/surrogacy/my-case')}
-              >
-                <Home className="w-4 h-4 mr-3" />
-{t('dashboard.myCasesSurrogacy', 'My Case')}
-              </CustomButton>
-              <CustomButton 
-                className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/surrogacy/journey')}
-              >
-                <Activity className="w-4 h-4 mr-3" />
-{t('dashboard.myJourneySurrogacy', 'My Journey')}
-              </CustomButton>
-              <CustomButton 
-                className="w-full justify-start px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/surrogacy/documents')}
-              >
-                <FileText className="w-4 h-4 mr-3" />
-{t('dashboard.documentsSurrogacy', 'Documents')}
-      </CustomButton>
+              <QuickActionButton 
+                label={t('dashboard.myCasesSurrogacy', 'My Case')}
+                IconComponent={Home}
+                bgColor="bg-sage-100"
+                textColor="text-sage-800"
+                onClick={handleNavigateToMyCase}
+              />
+              <QuickActionButton 
+                label={t('dashboard.myJourneySurrogacy', 'My Journey')}
+                IconComponent={Activity}
+                bgColor="bg-blue-100"
+                textColor="text-blue-800"
+                onClick={handleNavigateToJourney}
+              />
+              <QuickActionButton 
+                label={t('dashboard.documentsSurrogacy', 'Documents')}
+                IconComponent={FileText}
+                bgColor="bg-green-100"
+                textColor="text-green-800"
+                onClick={handleNavigateToDocuments}
+              />
             </CardContent>
           </Card>
 
@@ -433,7 +588,7 @@ export default function SurrogacyDashboard() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
-                     onClick={() => router.push('/surrogacy/journal')}>
+                     onClick={handleNavigateToJournal}>
                   <div className="flex items-center gap-3">
                     <BookOpen className="w-5 h-5 text-blue-500" />
                     <span className="text-sm font-medium text-sage-800">{t('dashboard.uploadJournal', 'Upload Journal')}</span>
@@ -442,12 +597,12 @@ export default function SurrogacyDashboard() {
                 {loadingJournal
                       ? t("loadingText", "Loading...")
                   : latestJournalTime
-                        ? formatJournalDate(latestJournalTime)
+                        ? formatJournalDateMemo(latestJournalTime)
                         : t("dashboard.noJournal", "No journal yet")}
               </span>
             </div>
                 <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
-                     onClick={() => router.push('/surrogacy/ivf-clinic')}>
+                     onClick={handleNavigateToIvfClinic}>
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-purple-500" />
                     <span className="text-sm font-medium text-sage-800">{t('dashboard.ivfClinicSurrogacy', 'Ivf Clinic')}</span>

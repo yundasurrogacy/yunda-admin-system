@@ -1,7 +1,15 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
 // 简单全屏图片预览组件
 function ImagePreviewModal({ open, images, current, onClose }: { open: boolean, images: {url: string, name?: string}[], current: number, onClose: () => void }) {
   if (!open) return null;
@@ -42,12 +50,27 @@ export default function SurrogateProfileDetailPage() {
   const router = useRouter();
   const { t, i18n } = useTranslation("common");
   const params = useParams<{ id: string }>();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [surrogate, setSurrogate] = useState<SurrogateMother | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 计算年龄
-  const calculateAge = (dateOfBirth: string | undefined): string => {
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_client')
+      const userEmail = getCookie('userEmail_client')
+      const userId = getCookie('userId_client')
+      const authed = !!(userRole && userEmail && userId)
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/client/login')
+      }
+    }
+  }, [router]);
+
+  // 使用 useCallback 缓存计算年龄函数
+  const calculateAge = useCallback((dateOfBirth: string | undefined): string => {
     if (!dateOfBirth) return t('noData', '暂无数据');
     const birthDate = new Date(dateOfBirth);
     const today = new Date();
@@ -57,17 +80,14 @@ export default function SurrogateProfileDetailPage() {
       age--;
     }
     return age.toString();
-  };
+  }, [t]);
 
   useEffect(() => {
+    if (!isAuthenticated) return; // 只在认证后才加载数据
+    
     async function fetchData() {
       try {
-        function getCookie(name: string) {
-          if (typeof document === 'undefined') return undefined;
-          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-          return match ? match[2] : undefined;
-        }
-        const parentId = typeof document !== 'undefined' ? getCookie('userId_client') : null;
+        const parentId = getCookie('userId_client');
         if (!parentId) {
           setError(t('myCases.error.noUserId', "未找到用户ID，请重新登录。"));
           setLoading(false);
@@ -112,7 +132,66 @@ export default function SurrogateProfileDetailPage() {
       }
     }
     fetchData();
-  }, [params?.id, t]);
+  }, [params?.id, t, isAuthenticated]);
+
+  // 使用 useCallback 缓存事件处理函数
+  const handlePreviewOpen = useCallback((index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
+  }, []);
+
+  const handlePreviewClose = useCallback(() => {
+    setPreviewOpen(false);
+  }, []);
+
+  const handleBackToCases = useCallback(() => {
+    router.push('/client/my-case');
+  }, [router]);
+
+  // 使用 useMemo 缓存数据对象
+  const ci = useMemo(() => surrogate?.contact_information, [surrogate]);
+  const ph = useMemo(() => surrogate?.pregnancy_and_health, [surrogate]);
+  const ay = useMemo(() => surrogate?.about_you, [surrogate]);
+  const interview = useMemo(() => surrogate?.gestational_surrogacy_interview, [surrogate]);
+
+  // 使用 useMemo 缓存计算值
+  const age = useMemo(() => calculateAge(ci?.date_of_birth), [ci?.date_of_birth, calculateAge]);
+  const displayName = useMemo(() => {
+    return ci && (ci.first_name || ci.last_name) ? `${ci.first_name || ''} ${ci.last_name || ''}`.trim() : t('noData', '暂无数据');
+  }, [ci, t]);
+  const experienceBadge = useMemo(() => {
+    return (ci?.surrogacy_experience_count ?? 0) > 0 ? t('experiencedSurrogate', '有经验代孕母') : t('firstTimeSurrogate', '初次代孕母');
+  }, [ci?.surrogacy_experience_count, t]);
+  const phoneDisplay = useMemo(() => {
+    return ci?.cell_phone_country_code || ci?.cell_phone ? `${ci?.cell_phone_country_code ? `+${ci.cell_phone_country_code} ` : ''}${ci?.cell_phone || ''}` : t('noData', '暂无数据');
+  }, [ci?.cell_phone_country_code, ci?.cell_phone, t]);
+  const medicalConditionsDisplay = useMemo(() => {
+    return Array.isArray(ph?.medical_conditions) && ph.medical_conditions.length > 0
+      ? ph.medical_conditions.join(', ')
+      : t('none', '无');
+  }, [ph?.medical_conditions, t]);
+  const createdAtDisplay = useMemo(() => {
+    return surrogate?.created_at ? new Date(surrogate.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : t('noData', '暂无数据');
+  }, [surrogate?.created_at, i18n.language, t]);
+  const updatedAtDisplay = useMemo(() => {
+    return surrogate?.updated_at ? new Date(surrogate.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : t('noData', '暂无数据');
+  }, [surrogate?.updated_at, i18n.language, t]);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查中
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-sage-700">{t('loading')}</div>
+      </div>
+    );
+  }
+
+  // 未认证
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -140,11 +219,6 @@ export default function SurrogateProfileDetailPage() {
     );
   }
 
-  const ci = surrogate.contact_information;
-  const ph = surrogate.pregnancy_and_health;
-  const ay = surrogate.about_you;
-  const interview = surrogate.gestational_surrogacy_interview;
-
   return (
 
   <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
@@ -155,7 +229,7 @@ export default function SurrogateProfileDetailPage() {
         </div>
         <div className="flex items-center gap-4">
           <CustomButton
-            onClick={() => router.push('/client/my-cases')}
+            onClick={handleBackToCases}
             className="bg-white cursor-pointer"
           >
             {/* <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" /> */}
@@ -174,7 +248,7 @@ export default function SurrogateProfileDetailPage() {
                 <div
                   key={idx}
                   className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative cursor-pointer"
-                  onClick={() => { setPreviewIndex(idx); setPreviewOpen(true); }}
+                  onClick={() => handlePreviewOpen(idx)}
                 >
                   <img
                     src={photo.url}
@@ -192,7 +266,7 @@ export default function SurrogateProfileDetailPage() {
               open={previewOpen}
               images={surrogate.upload_photos}
               current={previewIndex}
-              onClose={() => setPreviewOpen(false)}
+              onClose={handlePreviewClose}
             />
           </>
         ) : (
@@ -210,13 +284,13 @@ export default function SurrogateProfileDetailPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-semibold text-sage-800">
-                  {ci && (ci.first_name || ci.last_name) ? `${ci.first_name || ''} ${ci.last_name || ''}`.trim() : t('noData', '暂无数据')}
+                  {displayName}
                 </h2>
-                <p className="text-sage-500">{t('id', 'ID')}: #{surrogate.id ?? t('noData', '暂无数据')} • {calculateAge(ci?.date_of_birth)} {t('yearsOld', '岁')}</p>
+                <p className="text-sage-500">{t('id', 'ID')}: #{surrogate.id ?? t('noData', '暂无数据')} • {age} {t('yearsOld', '岁')}</p>
               </div>
             </div>
             <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
-              {(ci?.surrogacy_experience_count ?? 0) > 0 ? t('experiencedSurrogate', '有经验代孕母') : t('firstTimeSurrogate', '初次代孕母')}
+              {experienceBadge}
             </Badge>
           </div>
 
@@ -279,7 +353,7 @@ export default function SurrogateProfileDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('phone', '电话')}:</span>
-                  <span className="text-sage-800">{ci?.cell_phone_country_code || ci?.cell_phone ? `${ci?.cell_phone_country_code ? `+${ci.cell_phone_country_code} ` : ''}${ci?.cell_phone || ''}` : t('noData', '暂无数据')}</span>
+                  <span className="text-sage-800">{phoneDisplay}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('email', '邮箱')}:</span>
@@ -365,9 +439,7 @@ export default function SurrogateProfileDetailPage() {
             <div className="space-y-1 col-span-2">
               <Label className="text-sage-600 text-sm">{t('medicalConditions', '疾病状况')}</Label>
               <p className="font-medium text-sage-800">
-                {Array.isArray(ph?.medical_conditions) && ph.medical_conditions.length > 0
-                  ? ph.medical_conditions.join(', ')
-                  : t('none', '无')}
+                {medicalConditionsDisplay}
               </p>
             </div>
             <div className="space-y-1 col-span-2">
@@ -502,11 +574,11 @@ export default function SurrogateProfileDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
           <div className="flex justify-between">
             <span className="text-sage-500">{t('created', '创建时间')}:</span>
-            <span className="text-sage-800">{surrogate.created_at ? new Date(surrogate.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : t('noData', '暂无数据')}</span>
+            <span className="text-sage-800">{createdAtDisplay}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sage-500">{t('updated', '更新时间')}:</span>
-            <span className="text-sage-800">{surrogate.updated_at ? new Date(surrogate.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : t('noData', '暂无数据')}</span>
+            <span className="text-sage-800">{updatedAtDisplay}</span>
           </div>
         </div>
       </div>

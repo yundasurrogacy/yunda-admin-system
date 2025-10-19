@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 import { getIntendedParentById } from "@/lib/graphql/applications"
@@ -15,10 +15,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../../components
 import { Badge } from "../../../../components/ui/badge"
 // import { AdminLayout } from "../../../../components/admin-layout"
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
+// 提取辅助函数到组件外部，避免每次渲染重新创建
+const capitalize = (str: string | undefined): string => {
+  if (!str) return "-";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+const formatArray = (arr: string[] | undefined): string => 
+  Array.isArray(arr) && arr.length ? arr.map(capitalize).join(", ") : "-";
+
+const formatValue = (val: string | undefined): string => 
+  val ? capitalize(val) : "-";
+
 export default function ClientProfileDetailPage() {
   const router = useRouter();
   const { t } = useTranslation('common');
   const params = useParams<{ id: string }>();
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [language, setLanguage] = useState<"EN" | "CN">("EN");
   const [client, setClient] = useState<IntendedParent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,38 +55,58 @@ export default function ClientProfileDetailPage() {
   const [editData, setEditData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_admin')
+      const userEmail = getCookie('userEmail_admin')
+      const userId = getCookie('userId_admin')
+      const authed = !!(userRole && userEmail && userId && userRole === 'admin')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/admin/login')
+      }
+    }
+  }, [router])
+
   useEffect(() => {
     async function fetchData() {
-      if (params?.id) {
+      // 只在认证后才加载数据
+      if (params?.id && isAuthenticated) {
+        setLoading(true);
         const data = await getIntendedParentById(Number(params.id));
         setClient(data);
         setEditData(data); // 初始化编辑数据
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchData();
-  }, [params?.id]);
+  }, [params?.id, isAuthenticated]);
 
-  const toggleSection = (section: string) => {
+  // 使用 useCallback 缓存事件处理函数
+  const toggleSection = useCallback((section: string) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
+  }, []);
 
   // 进入编辑模式
-  const handleEdit = () => {
+  const handleEdit = useCallback(() => {
     // 深拷贝，避免引用丢失导致内容为空
     setEditData(client ? JSON.parse(JSON.stringify(client)) : null);
     setEditMode(true);
-  };
+  }, [client]);
+
   // 取消编辑
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setEditData(client);
     setEditMode(false);
-  };
+  }, [client]);
+
   // 表单字段变更
-  const handleFieldChange = (section: string, field: string, value: any) => {
+  const handleFieldChange = useCallback((section: string, field: string, value: any) => {
     setEditData((prev: any) => ({
       ...prev,
       [section]: {
@@ -71,9 +114,10 @@ export default function ClientProfileDetailPage() {
         [field]: value,
       },
     }));
-  };
+  }, []);
+
   // 保存
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!params?.id) return;
     setSaving(true);
     try {
@@ -92,7 +136,21 @@ export default function ClientProfileDetailPage() {
       alert('保存失败');
     }
     setSaving(false);
-  };
+  }, [params?.id]);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存数据源，避免每次渲染重新计算
+  const data = useMemo(() => editMode ? editData : client, [editMode, editData, client]);
+  
+  const basic = useMemo(() => data?.basic_information, [data]);
+  const contact = useMemo(() => data?.contact_information, [data]);
+  const family = useMemo(() => data?.family_profile, [data]);
+  const program = useMemo(() => data?.program_interests, [data]);
+  const referral = useMemo(() => data?.referral, [data]);
 
   const text = {
     EN: {
@@ -181,39 +239,29 @@ export default function ClientProfileDetailPage() {
     },
   }
 
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
-  if (loading) {
-    return <div className="p-8 text-sage-600 font-medium">加载中...</div>;
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return <div className="p-8 text-sage-600 font-medium">{t('loading')}</div>;
   }
 
-  if (!client) {
-    return <div className="p-8 text-red-600 font-medium">未找到该准父母信息</div>;
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null;
   }
 
-  // 只读/编辑数据源
-  const data = editMode ? editData : client;
-  const basic = data.basic_information;
-  const contact = data.contact_information;
-  const family = data.family_profile;
-  const program = data.program_interests;
-  const referral = data.referral;
-
-
-  // 首字母大写工具函数
-  const capitalize = (str: string | undefined): string => {
-    if (!str) return "-";
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
-  // 格式化多选和枚举展示，首字母大写
-  const formatArray = (arr: string[] | undefined): string => Array.isArray(arr) && arr.length ? arr.map(capitalize).join(", ") : "-";
-  const formatValue = (val: string | undefined): string => val ? capitalize(val) : "-";
+  // 数据加载中（认证后才会设置 loading）
+  if (loading || !client) {
+    return <div className="p-8 text-sage-600 font-medium">{t('loading')}</div>;
+  }
 
   return (
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
             {/* 返回按钮 */}
             <CustomButton
               className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
-              onClick={() => router.back()}
+              onClick={handleBack}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
                 <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />

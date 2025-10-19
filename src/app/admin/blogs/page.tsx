@@ -1,18 +1,29 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
+import { useRouter } from "next/navigation"
 // import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RichTextEditor } from "@/components/ui/RichTextEditor"
+import { useSidebar } from "@/context/sidebar-context"
 
 const BLOG_API = '/api/blog';
 const UPLOAD_API = '/api/upload/form';
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
 function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
-  const { t, i18n } = useTranslation("common")
+  const { t } = useTranslation("common")
+  const { sidebarOpen } = useSidebar()
   const [form, setForm] = useState({
     title: '',
     content: '',
@@ -58,9 +69,9 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       // console.log('Image URL:', imageUrl); // 添加调试信息
       setForm({ ...form, cover_img_url: imageUrl });
       setImageError(false); // 重置错误状态
-      alert(t('uploadSuccess'));
+      console.log('Image uploaded successfully');
     } else {
-      alert(t('uploadFailed'));
+      console.error('Image upload failed');
     }
     setUploading(false);
     // 清空file input的值，以便能重新选择同一个文件
@@ -90,78 +101,104 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   ];
 
   if (!open) return null;
+  
+  // 根据侧边栏状态计算弹窗的左边距
+  const modalStyle = {
+    marginLeft: sidebarOpen ? '240px' : '80px',
+    transition: 'margin-left 0.3s ease-in-out'
+  };
+  
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-auto p-0 overflow-hidden animate-fadeIn">
-        <form onSubmit={handleSubmit} className="p-4 space-y-2">
-          <h2 className="text-2xl font-bold text-sage-800 text-center mb-2 tracking-wide">{form.id ? t('editBlog') : t('addBlog')}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      {/* 弹窗内容 */}
+      <div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden animate-fadeIn relative z-10 max-h-[90vh] flex flex-col pointer-events-auto"
+        style={modalStyle}
+      >
+        {/* 固定标题栏 */}
+        <div className="px-6 py-4 border-b border-sage-200 bg-white flex items-center justify-between sticky top-0 z-10">
+          <h2 className="text-2xl font-bold text-sage-800 tracking-wide capitalize">{form.id ? t('editBlog') : t('addBlog')}</h2>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            aria-label={t('close', '关闭')}
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* 可滚动的表单内容 */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700">{t('title')}</Label>
+              <Label className="text-base font-semibold text-sage-700 capitalize">{t('title')}</Label>
               <Input 
                 name="title" 
                 value={form.title} 
                 onChange={handleChange} 
                 required 
-                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px] capitalize"
                 placeholder={t('pleaseEnterTitle')}
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700">{t('author')}</Label>
+              <Label className="text-base font-semibold text-sage-700 capitalize">{t('author')}</Label>
               <Input 
                 name="reference_author" 
                 value={form.reference_author} 
                 onChange={handleChange} 
                 placeholder={t('pleaseEnterAuthor')}
-                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px] capitalize"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700">{t('tags')}</Label>
+              <Label className="text-base font-semibold text-sage-700 capitalize">{t('tags')}</Label>
               <Input 
                 name="tags" 
                 value={form.tags} 
                 onChange={handleChange} 
                 placeholder={t('pleaseEnterTags')}
-                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px] capitalize"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700">{t('category')}</Label>
+              <Label className="text-base font-semibold text-sage-700 capitalize">{t('category')}</Label>
               <select 
                 name="category" 
                 value={form.category} 
                 onChange={handleChange} 
                 required 
-                className="w-full px-4 py-1 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-[16px] bg-white"
+                className="w-full px-4 py-1 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-[16px] bg-white capitalize"
               >
-                <option value="">{t('pleaseSelectCategory')}</option>
+                <option value="" className="capitalize">{t('pleaseSelectCategory')}</option>
                 {categoryOptions.map(opt => (
-                  <option key={opt.key} value={opt.value}>{t(opt.key)}</option>
+                  <option key={opt.key} value={opt.value} className="capitalize">{t(opt.key)}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-base font-semibold text-sage-700">{t('content')}</Label>
-            <textarea 
-              name="content" 
+            <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700 capitalize">{t('content')}</Label>
+              <RichTextEditor
               value={form.content} 
-              onChange={handleChange} 
-              required 
-              className="w-full px-4 py-2 min-h-[80px] max-h-[160px] border border-sage-300 rounded-lg resize-y focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-[16px]"
+                onChange={(value) => setForm({ ...form, content: value })}
               placeholder={t('pleaseEnterContent')}
+                minHeight="250px"
+                className="text-[16px] capitalize"
             />
           </div>
 
-          <div className="space-y-1">
-            <Label className="text-base font-semibold text-sage-700">{t('coverImage')}</Label>
+            <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700 capitalize">{t('coverImage')}</Label>
             {/* 没有图片时的上传区块 */}
             {!form.cover_img_url && (
               <div className="relative w-full h-24 flex items-center justify-center border-2 border-dashed border-sage-300 rounded-lg bg-sage-50 hover:border-sage-400 transition-colors cursor-pointer">
@@ -175,11 +212,11 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
                 />
                 <div className="flex flex-col items-center gap-2 z-10">
                   <svg className="w-8 h-8 text-sage-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 1 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <span className="text-sage-500 text-sm">{uploading ? t('uploading') : (i18n.language === 'en' ? 'Please select an image file' : '请选择图片文件')}</span>
-                  <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-sage-100 text-sage-700 mt-1">
-                    {i18n.language === 'en' ? 'Choose File' : '选择文件'}
+                  <span className="text-sage-500 text-sm capitalize">{uploading ? t('uploading') : t('pleaseSelectImageFile')}</span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-sage-100 text-sage-700 mt-1 capitalize">
+                    {t('chooseFile')}
                   </span>
                 </div>
               </div>
@@ -214,16 +251,16 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
                       disabled={uploading}
                       className="hidden"
                     />
-                    <div className="px-4 py-2 text-center text-sm bg-sage-50 text-sage-700 border border-sage-200 rounded-md hover:bg-sage-100 transition-colors">
-                      {uploading ? t('uploading') : (i18n.language === 'en' ? 'Change Image' : '更换图片')}
+                    <div className="px-4 py-2 text-center text-sm bg-sage-50 text-sage-700 border border-sage-200 rounded-md hover:bg-sage-100 transition-colors capitalize">
+                      {uploading ? t('uploading') : t('changeImage')}
                     </div>
                   </label>
                   <button 
                     type="button"
                     onClick={handleRemoveImage}
-                    className="px-4 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 transition-colors cursor-pointer"
+                    className="px-4 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 transition-colors cursor-pointer capitalize"
                   >
-                    {i18n.language === 'en' ? 'Remove' : '移除'}
+                    {t('remove')}
                   </button>
                 </div>
               </div>
@@ -236,7 +273,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
                     <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-sm text-red-700">{i18n.language === 'en' ? 'Failed to load image. Please try uploading again.' : '图片加载失败，请重新上传。'}</span>
+                    <span className="text-sm text-red-700 capitalize">{t('imageLoadFailed')}</span>
                   </div>
                   <div className="mt-2 text-xs text-red-600 font-mono">URL: {form.cover_img_url}</div>
                 </div>
@@ -249,36 +286,38 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
                       disabled={uploading}
                       className="hidden"
                     />
-                    <div className="px-4 py-2 text-center text-sm bg-sage-50 text-sage-700 border border-sage-200 rounded-md hover:bg-sage-100 transition-colors">
-                      {uploading ? t('uploading') : (i18n.language === 'en' ? 'Upload New Image' : '重新上传图片')}
+                    <div className="px-4 py-2 text-center text-sm bg-sage-50 text-sage-700 border border-sage-200 rounded-md hover:bg-sage-100 transition-colors capitalize">
+                      {uploading ? t('uploading') : t('uploadNewImage')}
                     </div>
                   </label>
                   <button 
                     type="button"
                     onClick={handleRemoveImage}
-                    className="px-4 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 transition-colors cursor-pointer"
+                    className="px-4 py-2 text-sm bg-red-50 text-red-700 border border-red-200 rounded-md hover:bg-red-100 transition-colors cursor-pointer capitalize"
                   >
-                    {i18n.language === 'en' ? 'Remove' : '移除'}
+                    {t('remove')}
                   </button>
                 </div>
               </div>
             )}
+            </div>
           </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-sage-100 mt-2">
-            <CustomButton 
-              type="submit" 
-              disabled={uploading}
-              className="min-w-[120px] px-6 py-2 text-base font-semibold bg-sage-700 text-white rounded-lg hover:bg-sage-800 transition-colors shadow cursor-pointer"
-            >
-              {uploading ? t('uploading') : (form.id ? t('save') : t('add'))}
-            </CustomButton>
+          {/* 固定底部按钮栏 */}
+          <div className="px-6 py-4 border-t border-sage-200 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
             <CustomButton 
               type="button" 
               onClick={() => onOpenChange(false)}
-              className="min-w-[100px] px-6 py-2 text-base font-semibold border-sage-300 text-sage-700 rounded-lg hover:bg-sage-50 transition-colors cursor-pointer"
+              className="min-w-[100px] px-6 py-2 text-base font-semibold border border-sage-300 text-sage-700 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer capitalize"
             >
               {t('cancel')}
+            </CustomButton>
+            <CustomButton 
+              type="submit" 
+              disabled={uploading}
+              className="min-w-[120px] px-6 py-2 text-base font-semibold bg-[#C2A87A] text-white rounded-lg hover:bg-[#a88a5c] transition-colors shadow cursor-pointer capitalize"
+            >
+              {uploading ? t('uploading') : (form.id ? t('save') : t('add'))}
             </CustomButton>
           </div>
         </form>
@@ -289,6 +328,11 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
 function AdminBlogsPage() {
   const { t } = useTranslation("common")
+  const router = useRouter()
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -296,19 +340,27 @@ function AdminBlogsPage() {
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
   const [pageSize, setPageSize] = useState(8);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_admin')
+      const userEmail = getCookie('userEmail_admin')
+      const userId = getCookie('userId_admin')
+      const authed = !!(userRole && userEmail && userId && userRole === 'admin')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/admin/login')
+      }
+    }
+  }, [router])
+
   // page变化时同步pageInput
   useEffect(() => {
     setPageInput(String(page));
   }, [page]);
-
-  // 校验输入页码有效性
-  const validatePageInput = (val: string) => {
-    if (!val) return false;
-    const num = Number(val);
-    if (isNaN(num) || num < 1 || num > totalPages) return false;
-    return true;
-  };
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // 自适应每页条数
   useEffect(() => {
@@ -324,67 +376,141 @@ function AdminBlogsPage() {
     return () => window.removeEventListener('resize', calcPageSize);
   }, []);
 
-  const fetchBlogs = async () => {
+  // 使用 useCallback 缓存数据加载函数
+  const fetchBlogs = useCallback(async () => {
     setLoading(true);
     const res = await fetch(BLOG_API);
     const data = await res.json();
     setBlogs(data.blogs || []);
     setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchBlogs();
   }, []);
 
-  const handleAdd = () => {
+  // 只在认证后才加载数据
+  useEffect(() => {
+    if (isAuthenticated) {
+    fetchBlogs();
+    }
+  }, [isAuthenticated, fetchBlogs]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存分页数据
+  const { totalPages, pagedBlogs } = useMemo(() => {
+    const pages = Math.max(1, Math.ceil(blogs.length / pageSize));
+    const paged = blogs.slice((page - 1) * pageSize, page * pageSize);
+    return { totalPages: pages, pagedBlogs: paged };
+  }, [blogs, page, pageSize]);
+
+  // 翻页时如果超出总页数，自动回到最后一页
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
+  // 使用 useCallback 缓存事件处理函数
+  const handleAdd = useCallback(() => {
     setEditing(null);
     setAddOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (blog: any) => {
+  const handleEdit = useCallback((blog: any) => {
     setEditing(blog);
     setAddOpen(true);
-  };
+  }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm(t('confirmDelete'))) return;
+  const handleDelete = useCallback(async (id: number) => {
+    // 直接删除，不使用浏览器确认弹窗
     await fetch(BLOG_API, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
-    alert(t('deleteSuccess'));
+    console.log('Blog deleted successfully');
     fetchBlogs();
-  };
+  }, [fetchBlogs]);
 
-  const handleSubmit = async (form: any) => {
+  const handleSubmit = useCallback(async (form: any) => {
     if (form.id) {
       await fetch(BLOG_API, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      alert(t('editSuccess'));
+      console.log('Blog edited successfully');
     } else {
       await fetch(BLOG_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      alert(t('addSuccess'));
+      console.log('Blog added successfully');
     }
     setAddOpen(false);
     fetchBlogs();
-  };
+  }, [fetchBlogs]);
 
-  // 分页相关
-  const totalPages = Math.max(1, Math.ceil(blogs.length / pageSize));
-  const pagedBlogs = blogs.slice((page - 1) * pageSize, page * pageSize);
+  const handlePrevPage = useCallback(() => {
+    setPage(p => Math.max(1, p - 1));
+  }, []);
 
-  // 翻页时如果超出总页数，自动回到最后一页
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [totalPages, page]);
+  const handleNextPage = useCallback(() => {
+    setPage(p => Math.min(totalPages, p + 1));
+  }, [totalPages]);
+
+  const handlePageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    setPageInput(val);
+  }, []);
+
+  const handlePageInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    if (val && !isNaN(Number(val))) {
+      const num = Number(val);
+      if (num >= 1 && num <= totalPages) {
+        setPage(num);
+      } else {
+        setPageInput(String(page));
+      }
+    } else {
+      setPageInput(String(page));
+    }
+  }, [page, totalPages]);
+
+  const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const val = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '');
+      if (val && !isNaN(Number(val))) {
+        const num = Number(val);
+        if (num >= 1 && num <= totalPages) {
+          setPage(num);
+        } else {
+          setPageInput(String(page));
+        }
+      } else {
+        setPageInput(String(page));
+      }
+    }
+  }, [page, totalPages]);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    setAddOpen(open);
+  }, []);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <PageContent>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </PageContent>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
       <PageContent>
@@ -395,7 +521,7 @@ function AdminBlogsPage() {
         />
         <BlogForm
           open={addOpen}
-          onOpenChange={setAddOpen}
+          onOpenChange={handleOpenChange}
           onSubmit={handleSubmit}
           initialValues={editing}
         />
@@ -447,9 +573,18 @@ function AdminBlogsPage() {
                           <span className="truncate font-medium">{blog.tags}</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="font-mono text-xs text-sage-400">{t('content')}：</span>
-                        <span className="truncate font-medium">{blog.content}</span>
+                      <div className="flex items-start gap-2">
+                        <span className="font-mono text-xs text-sage-400 flex-shrink-0">{t('content')}：</span>
+                        <div 
+                          className="flex-1 font-medium line-clamp-2 overflow-hidden text-ellipsis"
+                          dangerouslySetInnerHTML={{ __html: blog.content || '' }}
+                          style={{ 
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
+                        />
                       </div>
                     </div>
                     <hr className="my-3 border-sage-100" />
@@ -467,7 +602,7 @@ function AdminBlogsPage() {
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-8">
-                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
+                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={handlePrevPage} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
                 <span>
                   {t('pagination.page', '第')}
                   <input
@@ -475,35 +610,15 @@ function AdminBlogsPage() {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={pageInput}
-                    onChange={e => {
-                      // 只允许数字
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setPageInput(val);
-                    }}
-                    onBlur={e => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      if (validatePageInput(val)) {
-                        setPage(Number(val));
-                      } else {
-                        setPageInput(String(page));
-                      }
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        const val = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '');
-                        if (validatePageInput(val)) {
-                          setPage(Number(val));
-                        } else {
-                          setPageInput(String(page));
-                        }
-                      }
-                    }}
+                    onChange={handlePageInputChange}
+                    onBlur={handlePageInputBlur}
+                    onKeyDown={handlePageInputKeyDown}
                     className="w-12 border rounded text-center mx-1"
                     style={{height: 28}}
                   />
                   {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
                 </span>
-                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
+                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={handleNextPage} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
               </div>
             </>
           )}

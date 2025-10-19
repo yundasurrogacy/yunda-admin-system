@@ -56,9 +56,10 @@ export default function SurrogacyLoginPage() {
           variant: "default",
         });
         const homePath = '/surrogacy/dashboard'
-        setTimeout(() => {
-          router.replace(homePath)
-        }, 300)
+        router.replace(homePath)
+        // setTimeout(() => {
+        //   router.replace(homePath)
+        // }, 300)
         return;
       }
       throw new Error(response.error || response.data?.error || t("loginError"));

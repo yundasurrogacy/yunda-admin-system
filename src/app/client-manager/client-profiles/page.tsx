@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRef } from 'react'
+import { useRef, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card } from "@/components/ui/card"
 import { CustomButton } from "@/components/ui/CustomButton"
@@ -11,6 +11,13 @@ import { useRouter } from "next/navigation"
 import { useDebounce } from "@/hooks/use-debounce"
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
 // import ManagerLayout from "@/components/manager-layout"
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 interface ClientProfile {
   id: string
@@ -35,6 +42,10 @@ interface Filters {
 export default function ClientProfilesPage() {
   const router = useRouter()
   const { t } = useTranslation('common')
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null);
+  
   const [allClients, setAllClients] = React.useState<ClientProfile[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [searchTerm, setSearchTerm] = React.useState('')
@@ -50,11 +61,27 @@ export default function ClientProfilesPage() {
   })
   const [hoveredId, setHoveredId] = React.useState<string | null>(null)
 
-  // 处理搜索
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // 认证检查和 cookie 读取
+  React.useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_manager')
+      const userEmail = getCookie('userEmail_manager')
+      const userId = getCookie('userId_manager')
+      const authed = !!(userRole && userEmail && userId && userRole === 'manager')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/client-manager/login')
+      }
+    }
+  }, [router]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useCallback 缓存处理搜索函数
+  const handleSearch = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value)
     setPage(1)
-  }
+  }, []);
 
   // 自适应 pageSize
   React.useEffect(() => {
@@ -71,16 +98,11 @@ export default function ClientProfilesPage() {
     return () => window.removeEventListener('resize', calcPageSize);
   }, []);
 
-  // 获取所有case并批量获取准父母详情
-  const fetchClients = async () => {
+  // 使用 useCallback 缓存数据获取函数
+  const fetchClients = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      function getCookie(name: string) {
-        if (typeof document === 'undefined') return undefined;
-        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? match[2] : undefined;
-      }
       const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
       // 2. 获取所有case
       const caseRes = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
@@ -116,27 +138,119 @@ export default function ClientProfilesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  React.useEffect(() => {
-    fetchClients();
   }, []);
 
-  // 导航函数
-  const handleViewDetails = (clientId: string) => {
+  // 只在认证后才加载数据
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchClients();
+    }
+  }, [isAuthenticated, fetchClients]);
+
+  // 使用 useMemo 缓存筛选后的客户列表
+  const filteredAllClients = useMemo(() => allClients.filter(client => {
+    const search = searchTerm.trim().toLowerCase();
+    if (!search) return true;
+    return (
+      (client.name && client.name.toLowerCase().includes(search)) ||
+      (client.country && client.country.toLowerCase().includes(search)) ||
+      (client.email && client.email.toLowerCase().includes(search)) ||
+      (client.phone && client.phone.toLowerCase().includes(search))
+    );
+  }), [allClients, searchTerm]);
+
+  // 使用 useMemo 缓存分页数据
+  const { totalPages, pagedClients } = useMemo(() => {
+    const pages = Math.max(1, Math.ceil(filteredAllClients.length / pageSize));
+    const paged = filteredAllClients.slice((page - 1) * pageSize, page * pageSize);
+    return { totalPages: pages, pagedClients: paged };
+  }, [filteredAllClients, page, pageSize]);
+
+  // 翻页时如果超出总页数，自动回到最后一页
+  React.useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+      setPageInput(String(totalPages));
+    }
+  }, [totalPages, page]);
+
+  // 使用 useCallback 缓存导航函数
+  const handleViewDetails = useCallback((clientId: string) => {
     router.push(`/client-manager/client-profiles/${clientId}`)
-  }
+  }, [router]);
 
-  const handleViewDocuments = (clientId: string) => {
+  const handleViewDocuments = useCallback((clientId: string) => {
     router.push(`/client-manager/documents?clientId=${clientId}`)
-  }
+  }, [router]);
 
-  const handleViewCommunication = (clientId: string) => {
+  const handleViewCommunication = useCallback((clientId: string) => {
     router.push(`/client-manager/communication-logs?clientId=${clientId}`)
+  }, [router]);
+
+  const handleScheduleMeeting = useCallback((clientId: string) => {
+    router.push(`/client-manager/schedule?clientId=${clientId}`)
+  }, [router]);
+
+  // 缓存分页处理函数
+  const handlePrevPage = useCallback(() => {
+    const newPage = Math.max(1, page - 1);
+    setPage(newPage);
+    setPageInput(String(newPage));
+  }, [page]);
+
+  const handleNextPage = useCallback(() => {
+    const newPage = Math.min(totalPages, page + 1);
+    setPage(newPage);
+    setPageInput(String(newPage));
+  }, [page, totalPages]);
+
+  const handlePageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    setPageInput(val);
+  }, []);
+
+  const handlePageInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    let val = Number(e.target.value);
+    if (isNaN(val) || val < 1) val = 1;
+    if (val > totalPages) val = totalPages;
+    setPage(val);
+    setPageInput(String(val));
+  }, [totalPages]);
+
+  const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      let val = Number((e.target as HTMLInputElement).value);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > totalPages) val = totalPages;
+      setPage(val);
+      setPageInput(String(val));
+    }
+  }, [totalPages]);
+
+  const handleMouseEnter = useCallback((clientId: string) => {
+    setHoveredId(clientId);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredId(null);
+  }, []);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="p-8 min-h-screen bg-main-bg">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </div>
+    )
   }
 
-  const handleScheduleMeeting = (clientId: string) => {
-    router.push(`/client-manager/schedule?clientId=${clientId}`)
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
   }
 
   if (error) {
@@ -146,26 +260,6 @@ export default function ClientProfilesPage() {
       // </ManagerLayout>
     )
   }
-
-  // 搜索和分页
-  const filteredAllClients = allClients.filter(client => {
-    const search = searchTerm.trim().toLowerCase();
-    if (!search) return true;
-    return (
-      (client.name && client.name.toLowerCase().includes(search)) ||
-      (client.country && client.country.toLowerCase().includes(search)) ||
-      (client.email && client.email.toLowerCase().includes(search)) ||
-      (client.phone && client.phone.toLowerCase().includes(search))
-    );
-  });
-  const totalPages = Math.max(1, Math.ceil(filteredAllClients.length / pageSize));
-  const pagedClients = filteredAllClients.slice((page - 1) * pageSize, page * pageSize);
-  React.useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-      setPageInput(String(totalPages));
-    }
-  }, [totalPages, page]);
 
   return (
       <div className="p-8 min-h-screen bg-main-bg">
@@ -194,8 +288,8 @@ export default function ClientProfilesPage() {
                 <Card 
                   key={client.id} 
                   className="relative p-6 rounded-xl bg-white hover:shadow-lg transition-shadow text-sage-800 font-medium"
-                  onMouseEnter={() => setHoveredId(client.id)}
-                  onMouseLeave={() => setHoveredId(null)}
+                  onMouseEnter={() => handleMouseEnter(client.id)}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -220,11 +314,7 @@ export default function ClientProfilesPage() {
             </div>
             {/* 分页控件 */}
             <div className="flex items-center justify-center gap-4 mt-8">
-              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => {
-                const newPage = Math.max(1, page - 1);
-                setPage(newPage);
-                setPageInput(String(newPage));
-              }} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
+              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={handlePrevPage} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
               <span>
                 {t('pagination.page', '第')}
                 <input
@@ -232,36 +322,15 @@ export default function ClientProfilesPage() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={pageInput}
-                  onChange={e => {
-                    const val = e.target.value.replace(/[^0-9]/g, '');
-                    setPageInput(val);
-                  }}
-                  onBlur={e => {
-                    let val = Number(e.target.value);
-                    if (isNaN(val) || val < 1) val = 1;
-                    if (val > totalPages) val = totalPages;
-                    setPage(val);
-                    setPageInput(String(val));
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      let val = Number((e.target as HTMLInputElement).value);
-                      if (isNaN(val) || val < 1) val = 1;
-                      if (val > totalPages) val = totalPages;
-                      setPage(val);
-                      setPageInput(String(val));
-                    }
-                  }}
+                  onChange={handlePageInputChange}
+                  onBlur={handlePageInputBlur}
+                  onKeyDown={handlePageInputKeyDown}
                   className="w-12 border rounded text-center mx-1"
                   style={{height: 28}}
                 />
                 {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
               </span>
-              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => {
-                const newPage = Math.min(totalPages, page + 1);
-                setPage(newPage);
-                setPageInput(String(newPage));
-              }} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
+              <CustomButton className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={handleNextPage} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
             </div>
           </>
         )}

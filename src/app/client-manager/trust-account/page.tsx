@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSidebar } from '@/context/sidebar-context';
 // 不再使用全屏 Modal，直接在页面内渲染表单卡片
 // import ManagerLayout from '@/components/manager-layout';
@@ -9,6 +9,13 @@ import { CustomButton } from '@/components/ui/CustomButton';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useRouter} from 'next/navigation'
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 interface BalanceChange {
   id: number;
@@ -27,6 +34,10 @@ function TrustAccountPageInner() {
   const { t } = useTranslation('common');
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [balance, setBalance] = useState<number | null>(null);
   const [changes, setChanges] = useState<BalanceChange[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,62 +53,78 @@ function TrustAccountPageInner() {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
+  const pageSize = 10; // 每页显示10条
+  const [sortDateDesc, setSortDateDesc] = useState(false);
+  const [filterType, setFilterType] = useState<string | null>(null);
+  
   // page变化时同步pageInput
   useEffect(() => {
     setPageInput(String(page));
   }, [page]);
 
-  // 校验输入页码有效性
-  const validatePageInput = (val: string) => {
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  
+  // 使用 useMemo 缓存过滤和排序后的数据
+  const displayedChanges: BalanceChange[] = useMemo(() => {
+    let arr: BalanceChange[] = changes;
+    if (filterType) {
+      arr = arr.filter((c: BalanceChange) => c.change_type === filterType);
+    }
+    arr = arr.slice().sort((a: BalanceChange, b: BalanceChange) => {
+      const t1 = new Date(a.created_at).getTime();
+      const t2 = new Date(b.created_at).getTime();
+      return sortDateDesc ? t2 - t1 : t1 - t2;
+    });
+    return arr;
+  }, [changes, sortDateDesc, filterType]);
+
+  // 使用 useMemo 缓存分页数据
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(displayedChanges.length / pageSize)), [displayedChanges.length, pageSize]);
+  const pagedChanges: BalanceChange[] = useMemo(() => displayedChanges.slice((page - 1) * pageSize, page * pageSize), [displayedChanges, page, pageSize]);
+
+  // 使用 useMemo 缓存当前余额
+  const currentBalance = useMemo(() => {
+    if (changes.length > 0 && changes[changes.length - 1].balance_after !== null && changes[changes.length - 1].balance_after !== undefined) {
+      return Number(changes[changes.length - 1].balance_after);
+    }
+    return null;
+  }, [changes]);
+
+  // 使用 useMemo 缓存唯一的变动类型列表
+  const uniqueChangeTypes = useMemo(() => Array.from(new Set(changes.map(c => c.change_type))), [changes]);
+
+  // 使用 useCallback 缓存校验输入页码有效性函数
+  const validatePageInput = useCallback((val: string) => {
     if (!val) return false;
     const num = Number(val);
     if (isNaN(num) || num < 1 || num > totalPages) return false;
     return true;
-  };
-  const pageSize = 10; // 每页显示10条
-  const [sortDateDesc, setSortDateDesc] = useState(false);
-  const [filterType, setFilterType] = useState<string | null>(null);
+  }, [totalPages]);
 
-  // const displayedChanges: BalanceChange[] = React.useMemo(() => {
-  //   let arr: BalanceChange[] = changes;
-  //   if (filterType) {
-  //     arr = arr.filter((c: BalanceChange) => c.change_type === filterType);
-  //   }
-  //   arr = arr.slice().sort((a: BalanceChange, b: BalanceChange) => {
-  //     const t1 = new Date(a.created_at).getTime();
-  //     const t2 = new Date(b.created_at).getTime();
-  //     return sortDateDesc ? t2 - t1 : t1 - t2;
-  //   });
-  //   return arr;
-  // }, [changes, sortDateDesc, filterType]);
+  // 翻页时如果超出总页数，自动回到最后一页
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
 
-
-
-    // 必须在 useState(changes) 之后声明分页相关变量
-    const displayedChanges: BalanceChange[] = React.useMemo(() => {
-      let arr: BalanceChange[] = changes;
-      if (filterType) {
-        arr = arr.filter((c: BalanceChange) => c.change_type === filterType);
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_manager')
+      const userEmail = getCookie('userEmail_manager')
+      const userId = getCookie('userId_manager')
+      const authed = !!(userRole && userEmail && userId && userRole === 'manager')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/client-manager/login')
       }
-      arr = arr.slice().sort((a: BalanceChange, b: BalanceChange) => {
-        const t1 = new Date(a.created_at).getTime();
-        const t2 = new Date(b.created_at).getTime();
-        return sortDateDesc ? t2 - t1 : t1 - t2;
-      });
-      return arr;
-    }, [changes, sortDateDesc, filterType]);
-    const totalPages = Math.max(1, Math.ceil(displayedChanges.length / pageSize));
-    const pagedChanges: BalanceChange[] = displayedChanges.slice((page - 1) * pageSize, page * pageSize);
+    }
+  }, [router]);
 
-    // 翻页时如果超出总页数，自动回到最后一页
-    useEffect(() => {
-      if (page > totalPages) setPage(totalPages);
-    }, [totalPages, page]);
-  // ...existing code...
-
-  // 抽取数据刷新方法
-  const fetchChanges = React.useCallback(() => {
-    if (!caseId) return;
+  // 使用 useCallback 缓存数据刷新方法
+  const fetchChanges = useCallback(() => {
+    // 只在认证后才加载数据
+    if (!caseId || !isAuthenticated) return;
     setLoading(true);
     fetch(`/api/trust-account?caseId=${caseId}`)
       .then(res => res.json())
@@ -107,17 +134,14 @@ function TrustAccountPageInner() {
         setChanges(sorted);
       })
       .finally(() => setLoading(false));
-  }, [caseId]);
+  }, [caseId, isAuthenticated]);
 
   useEffect(() => {
     fetchChanges();
-  }, [caseId, fetchChanges]);
+  }, [fetchChanges]);
 
-
-
-
-  // 打开新增/编辑表单
-  const handleAdd = () => {
+  // 使用 useCallback 缓存打开新增/编辑表单函数
+  const handleAdd = useCallback(() => {
     if (showForm) return; // 防止重复点击
     setEditId(null);
     setFormData({
@@ -127,8 +151,9 @@ function TrustAccountPageInner() {
       Visibility: 'true',
     });
     setShowForm(true);
-  };
-  const handleEdit = (item: BalanceChange) => {
+  }, [showForm]);
+
+  const handleEdit = useCallback((item: BalanceChange) => {
     setEditId(item.id);
     setFormData({
       change_type: item.change_type,
@@ -137,23 +162,24 @@ function TrustAccountPageInner() {
       Visibility: item.Visibility ?? 'true',
     });
     setShowForm(true);
-  };
-  const handleDelete = async (id: number) => {
-    if (window.confirm('确定要删除该记录吗？')) {
-      try {
-        const res = await fetch(`/api/trust-account/change?id=${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('删除失败');
-        setShowForm(false);
-        fetchChanges(); // 删除后刷新数据
-      } catch (e) {
-        alert('删除失败');
-      }
-    }
-  };
+  }, []);
 
-  // 表单字段变更
+  const handleDelete = useCallback(async (id: number) => {
+    // 直接删除，不使用浏览器确认弹窗
+    try {
+      const res = await fetch(`/api/trust-account/change?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('删除失败');
+      setShowForm(false);
+      fetchChanges(); // 删除后刷新数据
+      console.log('Record deleted successfully');
+    } catch (e) {
+      console.error('删除失败:', e);
+    }
+  }, [fetchChanges]);
+
+  // 使用 useCallback 缓存表单字段变更函数
   // 支持负数和小数输入，change_amount 用字符串保存
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name === 'change_amount') {
       // 允许输入负号和小数
@@ -169,10 +195,10 @@ function TrustAccountPageInner() {
         [name]: value
       }));
     }
-  };
+  }, []);
 
-  // 表单提交
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  // 使用 useCallback 缓存表单提交函数
+  const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (formSubmitting) return;
     setFormSubmitting(true);
@@ -211,19 +237,90 @@ function TrustAccountPageInner() {
       if (!res.ok) throw new Error('保存失败');
       setShowForm(false);
       fetchChanges(); // 新增/编辑后刷新数据
+      console.log('Record saved successfully');
     } catch (e) {
-      alert('保存失败');
+      console.error('保存失败:', e);
     } finally {
       setFormSubmitting(false);
     }
-  };
+  }, [formSubmitting, caseId, formData, editId, changes, fetchChanges]);
+
+  // 使用 useCallback 缓存UI事件处理函数
+  const handleSortToggle = useCallback(() => {
+    setSortDateDesc(v => !v);
+  }, []);
+
+  const handleFilterChange = useCallback((value: string | null) => {
+    setFilterType(value);
+    setPage(1);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handleCloseForm = useCallback(() => {
+    setShowForm(false);
+  }, []);
+
+  // 使用 useCallback 缓存分页处理函数
+  const handlePrevPage = useCallback(() => {
+    setPage(p => Math.max(1, p - 1));
+  }, []);
+
+  const handleNextPage = useCallback(() => {
+    setPage(p => Math.min(totalPages, p + 1));
+  }, [totalPages]);
+
+  const handlePageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    setPageInput(val);
+  }, []);
+
+  const handlePageInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    if (validatePageInput(val)) {
+      setPage(Number(val));
+    } else {
+      setPageInput(String(page));
+    }
+  }, [validatePageInput, page]);
+
+  const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const val = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '');
+      if (validatePageInput(val)) {
+        setPage(Number(val));
+      } else {
+        setPageInput(String(page));
+      }
+    }
+  }, [validatePageInput, page]);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="p-8 min-h-screen bg-main-bg">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
       <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
         <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -236,8 +333,8 @@ function TrustAccountPageInner() {
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.balance', 'Account Balance')}</h2>
             <span className="text-2xl font-bold text-sage-800">
-              {changes.length > 0 && changes[changes.length - 1].balance_after !== null && changes[changes.length - 1].balance_after !== undefined
-                ? `$${Number(changes[changes.length - 1].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+              {currentBalance !== null
+                ? `$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                 : '--'}
             </span>
           </div>
@@ -344,7 +441,7 @@ function TrustAccountPageInner() {
                   />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <CustomButton type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800 cursor-pointer" onClick={() => setShowForm(false)}>{t('cancel', 'Cancel')}</CustomButton>
+                  <CustomButton type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800 cursor-pointer" onClick={handleCloseForm}>{t('cancel', 'Cancel')}</CustomButton>
                   <CustomButton
                     type="submit"
                     className="px-3 py-1 rounded bg-sage-600 text-white cursor-pointer"
@@ -380,7 +477,7 @@ function TrustAccountPageInner() {
                 <table className="min-w-full text-left text-sm text-sage-800 border border-sage-200 rounded-lg overflow-hidden">
                   <thead className="bg-sage-50">
                     <tr>
-                      <th className="py-2 px-4 font-semibold select-none" style={{ cursor: 'pointer' }} onClick={() => setSortDateDesc(v => !v)} title={t('trustAccount.sortByDate', 'Sort by date')}>
+                      <th className="py-2 px-4 font-semibold select-none" style={{ cursor: 'pointer' }} onClick={handleSortToggle} title={t('trustAccount.sortByDate', 'Sort by date')}>
                         {t('trustAccount.date', 'Date')}
                         <span style={{ marginLeft: 4, fontSize: 12 }}>
                           {sortDateDesc ? t('trustAccount.desc', '▼') : t('trustAccount.asc', '▲')}
@@ -391,11 +488,11 @@ function TrustAccountPageInner() {
                           {t('trustAccount.type', 'Type')}
                           <select
                             value={filterType ?? ''}
-                            onChange={e => { setFilterType(e.target.value || null); setPage(1); }}
+                            onChange={e => handleFilterChange(e.target.value || null)}
                             style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', borderRadius: 4, border: '1px solid #ddd', background: '#f8f8f8', color: '#333', cursor: 'pointer' }}
                           >
                             <option value="">{t('trustAccount.allTypes', 'All Types')}</option>
-                            {Array.from(new Set(changes.map(c => c.change_type))).map(type => (
+                            {uniqueChangeTypes.map(type => (
                               <option key={type} value={type}>
                                 {type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
                                 {type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
@@ -413,7 +510,7 @@ function TrustAccountPageInner() {
                   </thead>
                   <tbody>
                     {pagedChanges.length === 0 ? (
-                      <tr><td colSpan={5} className="py-8 text-center text-gray-400 text-base">{t('trustAccount.noRecords', '暂无记录')}</td></tr>
+                      <tr><td colSpan={5} className="py-8 text-center text-gray-400 text-base">{t('trustAccount.noRecords', 'No records')}</td></tr>
                     ) : pagedChanges.map((change: BalanceChange, idx) => (
                       <tr
                         key={change.id}
@@ -454,7 +551,7 @@ function TrustAccountPageInner() {
               <div className="flex items-center justify-center gap-2 mt-6 text-base">
                 <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer hover:bg-sage-50"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={handlePrevPage}
                   disabled={page === 1}
                 >{t('pagination.prevPage', '上一页')}</CustomButton>
                 <span className="mx-2">
@@ -464,29 +561,9 @@ function TrustAccountPageInner() {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={pageInput}
-                    onChange={e => {
-                      // 只允许数字
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      setPageInput(val);
-                    }}
-                    onBlur={e => {
-                      const val = e.target.value.replace(/[^0-9]/g, '');
-                      if (validatePageInput(val)) {
-                        setPage(Number(val));
-                      } else {
-                        setPageInput(String(page));
-                      }
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        const val = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '');
-                        if (validatePageInput(val)) {
-                          setPage(Number(val));
-                        } else {
-                          setPageInput(String(page));
-                        }
-                      }
-                    }}
+                    onChange={handlePageInputChange}
+                    onBlur={handlePageInputBlur}
+                    onKeyDown={handlePageInputKeyDown}
                     className="w-12 border rounded text-center mx-1"
                     style={{height: 28}}
                   />
@@ -494,7 +571,7 @@ function TrustAccountPageInner() {
                 </span>
                 <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer hover:bg-sage-50"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  onClick={handleNextPage}
                   disabled={page === totalPages}
                 >{t('pagination.nextPage', '下一页')}</CustomButton>
               </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useCallback, memo } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomButton } from "@/components/ui/CustomButton"
@@ -29,6 +29,62 @@ import {
   Shield
 } from "lucide-react"
 
+// 状态阶段映射（移到组件外部，避免每次渲染重新创建）
+const STATUS_STAGE_MAP: Record<string, number> = {
+  Matching: 0,
+  LegalStage: 1,
+  CyclePrep: 2,
+  Pregnant: 3,
+  Transferred: 4,
+};
+
+// 状态列表（移到组件外部）
+const STATUS_LIST = ['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'] as const;
+
+// 优化的进度步骤组件
+const ProgressStep = memo(({ 
+  status, 
+  idx, 
+  isActive, 
+  isCurrent, 
+  statusLabel
+}: { 
+  status: string; 
+  idx: number; 
+  isActive: boolean; 
+  isCurrent: boolean; 
+  statusLabel: string;
+}) => (
+  <div className="flex items-center gap-3">
+    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+      isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
+    }`}>
+      {idx + 1}
+    </div>
+    <div className="flex-1">
+      <div className={`text-sm font-medium ${
+        isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
+      }`}>
+        {statusLabel}
+      </div>
+    </div>
+    {isCurrent && (
+      <Clock className="w-4 h-4 text-sage-600" />
+    )}
+    {isActive && !isCurrent && (
+      <CheckCircle className="w-4 h-4 text-green-500" />
+    )}
+  </div>
+));
+
+ProgressStep.displayName = 'ProgressStep';
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 // 动态获取 journey 阶段数据
 // 获取最新case及其相关信息
@@ -45,12 +101,7 @@ const getLatestCaseAndTimeline = async (t: (key: string) => string) => {
   let latestFile = null;
   let latestJourney = null;
   try {
-    function getCookie(name: string) {
-      if (typeof document === 'undefined') return undefined;
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? match[2] : undefined;
-    }
-    const parentId = typeof document !== 'undefined' ? getCookie('userId_client') : null;
+    const parentId = getCookie('userId_client');
     // console.log('[Dashboard] parentId:', parentId);
     if (!parentId) return baseTimeline;
     const res = await fetch(`/api/cases-by-parent?parentId=${parentId}`);
@@ -129,12 +180,7 @@ export default function ClientDashboardPage() {
         }
         // 重新获取最新 case 以获取 process_status 和 updated_at，并统计 intended_parent journey
         (async () => {
-          function getCookie(name: string) {
-            if (typeof document === 'undefined') return undefined;
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? match[2] : undefined;
-          }
-          const parentId = typeof document !== 'undefined' ? getCookie('userId_client') : null;
+          const parentId = getCookie('userId_client');
           if (!parentId) return;
           const res = await fetch(`/api/cases-by-parent?parentId=${parentId}`);
           const casesData = await res.json();
@@ -150,7 +196,7 @@ export default function ClientDashboardPage() {
             setCurrentStatusDate(latestCase.updated_at || "");
             // 汇总 about_role 为 intended_parent 的 journey
             const journeys = Array.isArray(latestCase.journeys) ? latestCase.journeys : [];
-            console.log('[Dashboard] journeys:', journeys);
+            // console.log('[Dashboard] journeys:', journeys);
             const intendedJourneys = journeys.filter((j: any) => !j.about_role || j.about_role === 'intended_parent');
             const total = intendedJourneys.length;
             const finished = intendedJourneys.filter((j: { process_status?: string }) => j.process_status === 'finished').length;
@@ -184,6 +230,63 @@ export default function ClientDashboardPage() {
     }
   }, [isAuthenticated, isLoading, user, router]);
 
+  // 使用 useMemo 缓存状态映射
+  const statusMap = useMemo<Record<string, string>>(() => ({
+    Matching: t('statusMapping.Matching', 'Matching'),
+    LegalStage: t('statusMapping.LegalStage', 'Legal Stage'),
+    CyclePrep: t('statusMapping.CyclePrep', 'Cycle Prep'),
+    Pregnant: t('statusMapping.Pregnant', 'Pregnant'),
+    Transferred: t('statusMapping.Transferred', 'Transferred'),
+  }), [t]);
+
+  // 使用 useMemo 缓存完成百分比计算
+  const completionPercentage = useMemo(() => {
+    return journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : '0';
+  }, [journeySummary.finished, journeySummary.total]);
+
+  const progressPercentage = useMemo(() => {
+    return journeySummary.total > 0 ? ((journeySummary.pending / journeySummary.total) * 100).toFixed(1) : '0';
+  }, [journeySummary.pending, journeySummary.total]);
+
+  const totalProgressPercentage = useMemo(() => {
+    return journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : '0';
+  }, [journeySummary.finished, journeySummary.total]);
+
+  // 使用 useCallback 缓存导航函数
+  const handleNavigateToJourney = useCallback(() => {
+    router.push('/client/journey');
+  }, [router]);
+
+  const handleNavigateToMyCase = useCallback(() => {
+    router.push('/client/my-case');
+  }, [router]);
+
+  const handleNavigateToDocuments = useCallback(() => {
+    router.push('/client/documents');
+  }, [router]);
+
+  const handleNavigateToIvfClinic = useCallback(() => {
+    router.push('/client/ivf-clinic');
+  }, [router]);
+
+  const handleNavigateToTrustAccount = useCallback(() => {
+    router.push('/client/trust-account');
+  }, [router]);
+
+  const handleRefresh = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  // 使用 useMemo 缓存当前状态的索引
+  const currentStatusIdx = useMemo(() => STATUS_STAGE_MAP[currentStatus], [currentStatus]);
+
+  // 使用 useMemo 缓存格式化的更新时间
+  const lastUpdatedDisplay = useMemo(() => {
+    return currentStatusDate ? new Date(currentStatusDate).toLocaleString() : '';
+  }, [currentStatusDate]);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
   if (isLoading || !isAuthenticated || user?.role !== 'client') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -198,12 +301,12 @@ export default function ClientDashboardPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.clientTitle', 'Client Dashboard')}</h1>
+            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.clientTitle', 'DASHBOARD')}</h1>
             <p className="text-sage-600">{t('dashboard.clientWelcome', 'Welcome to your journey! Track your progress and access important information.')}</p>
           </div>
           <CustomButton 
             className="px-6 py-3 bg-sage-600 hover:bg-sage-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
-            onClick={() => window.location.reload()}
+            onClick={handleRefresh}
           >
             <RefreshCw className="w-4 h-4" />
             {t('refresh', 'Refresh')}
@@ -215,7 +318,7 @@ export default function ClientDashboardPage() {
           {/* Total Journeys */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client/journey')}
+            onClick={handleNavigateToJourney}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -239,7 +342,7 @@ export default function ClientDashboardPage() {
           {/* Completed Journeys */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client/journey')}
+            onClick={handleNavigateToJourney}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -263,7 +366,7 @@ export default function ClientDashboardPage() {
           {/* In Progress */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client/journey')}
+            onClick={handleNavigateToJourney}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -291,7 +394,7 @@ export default function ClientDashboardPage() {
           {/* Current Status */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-          onClick={() => router.push('/client/my-case')}
+          onClick={handleNavigateToMyCase}
         >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
@@ -304,61 +407,32 @@ export default function ClientDashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-sage-700">{t('dashboard.caseStatus', 'Case Status')}</span>
                   <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">
-              {(() => {
-                const statusMap: Record<string, string> = {
-                        Matching: t('statusMapping.Matching', 'Matching'),
-                        LegalStage: t('statusMapping.LegalStage', 'Legal Stage'),
-                        CyclePrep: t('statusMapping.CyclePrep', 'Cycle Prep'),
-                        Pregnant: t('statusMapping.Pregnant', 'Pregnant'),
-                        Transferred: t('statusMapping.Transferred', 'Transferred'),
-                      };
-                      return statusMap[currentStatus] || t('statusMapping.Matching', 'Matching');
-              })()}
-            </span>
+                    {statusMap[currentStatus] || statusMap.Matching}
+                  </span>
           </div>
                 
                 {/* Progress Steps */}
                 <div className="space-y-3">
-                  {['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'].map((status, idx) => {
-              const statusStageMap: Record<string, number> = {
-                Matching: 0,
-                LegalStage: 1,
-                CyclePrep: 2,
-                Pregnant: 3,
-                Transferred: 4,
-              };
-              const activeIdx = statusStageMap[currentStatus];
-              const isActive = typeof activeIdx === 'number' && idx <= activeIdx;
-                    const isCurrent = idx === activeIdx;
+                  {STATUS_LIST.map((status, idx) => {
+                    const isActive = typeof currentStatusIdx === 'number' && idx <= currentStatusIdx;
+                    const isCurrent = idx === currentStatusIdx;
                     
-              return (
-                      <div key={status} className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                          isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
-                        }`}>
-                          {idx + 1}
-                        </div>
-                        <div className="flex-1">
-                          <div className={`text-sm font-medium ${
-                            isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
-                          }`}>
-                            {t(`statusMapping.${status}`, status)}
-                          </div>
-                        </div>
-                        {isCurrent && (
-                          <Clock className="w-4 h-4 text-sage-600" />
-                        )}
-                        {isActive && !isCurrent && (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                        )}
-                      </div>
-              );
-            })}
+                    return (
+                      <ProgressStep
+                        key={status}
+                        status={status}
+                        idx={idx}
+                        isActive={isActive}
+                        isCurrent={isCurrent}
+                        statusLabel={t(`statusMapping.${status}`, status)}
+                      />
+                    );
+                  })}
           </div>
                 
                 {currentStatusDate && (
                   <div className="text-xs text-sage-500 pt-2 border-t">
-                    {t('dashboard.lastUpdated', 'Last updated')}: {new Date(currentStatusDate).toLocaleString()}
+                    {t('dashboard.lastUpdated', 'Last updated')}: {lastUpdatedDisplay}
                   </div>
                 )}
               </div>
@@ -368,7 +442,7 @@ export default function ClientDashboardPage() {
           {/* Journey Progress */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client/journey')}
+            onClick={handleNavigateToJourney}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
@@ -381,13 +455,13 @@ export default function ClientDashboardPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgress', 'Completed')}</span>
-                    <span className="text-sm text-sage-600">{journeySummary.finished} ({journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                    <span className="text-sm text-sage-600">{journeySummary.finished} ({completionPercentage}%)</span>
                   </div>
                   <div className="relative">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="h-2 rounded-full transition-all duration-500 bg-green-500"
-                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.finished / journeySummary.total) * 100 : 0}%` }}
+                        style={{ width: `${completionPercentage}%` }}
                       ></div>
                     </div>
                   </div>
@@ -396,13 +470,13 @@ export default function ClientDashboardPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-sage-700">{t('dashboard.inProgressProgress', 'In Progress')}</span>
-                    <span className="text-sm text-sage-600">{journeySummary.pending} ({journeySummary.total > 0 ? ((journeySummary.pending / journeySummary.total) * 100).toFixed(1) : 0}%)</span>
+                    <span className="text-sm text-sage-600">{journeySummary.pending} ({progressPercentage}%)</span>
                   </div>
                   <div className="relative">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="h-2 rounded-full transition-all duration-500 bg-orange-500"
-                        style={{ width: `${journeySummary.total > 0 ? (journeySummary.pending / journeySummary.total) * 100 : 0}%` }}
+                        style={{ width: `${progressPercentage}%` }}
                       ></div>
                     </div>
                   </div>
@@ -412,7 +486,7 @@ export default function ClientDashboardPage() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-sage-600">{t('dashboard.totalProgress', 'Total Progress')}</span>
                     <span className="font-medium text-sage-800">
-                      {journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : 0}%
+                      {totalProgressPercentage}%
                     </span>
                   </div>
                 </div>
@@ -434,21 +508,21 @@ export default function ClientDashboardPage() {
             <CardContent className="space-y-3">
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-sage-100 hover:bg-sage-200 text-sage-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client/my-case')}
+                onClick={handleNavigateToMyCase}
               >
                 <Home className="w-4 h-4 mr-3" />
                 {t('dashboard.myCases', 'My Case')}
               </CustomButton>
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client/journey')}
+                onClick={handleNavigateToJourney}
               >
                 <Activity className="w-4 h-4 mr-3" />
                 {t('dashboard.myJourney', 'My Journey')}
               </CustomButton>
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client/documents')}
+                onClick={handleNavigateToDocuments}
               >
                 <FileText className="w-4 h-4 mr-3" />
                 {t('dashboard.documentsClient', 'Documents')}
@@ -468,7 +542,7 @@ export default function ClientDashboardPage() {
               <div className="space-y-4">
                 {/* IVF CLINIC */}
                 <div className="flex items-center justify-between p-4 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
-                     onClick={() => router.push('/client/ivf-clinic')}>
+                     onClick={handleNavigateToIvfClinic}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                       <Shield className="w-5 h-5 text-purple-600" />
@@ -487,7 +561,7 @@ export default function ClientDashboardPage() {
 
                 {/* Trust Balance */}
                 <div className="flex items-center justify-between p-4 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
-                     onClick={() => router.push('/client/trust-account')}>
+                     onClick={handleNavigateToTrustAccount}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                       <FileCheck className="w-5 h-5 text-green-600" />

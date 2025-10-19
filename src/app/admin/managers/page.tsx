@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
+import { useRouter } from "next/navigation"
 // import { AdminLayout } from "@/components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
@@ -9,8 +10,20 @@ import { Input } from "@/components/ui/input"
 import { Dialog } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
 export default function ClientManagerPage() {
   const { t } = useTranslation("common")
+  const router = useRouter()
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  
   // 分页相关
   const [allManagers, setAllManagers] = useState<any[]>([])
   const [page, setPage] = useState(1)
@@ -21,19 +34,21 @@ export default function ClientManagerPage() {
   const [form, setForm] = useState({ email: "", password: "" })
   const [addLoading, setAddLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  // page变化时同步pageInput
-  useEffect(() => {
-    setPageInput(String(page))
-  }, [page])
 
-  // 校验输入页码有效性
-  const validatePageInput = (val: string) => {
-    const maxPage = Math.max(1, Math.ceil(total / pageSize))
-    if (!val) return false
-    const num = Number(val)
-    if (isNaN(num) || num < 1 || num > maxPage) return false
-    return true
-  }
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_admin')
+      const userEmail = getCookie('userEmail_admin')
+      const userId = getCookie('userId_admin')
+      const authed = !!(userRole && userEmail && userId && userRole === 'admin')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/admin/login')
+      }
+    }
+  }, [router])
 
   // 自适应每页条数，始终两行，宽度自适应
   useEffect(() => {
@@ -50,7 +65,8 @@ export default function ClientManagerPage() {
     return () => window.removeEventListener('resize', calcPageSize)
   }, [])
 
-  const loadManagers = async () => {
+  // 使用 useCallback 缓存数据加载函数
+  const loadManagers = useCallback(async () => {
     setLoading(true)
     try {
       const res = await fetch("/api/managers")
@@ -59,13 +75,42 @@ export default function ClientManagerPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => {
-    loadManagers()
   }, [])
 
-  const handleAdd = async (e: React.FormEvent) => {
+  // 只在认证后才加载数据
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadManagers()
+    }
+  }, [isAuthenticated, loadManagers])
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存搜索和分页逻辑
+  const filteredAllManagers = useMemo(() => {
+    return allManagers.filter(m => {
+      if (!searchTerm) return true
+      const searchLower = searchTerm.toLowerCase()
+      return (
+        m.email?.toLowerCase().includes(searchLower) ||
+        String(m.id).includes(searchTerm)
+      )
+    })
+  }, [allManagers, searchTerm])
+
+  const { total, pagedManagers, totalPages } = useMemo(() => {
+    const totalCount = filteredAllManagers.length
+    const pages = Math.max(1, Math.ceil(totalCount / pageSize))
+    const paged = filteredAllManagers.slice((page - 1) * pageSize, page * pageSize)
+    return { total: totalCount, pagedManagers: paged, totalPages: pages }
+  }, [filteredAllManagers, page, pageSize])
+
+  // 同步 pageInput
+  useEffect(() => {
+    setPageInput(String(page))
+  }, [page])
+
+  // 使用 useCallback 缓存事件处理函数
+  const handleAdd = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setAddLoading(true)
     try {
@@ -81,25 +126,95 @@ export default function ClientManagerPage() {
     } finally {
       setAddLoading(false)
     }
+  }, [form, loadManagers])
+
+  const handleOpenAddDialog = useCallback(() => {
+    setAddOpen(true)
+  }, [])
+
+  const handleCloseAddDialog = useCallback(() => {
+    setAddOpen(false)
+  }, [])
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(f => ({ ...f, email: e.target.value }))
+  }, [])
+
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(f => ({ ...f, password: e.target.value }))
+  }, [])
+
+  const handlePrevPage = useCallback(() => {
+    setPage(page - 1)
+  }, [page])
+
+  const handleNextPage = useCallback(() => {
+    setPage(page + 1)
+  }, [page])
+
+  const handlePageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '')
+    setPageInput(val)
+  }, [])
+
+  const handlePageInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '')
+    if (val && !isNaN(Number(val))) {
+      const num = Number(val)
+      if (num >= 1 && num <= totalPages) {
+        setPage(num)
+      } else {
+        setPageInput(String(page))
+      }
+    } else {
+      setPageInput(String(page))
+    }
+  }, [page, totalPages])
+
+  const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const val = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '')
+      if (val && !isNaN(Number(val))) {
+        const num = Number(val)
+        if (num >= 1 && num <= totalPages) {
+          setPage(num)
+        } else {
+          setPageInput(String(page))
+        }
+      } else {
+        setPageInput(String(page))
+      }
+    }
+  }, [page, totalPages])
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <PageContent>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </PageContent>
+    )
   }
 
-  // 搜索和分页
-  const filteredAllManagers = allManagers.filter(m => {
-    if (!searchTerm) return true
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      m.email?.toLowerCase().includes(searchLower) ||
-      String(m.id).includes(searchTerm)
-    )
-  })
-  const total = filteredAllManagers.length
-  const pagedManagers = filteredAllManagers.slice((page - 1) * pageSize, page * pageSize)
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
       <PageContent>
         <PageHeader title={t('adminManagement')}
           rightContent={
-            <CustomButton className="cursor-pointer bg-sage-100 border border-sage-300" onClick={() => setAddOpen(true)}>
+            <CustomButton className="cursor-pointer bg-sage-100 border border-sage-300" onClick={handleOpenAddDialog}>
               {t('addAdmin')}
             </CustomButton>
           }
@@ -111,15 +226,15 @@ export default function ClientManagerPage() {
               <h2 className="text-2xl font-bold mb-2 text-center tracking-wide text-sage-800">{t('addAdmin')}</h2>
               <div className="flex flex-col gap-3">
                 <Label className="text-sage-800 font-medium mb-1" htmlFor="email">{t('emailLabel')}</Label>
-                <Input id="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-sage-300" />
+                <Input id="email" value={form.email} onChange={handleEmailChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-sage-300" />
               </div>
               <div className="flex flex-col gap-3">
                 <Label className="text-sage-800 font-medium mb-1" htmlFor="password">{t('passwordLabel')}</Label>
-                <Input id="password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-sage-300" />
+                <Input id="password" type="password" value={form.password} onChange={handlePasswordChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-sage-300" />
               </div>
               <div className="flex justify-end gap-3 mt-2">
                 <CustomButton type="submit" disabled={addLoading} className="font-medium cursor-pointer px-6 py-2 bg-sage-600 text-white rounded-md shadow">{addLoading ? t('processing') : t('submit')}</CustomButton>
-                <CustomButton type="button" className="font-medium cursor-pointer px-6 py-2 rounded-md border border-sage-300 bg-white" onClick={() => setAddOpen(false)}>{t('cancel')}</CustomButton>
+                <CustomButton type="button" className="font-medium cursor-pointer px-6 py-2 rounded-md border border-sage-300 bg-white" onClick={handleCloseAddDialog}>{t('cancel')}</CustomButton>
               </div>
             </form>
           </div>
@@ -130,7 +245,7 @@ export default function ClientManagerPage() {
             placeholder={t('searchManagers', { defaultValue: '搜索管理员...' })}
             className="pl-10 bg-white"
             value={searchTerm}
-            onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
+            onChange={handleSearchChange}
           />
         </div>
         {loading ? (
@@ -185,7 +300,7 @@ export default function ClientManagerPage() {
               <CustomButton
                 className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
                 disabled={page === 1}
-                onClick={() => setPage(page - 1)}
+                onClick={handlePrevPage}
               >
                 {t('pagination.prevPage', { defaultValue: '上一页' })}
               </CustomButton>
@@ -196,38 +311,18 @@ export default function ClientManagerPage() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={pageInput}
-                  onChange={e => {
-                    // 只允许数字
-                    const val = e.target.value.replace(/[^0-9]/g, '')
-                    setPageInput(val)
-                  }}
-                  onBlur={e => {
-                    const val = e.target.value.replace(/[^0-9]/g, '')
-                    if (validatePageInput(val)) {
-                      setPage(Number(val))
-                    } else {
-                      setPageInput(String(page))
-                    }
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      const val = (e.target as HTMLInputElement).value.replace(/[^0-9]/g, '')
-                      if (validatePageInput(val)) {
-                        setPage(Number(val))
-                      } else {
-                        setPageInput(String(page))
-                      }
-                    }
-                  }}
+                  onChange={handlePageInputChange}
+                  onBlur={handlePageInputBlur}
+                  onKeyDown={handlePageInputKeyDown}
                   className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
                   aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
                 />
-                {t('pagination.of', { defaultValue: '共' })} {Math.max(1, Math.ceil(total / pageSize))} {t('pagination.pages', { defaultValue: '页' })}
+                {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
               </span>
               <CustomButton
                 className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-                disabled={page >= Math.ceil(total / pageSize)}
-                onClick={() => setPage(page + 1)}
+                disabled={page >= totalPages}
+                onClick={handleNextPage}
               >
                 {t('pagination.nextPage', { defaultValue: '下一页' })}
               </CustomButton>

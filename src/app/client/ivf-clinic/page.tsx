@@ -1,10 +1,17 @@
 'use client'
-import React, { useState, Suspense } from 'react'
+import React, { useState, Suspense, useMemo, useCallback } from 'react'
 import { useEffect } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { CustomButton } from '../../../components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 // 提取需要使用 useSearchParams 的逻辑到单独的组件
 function IVFClinicContent() {
@@ -13,12 +20,29 @@ function IVFClinicContent() {
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
 
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clinics, setClinics] = useState<any[]>([]);
 
+  // 认证检查和 cookie 读取
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_client')
+      const userEmail = getCookie('userEmail_client')
+      const userId = getCookie('userId_client')
+      const authed = !!(userRole && userEmail && userId)
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/client/login')
+      }
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return; // 只在认证后才加载数据
+    
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -28,13 +52,7 @@ function IVFClinicContent() {
         
         // 如果没有 caseId，尝试从 parentId 获取
         if (!finalCaseId) {
-          function getCookie(name: string) {
-            if (typeof document === 'undefined') return undefined;
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? match[2] : undefined;
-          }
-          
-          const parentId = typeof document !== 'undefined' ? getCookie('userId_client') : null;
+          const parentId = getCookie('userId_client');
           console.log('No caseId found, trying to get from parentId:', parentId);
           
           if (!parentId) {
@@ -96,19 +114,85 @@ function IVFClinicContent() {
     };
     
     fetchData();
-  }, [caseId]);
+  }, [caseId, isAuthenticated]);
 
-  // 获取各类型数据
-  const clinicOverview = clinics.find(c => c.type === 'ClinicOverview')?.data;
-  const embryoJourneyData = clinics.find(c => c.type === 'EmbryoJourney')?.data;
+  // 使用 useMemo 缓存各类型数据
+  // 前4个板块使用 intended_parent 的数据
+  const clinicOverview = useMemo(() => 
+    clinics.find(c => c.type === 'ClinicOverview' && c.about_role === 'intended_parent')?.data,
+    [clinics]
+  );
+
+  const embryoJourneyData = useMemo(() => 
+    clinics.find(c => c.type === 'EmbryoJourney' && c.about_role === 'intended_parent')?.data,
+    [clinics]
+  );
   
-  const testingReportsData = clinics.find(c => c.type === 'TestingReports')?.data; // array
-  const treatmentPlanData = clinics.find(c => c.type === 'TreatmentPlan')?.data; // { timelineImageUrl }
-  const pgtResultsData = clinics.find(c => c.type === 'PGTResults')?.data; // array
-  const surrogateMedicalRecordsData = clinics.find(c => c.type === 'SurrogateMedicalRecords')?.data; // array
-  const surrogateScreeningData = clinics.find(c => c.type === 'SurrogateMedicalScreening')?.data; // array
-  const surrogateEarlyUSData = clinics.find(c => c.type === 'SurrogatePregnancyConfirmation')?.data; // array
-  const prenatalDeliveryData = clinics.find(c => c.type === 'SurrogatePrenatalDelivery')?.data; // { board, records }
+  const testingReportsData = useMemo(() => 
+    clinics.find(c => c.type === 'TestingReports' && c.about_role === 'intended_parent')?.data,
+    [clinics]
+  );
+
+  const treatmentPlanData = useMemo(() => 
+    clinics.find(c => c.type === 'TreatmentPlan' && c.about_role === 'intended_parent')?.data,
+    [clinics]
+  );
+
+  const pgtResultsData = useMemo(() => 
+    clinics.find(c => c.type === 'PGTResults' && c.about_role === 'intended_parent')?.data,
+    [clinics]
+  );
+
+  // 后4个板块使用 surrogate_mother 的数据
+  const surrogateMedicalRecordsData = useMemo(() => 
+    clinics.find(c => c.type === 'SurrogateMedicalRecords' && c.about_role === 'surrogate_mother')?.data,
+    [clinics]
+  );
+
+  const surrogateScreeningData = useMemo(() => 
+    clinics.find(c => c.type === 'SurrogateMedicalScreening' && c.about_role === 'surrogate_mother')?.data,
+    [clinics]
+  );
+
+  const surrogateEarlyUSData = useMemo(() => 
+    clinics.find(c => c.type === 'SurrogatePregnancyConfirmation' && c.about_role === 'surrogate_mother')?.data,
+    [clinics]
+  );
+
+  const prenatalDeliveryData = useMemo(() => 
+    clinics.find(c => c.type === 'SurrogatePrenatalDelivery' && c.about_role === 'surrogate_mother')?.data,
+    [clinics]
+  );
+
+  // 使用 useMemo 缓存数据存在性检查
+  const hasAnyData = useMemo(() => clinics.length > 0, [clinics.length]);
+
+  // 使用 useCallback 缓存事件处理函数
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handleToggleSection = useCallback((section: string) => {
+    setOpen(open === section ? null : section);
+  }, [open]);
+
+  const handleReload = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  // 认证检查中
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-sage-700">{t('loading', '加载中...')}</div>
+      </div>
+    );
+  }
+
+  // 未认证
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // 错误状态
   if (error) {
@@ -116,7 +200,7 @@ function IVFClinicContent() {
       <div className="p-8 min-h-screen bg-main-bg">
         <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -128,10 +212,10 @@ function IVFClinicContent() {
           <h3 className="text-lg font-medium text-gray-600 mb-2">加载失败</h3>
           <p className="text-sm text-gray-500 max-w-sm">{error}</p>
           <button 
-            className="mt-4 px-4 py-2 bg-[#C2A87A] text-white rounded-lg hover:bg-[#a88a5c] transition-colors"
-            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-[#C2A87A] text-white rounded-lg hover:bg-[#a88a5c] transition-colors cursor-pointer"
+            onClick={handleReload}
           >
-            重新加载
+            {t('reload', '重新加载')}
           </button>
         </div>
       </div>
@@ -144,7 +228,7 @@ function IVFClinicContent() {
       <div className="p-8 min-h-screen bg-main-bg">
         <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -156,21 +240,19 @@ function IVFClinicContent() {
         <div className="flex items-center justify-center py-12">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#C2A87A]"></div>
-            <span className="text-gray-600">加载中...</span>
+            <span className="text-gray-600">{t('loading', '加载中...')}</span>
           </div>
         </div>
       </div>
     );
   }
 
-  const hasAnyData = clinics.length > 0;
-
   return (
     <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
         <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
-          onClick={() => router.back()}
+          onClick={handleBack}
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
@@ -197,10 +279,10 @@ function IVFClinicContent() {
                 最后更新: {new Date().toLocaleDateString('zh-CN')}
               </div>
               <button 
-                className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
                 onClick={() => window.print()}
               >
-                🖨️ 打印
+                🖨️ {t('print', '打印')}
               </button>
             </div>
           </div>
@@ -208,20 +290,20 @@ function IVFClinicContent() {
       )} */}
       
       {/* 若没有任何数据，显示空状态 */}
-      {!hasAnyData && (
+      {/* {!hasAnyData && (
         <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-white rounded-xl mb-6">
           <div className="text-4xl text-gray-400 mb-4">🏥</div>
-          <h3 className="text-lg font-medium text-gray-600 mb-2">暂无IVF诊所数据</h3>
-          <p className="text-sm text-gray-500 max-w-sm">该案例尚未添加任何IVF诊所相关信息</p>
+          <h3 className="text-lg font-medium text-gray-600 mb-2">{t('ivfClinic.noData', '暂无IVF诊所数据')}</h3>
+          <p className="text-sm text-gray-500 max-w-sm">{t('ivfClinic.noDataDesc', '该案例尚未添加任何IVF诊所相关信息')}</p>
         </div>
-      )}
+      )} */}
 
       {/* Clinic Overview 折叠卡片 */}
       <div className="rounded-xl bg-white p-0 text-sage-800 mb-6">
         <button
           className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer"
           style={{cursor:'pointer'}}
-          onClick={() => setOpen(open === 'Clinic Overview' ? null : 'Clinic Overview')}
+          onClick={() => handleToggleSection('Clinic Overview')}
         >
           <span>{t('ivfClinic.clinicOverview')}</span>
           {/* <span className="text-xs">{clinicOverview?.location || ''}</span> */}
@@ -269,8 +351,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center">
                  <div className="text-3xl text-gray-400 mb-3">🏥</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无诊所概览信息</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加诊所概览信息，包括医生和协调员联系方式等。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noClinicOverview', '暂无诊所概览信息')}</h3>
+                 {/* <p className="text-sm text-gray-500">{t('ivfClinic.noClinicOverviewDesc', '该案例尚未添加诊所概览信息，包括医生和协调员联系方式等。')}</p> */}
                </div>
              )}
            </div>
@@ -278,7 +360,7 @@ function IVFClinicContent() {
       </div>
       {/* Testing Reports / 检测报告 */}
   <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Testing Reports' ? null : 'Testing Reports')}>
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Testing Reports')}>
           <span>{t('ivfClinic.testingReports', '检测报告')}</span>
           <span className={`text-xl transition-transform ${open === 'Testing Reports' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -306,7 +388,7 @@ function IVFClinicContent() {
                          <td className="py-3 px-6 text-base">{r.clinicReviewedAt}</td>
                          <td className="py-3 px-6 text-base">{r.remark}</td>
                          <td className="py-3 px-6 text-base">
-                           {r.fileUrl ? <a className="text-[#C2A87A] underline" href={r.fileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看')}</a> : '-'}
+                           {r.fileUrl ? <a className="text-[#C2A87A] underline hover:text-[#a88a5c] cursor-pointer transition-colors" href={r.fileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看')}</a> : '-'}
                          </td>
                        </tr>
                      ))}
@@ -316,8 +398,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center">
                  <div className="text-3xl text-gray-400 mb-3">📋</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无检测报告</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加任何检测报告，包括血液检查、基因检测等相关报告。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noTestingReports', '暂无检测报告')}</h3>
+                 <p className="text-sm text-gray-500">{t('ivfClinic.noTestingReportsDesc', '该案例尚未添加任何检测报告，包括血液检查、基因检测等相关报告。')}</p>
                </div>
              )}
            </div>
@@ -326,7 +408,7 @@ function IVFClinicContent() {
 
       {/* Treatment Plan & IVF Timeline / 治疗方案与时间表 + PGT结果 */}
       <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Treatment Plan' ? null : 'Treatment Plan')}>
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Treatment Plan')}>
           <span>{t('ivfClinic.treatmentPlan','治疗方案与时间表')}</span>
           <span className={`text-xl transition-transform ${open === 'Treatment Plan' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -342,7 +424,7 @@ function IVFClinicContent() {
                ) : (
                  <div className="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-lg">
                    <div className="text-2xl text-gray-400 mb-2">📅</div>
-                   <p className="text-sm text-gray-500">暂无时间表图片</p>
+                   <p className="text-sm text-gray-500">{t('ivfClinic.noTimelineImage', '暂无时间表图片')}</p>
                  </div>
                )}
              </div>
@@ -373,8 +455,8 @@ function IVFClinicContent() {
                ) : (
                  <div className="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-lg">
                    <div className="text-2xl text-gray-400 mb-2">🧬</div>
-                   <h3 className="text-base font-medium text-gray-600 mb-1">暂无PGT结果</h3>
-                   <p className="text-sm text-gray-500">该案例尚未添加PGT（胚胎植入前遗传学检测）结果信息。</p>
+                   <h3 className="text-base font-medium text-gray-600 mb-1">{t('ivfClinic.noPGTResults', '暂无PGT结果')}</h3>
+                   <p className="text-sm text-gray-500">{t('ivfClinic.noPGTResultsDesc', '该案例尚未添加PGT（胚胎植入前遗传学检测）结果信息。')}</p>
                  </div>
                )}
              </div>
@@ -384,7 +466,7 @@ function IVFClinicContent() {
 
       {/* Embryo Journey 折叠卡片 */}
       <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-  <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Embryo Journey' ? null : 'Embryo Journey')}>
+  <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Embryo Journey')}>
           <span>{t('ivfClinic.embryoJourney')}</span>
           <span className={`text-xl transition-transform ${open === 'Embryo Journey' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -413,7 +495,7 @@ function IVFClinicContent() {
                    ) : (
                      <div className="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-lg">
                        <div className="text-2xl text-gray-400 mb-2">📅</div>
-                       <p className="text-sm text-gray-500">暂无时间线数据</p>
+                       <p className="text-sm text-gray-500">{t('ivfClinic.noTimelineData', '暂无时间线数据')}</p>
                      </div>
                    )}
                  </div>
@@ -445,7 +527,7 @@ function IVFClinicContent() {
                    ) : (
                      <div className="flex flex-col items-center justify-center py-6 text-center bg-gray-50 rounded-lg">
                        <div className="text-2xl text-gray-400 mb-2">🧬</div>
-                       <p className="text-sm text-gray-500">暂无胚胎数据</p>
+                       <p className="text-sm text-gray-500">{t('ivfClinic.noEmbryoData', '暂无胚胎数据')}</p>
                      </div>
                    )}
                  </div>
@@ -453,8 +535,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center">
                  <div className="text-3xl text-gray-400 mb-3">🧬</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无胚胎旅程信息</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加胚胎旅程相关信息，包括时间线和胚胎状态等。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noEmbryoJourney', '暂无胚胎旅程信息')}</h3>
+                 <p className="text-sm text-gray-500">{t('ivfClinic.noEmbryoJourneyDesc', '该案例尚未添加胚胎旅程相关信息，包括时间线和胚胎状态等。')}</p>
                </div>
              )}
            </div>
@@ -462,7 +544,7 @@ function IVFClinicContent() {
       </div>
       {/* 代母医疗记录与心理评估 */}
   <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Medical Records' ? null : 'Surrogate Medical Records')}>
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Surrogate Medical Records')}>
           <span>{t('ivfClinic.surrogateMedicalRecords','代母医疗记录与心理评估')}</span>
           <span className={`text-xl transition-transform ${open === 'Surrogate Medical Records' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -494,8 +576,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center">
                  <div className="text-3xl text-gray-400 mb-3">🏥</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无代母医疗记录</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加代母医疗记录与心理评估相关信息。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noMedicalRecords', '暂无代母医疗记录')}</h3>
+                 <p className="text-sm text-gray-500">{t('ivfClinic.noMedicalRecordsDesc', '该案例尚未添加代母医疗记录与心理评估相关信息。')}</p>
                </div>
              )}
            </div>
@@ -504,7 +586,7 @@ function IVFClinicContent() {
 
       {/* 代母医学筛查 */}
       <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Screening' ? null : 'Surrogate Screening')}>
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Surrogate Screening')}>
           <span>{t('ivfClinic.surrogateScreening','代母医学筛查')}</span>
           <span className={`text-xl transition-transform ${open === 'Surrogate Screening' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -538,8 +620,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center">
                  <div className="text-3xl text-gray-400 mb-3">🔬</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无代母医学筛查</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加代母医学筛查相关信息。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noScreening', '暂无代母医学筛查')}</h3>
+                 <p className="text-sm text-gray-500">{t('ivfClinic.noScreeningDesc', '该案例尚未添加代母医学筛查相关信息。')}</p>
                </div>
              )}
            </div>
@@ -548,7 +630,7 @@ function IVFClinicContent() {
 
       {/* 代母怀孕确认与早期B超 */}
   <div className="rounded-xl bg-white p-0 text-sage-800 mb-4">
-        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Early Ultrasound' ? null : 'Surrogate Early Ultrasound')}>
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Surrogate Early Ultrasound')}>
           <span>{t('ivfClinic.surrogateEarlyUS','代母怀孕确认与早期B超')}</span>
           <span className={`text-xl transition-transform ${open === 'Surrogate Early Ultrasound' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -582,8 +664,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center">
                  <div className="text-3xl text-gray-400 mb-3">👶</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无代母怀孕确认信息</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加代母怀孕确认与早期B超相关信息。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noPregnancyConfirmation', '暂无代母怀孕确认信息')}</h3>
+                 <p className="text-sm text-gray-500">{t('ivfClinic.noPregnancyConfirmationDesc', '该案例尚未添加代母怀孕确认与早期B超相关信息。')}</p>
                </div>
              )}
            </div>
@@ -592,7 +674,7 @@ function IVFClinicContent() {
             
       {/* 代母产检与生产安排 */}
       <div className="rounded-xl bg-white p-0 text-sage-800 mb-8">
-        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => setOpen(open === 'Surrogate Prenatal & Delivery' ? null : 'Surrogate Prenatal & Delivery')}>
+        <button className="w-full flex justify-between items-center px-6 py-4 text-lg font-medium border-b border-sage-200 focus:outline-none cursor-pointer" style={{cursor:'pointer'}} onClick={() => handleToggleSection('Surrogate Prenatal & Delivery')}>
           <span>{t('ivfClinic.surrogatePrenatalDelivery','代母产检与生产安排')}</span>
           <span className={`text-xl transition-transform ${open === 'Surrogate Prenatal & Delivery' ? 'rotate-90' : ''}`}>&gt;</span>
         </button>
@@ -612,7 +694,7 @@ function IVFClinicContent() {
                    <div className="text-base text-sage-800">{prenatalDeliveryData?.board?.pboStatus || '-'}</div>
                    <div className="text-base text-sage-800">
                      {prenatalDeliveryData?.board?.pboFileUrl ? 
-                       <a className="text-[#C2A87A] underline" href={prenatalDeliveryData.board.pboFileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看文件')}</a> : 
+                       <a className="text-[#C2A87A] underline hover:text-[#a88a5c] cursor-pointer transition-colors" href={prenatalDeliveryData.board.pboFileUrl} target="_blank" rel="noreferrer">{t('ivfClinic.view','查看文件')}</a> : 
                        '-'
                      }
                    </div>
@@ -649,8 +731,8 @@ function IVFClinicContent() {
              ) : (
                <div className="flex flex-col items-center justify-center py-8 text-center bg-gray-50 rounded-lg">
                  <div className="text-3xl text-gray-400 mb-3">📋</div>
-                 <h3 className="text-base font-medium text-gray-600 mb-2">暂无产检记录</h3>
-                 <p className="text-sm text-gray-500">该案例尚未添加产检与生产记录相关信息。</p>
+                 <h3 className="text-base font-medium text-gray-600 mb-2">{t('ivfClinic.noPrenatalRecords', '暂无产检记录')}</h3>
+                 <p className="text-sm text-gray-500">{t('ivfClinic.noPrenatalRecordsDesc', '该案例尚未添加产检与生产记录相关信息。')}</p>
                </div>
              )}
            </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Heart, FileText, CheckCircle, XCircle, Clock } from 'lucide-react'
 // import { AdminLayout } from '../../../../components/admin-layout'
@@ -11,6 +11,62 @@ import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/appli
 import type { Application, ApplicationStatus } from '@/types/applications'
 import { useTranslation } from 'react-i18next'
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
+// 提取辅助函数到组件外部，避免每次渲染重新创建
+function getStatusColor(status: ApplicationStatus): string {
+  switch (status) {
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'approved':
+      return 'bg-green-100 text-green-800'
+    case 'rejected':
+      return 'bg-red-100 text-red-800'
+    default:
+      return 'bg-sage-100 text-sage-800'
+  }
+}
+
+function getServiceName(service: string): string {
+  const serviceMap: { [key: string]: string } = {
+    'surrogacyOnly': '代孕服务',
+    'surrogacyEggDonor': '代孕+捐卵服务',
+    'eggDonorOnly': '捐卵服务',
+    'thirdPartySurrogate': '第三方代孕',
+    'bringYourOwnSurrogate': '自带代孕者',
+    'bringYourOwnSurrogateEgg': '自带代孕者+捐卵',
+    'notSure': '不确定'
+  }
+  return serviceMap[service] || service
+}
+
+function getTimingName(timing: string): string {
+  const timingMap: { [key: string]: string } = {
+    'immediately': '立即开始',
+    'within-3-months': '3个月内',
+    'within-6-months': '6个月内',
+    'within-1-year': '1年内',
+    'flexible': '灵活安排'
+  }
+  return timingMap[timing] || timing
+}
+
+function getChildrenCountName(count: string): string {
+  const countMap: { [key: string]: string } = {
+    'one': '1个',
+    'two': '2个',
+    'three': '3个',
+    'four': '4个',
+    'open': '开放'
+  }
+  return countMap[count] || count
+}
+
 export default function ParentsApplicationDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -18,12 +74,44 @@ export default function ParentsApplicationDetailPage() {
   const [application, setApplication] = useState<Application | null>(null)
   const [loading, setLoading] = useState(true)
   const { t, i18n } = useTranslation('common')
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_admin')
+      const userEmail = getCookie('userEmail_admin')
+      const userId = getCookie('userId_admin')
+      const authed = !!(userRole && userEmail && userId && userRole === 'admin')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/admin/login')
+      }
+    }
+  }, [router])
+
+  // 使用 useCallback 缓存数据加载函数
+  const loadApplication = useCallback(async (id: number) => {
+    try {
+      setLoading(true)
+      const data = await getApplicationById(id)
+      setApplication(data)
+    } catch (error) {
+      console.error('Failed to load application:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    if (params.id) {
+    // 只在认证后才加载数据
+    if (params.id && isAuthenticated) {
       loadApplication(Number(params.id))
     }
-  }, [params.id])
+  }, [params.id, isAuthenticated, loadApplication])
 
   useEffect(() => {
     const handleLangChange = (lng: string) => {
@@ -36,19 +124,8 @@ export default function ParentsApplicationDetailPage() {
     }
   }, [i18n])
 
-  const loadApplication = async (id: number) => {
-    try {
-      setLoading(true)
-      const data = await getApplicationById(id)
-      setApplication(data)
-    } catch (error) {
-      console.error('Failed to load application:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleStatusUpdate = async (newStatus: ApplicationStatus) => {
+  // 使用 useCallback 缓存状态更新函数
+  const handleStatusUpdate = useCallback(async (newStatus: ApplicationStatus) => {
     if (!application) return
     
     try {
@@ -57,56 +134,81 @@ export default function ParentsApplicationDetailPage() {
     } catch (error) {
       console.error('Failed to update status:', error)
     }
-  }
+  }, [application, loadApplication])
 
-  const getStatusColor = (status: ApplicationStatus) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'approved':
-        return 'bg-green-100 text-green-800'
-      case 'rejected':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-sage-100 text-sage-800'
+  // 使用 useCallback 缓存导航函数
+  const handleBack = useCallback(() => {
+    router.back()
+  }, [router])
+
+  const handleApprove = useCallback(() => {
+    handleStatusUpdate('approved')
+  }, [handleStatusUpdate])
+
+  const handleReject = useCallback(() => {
+    handleStatusUpdate('rejected')
+  }, [handleStatusUpdate])
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存解析后的应用数据，避免每次渲染重新解析
+  const parsedData = useMemo(() => {
+    if (!application) return null
+    
+    const appData = application.application_data as any
+    const basicInfo = appData?.basic_information || {}
+    const contactInfo = appData?.contact_information || {}
+    const familyProfile = appData?.family_profile || {}
+    const programInterests = appData?.program_interests || {}
+    const referral = appData?.referral || {}
+    
+    // 格式化多选项
+    const languages = Array.isArray(contactInfo.primary_languages) 
+      ? contactInfo.primary_languages.join(', ') 
+      : (contactInfo.primary_languages || 'N/A')
+    const ethnicity = Array.isArray(basicInfo.ethnicity) 
+      ? basicInfo.ethnicity.join(', ') 
+      : (basicInfo.ethnicity || 'N/A')
+
+    return {
+      basicInfo,
+      contactInfo,
+      familyProfile,
+      programInterests,
+      referral,
+      languages,
+      ethnicity
     }
-  }
+  }, [application])
 
-  const getServiceName = (service: string) => {
-    const serviceMap: { [key: string]: string } = {
-      'surrogacyOnly': '代孕服务',
-      'surrogacyEggDonor': '代孕+捐卵服务',
-      'eggDonorOnly': '捐卵服务',
-      'thirdPartySurrogate': '第三方代孕',
-      'bringYourOwnSurrogate': '自带代孕者',
-      'bringYourOwnSurrogateEgg': '自带代孕者+捐卵',
-      'notSure': '不确定'
+  // 使用 useMemo 缓存格式化的日期，避免每次渲染重新计算
+  const formattedDates = useMemo(() => {
+    if (!application) return { createdAt: '', updatedAt: '' }
+    
+    return {
+      createdAt: new Date(application.created_at).toLocaleString('zh-CN'),
+      updatedAt: new Date(application.updated_at).toLocaleString('zh-CN')
     }
-    return serviceMap[service] || service
+  }, [application])
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <PageContent>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </PageContent>
+    )
   }
 
-  const getTimingName = (timing: string) => {
-    const timingMap: { [key: string]: string } = {
-      'immediately': '立即开始',
-      'within-3-months': '3个月内',
-      'within-6-months': '6个月内',
-      'within-1-year': '1年内',
-      'flexible': '灵活安排'
-    }
-    return timingMap[timing] || timing
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
   }
 
-  const getChildrenCountName = (count: string) => {
-    const countMap: { [key: string]: string } = {
-      'one': '1个',
-      'two': '2个',
-      'three': '3个',
-      'four': '4个',
-      'open': '开放'
-    }
-    return countMap[count] || count
-  }
-
+  // 数据加载中
   if (loading) {
     return (
         <PageContent>
@@ -117,7 +219,7 @@ export default function ParentsApplicationDetailPage() {
     )
   }
 
-  if (!application) {
+  if (!application || !parsedData) {
     return (
         <PageContent>
           <div className="text-center py-8 text-sage-500">
@@ -127,15 +229,7 @@ export default function ParentsApplicationDetailPage() {
     )
   }
 
-  const appData = application.application_data as any
-  const basicInfo = appData?.basic_information || {}
-  const contactInfo = appData?.contact_information || {}
-  const familyProfile = appData?.family_profile || {}
-  const programInterests = appData?.program_interests || {}
-  const referral = appData?.referral || {}
-  // 格式化多选项
-  const languages = Array.isArray(contactInfo.primary_languages) ? contactInfo.primary_languages.join(', ') : (contactInfo.primary_languages || 'N/A')
-  const ethnicity = Array.isArray(basicInfo.ethnicity) ? basicInfo.ethnicity.join(', ') : (basicInfo.ethnicity || 'N/A')
+  const { basicInfo, contactInfo, familyProfile, programInterests, referral, languages, ethnicity } = parsedData
 
   return (
       <PageContent>
@@ -145,25 +239,22 @@ export default function ParentsApplicationDetailPage() {
             <div className="flex items-center gap-4">
               <CustomButton
                 className="bg-white cursor-pointer border border-sage-300 text-sage-800"
-                onClick={() => router.back()}
+                onClick={handleBack}
               >
-                {/* <ArrowLeft className="w-4 h-4 mr-2" /> */}
                 {t('Back To Applications')}
               </CustomButton>
               {application.status === 'pending' && (
                 <>
                   <CustomButton 
                     className="bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer px-3 py-1 text-sm rounded"
-                    onClick={() => handleStatusUpdate('approved')}
+                    onClick={handleApprove}
                   >
-                    {/* <CheckCircle className="w-4 h-4 mr-2" /> */}
                     {t('approve')}
                   </CustomButton>
                   <CustomButton 
                     className="text-red-600 hover:bg-red-50 cursor-pointer border border-red-200 bg-white px-3 py-1 text-sm rounded"
-                    onClick={() => handleStatusUpdate('rejected')}
+                    onClick={handleReject}
                   >
-                    {/* <XCircle className="w-4 h-4 mr-2" /> */}
                     {t('reject')}
                   </CustomButton>
                 </>
@@ -325,11 +416,11 @@ export default function ParentsApplicationDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
               <div className="flex justify-between">
                 <span className="text-sage-500">{t('applicationDate')}:</span>
-                <span className="text-sage-800">{new Date(application.created_at).toLocaleString('zh-CN')}</span>
+                <span className="text-sage-800">{formattedDates.createdAt}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sage-500">{t('lastUpdate')}:</span>
-                <span className="text-sage-800">{new Date(application.updated_at).toLocaleString('zh-CN')}</span>
+                <span className="text-sage-800">{formattedDates.updatedAt}</span>
               </div>
             </div>
           </div>

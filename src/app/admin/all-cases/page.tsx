@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { Dialog } from "@/components/ui/dialog"
@@ -10,9 +10,32 @@ import { CustomButton } from "@/components/ui/CustomButton"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Download, Plus, UserPlus } from "lucide-react"
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
+// 提取辅助函数到组件外部，避免每次渲染重新创建
+// 兼容 contact_information 为 jsonb 字符串或对象
+function getFirstName(info: any): string {
+  if (!info) return "-";
+  if (typeof info === "object") {
+    return info.first_name || info.firstName || "-";
+  }
+  if (typeof info === "string") {
+    return info;
+  }
+  return "-";
+}
+
 export default function AllCasesPage() {
-  // ...existing code...
   const { t, i18n } = useTranslation("common")
+  const router = useRouter()
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   // 状态枚举和映射（必须在 t 获取后定义）
   const STATUS_ENUM = [
     { value: 'Matching', label: t('matching', { defaultValue: 'Matching' }) },
@@ -45,42 +68,22 @@ export default function AllCasesPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [surrogates, setSurrogates] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
-  const [managers, setManagers] = useState<any[]>([]);
-  const router = useRouter();
+  const [managers, setManagers] = useState<any[]>([])
 
-  // 兼容 contact_information 为 jsonb 字符串或对象
-  function getFirstName(info: any) {
-    if (!info) return "-";
-    if (typeof info === "object") {
-      return info.first_name || info.firstName || "-";
-    }
-    if (typeof info === "string") {
-      // 如果是纯字符串，直接返回
-      return info;
-    }
-    return "-";
-  }
-  // const [language, setLanguage] = useState<"EN" | "CN">("EN")
-  // const [showCreateDialog, setShowCreateDialog] = useState(false)
-  // const [showAssignDialog, setShowAssignDialog] = useState(false)
-  // const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null)
-  // const [selectedSurrogateId, setSelectedSurrogateId] = useState<number | null>(null)
-  // const [selectedParentId, setSelectedParentId] = useState<number | null>(null)
-  // const [selectedManagerId, setSelectedManagerId] = useState<number | null>(null)
-  // const [loading, setLoading] = useState(false)
-  // const [cases, setCases] = useState<any[]>([])
-  // const [surrogates, setSurrogates] = useState<any[]>([])
-  // const [clients, setClients] = useState<any[]>([])
-  // const [managers, setManagers] = useState<any[]>([]);
-  // const router = useRouter();
-
+  // 认证检查和 cookie 读取
   useEffect(() => {
-    // 调试打印所有数据
-    // console.log('cases:', cases);
-    // console.log('surrogates:', surrogates);
-    // console.log('clients:', clients);
-    // console.log('managers:', managers);
-  }, [cases, surrogates, clients, managers]);
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_admin')
+      const userEmail = getCookie('userEmail_admin')
+      const userId = getCookie('userId_admin')
+      const authed = !!(userRole && userEmail && userId && userRole === 'admin')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/admin/login')
+      }
+    }
+  }, [router])
 
   // 自适应每页条数，始终两行，宽度自适应
   useEffect(() => {
@@ -113,24 +116,232 @@ export default function AllCasesPage() {
     setClients(Array.isArray(clientsRes) ? clientsRes : clientsRes.data || []);
     setManagers(Array.isArray(managersRes) ? managersRes : managersRes.data || []);
   };
-  useEffect(() => { fetchAllData(); }, []);
-  // 搜索和分页
-  const filteredAllCases = allCases.filter((c: any) => {
-    const parentMatch = !selectedParent || (c.intended_parent && String(c.intended_parent.id) === selectedParent);
-    const surrogateMatch = !selectedSurrogate || (c.surrogate_mother && String(c.surrogate_mother.id) === selectedSurrogate);
-    const managerMatch = !selectedManager || (c.client_manager && String(c.client_manager.id) === selectedManager);
-    const statusMatch = !selectedStatus || c.process_status === selectedStatus;
-    return parentMatch && surrogateMatch && managerMatch && statusMatch;
-  });
-  const total = filteredAllCases.length
-  const pagedCases = filteredAllCases.slice((page - 1) * pageSize, page * pageSize)
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  
+  // 只在认证后才加载数据
+  useEffect(() => { 
+    if (isAuthenticated) {
+      fetchAllData();
+    }
+  }, [isAuthenticated]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存过滤和分页逻辑
+  const filteredAllCases = useMemo(() => {
+    return allCases.filter((c: any) => {
+      const parentMatch = !selectedParent || (c.intended_parent && String(c.intended_parent.id) === selectedParent);
+      const surrogateMatch = !selectedSurrogate || (c.surrogate_mother && String(c.surrogate_mother.id) === selectedSurrogate);
+      const managerMatch = !selectedManager || (c.client_manager && String(c.client_manager.id) === selectedManager);
+      const statusMatch = !selectedStatus || c.process_status === selectedStatus;
+      return parentMatch && surrogateMatch && managerMatch && statusMatch;
+    });
+  }, [allCases, selectedParent, selectedSurrogate, selectedManager, selectedStatus]);
+
+  const { total, pagedCases, totalPages } = useMemo(() => {
+    const totalCount = filteredAllCases.length
+    const pages = Math.max(1, Math.ceil(totalCount / pageSize))
+    const paged = filteredAllCases.slice((page - 1) * pageSize, page * pageSize)
+    return { total: totalCount, pagedCases: paged, totalPages: pages }
+  }, [filteredAllCases, page, pageSize])
+
+  // 当总页数变化时，确保当前页不超过总页数
   useEffect(() => {
     if (page > totalPages) {
       setPage(totalPages)
       setPageInput(String(totalPages))
     }
   }, [totalPages, page])
+
+  // 使用 useCallback 缓存事件处理函数
+  const handleOpenCreateDialog = useCallback(() => {
+    setShowCreateDialog(true)
+  }, [])
+
+  const handleCloseCreateDialog = useCallback(() => {
+    setShowCreateDialog(false)
+    setSelectedSurrogateId(null)
+    setSelectedParentId(null)
+  }, [])
+
+  const handleOpenAssignDialog = useCallback((caseId: number) => {
+    setSelectedCaseId(caseId)
+    setShowAssignDialog(true)
+  }, [])
+
+  const handleCloseAssignDialog = useCallback(() => {
+    setShowAssignDialog(false)
+    setSelectedCaseId(null)
+    setSelectedManagerId(null)
+  }, [])
+
+  const handleParentFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedParent(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleSurrogateFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedSurrogate(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleManagerFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedManager(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleStatusFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedStatus(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleStatusDropdownToggle = useCallback((caseId: number) => {
+    setStatusDropdownCaseId(statusDropdownCaseId === caseId ? null : caseId)
+  }, [statusDropdownCaseId])
+
+  const handleStatusUpdate = useCallback(async (caseId: number, newStatus: string) => {
+    if (statusUpdating) return;
+    setStatusUpdating(true);
+    await fetch('/api/cases-update-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ case_id: caseId, process_status: newStatus })
+    });
+    setStatusDropdownCaseId(null);
+    setStatusUpdating(false);
+    await fetchAllData();
+  }, [statusUpdating])
+
+  const handleCreateCase = useCallback(async () => {
+    if (!selectedSurrogateId || !selectedParentId) return
+    setLoading(true)
+    await fetch("/api/cases-create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        surrogate_mother_surrogate_mothers: selectedSurrogateId,
+        intended_parent_intended_parents: selectedParentId
+      })
+    })
+    setLoading(false)
+    setShowCreateDialog(false)
+    setSelectedSurrogateId(null)
+    setSelectedParentId(null)
+    await fetchAllData()
+  }, [selectedSurrogateId, selectedParentId])
+
+  const handleAssignManager = useCallback(async () => {
+    if (!selectedCaseId || !selectedManagerId) return
+    setLoading(true)
+    await fetch("/api/cases-assign-manager", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: selectedCaseId, client_manager_id: selectedManagerId })
+    })
+    setLoading(false)
+    setShowAssignDialog(false)
+    setSelectedCaseId(null)
+    setSelectedManagerId(null)
+    await fetchAllData()
+  }, [selectedCaseId, selectedManagerId])
+
+  const handlePrevPage = useCallback(() => {
+    const newPage = Math.max(1, page - 1)
+    setPage(newPage)
+    setPageInput(String(newPage))
+  }, [page])
+
+  const handleNextPage = useCallback(() => {
+    const newPage = Math.min(totalPages, page + 1)
+    setPage(newPage)
+    setPageInput(String(newPage))
+  }, [page, totalPages])
+
+  const handlePageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '')
+    setPageInput(val)
+  }, [])
+
+  const handlePageInputBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    let val = Number(e.target.value)
+    if (isNaN(val) || val < 1) val = 1
+    if (val > totalPages) val = totalPages
+    setPage(val)
+    setPageInput(String(val))
+  }, [totalPages])
+
+  const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      let val = Number((e.target as HTMLInputElement).value)
+      if (isNaN(val) || val < 1) val = 1
+      if (val > totalPages) val = totalPages
+      setPage(val)
+      setPageInput(String(val))
+    }
+  }, [totalPages])
+
+  // 使用 useMemo 缓存筛选选项
+  const uniqueParents = useMemo(() => {
+    return Array.from(
+      new Map(
+        allCases
+          .map(c => c.intended_parent)
+          .filter(Boolean)
+          .map(p => [p.id, p])
+      ).values()
+    )
+  }, [allCases])
+
+  const uniqueSurrogates = useMemo(() => {
+    return Array.from(
+      new Map(
+        allCases
+          .map(c => c.surrogate_mother)
+          .filter(Boolean)
+          .map(s => [s.id, s])
+      ).values()
+    )
+  }, [allCases])
+
+  const uniqueManagers = useMemo(() => {
+    return Array.from(
+      new Map(
+        allCases
+          .map(c => c.client_manager)
+          .filter(Boolean)
+          .map(m => [m.id, m])
+      ).values()
+    )
+  }, [allCases])
+
+  const uniqueStatuses = useMemo(() => {
+    return Array.from(new Set(allCases.map(c => c.process_status).filter(Boolean)))
+  }, [allCases])
+
+  // 使用 useMemo 缓存状态映射
+  const stageMap = useMemo<Record<string, string>>(() => ({
+    Matching: t("matching"),
+    LegalStage: t("legalStage"),
+    CyclePrep: t("cyclePrep"),
+    Pregnant: t("pregnancy"),
+    Transferred: t("transferred"),
+  }), [t])
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     // <AdminLayout>
@@ -139,7 +350,7 @@ export default function AllCasesPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-semibold tracking-wider text-sage-800">{t('allCases')}</h1>
           <div className="flex gap-2">
-            <CustomButton onClick={() => setShowCreateDialog(true)} className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer">
+            <CustomButton onClick={handleOpenCreateDialog} className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer">
               {/* <Plus className="w-4 h-4 mr-2" /> */}
               {t('addNewCase')}
             </CustomButton>
@@ -150,75 +361,45 @@ export default function AllCasesPage() {
           {/* 只展示当前案例实际出现过的准父母 */}
           <select
             value={selectedParent}
-            onChange={e => { setSelectedParent(e.target.value); setPage(1); }}
+            onChange={handleParentFilterChange}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allIntendedParents', '全部准父母')}</option>
-            {Array.from(
-              new Map(
-                allCases
-                  .map(c => c.intended_parent)
-                  .filter(Boolean)
-                  .map(p => [p.id, p])
-              ).values()
-            ).map(p => (
+            {uniqueParents.map(p => (
               <option key={p.id} value={String(p.id)}>{getFirstName(p.basic_information) || p.basic_information || p.email}</option>
             ))}
           </select>
           {/* 只展示当前案例实际出现过的代孕母 */}
           <select
             value={selectedSurrogate}
-            onChange={e => { setSelectedSurrogate(e.target.value); setPage(1); }}
+            onChange={handleSurrogateFilterChange}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allSurrogateMothers', '全部代孕母')}</option>
-            {Array.from(
-              new Map(
-                allCases
-                  .map(c => c.surrogate_mother)
-                  .filter(Boolean)
-                  .map(s => [s.id, s])
-              ).values()
-            ).map(s => (
+            {uniqueSurrogates.map(s => (
               <option key={s.id} value={String(s.id)}>{getFirstName(s.contact_information) || s.contact_informationname || s.email}</option>
             ))}
           </select>
           {/* 只展示当前案例实际出现过的客户经理 */}
           <select
             value={selectedManager}
-            onChange={e => { setSelectedManager(e.target.value); setPage(1); }}
+            onChange={handleManagerFilterChange}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allClientManagers', '全部客户经理')}</option>
-            {Array.from(
-              new Map(
-                allCases
-                  .map(c => c.client_manager)
-                  .filter(Boolean)
-                  .map(m => [m.id, m])
-              ).values()
-            ).map(m => (
+            {uniqueManagers.map(m => (
               <option key={m.id} value={String(m.id)}>{m.name || m.email}</option>
             ))}
           </select>
           {/* 只展示当前案例实际出现过的状态 */}
           <select
             value={selectedStatus}
-            onChange={e => { setSelectedStatus(e.target.value); setPage(1); }}
+            onChange={handleStatusFilterChange}
             className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
           >
             <option value="">{t('allStatuses', '全部状态')}</option>
-            {Array.from(new Set(allCases.map(c => c.process_status).filter(Boolean))).map(status => (
-              <option key={status} value={status}>{(() => {
-                const stageMap: Record<string, string> = {
-                  Matching: t("matching"),
-                  LegalStage: t("legalStage"),
-                  CyclePrep: t("cyclePrep"),
-                  Pregnant: t("pregnancy"),
-                  Transferred: t("transferred"),
-                };
-                return stageMap[status] || status;
-              })()}</option>
+            {uniqueStatuses.map(status => (
+              <option key={status} value={status}>{stageMap[status] || status}</option>
             ))}
           </select>
         </div>
@@ -235,11 +416,6 @@ export default function AllCasesPage() {
         >
           {pagedCases.length > 0 ? (
             pagedCases.map((c: any) => {
-              // ...existing code...
-              const stageMap: Record<string, string> = STATUS_ENUM.reduce((acc, cur) => {
-                acc[cur.value] = cur.label;
-                return acc;
-              }, {} as Record<string, string>);
               const parentName = c.intended_parent?.basic_information ?? c.intended_parent?.contact_information ?? c.intended_parent?.email ?? "-";
               const surrogateName = c.surrogate_mother?.contact_information ?? c.surrogate_mother?.basic_information ?? c.surrogate_mother?.email ?? "-";
               const managerName = c.client_manager?.name ?? c.client_manager?.email ?? "-";
@@ -264,7 +440,7 @@ export default function AllCasesPage() {
                         {t('status')}
                         <span
                           className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100"
-                          onClick={() => setStatusDropdownCaseId(statusDropdownCaseId === c.id ? null : c.id)}
+                          onClick={() => handleStatusDropdownToggle(c.id)}
                           style={{ minWidth: 80 }}
                         >
                           {statusText}
@@ -281,18 +457,7 @@ export default function AllCasesPage() {
                               <div
                                 key={opt.value}
                                 className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 ${c.process_status === opt.value ? 'font-bold bg-sage-50' : ''}`}
-                                onClick={async () => {
-                                  if (statusUpdating) return;
-                                  setStatusUpdating(true);
-                                  await fetch('/api/cases-update-status', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ case_id: c.id, process_status: opt.value })
-                                  });
-                                  setStatusDropdownCaseId(null);
-                                  setStatusUpdating(false);
-                                  await fetchAllData();
-                                }}
+                                onClick={() => handleStatusUpdate(c.id, opt.value)}
                               >
                                 {opt.label}
                               </div>
@@ -341,7 +506,7 @@ export default function AllCasesPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
                     {managerName === "-" && (
-                      <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer" onClick={() => { setSelectedCaseId(c.id); setShowAssignDialog(true); }}>
+                      <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer" onClick={() => handleOpenAssignDialog(c.id)}>
                         {t('assignClientManager')}
                       </CustomButton>
                     )}
@@ -351,7 +516,7 @@ export default function AllCasesPage() {
             })
           ) : (
             <div className="col-span-full flex items-center justify-center w-full h-full text-sage-500">
-              {t('noApplications', { defaultValue: '暂无记录' })}
+              {t('noApplications', { defaultValue: 'Loading...' })}
             </div>
           )}
         </div>
@@ -361,11 +526,7 @@ export default function AllCasesPage() {
           <CustomButton
             className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer"
             disabled={page === 1}
-            onClick={() => {
-              const newPage = Math.max(1, page - 1)
-              setPage(newPage)
-              setPageInput(String(newPage))
-            }}
+            onClick={handlePrevPage}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
           </CustomButton>
@@ -376,26 +537,9 @@ export default function AllCasesPage() {
               inputMode="numeric"
               pattern="[0-9]*"
               value={pageInput}
-              onChange={e => {
-                const val = e.target.value.replace(/[^0-9]/g, '')
-                setPageInput(val)
-              }}
-              onBlur={e => {
-                let val = Number(e.target.value)
-                if (isNaN(val) || val < 1) val = 1
-                if (val > totalPages) val = totalPages
-                setPage(val)
-                setPageInput(String(val))
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  let val = Number((e.target as HTMLInputElement).value)
-                  if (isNaN(val) || val < 1) val = 1
-                  if (val > totalPages) val = totalPages
-                  setPage(val)
-                  setPageInput(String(val))
-                }
-              }}
+              onChange={handlePageInputChange}
+              onBlur={handlePageInputBlur}
+              onKeyDown={handlePageInputKeyDown}
               className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
               aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
             />
@@ -404,11 +548,7 @@ export default function AllCasesPage() {
           <CustomButton
             className="px-4 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer"
             disabled={page >= totalPages}
-            onClick={() => {
-              const newPage = Math.min(totalPages, page + 1)
-              setPage(newPage)
-              setPageInput(String(newPage))
-            }}
+            onClick={handleNextPage}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
           </CustomButton>
@@ -416,7 +556,7 @@ export default function AllCasesPage() {
 
         {pagedCases.length === 0 && !loading && total > 0 && (
           <div className="text-center py-8 text-sage-500">
-            {t('noApplications', { defaultValue: '暂无记录' })}
+            {t('noApplications', { defaultValue: 'Loading...' })}
           </div>
         )}
         {/* 新增案子弹窗（无遮罩，仅内容） */}
@@ -449,24 +589,8 @@ export default function AllCasesPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <CustomButton onClick={async () => {
-                  if (!selectedSurrogateId || !selectedParentId) return
-                  setLoading(true)
-                  await fetch("/api/cases-create", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      surrogate_mother_surrogate_mothers: selectedSurrogateId,
-                      intended_parent_intended_parents: selectedParentId
-                    })
-                  })
-                  setLoading(false)
-                  setShowCreateDialog(false)
-                  setSelectedSurrogateId(null)
-                  setSelectedParentId(null)
-                  await fetchAllData()
-                }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAdd')}</CustomButton>
-                <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => setShowCreateDialog(false)}>{t('cancel')}</CustomButton>
+                <CustomButton onClick={handleCreateCase} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAdd')}</CustomButton>
+                <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={handleCloseCreateDialog}>{t('cancel')}</CustomButton>
               </div>
             </div>
           </div>
@@ -484,21 +608,8 @@ export default function AllCasesPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <CustomButton onClick={async () => {
-                  if (!selectedCaseId || !selectedManagerId) return
-                  setLoading(true)
-                  await fetch("/api/cases-assign-manager", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ case_id: selectedCaseId, client_manager_id: selectedManagerId })
-                  })
-                  setLoading(false)
-                  setShowAssignDialog(false)
-                  setSelectedCaseId(null)
-                  setSelectedManagerId(null)
-                  await fetchAllData()
-                }} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAssign')}</CustomButton>
-                <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={() => setShowAssignDialog(false)}>{t('cancel')}</CustomButton>
+                <CustomButton onClick={handleAssignManager} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAssign')}</CustomButton>
+                <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={handleCloseAssignDialog}>{t('cancel')}</CustomButton>
               </div>
             </div>
           </div>

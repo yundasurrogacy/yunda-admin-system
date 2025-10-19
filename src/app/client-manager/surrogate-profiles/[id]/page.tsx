@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { getSurrogateMotherById } from "@/lib/graphql/applications";
@@ -10,6 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 // import ManagerLayout from '@/components/manager-layout';
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 
 // 计算年龄的函数
 const calculateAge = (dateOfBirth: string | undefined): string => {
@@ -28,29 +35,95 @@ export default function SurrogateProfileDetailPage() {
   const router = useRouter();
   const { t, i18n } = useTranslation('common');
   const params = useParams<{ id: string }>();
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [data, setData] = useState<SurrogateMother | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   // 全屏预览图片 url
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // 认证检查和 cookie 读取
   useEffect(() => {
-    async function fetchData() {
-      if (params?.id) {
-        try {
-          const result = await getSurrogateMotherById(Number(params.id));
-          setData(result);
-        } catch (e: any) {
-          setError(t('notFoundSurrogate', '未找到代孕母信息'));
-        }
-      } else {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_manager')
+      const userEmail = getCookie('userEmail_manager')
+      const userId = getCookie('userId_manager')
+      const authed = !!(userRole && userEmail && userId && userRole === 'manager')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/client-manager/login')
+      }
+    }
+  }, [router]);
+
+  // 使用 useCallback 缓存数据获取函数
+  const fetchData = useCallback(async () => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+    
+    if (params?.id) {
+      setLoading(true);
+      try {
+        const result = await getSurrogateMotherById(Number(params.id));
+        setData(result);
+      } catch (e: any) {
         setError(t('notFoundSurrogate', '未找到代孕母信息'));
       }
       setLoading(false);
+    } else {
+      setError(t('notFoundSurrogate', '未找到代孕母信息'));
+      setLoading(false);
     }
-    fetchData();
-  }, [params?.id, t]);
+  }, [params?.id, t, isAuthenticated]);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 使用 useMemo 缓存派生数据
+  const about = useMemo(() => data?.about_you || {} as Partial<SurrogateMother["about_you"]>, [data]);
+  const contact = useMemo(() => data?.contact_information || {} as Partial<SurrogateMother["contact_information"]>, [data]);
+  const health = useMemo(() => data?.pregnancy_and_health || {} as Partial<SurrogateMother["pregnancy_and_health"]>, [data]);
+  const photos = useMemo(() => Array.isArray(data?.upload_photos) ? data.upload_photos : [], [data]);
+  const interview = useMemo(() => data?.gestational_surrogacy_interview || {} as Partial<SurrogateMother["gestational_surrogacy_interview"]>, [data]);
+
+  // 使用 useCallback 缓存事件处理函数
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handlePreviewOpen = useCallback((url: string) => {
+    setPreviewUrl(url);
+  }, []);
+
+  const handlePreviewClose = useCallback(() => {
+    setPreviewUrl(null);
+  }, []);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-700">{t('loading')}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
+
+  // 数据加载中（认证后才会设置 loading）
   if (loading) {
     return (
       // <ManagerLayout>
@@ -73,28 +146,24 @@ export default function SurrogateProfileDetailPage() {
     );
   }
 
-  const about: Partial<SurrogateMother["about_you"]> = data.about_you || {};
-  const contact: Partial<SurrogateMother["contact_information"]> = data.contact_information || {};
-  const health: Partial<SurrogateMother["pregnancy_and_health"]> = data.pregnancy_and_health || {};
-  const photos = Array.isArray(data.upload_photos) ? data.upload_photos : [];
-  const interview: Partial<SurrogateMother["gestational_surrogacy_interview"]> = data.gestational_surrogacy_interview || {};
-
   return (
     // <ManagerLayout>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
-        <div className="flex items-center justify-between pt-6 pb-2">
+        {/* 返回按钮 */}
+        <CustomButton
+          className="mt-6 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
+          onClick={handleBack}
+        >
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ cursor: 'pointer' }}>
+            <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {t('back', '返回')}
+        </CustomButton>
+
+        <div className="flex items-center justify-between pb-2">
           <div>
             <h1 className="text-2xl font-medium text-sage-800">{t('surrogateProfileDetail.surrogateProfile', '代孕母详情')}</h1>
             <p className="text-sage-600 text-sm mt-1">{t('surrogateProfileDetail.description', '查看代孕母个人信息')}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <CustomButton
-              className="bg-white font-medium text-sage-800 border border-sage-200 rounded px-4 py-2 cursor-pointer"
-              onClick={() => router.push('/client-manager/surrogate-profiles')}
-            >
-              {/* <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" style={{ cursor: 'pointer' }} /> */}
-              {t('backToSurrogateProfiles', '返回列表')}
-            </CustomButton>
           </div>
         </div>
 
@@ -109,10 +178,10 @@ export default function SurrogateProfileDetailPage() {
                   className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative group cursor-pointer"
                   title={t('viewLarge', '查看大图')}
                   style={{ cursor: 'pointer' }}
-                  onClick={() => setPreviewUrl(photo.url)}
+                  onClick={() => handlePreviewOpen(photo.url)}
                   tabIndex={0}
                   role="button"
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setPreviewUrl(photo.url); }}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handlePreviewOpen(photo.url); }}
                   aria-label={t('viewLarge', '查看大图')}
                 >
                   <img
@@ -137,7 +206,7 @@ export default function SurrogateProfileDetailPage() {
           {previewUrl && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 animate-fade-in cursor-zoom-out"
-              onClick={() => setPreviewUrl(null)}
+              onClick={handlePreviewClose}
               style={{ cursor: 'zoom-out' }}
             >
               <img
@@ -149,7 +218,7 @@ export default function SurrogateProfileDetailPage() {
               />
               <button
                 className="absolute top-8 right-8 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-70 transition cursor-pointer"
-                onClick={() => setPreviewUrl(null)}
+                onClick={handlePreviewClose}
                 aria-label="Close preview"
                 style={{ cursor: 'pointer' }}
               >

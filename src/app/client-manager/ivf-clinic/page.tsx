@@ -48,20 +48,25 @@ function IVFClinicContent() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/ivf-clinic-get?caseId=${caseId}`)
-      .then(res => res.json())
-      .then(data => {
-        setClinics(data.ivf_clinics || []);
+    Promise.all([
+      fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=intended_parent`).then(r=>r.json()),
+      fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=surrogate_mother`).then(r=>r.json())
+    ])
+      .then(([ip, gc]) => {
+        const list = [ ...(ip?.ivf_clinics || []), ...(gc?.ivf_clinics || []) ];
+        setClinics(list);
       })
       .finally(() => setLoading(false));
   }, [caseId]);
 
   // 获取各类型数据
-  const clinicOverview = clinics.find(c => c.type === 'ClinicOverview')?.data;
-  const embryoJourneyData = clinics.find(c => c.type === 'EmbryoJourney')?.data;
-  const surrogateAppointmentsData = clinics.find(c => c.type === 'SurrogateAppointments')?.data;
-  const medicationTrackerData = clinics.find(c => c.type === 'MedicationTracker')?.data;
-  const doctorsNotesData = clinics.find(c => c.type === 'DoctorNotes')?.data;
+  // 前面的板块使用 intended_parent 的数据
+  const clinicOverview = clinics.find(c => c.type === 'ClinicOverview' && c.about_role === 'intended_parent')?.data;
+  const embryoJourneyData = clinics.find(c => c.type === 'EmbryoJourney' && c.about_role === 'intended_parent')?.data;
+  // 后面的板块使用 surrogate_mother 的数据（如果有的话）
+  const surrogateAppointmentsData = clinics.find(c => c.type === 'SurrogateAppointments' && c.about_role === 'surrogate_mother')?.data;
+  const medicationTrackerData = clinics.find(c => c.type === 'MedicationTracker' && c.about_role === 'surrogate_mother')?.data;
+  const doctorsNotesData = clinics.find(c => c.type === 'DoctorNotes' && c.about_role === 'surrogate_mother')?.data;
 
   // 初始化编辑数据
   const initEditData = () => {
@@ -96,14 +101,17 @@ function IVFClinicContent() {
         body: JSON.stringify({
           caseId: caseId,
           type: 'ClinicOverview',
-          data: editData
+          data: editData,
+          aboutRole: 'intended_parent'
         })
       });
       if (response.ok) {
-        // 重新获取数据
-        const updatedResponse = await fetch(`/api/ivf-clinic-get?caseId=${caseId}`);
-        const updatedData = await updatedResponse.json();
-        setClinics(updatedData.ivf_clinics || []);
+        // 重新获取IP+GC数据
+        const [ip, gc] = await Promise.all([
+          fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=intended_parent`).then(r=>r.json()),
+          fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=surrogate_mother`).then(r=>r.json())
+        ]);
+        setClinics([...(ip?.ivf_clinics||[]), ...(gc?.ivf_clinics||[])]);
         setEditingClinic(false);
       }
     } catch (error) {
@@ -126,6 +134,10 @@ function IVFClinicContent() {
     let mergedData = data;
     let apiEndpoint = '/api/ivf-clinic-create';
     let apiMethod = 'POST';
+    
+    // 判断 aboutRole
+    const surrogateTypes = new Set(['SurrogateAppointments', 'MedicationTracker', 'DoctorNotes']);
+    const aboutRole = surrogateTypes.has(type) ? 'surrogate_mother' : 'intended_parent';
     
     // 检查是否已存在该类型的数据
     const existingRecord = clinics.find(c => c.type === type);
@@ -156,8 +168,8 @@ function IVFClinicContent() {
     }
     
     const requestBody = apiEndpoint === '/api/ivf-clinic-update' 
-      ? { caseId: caseId, type, data: mergedData }
-      : { ivf_clinic: { type, data: mergedData, case_cases: caseId } };
+      ? { caseId: caseId, type, data: mergedData, aboutRole }
+      : { ivf_clinic: { type, data: mergedData, case_cases: caseId }, aboutRole };
     
     const res = await fetch(apiEndpoint, {
       method: apiMethod,
@@ -167,9 +179,11 @@ function IVFClinicContent() {
     const result = await res.json();
     if (result.ivf_clinic || res.ok) {
       // 成功后重新拉取接口数据，保证 clinics 最新
-      const fetchRes = await fetch(`/api/ivf-clinic-get?caseId=${caseId}`);
-      const fetchData = await fetchRes.json();
-      setClinics(fetchData.ivf_clinics || []);
+      const [ip, gc] = await Promise.all([
+        fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=intended_parent`).then(r=>r.json()),
+        fetch(`/api/ivf-clinic-get?caseId=${caseId}&aboutRole=surrogate_mother`).then(r=>r.json())
+      ]);
+      setClinics([...(ip?.ivf_clinics||[]), ...(gc?.ivf_clinics||[])]);
       setFormData({
         location: '',
         doctor: { name: '', role: '', email: '', phone: '', desc: '' },

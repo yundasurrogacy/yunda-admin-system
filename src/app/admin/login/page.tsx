@@ -65,12 +65,12 @@ export default function AdminLoginPage() {
         });
 
         // 直接跳转到管理员dashboard，不依赖认证状态
-        console.log(`[AdminLogin] Redirecting to: /admin/dashboard`)
-
+        // console.log(`[AdminLogin] Redirecting to: /admin/dashboard`)
+        router.replace('/admin/dashboard')
         // 立即重定向
-        setTimeout(() => {
-          router.replace('/admin/dashboard')
-        }, 300) // 减少延迟
+        // setTimeout(() => {
+        //   router.replace('/admin/dashboard')
+        // }, 300) // 减少延迟
 
         return;
       }

@@ -1,5 +1,6 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { CustomButton } from "@/components/ui/CustomButton";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,10 +13,22 @@ import { User, MessageSquare, FileText, Calendar, Activity, Edit, Save, X } from
 import { useToast } from "@/hooks/useToast";
 import "../../../i18n";
 
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
+
 export default function SurrogacyProfile() {
+  const router = useRouter();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { t, i18n } = useTranslation('common');
   const { toast } = useToast();
+  
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -40,13 +53,27 @@ export default function SurrogacyProfile() {
 
   // 只读页面，无需编辑、保存、更新逻辑
 
+  // 认证检查和 cookie 读取
   useEffect(() => {
-    function getCookie(name: string) {
-      if (typeof document === 'undefined') return undefined;
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? match[2] : undefined;
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_surrogacy')
+      const userEmail = getCookie('userEmail_surrogacy')
+      const userId = getCookie('userId_surrogacy')
+      const authed = !!(userRole && userEmail && userId)
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/surrogacy/login')
+      }
     }
-    const surrogacyId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
+  }, [router]);
+
+  // 数据加载 - 只在认证后执行
+  useEffect(() => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+    
+    const surrogacyId = getCookie('userId_surrogacy');
     if (!surrogacyId) {
       setError(t('intendedParents.error.noParentInfo', '未找到代孕母信息'));
       setLoading(false);
@@ -60,7 +87,92 @@ export default function SurrogacyProfile() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [t]);
+  }, [t, isAuthenticated]);
+
+  // 使用 useCallback 缓存关闭预览函数
+  const handleClosePreview = useCallback(() => {
+    setPreviewUrl(null);
+  }, []);
+
+  // 使用 useCallback 缓存打开预览函数
+  const handleOpenPreview = useCallback((url: string) => {
+    setPreviewUrl(url);
+  }, []);
+
+  // ⚠️ 重要：所有 useMemo 必须在条件返回之前调用，即使依赖的数据可能为空
+  
+  // 使用 useMemo 缓存数据对象，避免每次渲染重新创建
+  const about = useMemo(() => data?.about_you || {}, [data?.about_you]);
+  const contact = useMemo(() => data?.contact_information || {}, [data?.contact_information]);
+  const health = useMemo(() => data?.pregnancy_and_health || {}, [data?.pregnancy_and_health]);
+  const photos = useMemo(() => Array.isArray(data?.upload_photos) ? data.upload_photos : [], [data?.upload_photos]);
+  const interview = useMemo(() => data?.gestational_surrogacy_interview || {}, [data?.gestational_surrogacy_interview]);
+
+  // 只读，直接用原始数据
+  const currentContact = contact;
+  const currentAbout = about;
+  const currentHealth = health;
+  const currentInterview = interview;
+
+  // 使用 useMemo 缓存计算的年龄
+  const age = useMemo(() => calculateAge(currentContact?.date_of_birth), [currentContact?.date_of_birth]);
+
+  // 使用 useMemo 缓存显示名称
+  const displayName = useMemo(() => {
+    return currentContact ? `${currentContact.first_name || ""} ${currentContact.last_name || ""}`.trim() : data?.id;
+  }, [currentContact, data?.id]);
+
+  // 使用 useMemo 缓存代孕经验标签
+  const experienceBadge = useMemo(() => {
+    return (currentContact?.surrogacy_experience_count ?? 0) > 0 
+      ? t('experiencedSurrogate', '有经验代孕母') 
+      : t('firstTimeSurrogate', '初次代孕母');
+  }, [currentContact?.surrogacy_experience_count, t]);
+
+  // 使用 useMemo 缓存电话号码显示
+  const phoneDisplay = useMemo(() => {
+    return currentContact?.cell_phone_country_code 
+      ? `+${currentContact.cell_phone_country_code} ${currentContact?.cell_phone ?? t('noData', '暂无数据')}`
+      : currentContact?.cell_phone ?? t('noData', '暂无数据');
+  }, [currentContact?.cell_phone_country_code, currentContact?.cell_phone, t]);
+
+  // 使用 useMemo 缓存医疗状况显示
+  const medicalConditionsDisplay = useMemo(() => {
+    return Array.isArray(currentHealth?.medical_conditions) 
+      ? currentHealth.medical_conditions.join(", ") 
+      : t('noData', '暂无数据');
+  }, [currentHealth?.medical_conditions, t]);
+
+  // 使用 useMemo 缓存创建时间和更新时间
+  const createdAtDisplay = useMemo(() => {
+    return data?.created_at 
+      ? new Date(data.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') 
+      : t('noData', '暂无数据');
+  }, [data?.created_at, i18n.language, t]);
+
+  const updatedAtDisplay = useMemo(() => {
+    return data?.updated_at 
+      ? new Date(data.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') 
+      : t('noData', '暂无数据');
+  }, [data?.updated_at, i18n.language, t]);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-sage-600">{t('loading', '加载中...')}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   if (loading) {
     return (
@@ -80,18 +192,6 @@ export default function SurrogacyProfile() {
     );
   }
 
-  const about = data?.about_you || {};
-  const contact = data?.contact_information || {};
-  const health = data?.pregnancy_and_health || {};
-  const photos = Array.isArray(data?.upload_photos) ? data.upload_photos : [];
-  const interview = data?.gestational_surrogacy_interview || {};
-
-  // 只读，直接用原始数据
-  const currentContact = contact;
-  const currentAbout = about;
-  const currentHealth = health;
-  const currentInterview = interview;
-
   return (
     <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
       <div className="flex items-center justify-between pt-6 pb-2">
@@ -110,7 +210,7 @@ export default function SurrogacyProfile() {
               <div
                 key={idx}
                 className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative cursor-pointer group"
-                onClick={() => setPreviewUrl(photo.url)}
+                onClick={() => handleOpenPreview(photo.url)}
                 title={t('viewLarge', '查看大图')}
                 style={{ cursor: 'pointer' }}
               >
@@ -135,7 +235,7 @@ export default function SurrogacyProfile() {
         {previewUrl && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 animate-fade-in"
-            onClick={() => setPreviewUrl(null)}
+            onClick={handleClosePreview}
             style={{ cursor: 'zoom-out' }}
           >
             <img
@@ -147,7 +247,7 @@ export default function SurrogacyProfile() {
             />
             <CustomButton
               className="absolute top-8 right-8 text-white text-3xl font-bold bg-black bg-opacity-40 rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-70 transition"
-              onClick={() => setPreviewUrl(null)}
+              onClick={handleClosePreview}
               aria-label="Close preview"
               style={{ cursor: 'pointer' }}
             >
@@ -167,13 +267,13 @@ export default function SurrogacyProfile() {
               </div>
               <div>
                 <h2 className="text-2xl font-semibold text-sage-800">
-                  {currentContact ? `${currentContact.first_name || ""} ${currentContact.last_name || ""}`.trim() : data?.id}
+                  {displayName}
                 </h2>
-                <p className="text-sage-500">{t('id', 'ID')}: #{data?.id} • {calculateAge(currentContact?.date_of_birth)} {t('yearsOld', '岁')}</p>
+                <p className="text-sage-500">{t('id', 'ID')}: #{data?.id} • {age} {t('yearsOld', '岁')}</p>
               </div>
             </div>
             <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
-              {(currentContact?.surrogacy_experience_count ?? 0) > 0 ? t('experiencedSurrogate', '有经验代孕母') : t('firstTimeSurrogate', '初次代孕母')}
+              {experienceBadge}
             </Badge>
           </div>
 
@@ -245,7 +345,7 @@ export default function SurrogacyProfile() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('phone', '电话')}:</span>
-                  <span className="text-sage-800">{currentContact?.cell_phone_country_code ? `+${currentContact.cell_phone_country_code} ` : ""}{currentContact?.cell_phone ?? t('noData', '暂无数据')}</span>
+                  <span className="text-sage-800">{phoneDisplay}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('email', '邮箱')}:</span>
@@ -330,7 +430,7 @@ export default function SurrogacyProfile() {
             </div>
             <div className="space-y-1 col-span-2">
               <Label className="text-sage-600 text-sm">{t('medicalConditions', '疾病状况')}</Label>
-              <p className="font-medium text-sage-800">{Array.isArray(currentHealth?.medical_conditions) ? currentHealth.medical_conditions.join(", ") : t('noData', '暂无数据')}</p>
+              <p className="font-medium text-sage-800">{medicalConditionsDisplay}</p>
             </div>
             <div className="space-y-1 col-span-2">
               <Label className="text-sage-600 text-sm">{t('isTakingMedications', '是否正在服药')}</Label>
@@ -461,11 +561,11 @@ export default function SurrogacyProfile() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
           <div className="flex justify-between">
             <span className="text-sage-500">{t('created', '创建时间')}:</span>
-            <span className="text-sage-800">{data?.created_at ? new Date(data.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : t('noData', '暂无数据')}</span>
+            <span className="text-sage-800">{createdAtDisplay}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-sage-500">{t('updated', '更新时间')}:</span>
-            <span className="text-sage-800">{data?.updated_at ? new Date(data.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : t('noData', '暂无数据')}</span>
+            <span className="text-sage-800">{updatedAtDisplay}</span>
           </div>
         </div>
       </div>

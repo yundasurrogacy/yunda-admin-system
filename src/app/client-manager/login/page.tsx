@@ -61,12 +61,13 @@ export default function ManagerLoginPage() {
 
         // 直接使用硬编码路径进行重定向
         const homePath = '/client-manager/dashboard';
-        console.log(`[ManagerLogin] Redirecting to: ${homePath}`)
+        // console.log(`[ManagerLogin] Redirecting to: ${homePath}`)
 
+        router.replace(homePath)
         // 立即重定向
-        setTimeout(() => {
-            router.replace(homePath)
-        }, 300) // 减少延迟
+        // setTimeout(() => {
+        //     router.replace(homePath)
+        // }, 300) // 减少延迟
 
         return;
       }

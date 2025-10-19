@@ -1,12 +1,19 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
 import { useTranslation } from 'react-i18next'
+
+// 获取 cookie 的辅助函数
+function getCookie(name: string) {
+  if (typeof document === 'undefined') return undefined;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : undefined;
+}
 import { 
   Users, 
   FileText, 
@@ -64,6 +71,9 @@ export default function DashboardPage() {
   const router = useRouter()
   const { t } = useTranslation('common');
   
+  // 认证相关状态
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  
   // 状态管理
   const [cases, setCases] = useState<Case[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -71,8 +81,24 @@ export default function DashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // 统计数据计算
-  const stats = React.useMemo(() => {
+  // 认证检查和 cookie 读取
+  useEffect(() => {
+    // 只在客户端执行
+    if (typeof window !== 'undefined') {
+      const userRole = getCookie('userRole_manager')
+      const userEmail = getCookie('userEmail_manager')
+      const userId = getCookie('userId_manager')
+      const authed = !!(userRole && userEmail && userId && userRole === 'manager')
+      setIsAuthenticated(authed)
+      if (!authed) {
+        router.replace('/client-manager/login')
+      }
+    }
+  }, [router]);
+
+  // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
+  // 统计数据计算 - 使用 useMemo 缓存
+  const stats = useMemo(() => {
     if (!cases.length) {
       return {
         totalCases: 0,
@@ -119,29 +145,11 @@ export default function DashboardPage() {
     }
   }, [cases]);
 
-  // 刷新数据
-  const refreshData = async () => {
-    setIsRefreshing(true)
-    await fetchCases()
-    setIsRefreshing(false)
-  }
-
-  // 处理案例点击
-  const handleCaseClick = (caseId: string) => {
-    setSelectedCase(caseId)
-    router.push(`/client-manager/my-cases`)
-  }
-
-  // 获取案例数据
-  const fetchCases = async () => {
+  // 使用 useCallback 缓存获取案例数据函数
+  const fetchCases = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      function getCookie(name: string) {
-        if (typeof document === 'undefined') return undefined;
-        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return match ? match[2] : undefined;
-      }
       const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
       if (!managerId) {
         setError(t('dashboard.errors.noManagerId', 'No manager ID found'));
@@ -163,14 +171,30 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [t]);
 
-  // 初始加载数据
+  // 使用 useCallback 缓存刷新数据函数
+  const refreshData = useCallback(async () => {
+    setIsRefreshing(true)
+    await fetchCases()
+    setIsRefreshing(false)
+  }, [fetchCases]);
+
+  // 使用 useCallback 缓存处理案例点击函数
+  const handleCaseClick = useCallback((caseId: string) => {
+    setSelectedCase(caseId)
+    router.push(`/client-manager/my-cases`)
+  }, [router]);
+
+  // 只在认证后才加载数据
   useEffect(() => {
-    fetchCases()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (isAuthenticated) {
+      fetchCases()
+    }
+  }, [isAuthenticated, fetchCases]);
 
-  const getParentName = (parent: any) => {
+  // 将辅助函数移到组件外部，避免每次渲染重新创建
+  const getParentName = useCallback((parent: any) => {
     if (!parent) return t('N/A');
     if (parent.name) return parent.name;
     if (parent.basic_information) {
@@ -182,9 +206,9 @@ export default function DashboardPage() {
       }
     }
     return parent.email;
-  };
+  }, [t]);
 
-  const getSurrogateName = (surrogate: any) => {
+  const getSurrogateName = useCallback((surrogate: any) => {
     if (!surrogate) return t('N/A');
     if (surrogate.name) return surrogate.name;
     if (surrogate.contact_information) {
@@ -196,10 +220,10 @@ export default function DashboardPage() {
       }
     }
     return surrogate.email;
-  };
+  }, [t]);
 
-  // 状态颜色映射
-  const getStatusColor = (status: string) => {
+  // 使用 useMemo 缓存状态颜色映射
+  const getStatusColor = useMemo(() => (status: string) => {
     const colorMap: Record<string, string> = {
       'Matching': 'bg-blue-400',
       'LegalStage': 'bg-yellow-400',
@@ -213,10 +237,10 @@ export default function DashboardPage() {
       'Unknown': 'bg-gray-400'
     };
     return colorMap[status] || 'bg-gray-400';
-  };
+  }, []);
 
-  // 状态标签映射
-  const getStatusLabel = (status: string) => {
+  // 使用 useMemo 缓存状态标签映射
+  const getStatusLabel = useMemo(() => (status: string) => {
     const labelMap: Record<string, string> = {
       'Matching': t('statusMapping.Matching', 'Matching'),
       'LegalStage': t('statusMapping.LegalStage', 'Legal Stage'),
@@ -230,15 +254,76 @@ export default function DashboardPage() {
       'Unknown': t('N/A', 'Unknown')
     };
     return labelMap[status] || status;
-  };
+  }, [t]);
 
-  const today = new Date().toISOString().split('T')[0];
-  const todaysTasksCount = cases.filter(c => c.next_appointment_date === today).length;
-  const pendingDocumentsCount = cases.reduce((acc, c) => acc + (c.pending_documents_count || 0), 0);
-  const pendingContractsCount = cases.filter(c => c.contract_status === 'pending').length;
+  // 使用 useMemo 缓存计算值
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  
+  const todaysTasksCount = useMemo(() => 
+    cases.filter(c => c.next_appointment_date === today).length,
+    [cases, today]
+  );
+  
+  const pendingDocumentsCount = useMemo(() => 
+    cases.reduce((acc, c) => acc + (c.pending_documents_count || 0), 0),
+    [cases]
+  );
+  
+  const pendingContractsCount = useMemo(() => 
+    cases.filter(c => c.contract_status === 'pending').length,
+    [cases]
+  );
 
-  const weeklyUpdates = cases.filter(c => c.next_appointment_date && new Date(c.next_appointment_date) > new Date()).slice(0, 5);
-  const latestUpdates = cases.sort((a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime()).slice(0, 5);
+  const weeklyUpdates = useMemo(() => 
+    cases.filter(c => c.next_appointment_date && new Date(c.next_appointment_date) > new Date()).slice(0, 5),
+    [cases]
+  );
+  
+  const latestUpdates = useMemo(() => 
+    cases.sort((a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime()).slice(0, 5),
+    [cases]
+  );
+
+  // 缓存导航处理函数
+  const handleNavigateToCases = useCallback(() => {
+    router.push('/client-manager/my-cases');
+  }, [router]);
+
+  const handleNavigateToClientProfiles = useCallback(() => {
+    router.push('/client-manager/client-profiles');
+  }, [router]);
+
+  const handleNavigateToSurrogateProfiles = useCallback(() => {
+    router.push('/client-manager/surrogate-profiles');
+  }, [router]);
+
+  const handleNavigateToDocuments = useCallback(() => {
+    router.push('/client-manager/documents');
+  }, [router]);
+
+  const handleReload = useCallback(() => {
+    window.location.reload();
+  }, []);
+
+  // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
+
+  // 认证检查 loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-brand-yellow">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-lg text-sage-700">{t('loading')}</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 未认证，等待重定向
+  if (!isAuthenticated) {
+    return null
+  }
 
   // 错误状态
   if (error) {
@@ -254,7 +339,7 @@ export default function DashboardPage() {
               <p className="text-sage-600 mb-6 max-w-md">{error}</p>
           <CustomButton 
                 className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-            onClick={() => window.location.reload()}
+            onClick={handleReload}
           >
                 <RefreshCw className="w-4 h-4 mr-2" />
             {t('dashboard.actions.reload', 'Reload')}
@@ -290,7 +375,7 @@ export default function DashboardPage() {
           {/* Total Cases */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client-manager/my-cases')}
+            onClick={handleNavigateToCases}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -337,7 +422,7 @@ export default function DashboardPage() {
           {/* Total Documents */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client-manager/documents')}
+            onClick={handleNavigateToDocuments}
           >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -387,7 +472,7 @@ export default function DashboardPage() {
           {/* Case Status Distribution */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={() => router.push('/client-manager/my-cases')}
+            onClick={handleNavigateToCases}
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
@@ -477,28 +562,28 @@ export default function DashboardPage() {
             <CardContent className="space-y-3">
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-sage-100 hover:bg-sage-200 text-sage-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client-manager/my-cases')}
+                onClick={handleNavigateToCases}
               >
                 <Users className="w-4 h-4 mr-3" />
                 {t('dashboard.viewAllCases', 'View All Cases')}
               </CustomButton>
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client-manager/client-profiles')}
+                onClick={handleNavigateToClientProfiles}
               >
                 <UserCheck className="w-4 h-4 mr-3" />
                 {t('dashboard.manageClients', 'Manage Clients')}
               </CustomButton>
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client-manager/surrogate-profiles')}
+                onClick={handleNavigateToSurrogateProfiles}
               >
                 <UserCheck className="w-4 h-4 mr-3" />
                 {t('dashboard.manageSurrogates', 'Manage Surrogates')}
               </CustomButton>
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={() => router.push('/client-manager/documents')}
+                onClick={handleNavigateToDocuments}
               >
                 <FileText className="w-4 h-4 mr-3" />
                 {t('dashboard.documentCenter', 'Document Center')}
