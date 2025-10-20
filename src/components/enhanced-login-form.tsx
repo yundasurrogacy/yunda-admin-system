@@ -90,7 +90,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
               width: "100%",
               padding: "0 20px"
             }}
-            className="font-medium text-sage-800 transition-colors disabled:opacity-50"
+            className="font-medium text-sage-800 transition-colors disabled:opacity-50 focus:outline-none focus:ring-0"
             placeholder={t('emailPlaceholder', { defaultValue: '请输入邮箱地址' })}
           />
           {formErrors.username && (
@@ -125,7 +125,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
               width: "100%",
               padding: "0 20px"
             }}
-            className="font-medium text-sage-800 transition-colors disabled:opacity-50"
+            className="font-medium text-sage-800 transition-colors disabled:opacity-50 focus:outline-none focus:ring-0"
             placeholder={t('passwordPlaceholder', { defaultValue: '请输入密码' })}
           />
           {formErrors.password && (
@@ -151,7 +151,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
           margin: "auto 0",
           transition: "all 0.3s ease"
         }}
-        className="font-semibold flex items-center justify-center hover:shadow-lg text-sage-800"
+        className="font-semibold flex items-center justify-center hover:shadow-lg text-sage-800 focus:outline-none focus:ring-0"
       >
         {loading ? (
           <div className="flex items-center gap-2">

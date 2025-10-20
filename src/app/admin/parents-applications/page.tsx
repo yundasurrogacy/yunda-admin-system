@@ -1,30 +1,22 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback, memo } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react'
 import { useTranslation } from "react-i18next"
 // import i18n from '@/i18n'
 import i18n from '@/i18n'
 import { useRouter } from 'next/navigation'
-import { Search, Filter, User, Mail, Phone, MapPin, Plus, Eye, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react'
-// import { AdminLayout } from '../../../components/admin-layout'
+import { Search, User, Mail, Phone, MapPin, Calendar } from 'lucide-react'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { getParentsApplications, updateApplicationStatus, insertIntendedParent } from '@/lib/graphql/applications'
+import { getParentsApplications, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
-
-import { Dialog } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-
-// import { Input } from '@/components/ui/input'
-// import { Button } from '@/components/ui/button'
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -33,36 +25,6 @@ function getCookie(name: string) {
   return match ? match[2] : undefined;
 }
 
-interface AddIntendedParentDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-}
-
-type FormType = {
-  basic_information: {
-    firstName: string;
-    lastName: string;
-    date_of_birth: string;
-  };
-  contact_information: {
-    email_address: string;
-    cell_phone: string;
-  };
-  family_profile: {
-    city: string;
-    country: string;
-  };
-  program_interests: {
-    interested_services: string;
-    journey_start_timing: string;
-    desired_children_count: string;
-  };
-  referral: {
-    referral_source: string;
-    initial_questions: string;
-  };
-};
 
 // 提取获取状态颜色的辅助函数到组件外部
 function getStatusColor(status: ApplicationStatus): string {
@@ -89,23 +51,38 @@ interface ApplicationCardProps {
 }
 
 const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDetails, t }: ApplicationCardProps) => {
-  const appData = app.application_data as any;
-  const basicInfo = appData?.basic_information || {};
-  const contactInfo = appData?.contact_information || {};
-  const familyProfile = appData?.family_profile || {};
-  const programInterests = appData?.program_interests || {};
-  const referral = appData?.referral || {};
-  
-  // 格式化多选项
-  const languages = Array.isArray(contactInfo.primary_languages) 
-    ? contactInfo.primary_languages.join(', ') 
-    : (contactInfo.primary_languages || t('notAvailable', { defaultValue: 'N/A' }));
-  const ethnicity = Array.isArray(basicInfo.ethnicity) 
-    ? basicInfo.ethnicity.join(', ') 
-    : (basicInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' }));
+  // 使用 useMemo 缓存数据处理，避免每次渲染都重新计算
+  const processedData = useMemo(() => {
+    const appData = app.application_data as any;
+    const basicInfo = appData?.basic_information || {};
+    const contactInfo = appData?.contact_information || {};
+    const familyProfile = appData?.family_profile || {};
+    const programInterests = appData?.program_interests || {};
+    const referral = appData?.referral || {};
+    
+    // 格式化多选项
+    const languages = Array.isArray(contactInfo.primary_languages) 
+      ? contactInfo.primary_languages.join(', ') 
+      : (contactInfo.primary_languages || t('notAvailable', { defaultValue: 'N/A' }));
+    const ethnicity = Array.isArray(basicInfo.ethnicity) 
+      ? basicInfo.ethnicity.join(', ') 
+      : (basicInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' }));
 
-  // 获取服务类型文本
-  const getServiceText = (service: string) => {
+    return {
+      basicInfo,
+      contactInfo,
+      familyProfile,
+      programInterests,
+      referral,
+      languages,
+      ethnicity
+    };
+  }, [app.application_data, t]);
+
+  const { basicInfo, contactInfo, familyProfile, programInterests, referral, languages, ethnicity } = processedData;
+
+  // 使用 useMemo 缓存服务类型文本映射
+  const serviceText = useMemo(() => {
     const serviceMap: Record<string, string> = {
       surrogacyOnly: t('surrogacyService', { defaultValue: '代孕服务' }),
       surrogacyEggDonor: t('surrogacyEggDonorService', { defaultValue: '代孕+捐卵服务' }),
@@ -115,8 +92,8 @@ const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDet
       bringYourOwnSurrogateEgg: t('bringYourOwnSurrogateEgg', { defaultValue: '自带代孕者+捐卵' }),
       notSure: t('notSure', { defaultValue: '不确定' })
     };
-    return serviceMap[service] || service;
-  };
+    return serviceMap[programInterests.interested_services] || programInterests.interested_services;
+  }, [programInterests.interested_services, t]);
 
   return (
     <div className="bg-white rounded-xl border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full" style={{minWidth: '0'}}>
@@ -177,7 +154,7 @@ const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDet
           <div className="text-sm text-sage-700">
             <div className="font-medium mb-1">{t('serviceNeeds')}:</div>
             <div className="text-sage-600">
-              {getServiceText(programInterests.interested_services)}
+              {serviceText}
             </div>
             <div className="text-xs text-sage-500 mt-1">
               {t('desiredChildrenCount')}: {programInterests.desired_children_count || t('notAvailable')} | 
@@ -237,8 +214,10 @@ export default function ParentsApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   // 分页相关
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
@@ -293,11 +272,14 @@ export default function ParentsApplicationsPage() {
       setLoading(true)
       const status = statusFilter === 'all' ? undefined : statusFilter
       const allData = await getParentsApplications(10000, 0, status)
-      setAllApplications(allData)
+      console.log('[ParentsApplications] 加载的数据:', allData?.length || 0, '条记录')
+      setAllApplications(allData || []) // 确保数据不为 undefined
     } catch (error) {
       console.error('Failed to load applications:', error)
+      setAllApplications([]) // 出错时设置为空数组
     } finally {
       setLoading(false)
+      console.log('[ParentsApplications] 加载完成，loading设置为false')
     }
   }, [statusFilter])
 
@@ -318,34 +300,50 @@ export default function ParentsApplicationsPage() {
     }
   }, [loadApplications])
 
-  // 使用 useMemo 缓存过滤和分页计算
+  // 使用 useMemo 缓存过滤和分页计算，优化搜索性能
   const { filteredApplications, total, totalPages, pagedApplications } = useMemo(() => {
-    // 过滤
+    // 如果没有搜索词，直接返回所有数据
+    if (!debouncedSearchTerm.trim()) {
+      const totalCount = allApplications.length
+      const pages = Math.max(1, Math.ceil(totalCount / pageSize))
+      const paged = allApplications.slice((page - 1) * pageSize, page * pageSize)
+      
+      return {
+        filteredApplications: allApplications,
+        total: totalCount,
+        totalPages: pages,
+        pagedApplications: paged
+      }
+    }
+
+    // 有搜索词时才进行过滤
+    const searchLower = debouncedSearchTerm.toLowerCase().trim()
     const filtered = allApplications.filter(app => {
-    if (!searchTerm) return true
-    const searchLower = searchTerm.toLowerCase()
-    const appData = app.application_data as any
-    const basicInfo = appData?.basic_information || {}
-    const contactInfo = appData?.contact_information || {}
-    const familyProfile = appData?.family_profile || {}
-    const programInterests = appData?.program_interests || {}
-    const referral = appData?.referral || {}
-    // 支持更多字段搜索
-    return (
-      basicInfo.firstName?.toLowerCase().includes(searchLower) ||
-      basicInfo.lastName?.toLowerCase().includes(searchLower) ||
-      contactInfo.email_address?.toLowerCase().includes(searchLower) ||
-      contactInfo.cell_phone?.includes(searchTerm) ||
-      familyProfile.city?.toLowerCase().includes(searchLower) ||
-      familyProfile.country?.toLowerCase().includes(searchLower) ||
-      familyProfile.state_or_province?.toLowerCase().includes(searchLower) ||
-      basicInfo.gender_identity?.toLowerCase().includes(searchLower) ||
-      basicInfo.ethnicity?.toLowerCase().includes(searchLower) ||
-      contactInfo.primary_languages?.join(',').toLowerCase().includes(searchLower) ||
-      programInterests.interested_services?.toLowerCase().includes(searchLower) ||
-      referral.referral_source?.toLowerCase().includes(searchLower)
-    )
-  })
+      const appData = app.application_data as any
+      const basicInfo = appData?.basic_information || {}
+      const contactInfo = appData?.contact_information || {}
+      const familyProfile = appData?.family_profile || {}
+      const programInterests = appData?.program_interests || {}
+      const referral = appData?.referral || {}
+      
+      // 优化搜索逻辑，减少重复的 toLowerCase 调用
+      return (
+        basicInfo.firstName?.toLowerCase().includes(searchLower) ||
+        basicInfo.lastName?.toLowerCase().includes(searchLower) ||
+        contactInfo.email_address?.toLowerCase().includes(searchLower) ||
+        contactInfo.cell_phone?.includes(searchTerm) ||
+        familyProfile.city?.toLowerCase().includes(searchLower) ||
+        familyProfile.country?.toLowerCase().includes(searchLower) ||
+        familyProfile.state_or_province?.toLowerCase().includes(searchLower) ||
+        basicInfo.gender_identity?.toLowerCase().includes(searchLower) ||
+        basicInfo.ethnicity?.toLowerCase().includes(searchLower) ||
+        (Array.isArray(contactInfo.primary_languages) 
+          ? contactInfo.primary_languages.join(',').toLowerCase().includes(searchLower)
+          : contactInfo.primary_languages?.toLowerCase().includes(searchLower)) ||
+        programInterests.interested_services?.toLowerCase().includes(searchLower) ||
+        referral.referral_source?.toLowerCase().includes(searchLower)
+      )
+    })
 
     // 分页计算
     const totalCount = filtered.length
@@ -358,7 +356,24 @@ export default function ParentsApplicationsPage() {
       totalPages: pages,
       pagedApplications: paged
     }
-  }, [allApplications, searchTerm, page, pageSize])
+  }, [allApplications, debouncedSearchTerm, page, pageSize])
+
+  // 搜索防抖处理
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300) // 300ms 防抖
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchTerm])
   useEffect(() => {
     if (page > totalPages) {
       setPage(totalPages)
@@ -444,23 +459,22 @@ export default function ParentsApplicationsPage() {
     return null
   }
 
-  // 数据加载中
-  if (loading) {
+  // 数据加载中 - 只在首次加载时显示全屏加载
+  if (loading && allApplications.length === 0) {
     return (
-      // <AdminLayout key={lang}>
-        <PageContent>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg">{t('loading', { defaultValue: '加载中...' })}</div>
-          </div>
-        </PageContent>
-      // </AdminLayout>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+          <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+        </div>
+      </div>
     )
   }
 
 
   return (
-    // <AdminLayout key={lang}>
-      <PageContent>
+    <div className="min-h-screen flex flex-col">
+      <PageContent className="flex-1 flex flex-col">
         <PageHeader 
           title={t('parentsApplications', { defaultValue: '意向父母申请表' })}
           rightContent={
@@ -516,31 +530,56 @@ export default function ParentsApplicationsPage() {
           />
         </div>
 
-        {/* Applications Grid - 使用优化后的 ApplicationCard 组件 */}
-        <div
-          className="grid w-full"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '32px',
-            alignItems: 'stretch',
-            minHeight: '320px',
-          }}
-        >
-          {pagedApplications.map((app) => (
-            <ApplicationCard
-              key={app.id}
-              app={app}
-              currentLang={i18n.language}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onViewDetails={handleViewDetails}
-              t={t}
-            />
-          ))}
-        </div>
+        {/* 主要内容区域 - 使用 flex-1 占据剩余空间 */}
+        <div className="flex-1 flex flex-col">
+          {/* 筛选加载状态 */}
+          {loading && allApplications.length > 0 ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+                <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+              </div>
+            </div>
+          ) : pagedApplications.length === 0 && !loading ? (
+            // 空状态显示 - 居中显示
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-sage-400 mb-2">
+                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="text-lg text-sage-600 font-medium">{t('noApplications', { defaultValue: '暂无申请记录' })}</p>
+                <p className="text-sm text-sage-400 mt-2">{t('noApplicationsDesc', { defaultValue: '当前筛选条件下没有找到申请记录' })}</p>
+              </div>
+            </div>
+          ) : (
+            // Applications Grid - 使用优化后的 ApplicationCard 组件
+            <div
+              className="grid w-full flex-1"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '32px',
+                alignItems: 'stretch',
+                minHeight: '320px',
+              }}
+            >
+            {pagedApplications.map((app) => (
+              <ApplicationCard
+                key={app.id}
+                app={app}
+                currentLang={i18n.language}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onViewDetails={handleViewDetails}
+                t={t}
+              />
+            ))}
+            </div>
+          )}
 
-        {/* 分页控件 - 使用优化后的回调函数 */}
-        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+          {/* 分页控件 - 固定在页面底部 */}
+          <div className="flex flex-wrap justify-center items-center mt-8 gap-4 pt-4 border-t border-sage-100">
           <CustomButton
             className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
             disabled={page === 1}
@@ -558,7 +597,7 @@ export default function ParentsApplicationsPage() {
               onChange={handlePageInputChange}
               onBlur={handlePageInputBlur}
               onKeyDown={handlePageInputKeyDown}
-              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-0"
               aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
             />
             {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
@@ -570,14 +609,9 @@ export default function ParentsApplicationsPage() {
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
           </CustomButton>
-        </div>
-
-        {pagedApplications.length === 0 && (
-          <div className="text-center py-8 text-sage-500">
-            {t('noApplications', { defaultValue: '暂无申请记录' })}
           </div>
-        )}
-  </PageContent>
-    // </AdminLayout>
+        </div>
+      </PageContent>
+    </div>
   )
 }

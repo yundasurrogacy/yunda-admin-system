@@ -211,20 +211,27 @@ export function CommonHeader({
         {showMenuButton && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="w-10 h-10 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-sage-400 rounded transition-all duration-100 active:scale-95 hover:bg-sage-100"
+            className="w-10 h-10 flex items-center justify-center cursor-pointer focus:outline-none focus:ring-0 rounded transition-all duration-100 active:scale-95 hover:bg-sage-100"
             tabIndex={0}
             aria-label={t('menu')}
           >
             <img src="/images/left_icon.svg" alt="Menu" className="w-10 h-10" />
           </button>
         )}
-        <span className="ml-2 text-lg font-medium text-sage-800 tracking-widest">{t("menu")}</span>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="ml-2 text-lg font-medium text-sage-800 tracking-widest cursor-pointer focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0 transition-all duration-100 hover:bg-sage-100 rounded"
+          tabIndex={0}
+          aria-label={t('menu')}
+        >
+          {t("menu")}
+        </button>
       </div>
 
       {/* 中间logo区域，移动端自适应，桌面端内容宽度 */}
       <div className="flex-1 md:flex-none flex flex-col items-center justify-center md:justify-start">
         <button
-          className="inline-block focus:outline-none border-none bg-transparent p-0 m-0"
+          className="inline-block focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0"
           style={{ cursor: "pointer" }}
           onClick={() => {
             // 判断登录状态和端类型，跳转到对应页面
@@ -260,7 +267,7 @@ export function CommonHeader({
         {actualIsLoggedIn ? (
           <button
             onClick={handleLogout}
-            className="text-lg font-medium text-sage-800 cursor-pointer focus:outline-none border-none bg-transparent p-0 m-0 transition-all duration-100 focus:ring-2 focus:ring-sage-400 active:scale-95 hover:bg-sage-100 rounded"
+            className="text-lg font-medium text-sage-800 cursor-pointer focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0 transition-all duration-100 active:scale-95 hover:bg-sage-100 rounded"
             tabIndex={0}
           >
             {t("logOut")}
@@ -268,7 +275,7 @@ export function CommonHeader({
         ) : (
           <button
             onClick={handleLogin}
-            className="text-lg font-medium text-sage-800 cursor-pointer focus:outline-none border-none bg-transparent p-0 m-0 transition-all duration-100 focus:ring-2 focus:ring-sage-400 active:scale-95 hover:bg-sage-100 rounded"
+            className="text-lg font-medium text-sage-800 cursor-pointer focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0 transition-all duration-100 active:scale-95 hover:bg-sage-100 rounded"
             tabIndex={0}
           >
             {t("logIn")}
@@ -280,7 +287,7 @@ export function CommonHeader({
                 if (i18n.language !== "en") toggleLanguage()
               }}
               className={
-                `text-lg text-sage-800 focus:outline-none border-none bg-transparent p-0 m-0 transition-all duration-100 ${i18n.language === "en" ? "font-semibold" : "font-medium"} cursor-pointer focus:ring-2 focus:ring-sage-400 active:scale-95 hover:bg-sage-100 rounded`
+                `text-lg text-sage-800 focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0 transition-all duration-100 ${i18n.language === "en" ? "font-semibold" : "font-medium"} cursor-pointer active:scale-95 hover:bg-sage-100 rounded`
               }
               style={{ textDecoration: "none" }}
               tabIndex={0}
@@ -293,7 +300,7 @@ export function CommonHeader({
                 if (i18n.language !== "zh-CN") toggleLanguage()
               }}
               className={
-                `text-lg text-sage-800 focus:outline-none border-none bg-transparent p-0 m-0 transition-all duration-100 ${i18n.language === "zh-CN" ? "font-semibold" : "font-medium"} cursor-pointer focus:ring-2 focus:ring-sage-400 active:scale-95 hover:bg-sage-100 rounded`
+                `text-lg text-sage-800 focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0 transition-all duration-100 ${i18n.language === "zh-CN" ? "font-semibold" : "font-medium"} cursor-pointer active:scale-95 hover:bg-sage-100 rounded`
               }
               style={{ textDecoration: "none" }}
               tabIndex={0}

@@ -451,12 +451,18 @@ type blogs {
   """分类名称"""
   category: String
 
-  """内容"""
+  """中文_内容"""
   content: String
 
   """封面图"""
   cover_img_url: String
   created_at: timestamptz!
+
+  """多语言_英文内容"""
+  en_content: String
+
+  """多语言_英文标题"""
+  en_title: String
   id: bigint!
 
   """作者来源"""
@@ -465,7 +471,7 @@ type blogs {
   """标签，多个用｜分割，如：准父母｜心里准备"""
   tags: String
 
-  """标题"""
+  """中文_标题"""
   title: String
   updated_at: timestamptz!
 }
@@ -511,6 +517,8 @@ input blogs_bool_exp {
   content: String_comparison_exp
   cover_img_url: String_comparison_exp
   created_at: timestamptz_comparison_exp
+  en_content: String_comparison_exp
+  en_title: String_comparison_exp
   id: bigint_comparison_exp
   reference_author: String_comparison_exp
   tags: String_comparison_exp
@@ -542,12 +550,18 @@ input blogs_insert_input {
   """分类名称"""
   category: String
 
-  """内容"""
+  """中文_内容"""
   content: String
 
   """封面图"""
   cover_img_url: String
   created_at: timestamptz
+
+  """多语言_英文内容"""
+  en_content: String
+
+  """多语言_英文标题"""
+  en_title: String
   id: bigint
 
   """作者来源"""
@@ -556,7 +570,7 @@ input blogs_insert_input {
   """标签，多个用｜分割，如：准父母｜心里准备"""
   tags: String
 
-  """标题"""
+  """中文_标题"""
   title: String
   updated_at: timestamptz
 }
@@ -566,12 +580,18 @@ type blogs_max_fields {
   """分类名称"""
   category: String
 
-  """内容"""
+  """中文_内容"""
   content: String
 
   """封面图"""
   cover_img_url: String
   created_at: timestamptz
+
+  """多语言_英文内容"""
+  en_content: String
+
+  """多语言_英文标题"""
+  en_title: String
   id: bigint
 
   """作者来源"""
@@ -580,7 +600,7 @@ type blogs_max_fields {
   """标签，多个用｜分割，如：准父母｜心里准备"""
   tags: String
 
-  """标题"""
+  """中文_标题"""
   title: String
   updated_at: timestamptz
 }
@@ -590,12 +610,18 @@ type blogs_min_fields {
   """分类名称"""
   category: String
 
-  """内容"""
+  """中文_内容"""
   content: String
 
   """封面图"""
   cover_img_url: String
   created_at: timestamptz
+
+  """多语言_英文内容"""
+  en_content: String
+
+  """多语言_英文标题"""
+  en_title: String
   id: bigint
 
   """作者来源"""
@@ -604,7 +630,7 @@ type blogs_min_fields {
   """标签，多个用｜分割，如：准父母｜心里准备"""
   tags: String
 
-  """标题"""
+  """中文_标题"""
   title: String
   updated_at: timestamptz
 }
@@ -635,6 +661,8 @@ input blogs_order_by {
   content: order_by
   cover_img_url: order_by
   created_at: order_by
+  en_content: order_by
+  en_title: order_by
   id: order_by
   reference_author: order_by
   tags: order_by
@@ -664,6 +692,12 @@ enum blogs_select_column {
   created_at
 
   """column name"""
+  en_content
+
+  """column name"""
+  en_title
+
+  """column name"""
   id
 
   """column name"""
@@ -686,12 +720,18 @@ input blogs_set_input {
   """分类名称"""
   category: String
 
-  """内容"""
+  """中文_内容"""
   content: String
 
   """封面图"""
   cover_img_url: String
   created_at: timestamptz
+
+  """多语言_英文内容"""
+  en_content: String
+
+  """多语言_英文标题"""
+  en_title: String
   id: bigint
 
   """作者来源"""
@@ -700,7 +740,7 @@ input blogs_set_input {
   """标签，多个用｜分割，如：准父母｜心里准备"""
   tags: String
 
-  """标题"""
+  """中文_标题"""
   title: String
   updated_at: timestamptz
 }
@@ -736,12 +776,18 @@ input blogs_stream_cursor_value_input {
   """分类名称"""
   category: String
 
-  """内容"""
+  """中文_内容"""
   content: String
 
   """封面图"""
   cover_img_url: String
   created_at: timestamptz
+
+  """多语言_英文内容"""
+  en_content: String
+
+  """多语言_英文标题"""
+  en_title: String
   id: bigint
 
   """作者来源"""
@@ -750,7 +796,7 @@ input blogs_stream_cursor_value_input {
   """标签，多个用｜分割，如：准父母｜心里准备"""
   tags: String
 
-  """标题"""
+  """中文_标题"""
   title: String
   updated_at: timestamptz
 }
@@ -775,6 +821,12 @@ enum blogs_update_column {
 
   """column name"""
   created_at
+
+  """column name"""
+  en_content
+
+  """column name"""
+  en_title
 
   """column name"""
   id
@@ -869,7 +921,7 @@ type cases {
   """An object relationship"""
   intended_parent: intended_parents
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
   """An array relationship"""
@@ -986,7 +1038,7 @@ type cases {
   """An object relationship"""
   surrogate_mother: surrogate_mothers
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -1099,10 +1151,10 @@ type cases_avg_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -1117,10 +1169,10 @@ input cases_avg_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -1162,14 +1214,19 @@ unique or primary key constraints on table "cases"
 """
 enum cases_constraint {
   """
+  unique or primary key constraint on columns "intended_parent_intended_parents"
+  """
+  cases_intended_parent_intended_parents_key
+
+  """
   unique or primary key constraint on columns "id"
   """
   cases_pkey
 
   """
-  unique or primary key constraint on columns "intended_parent_intended_parents", "surrogate_mother_surrogate_mothers"
+  unique or primary key constraint on columns "surrogate_mother_surrogate_mothers"
   """
-  cases_surrogate_mother_surrogate_mothers_intended_parent_intend
+  cases_surrogate_mother_surrogate_mothers_key
 }
 
 """案子的相关文件"""
@@ -1811,10 +1868,10 @@ input cases_inc_input {
   client_manager_client_managers: bigint
   id: bigint
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -1834,7 +1891,7 @@ input cases_insert_input {
   id: bigint
   intended_parent: intended_parents_obj_rel_insert_input
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
   ivf_clinics: ivf_clinics_arr_rel_insert_input
   journeys: journeys_arr_rel_insert_input
@@ -1844,7 +1901,7 @@ input cases_insert_input {
   process_status: String
   surrogate_mother: surrogate_mothers_obj_rel_insert_input
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -1860,13 +1917,13 @@ type cases_max_fields {
   created_at: timestamptz
   id: bigint
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
   process_status: String
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -1883,13 +1940,13 @@ input cases_max_order_by {
   created_at: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
   process_status: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -1904,13 +1961,13 @@ type cases_min_fields {
   created_at: timestamptz
   id: bigint
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
   process_status: String
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -1927,13 +1984,13 @@ input cases_min_order_by {
   created_at: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
   process_status: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2034,13 +2091,13 @@ input cases_set_input {
   created_at: timestamptz
   id: bigint
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
   process_status: String
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -2054,10 +2111,10 @@ type cases_stddev_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -2072,10 +2129,10 @@ input cases_stddev_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2088,10 +2145,10 @@ type cases_stddev_pop_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -2106,10 +2163,10 @@ input cases_stddev_pop_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2122,10 +2179,10 @@ type cases_stddev_samp_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -2140,10 +2197,10 @@ input cases_stddev_samp_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2168,13 +2225,13 @@ input cases_stream_cursor_value_input {
   created_at: timestamptz
   id: bigint
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
   """状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred"""
   process_status: String
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -2188,10 +2245,10 @@ type cases_sum_fields {
   client_manager_client_managers: bigint
   id: bigint
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: bigint
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: bigint
 
   """当前case的信托账户余额"""
@@ -2206,10 +2263,10 @@ input cases_sum_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2262,10 +2319,10 @@ type cases_var_pop_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -2280,10 +2337,10 @@ input cases_var_pop_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2296,10 +2353,10 @@ type cases_var_samp_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -2314,10 +2371,10 @@ input cases_var_samp_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2330,10 +2387,10 @@ type cases_variance_fields {
   client_manager_client_managers: Float
   id: Float
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: Float
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: Float
 
   """当前case的信托账户余额"""
@@ -2348,10 +2405,10 @@ input cases_variance_order_by {
   client_manager_client_managers: order_by
   id: order_by
 
-  """外键，准父母"""
+  """外键，准父母，一个准父母只有一个case"""
   intended_parent_intended_parents: order_by
 
-  """外键，代孕妈妈"""
+  """外键，代孕妈妈，一个代孕妈妈只有一个case"""
   surrogate_mother_surrogate_mothers: order_by
 
   """当前case的信托账户余额"""
@@ -2679,6 +2736,9 @@ type intended_parents {
     path: String
   ): jsonb
 
+  """An object relationship"""
+  case: cases
+
   """An array relationship"""
   cases(
     """distinct select on columns"""
@@ -2847,6 +2907,7 @@ input intended_parents_bool_exp {
   _not: intended_parents_bool_exp
   _or: [intended_parents_bool_exp!]
   basic_information: jsonb_comparison_exp
+  case: cases_bool_exp
   cases: cases_bool_exp
   cases_aggregate: cases_aggregate_bool_exp
   contact_information: jsonb_comparison_exp
@@ -2954,6 +3015,7 @@ input type for inserting data into table "intended_parents"
 input intended_parents_insert_input {
   """基本信息"""
   basic_information: jsonb
+  case: cases_obj_rel_insert_input
   cases: cases_arr_rel_insert_input
 
   """联系信息"""
@@ -3047,6 +3109,7 @@ input intended_parents_on_conflict {
 """Ordering options when selecting data from "intended_parents"."""
 input intended_parents_order_by {
   basic_information: order_by
+  case: cases_order_by
   cases_aggregate: cases_aggregate_order_by
   contact_information: order_by
   created_at: order_by
@@ -8463,6 +8526,9 @@ type surrogate_mothers {
     path: String
   ): jsonb
 
+  """An object relationship"""
+  case: cases
+
   """An array relationship"""
   cases(
     """distinct select on columns"""
@@ -8625,6 +8691,7 @@ input surrogate_mothers_bool_exp {
   _not: surrogate_mothers_bool_exp
   _or: [surrogate_mothers_bool_exp!]
   about_you: jsonb_comparison_exp
+  case: cases_bool_exp
   cases: cases_bool_exp
   cases_aggregate: cases_aggregate_bool_exp
   contact_information: jsonb_comparison_exp
@@ -8728,6 +8795,7 @@ input type for inserting data into table "surrogate_mothers"
 input surrogate_mothers_insert_input {
   """关于你自己"""
   about_you: jsonb
+  case: cases_obj_rel_insert_input
   cases: cases_arr_rel_insert_input
 
   """联系方式"""
@@ -8812,6 +8880,7 @@ input surrogate_mothers_on_conflict {
 """Ordering options when selecting data from "surrogate_mothers"."""
 input surrogate_mothers_order_by {
   about_you: order_by
+  case: cases_order_by
   cases_aggregate: cases_aggregate_order_by
   contact_information: order_by
   created_at: order_by
@@ -9091,9 +9160,15 @@ type trust_account_balance_changes {
   created_at: timestamptz!
   id: bigint!
 
+  """收款人"""
+  receiver: String
+
   """备注"""
   remark: String
   updated_at: timestamptz!
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: String
 }
 
 """
@@ -9208,8 +9283,10 @@ input trust_account_balance_changes_bool_exp {
   change_type: String_comparison_exp
   created_at: timestamptz_comparison_exp
   id: bigint_comparison_exp
+  receiver: String_comparison_exp
   remark: String_comparison_exp
   updated_at: timestamptz_comparison_exp
+  visibility: String_comparison_exp
 }
 
 """
@@ -9262,9 +9339,15 @@ input trust_account_balance_changes_insert_input {
   created_at: timestamptz
   id: bigint
 
+  """收款人"""
+  receiver: String
+
   """备注"""
   remark: String
   updated_at: timestamptz
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: String
 }
 
 """aggregate max on columns"""
@@ -9286,9 +9369,15 @@ type trust_account_balance_changes_max_fields {
   created_at: timestamptz
   id: bigint
 
+  """收款人"""
+  receiver: String
+
   """备注"""
   remark: String
   updated_at: timestamptz
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: String
 }
 
 """
@@ -9312,9 +9401,15 @@ input trust_account_balance_changes_max_order_by {
   created_at: order_by
   id: order_by
 
+  """收款人"""
+  receiver: order_by
+
   """备注"""
   remark: order_by
   updated_at: order_by
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: order_by
 }
 
 """aggregate min on columns"""
@@ -9336,9 +9431,15 @@ type trust_account_balance_changes_min_fields {
   created_at: timestamptz
   id: bigint
 
+  """收款人"""
+  receiver: String
+
   """备注"""
   remark: String
   updated_at: timestamptz
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: String
 }
 
 """
@@ -9362,9 +9463,15 @@ input trust_account_balance_changes_min_order_by {
   created_at: order_by
   id: order_by
 
+  """收款人"""
+  receiver: order_by
+
   """备注"""
   remark: order_by
   updated_at: order_by
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: order_by
 }
 
 """
@@ -9399,8 +9506,10 @@ input trust_account_balance_changes_order_by {
   change_type: order_by
   created_at: order_by
   id: order_by
+  receiver: order_by
   remark: order_by
   updated_at: order_by
+  visibility: order_by
 }
 
 """primary key columns input for table: trust_account_balance_changes"""
@@ -9434,10 +9543,16 @@ enum trust_account_balance_changes_select_column {
   id
 
   """column name"""
+  receiver
+
+  """column name"""
   remark
 
   """column name"""
   updated_at
+
+  """column name"""
+  visibility
 }
 
 """
@@ -9461,9 +9576,15 @@ input trust_account_balance_changes_set_input {
   created_at: timestamptz
   id: bigint
 
+  """收款人"""
+  receiver: String
+
   """备注"""
   remark: String
   updated_at: timestamptz
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: String
 }
 
 """aggregate stddev on columns"""
@@ -9598,9 +9719,15 @@ input trust_account_balance_changes_stream_cursor_value_input {
   created_at: timestamptz
   id: bigint
 
+  """收款人"""
+  receiver: String
+
   """备注"""
   remark: String
   updated_at: timestamptz
+
+  """谁可见选项，1.intended_parents 2.all"""
+  visibility: String
 }
 
 """aggregate sum on columns"""
@@ -9663,10 +9790,16 @@ enum trust_account_balance_changes_update_column {
   id
 
   """column name"""
+  receiver
+
+  """column name"""
   remark
 
   """column name"""
   updated_at
+
+  """column name"""
+  visibility
 }
 
 input trust_account_balance_changes_updates {

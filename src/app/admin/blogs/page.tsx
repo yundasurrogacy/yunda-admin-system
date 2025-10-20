@@ -27,6 +27,8 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   const [form, setForm] = useState({
     title: '',
     content: '',
+    en_title: '',
+    en_content: '',
     category: '',
     cover_img_url: '',
     reference_author: '',
@@ -40,6 +42,8 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     setForm({
       title: '',
       content: '',
+      en_title: '',
+      en_content: '',
       category: '',
       cover_img_url: '',
       reference_author: '',
@@ -102,17 +106,23 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
   if (!open) return null;
   
-  // 根据侧边栏状态计算弹窗的左边距
+  // 根据侧边栏状态计算弹窗的居中位置
+  // 侧边栏宽度：展开240px，收起80px
+  // 内容区域宽度 = 总宽度 - 侧边栏宽度
+  // 居中偏移 = 侧边栏宽度 / 2
+  const sidebarWidth = sidebarOpen ? 240 : 80;
+  const centerOffset = sidebarWidth / 2;
+  
   const modalStyle = {
-    marginLeft: sidebarOpen ? '240px' : '80px',
-    transition: 'margin-left 0.3s ease-in-out'
+    transform: `translateX(${centerOffset}px)`,
+    transition: 'transform 0.3s ease-in-out'
   };
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
       {/* 弹窗内容 */}
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden animate-fadeIn relative z-10 max-h-[90vh] flex flex-col pointer-events-auto"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-fadeIn relative z-10 max-h-[90vh] flex flex-col pointer-events-auto"
         style={modalStyle}
       >
         {/* 固定标题栏 */}
@@ -134,18 +144,30 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700 capitalize">{t('title')}</Label>
-              <Input 
-                name="title" 
-                value={form.title} 
-                onChange={handleChange} 
-                required 
-                className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px] capitalize"
-                placeholder={t('pleaseEnterTitle')}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle', { defaultValue: '中文标题' })}</Label>
+            <Input 
+              name="title" 
+              value={form.title} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              placeholder={t('pleaseEnterChineseTitle', '请输入中文标题')}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('englishTitle', { defaultValue: '英文标题' })}</Label>
+            <Input 
+              name="en_title" 
+              value={form.en_title} 
+              onChange={handleChange} 
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              placeholder={t('pleaseEnterEnglishTitle', 'Please enter English title')}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="space-y-2">
               <Label className="text-base font-semibold text-sage-700 capitalize">{t('author')}</Label>
               <Input 
@@ -156,9 +178,6 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
                 className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px] capitalize"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div className="space-y-2">
               <Label className="text-base font-semibold text-sage-700 capitalize">{t('tags')}</Label>
               <Input 
@@ -176,24 +195,35 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
                 value={form.category} 
                 onChange={handleChange} 
                 required 
-                className="w-full px-4 py-1 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-[16px] bg-white capitalize"
+                className="w-full px-4 py-1 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-[16px] bg-white capitalize cursor-pointer"
               >
-                <option value="" className="capitalize">{t('pleaseSelectCategory')}</option>
+                <option value="" className="capitalize cursor-pointer">{t('pleaseSelectCategory')}</option>
                 {categoryOptions.map(opt => (
-                  <option key={opt.key} value={opt.value} className="capitalize">{t(opt.key)}</option>
+                  <option key={opt.key} value={opt.value} className="capitalize cursor-pointer">{t(opt.key)}</option>
                 ))}
               </select>
             </div>
           </div>
 
-            <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700 capitalize">{t('content')}</Label>
-              <RichTextEditor
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('chineseContent', { defaultValue: '中文内容' })}</Label>
+            <RichTextEditor
               value={form.content} 
-                onChange={(value) => setForm({ ...form, content: value })}
-              placeholder={t('pleaseEnterContent')}
-                minHeight="250px"
-                className="text-[16px] capitalize"
+              onChange={(value) => setForm({ ...form, content: value })}
+              placeholder={t('pleaseEnterChineseContent', '请输入中文内容')}
+              minHeight="200px"
+              className="text-[16px]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('englishContent', { defaultValue: '英文内容' })}</Label>
+            <RichTextEditor
+              value={form.en_content} 
+              onChange={(value) => setForm({ ...form, en_content: value })}
+              placeholder={t('pleaseEnterEnglishContent', 'Please enter English content')}
+              minHeight="200px"
+              className="text-[16px]"
             />
           </div>
 
@@ -327,7 +357,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 }
 
 function AdminBlogsPage() {
-  const { t } = useTranslation("common")
+  const { t, i18n } = useTranslation("common")
   const router = useRouter()
   
   // 认证相关状态
@@ -514,9 +544,9 @@ function AdminBlogsPage() {
 
   return (
       <PageContent>
-        <PageHeader title={t('Blog Management') || '博客管理'}
+        <PageHeader title={t('blogManagement', { defaultValue: '博客管理' })}
           rightContent={
-            <CustomButton className="font-medium text-sage-800 cursor-pointer" onClick={handleAdd}>{t('Add Blog')}</CustomButton>
+            <CustomButton className="font-medium text-sage-800 cursor-pointer" onClick={handleAdd}>{t('addBlog', { defaultValue: '添加博客' })}</CustomButton>
           }
         />
         <BlogForm
@@ -527,9 +557,24 @@ function AdminBlogsPage() {
         />
         <div className="mt-8">
           {loading ? (
-            <div className="p-8 text-center text-gray-500 font-medium">{t('loading')}</div>
+            <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+              <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+                <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+              </div>
+            </div>
           ) : blogs.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 font-medium">{t('noBlog')}</div>
+            <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+              <div className="text-center">
+                <div className="text-sage-400 mb-4">
+                  <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
+                <p className="text-xl text-sage-600 font-medium mb-2">{t('noBlog', { defaultValue: '暂无博客' })}</p>
+                <p className="text-sm text-sage-400 mb-6">{t('noBlogDesc', { defaultValue: '还没有创建任何博客，点击上方按钮开始创建' })}</p>
+              </div>
+            </div>
           ) : (
             <>
               <div
@@ -541,7 +586,30 @@ function AdminBlogsPage() {
                   alignItems: 'stretch',
                 }}
               >
-                {pagedBlogs.map((blog) => (
+                {pagedBlogs.map((blog) => {
+                  // 根据当前语言选择显示的标题和内容
+                  const displayTitle = i18n.language === 'zh-CN' ? blog.title : (blog.en_title || blog.title);
+                  const displayContent = i18n.language === 'zh-CN' ? blog.content : (blog.en_content || blog.content);
+                  
+                  // 创建分类中文到翻译key的映射
+                  const categoryMap: Record<string, string> = {
+                    '代孕妈妈相关': 'categoryRelatedToSurrogate',
+                    '准父母相关': 'categoryRelatedToParents',
+                    '孕达品牌相关': 'categoryRelatedToBrand',
+                    '代孕流程相关': 'categoryRelatedToProcess',
+                    '法律法规相关': 'categoryRelatedToLaw',
+                    '行业动态相关': 'categoryRelatedToIndustry',
+                    '医学健康相关': 'categoryRelatedToMedical',
+                    '教育科普相关': 'categoryRelatedToEducation',
+                    '成功案例相关': 'categoryRelatedToSuccess',
+                    '心理情绪相关': 'categoryRelatedToPsychology',
+                  };
+                  
+                  // 获取翻译key，如果找不到则直接使用原值
+                  const categoryKey = categoryMap[blog.category] || blog.category;
+                  const displayCategory = t(categoryKey, { defaultValue: blog.category });
+                  
+                  return (
                   <div
                     key={blog.id}
                     className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
@@ -551,15 +619,17 @@ function AdminBlogsPage() {
                         {blog.cover_img_url ? (
                           <img src={blog.cover_img_url} alt="cover" className="w-12 h-12 object-cover rounded-full" />
                         ) : (
-                          <span className="text-sage-400 text-xl font-semibold">{blog.title?.[0]?.toUpperCase() || 'B'}</span>
+                          <span className="text-sage-400 text-xl font-semibold">{displayTitle?.[0]?.toUpperCase() || 'B'}</span>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-lg text-sage-800 truncate">{blog.title}</div>
-                        <div className="text-sage-500 text-sm truncate font-medium">{blog.category}</div>
+                        <div className="font-semibold text-lg text-sage-800 truncate" title={displayTitle}>{displayTitle}</div>
+                        <div className="text-sage-500 text-sm truncate font-medium">{displayCategory}</div>
                       </div>
                       <div className="flex flex-col gap-2 items-end">
-                        {/* <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full font-medium">{t('blog')}</span> */}
+                        {blog.en_title && blog.en_content && (
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 text-xs rounded-full font-medium">{t('bilingual', { defaultValue: '双语' })}</span>
+                        )}
                       </div>
                     </div>
                     <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
@@ -577,7 +647,7 @@ function AdminBlogsPage() {
                         <span className="font-mono text-xs text-sage-400 flex-shrink-0">{t('content')}：</span>
                         <div 
                           className="flex-1 font-medium line-clamp-2 overflow-hidden text-ellipsis"
-                          dangerouslySetInnerHTML={{ __html: blog.content || '' }}
+                          dangerouslySetInnerHTML={{ __html: displayContent || '' }}
                           style={{ 
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -593,12 +663,13 @@ function AdminBlogsPage() {
                         {t('createdAt')}<br />{blog.created_at ? new Date(blog.created_at).toLocaleString() : "-"}
                       </span>
                       <div className="flex gap-2">
-                        <CustomButton className="font-medium cursor-pointer px-3 py-1 text-sm" onClick={() => handleEdit(blog)}>{t('edit')}</CustomButton>
-                        <CustomButton className="font-medium cursor-pointer border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm" onClick={() => handleDelete(blog.id)}>{t('Delete')}</CustomButton>
+                        <CustomButton className="font-medium cursor-pointer px-3 py-1 text-sm" onClick={() => handleEdit(blog)}>{t('edit', { defaultValue: '编辑' })}</CustomButton>
+                        <CustomButton className="font-medium cursor-pointer border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm" onClick={() => handleDelete(blog.id)}>{t('delete', { defaultValue: '删除' })}</CustomButton>
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               {/* 分页控件 */}
               <div className="flex items-center justify-center gap-4 mt-8">

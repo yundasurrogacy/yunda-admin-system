@@ -1,5 +1,5 @@
 'use client'
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface RichTextEditorProps {
@@ -10,10 +10,15 @@ interface RichTextEditorProps {
   minHeight?: string;
 }
 
+const UPLOAD_API = '/api/upload/form';
+
 export function RichTextEditor({ value, onChange, placeholder, className, minHeight = '200px' }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation('common');
   const isUpdatingRef = useRef(false);
+  const [uploading, setUploading] = useState(false);
 
   // 初始化编辑器内容
   useEffect(() => {
@@ -52,58 +57,142 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
     { command: 'justifyLeft', icon: '⊏', title: t('richEditor.alignLeft', '左对齐') },
     { command: 'justifyCenter', icon: '⊐', title: t('richEditor.alignCenter', '居中') },
     { command: 'justifyRight', icon: '⊐', title: t('richEditor.alignRight', '右对齐') },
-    { type: 'separator' },
-    { command: 'removeFormat', icon: '✕', title: t('richEditor.clearFormat', '清除格式') },
   ];
 
-  // 插入链接
-  const handleInsertLink = useCallback(() => {
-    const url = prompt(t('richEditor.enterUrl', '请输入链接地址:'));
-    if (url) {
-      executeCommand('createLink', url);
+  // 插入图片
+  const handleInsertImage = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    if (!file.type.startsWith('image/')) {
+      alert(t('richEditor.invalidImageType', '请选择有效的图片文件'));
+      return;
     }
-  }, [executeCommand, t]);
 
-  // 改变字体大小
-  const handleFontSize = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    executeCommand('fontSize', e.target.value);
-  }, [executeCommand]);
+    // 验证文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert(t('richEditor.imageTooLarge', '图片大小不能超过5MB'));
+      return;
+    }
 
-  // 改变标题级别
-  const handleHeading = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    executeCommand('formatBlock', e.target.value);
-  }, [executeCommand]);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      const res = await fetch(UPLOAD_API, {
+        method: 'POST',
+        body: fd,
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        const imageUrl = data.data.url || data.data;
+        // 插入图片到编辑器
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.margin = '10px 0';
+        
+        if (editorRef.current) {
+          editorRef.current.focus();
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(img);
+            range.collapse(false);
+          } else {
+            editorRef.current.appendChild(img);
+          }
+          handleInput();
+        }
+      } else {
+        alert(t('richEditor.uploadFailed', '上传失败，请重试'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(t('richEditor.uploadError', '上传出错，请重试'));
+    } finally {
+      setUploading(false);
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+    }
+  }, [handleInput, t]);
+
+  // 插入视频
+  const handleInsertVideo = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 验证文件类型
+    if (!file.type.startsWith('video/')) {
+      alert(t('richEditor.invalidVideoType', '请选择有效的视频文件'));
+      return;
+    }
+
+    // 验证文件大小（50MB）
+    if (file.size > 50 * 1024 * 1024) {
+      alert(t('richEditor.videoTooLarge', '视频大小不能超过50MB'));
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      const res = await fetch(UPLOAD_API, {
+        method: 'POST',
+        body: fd,
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        const videoUrl = data.data.url || data.data;
+        // 插入视频到编辑器
+        const video = document.createElement('video');
+        video.src = videoUrl;
+        video.controls = true;
+        video.style.maxWidth = '100%';
+        video.style.margin = '10px 0';
+        
+        if (editorRef.current) {
+          editorRef.current.focus();
+          const selection = window.getSelection();
+          if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(video);
+            range.collapse(false);
+          } else {
+            editorRef.current.appendChild(video);
+          }
+          handleInput();
+        }
+      } else {
+        alert(t('richEditor.uploadFailed', '上传失败，请重试'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(t('richEditor.uploadError', '上传出错，请重试'));
+    } finally {
+      setUploading(false);
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
+    }
+  }, [handleInput, t]);
 
   return (
     <div className={`border border-gray-300 rounded-lg overflow-hidden bg-white ${className}`}>
       {/* 工具栏 */}
       <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-300 flex-wrap">
-        {/* 标题选择 */}
-        <select
-          onChange={handleHeading}
-          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-          defaultValue=""
-        >
-          <option value="">{t('richEditor.paragraph', '正文')}</option>
-          <option value="h1">{t('richEditor.heading1', '标题1')}</option>
-          <option value="h2">{t('richEditor.heading2', '标题2')}</option>
-          <option value="h3">{t('richEditor.heading3', '标题3')}</option>
-        </select>
-
-        {/* 字体大小 */}
-        <select
-          onChange={handleFontSize}
-          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-50 transition-colors"
-          defaultValue="3"
-        >
-          <option value="1">{t('richEditor.small', '小')}</option>
-          <option value="3">{t('richEditor.normal', '正常')}</option>
-          <option value="5">{t('richEditor.large', '大')}</option>
-          <option value="7">{t('richEditor.extraLarge', '特大')}</option>
-        </select>
-
-        <div className="w-px h-6 bg-gray-300 mx-1"></div>
-
         {/* 格式化按钮 */}
         {toolbarButtons.map((btn, idx) => 
           btn.type === 'separator' ? (
@@ -123,14 +212,52 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
         <div className="w-px h-6 bg-gray-300 mx-1"></div>
 
-        {/* 插入链接 */}
+        {/* 上传图片 */}
         <button
           type="button"
-          onClick={handleInsertLink}
-          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-100 transition-colors cursor-pointer"
-          title={t('richEditor.insertLink', '插入链接')}
+          onClick={() => imageInputRef.current?.click()}
+          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          title={t('richEditor.uploadImage', '上传图片')}
+          disabled={uploading}
         >
-          🔗
+          {uploading ? '⏳' : '🖼️'}
+        </button>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleInsertImage}
+          className="hidden"
+        />
+
+        {/* 上传视频 */}
+        <button
+          type="button"
+          onClick={() => videoInputRef.current?.click()}
+          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          title={t('richEditor.uploadVideo', '上传视频')}
+          disabled={uploading}
+        >
+          {uploading ? '⏳' : '🎬'}
+        </button>
+        <input
+          ref={videoInputRef}
+          type="file"
+          accept="video/*"
+          onChange={handleInsertVideo}
+          className="hidden"
+        />
+
+        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+
+        {/* 清除格式 */}
+        <button
+          type="button"
+          onClick={() => executeCommand('removeFormat')}
+          className="px-2 py-1 border border-gray-300 rounded text-sm bg-white hover:bg-gray-100 transition-colors cursor-pointer"
+          title={t('richEditor.clearFormat', '清除格式')}
+        >
+          ✕
         </button>
       </div>
 
@@ -180,6 +307,24 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         [contentEditable] a {
           color: #C2A87A;
           text-decoration: underline;
+        }
+        [contentEditable] img {
+          max-width: 100%;
+          height: auto;
+          margin: 10px 0;
+          border-radius: 8px;
+          display: block;
+          cursor: pointer;
+        }
+        [contentEditable] img:hover {
+          opacity: 0.9;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        [contentEditable] video {
+          max-width: 100%;
+          margin: 10px 0;
+          border-radius: 8px;
+          display: block;
         }
       `}</style>
     </div>

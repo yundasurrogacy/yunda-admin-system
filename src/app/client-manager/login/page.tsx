@@ -53,21 +53,17 @@ export default function ManagerLoginPage() {
   document.cookie = `userEmail_manager=${managerInfo.email}; path=/`;
   document.cookie = `userId_manager=${managerInfo.id}; path=/`;
 
-        toast({
-          title: t("loginSuccess", { defaultValue: "登录成功" }),
-          description: t("managerLoginSuccess", { defaultValue: "欢迎回来，客户经理！" }),
-          variant: "default",
-        });
-
-        // 直接使用硬编码路径进行重定向
-        const homePath = '/client-manager/dashboard';
-        // console.log(`[ManagerLogin] Redirecting to: ${homePath}`)
-
-        router.replace(homePath)
-        // 立即重定向
-        // setTimeout(() => {
-        //     router.replace(homePath)
-        // }, 300) // 减少延迟
+        // 立即跳转，提供更丝滑的用户体验
+        router.replace('/client-manager/dashboard')
+        
+        // 显示成功提示（异步，不阻塞跳转）
+        setTimeout(() => {
+          toast({
+            title: t("loginSuccess", { defaultValue: "登录成功" }),
+            description: t("managerLoginSuccess", { defaultValue: "欢迎回来，客户经理！" }),
+            variant: "default",
+          });
+        }, 100)
 
         return;
       }

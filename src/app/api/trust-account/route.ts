@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
         change_type
         balance_before
         balance_after
-        Visibility
+        visibility
+        receiver
         remark
         created_at
       }

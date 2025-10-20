@@ -55,6 +55,7 @@ export default function AllCasesPage() {
   const [selectedParentId, setSelectedParentId] = useState<number | null>(null)
   const [selectedManagerId, setSelectedManagerId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(true)
   // 分页相关
   const [allCases, setAllCases] = useState<any[]>([])
   const [cases, setCases] = useState<any[]>([])
@@ -103,18 +104,29 @@ export default function AllCasesPage() {
 
   // 刷新全部数据
   const fetchAllData = async () => {
-    const [casesRes, surrogatesRes, clientsRes, managersRes] = await Promise.all([
-      fetch("/api/cases-list").then(r => r.json()),
-      fetch("/api/surrogates-list").then(r => r.json()),
-      fetch("/api/clients-list").then(r => r.json()),
-      fetch("/api/client-managers").then(r => r.json()),
-    ]);
-    // 兼容直接数组或 { data: [...] } 两种格式
-    const allCasesData = Array.isArray(casesRes) ? casesRes : casesRes.data || [];
-    setAllCases(allCasesData);
-    setSurrogates(Array.isArray(surrogatesRes) ? surrogatesRes : surrogatesRes.data || []);
-    setClients(Array.isArray(clientsRes) ? clientsRes : clientsRes.data || []);
-    setManagers(Array.isArray(managersRes) ? managersRes : managersRes.data || []);
+    try {
+      setIsLoadingData(true);
+      const [casesRes, surrogatesRes, clientsRes, managersRes] = await Promise.all([
+        fetch("/api/cases-list").then(r => r.json()),
+        fetch("/api/surrogates-list").then(r => r.json()),
+        fetch("/api/clients-list").then(r => r.json()),
+        fetch("/api/client-managers").then(r => r.json()),
+      ]);
+      // 兼容直接数组或 { data: [...] } 两种格式
+      const allCasesData = Array.isArray(casesRes) ? casesRes : casesRes.data || [];
+      setAllCases(allCasesData);
+      setSurrogates(Array.isArray(surrogatesRes) ? surrogatesRes : surrogatesRes.data || []);
+      setClients(Array.isArray(clientsRes) ? clientsRes : clientsRes.data || []);
+      setManagers(Array.isArray(managersRes) ? managersRes : managersRes.data || []);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      setAllCases([]);
+      setSurrogates([]);
+      setClients([]);
+      setManagers([]);
+    } finally {
+      setIsLoadingData(false);
+    }
   };
   
   // 只在认证后才加载数据
@@ -330,9 +342,10 @@ export default function AllCasesPage() {
   // 认证检查 loading
   if (isAuthenticated === null) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-sage-700">{t('loading')}</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+          <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
         </div>
       </div>
     )
@@ -341,6 +354,18 @@ export default function AllCasesPage() {
   // 未认证，等待重定向
   if (!isAuthenticated) {
     return null
+  }
+
+  // 数据加载中 - 只在首次加载时显示全屏加载
+  if (isLoadingData && allCases.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+          <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -362,60 +387,79 @@ export default function AllCasesPage() {
           <select
             value={selectedParent}
             onChange={handleParentFilterChange}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
+            className="border border-sage-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer hover:border-sage-400 transition-colors duration-200"
           >
             <option value="">{t('allIntendedParents', '全部准父母')}</option>
             {uniqueParents.map(p => (
-              <option key={p.id} value={String(p.id)}>{getFirstName(p.basic_information) || p.basic_information || p.email}</option>
+              <option key={p.id} value={String(p.id)} className="cursor-pointer">{getFirstName(p.basic_information) || p.basic_information || p.email}</option>
             ))}
           </select>
           {/* 只展示当前案例实际出现过的代孕母 */}
           <select
             value={selectedSurrogate}
             onChange={handleSurrogateFilterChange}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
+            className="border border-sage-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer hover:border-sage-400 transition-colors duration-200"
           >
             <option value="">{t('allSurrogateMothers', '全部代孕母')}</option>
             {uniqueSurrogates.map(s => (
-              <option key={s.id} value={String(s.id)}>{getFirstName(s.contact_information) || s.contact_informationname || s.email}</option>
+              <option key={s.id} value={String(s.id)} className="cursor-pointer">{getFirstName(s.contact_information) || s.contact_informationname || s.email}</option>
             ))}
           </select>
           {/* 只展示当前案例实际出现过的客户经理 */}
           <select
             value={selectedManager}
             onChange={handleManagerFilterChange}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
+            className="border border-sage-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer hover:border-sage-400 transition-colors duration-200"
           >
             <option value="">{t('allClientManagers', '全部客户经理')}</option>
             {uniqueManagers.map(m => (
-              <option key={m.id} value={String(m.id)}>{m.name || m.email}</option>
+              <option key={m.id} value={String(m.id)} className="cursor-pointer">{m.name || m.email}</option>
             ))}
           </select>
           {/* 只展示当前案例实际出现过的状态 */}
           <select
             value={selectedStatus}
             onChange={handleStatusFilterChange}
-            className="border border-gray-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer"
+            className="border border-sage-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer hover:border-sage-400 transition-colors duration-200"
           >
             <option value="">{t('allStatuses', '全部状态')}</option>
             {uniqueStatuses.map(status => (
-              <option key={status} value={status}>{stageMap[status] || status}</option>
+              <option key={status} value={status} className="cursor-pointer">{stageMap[status] || status}</option>
             ))}
           </select>
         </div>
         {/* Cases Card Grid，始终有最小高度，无数据时显示占位 */}
-        <div
-          className="w-full"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: '32px',
-            alignItems: 'stretch',
-            minHeight: '400px', // 可根据实际页面调整
-          }}
-        >
-          {pagedCases.length > 0 ? (
-            pagedCases.map((c: any) => {
+        {isLoadingData && allCases.length > 0 ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+              <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+            </div>
+          </div>
+        ) : pagedCases.length === 0 && !isLoadingData ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-sage-400 mb-4">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <p className="text-xl text-sage-600 font-medium mb-2">{t('noCases', { defaultValue: '暂无案例' })}</p>
+              <p className="text-sm text-sage-400 mb-6">{t('noCasesDesc', { defaultValue: '当前筛选条件下没有找到案例' })}</p>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="w-full"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+              gap: '32px',
+              alignItems: 'stretch',
+              minHeight: '400px',
+            }}
+          >
+            {pagedCases.map((c: any) => {
               const parentName = c.intended_parent?.basic_information ?? c.intended_parent?.contact_information ?? c.intended_parent?.email ?? "-";
               const surrogateName = c.surrogate_mother?.contact_information ?? c.surrogate_mother?.basic_information ?? c.surrogate_mother?.email ?? "-";
               const managerName = c.client_manager?.name ?? c.client_manager?.email ?? "-";
@@ -439,31 +483,32 @@ export default function AllCasesPage() {
                       <div className="text-sage-500 text-sm truncate font-medium">
                         {t('status')}
                         <span
-                          className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100"
+                          className="inline-block cursor-pointer px-2 py-1 rounded hover:bg-sage-100 transition-all duration-200 hover:shadow-sm"
                           onClick={() => handleStatusDropdownToggle(c.id)}
                           style={{ minWidth: 80 }}
                         >
-                          {statusText}
-                          <span className="ml-1 text-xs text-sage-400">▼</span>
+                          <span className={statusUpdating ? 'opacity-50' : ''}>{statusText}</span>
+                          <span className={`ml-1 text-xs text-sage-400 transition-transform duration-200 inline-block ${statusDropdownCaseId === c.id ? 'rotate-180' : ''}`}>▼</span>
                         </span>
                       </div>
                       <div style={{ position: 'relative', display: 'inline-block' }}>
                         {statusDropdownCaseId === c.id && (
                           <div
-                            className="z-50 mt-2 bg-white border border-sage-200 rounded shadow-lg"
+                            className="z-50 mt-2 bg-white border border-sage-200 rounded shadow-lg animate-in fade-in slide-in-from-top-2 duration-200"
                             style={{ minWidth: 160, position: 'absolute', left: 0, top: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}
                           >
                             {STATUS_ENUM.map((opt) => (
                               <div
                                 key={opt.value}
-                                className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 ${c.process_status === opt.value ? 'font-bold bg-sage-50' : ''}`}
-                                onClick={() => handleStatusUpdate(c.id, opt.value)}
+                                className={`px-4 py-2 cursor-pointer hover:bg-sage-100 text-sage-700 transition-colors duration-150 ${c.process_status === opt.value ? 'font-bold bg-sage-50' : ''} ${statusUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => !statusUpdating && handleStatusUpdate(c.id, opt.value)}
                               >
                                 {opt.label}
+                                {c.process_status === opt.value && <span className="ml-2 text-sage-500">✓</span>}
                               </div>
                             ))}
                             <div
-                              className="px-4 py-2 cursor-pointer text-sage-400 hover:bg-sage-100"
+                              className="px-4 py-2 cursor-pointer text-sage-400 hover:bg-sage-100 border-t border-sage-100 transition-colors duration-150"
                               onClick={() => setStatusDropdownCaseId(null)}
                             >{t('cancel')}</div>
                           </div>
@@ -513,13 +558,9 @@ export default function AllCasesPage() {
                   </div>
                 </div>
               );
-            })
-          ) : (
-            <div className="col-span-full flex items-center justify-center w-full h-full text-sage-500">
-              {t('noApplications', { defaultValue: 'Loading...' })}
-            </div>
-          )}
-        </div>
+            })}
+          </div>
+        )}
 
         {/* 分页控件 */}
         <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
@@ -554,11 +595,6 @@ export default function AllCasesPage() {
           </CustomButton>
         </div>
 
-        {pagedCases.length === 0 && !loading && total > 0 && (
-          <div className="text-center py-8 text-sage-500">
-            {t('noApplications', { defaultValue: 'Loading...' })}
-          </div>
-        )}
         {/* 新增案子弹窗（无遮罩，仅内容） */}
         {showCreateDialog && (
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto">

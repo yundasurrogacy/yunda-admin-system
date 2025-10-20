@@ -58,19 +58,17 @@ export default function AdminLoginPage() {
         document.cookie = `userEmail_admin=${userData.email}; path=/`;
         document.cookie = `userId_admin=${userData.id}; path=/`;
 
-        toast({
-          title: t("loginSuccess", { defaultValue: "登录成功" }),
-          description: t("adminLoginSuccess", { defaultValue: "欢迎回来，管理员！" }),
-          variant: "default",
-        });
-
-        // 直接跳转到管理员dashboard，不依赖认证状态
-        // console.log(`[AdminLogin] Redirecting to: /admin/dashboard`)
+        // 立即跳转，提供更丝滑的用户体验
         router.replace('/admin/dashboard')
-        // 立即重定向
-        // setTimeout(() => {
-        //   router.replace('/admin/dashboard')
-        // }, 300) // 减少延迟
+        
+        // 显示成功提示（异步，不阻塞跳转）
+        setTimeout(() => {
+          toast({
+            title: t("loginSuccess", { defaultValue: "登录成功" }),
+            description: t("adminLoginSuccess", { defaultValue: "欢迎回来，管理员！" }),
+            variant: "default",
+          });
+        }, 100)
 
         return;
       }

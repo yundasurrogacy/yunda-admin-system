@@ -13,7 +13,9 @@ interface BalanceChange {
   balance_before: number | null;
   balance_after: number | null;
   remark: string | null;
+  receiver: string | null;
   created_at: string;
+  visibility?: string;
 }
 
 function TrustAccountPageInner() {
@@ -59,7 +61,9 @@ function TrustAccountPageInner() {
 
     // 必须在 useState(changes) 之后声明分页相关变量
     const displayedChanges: BalanceChange[] = React.useMemo(() => {
-      let arr: BalanceChange[] = changes;
+      // Surrogacy 只能看到 visibility 为 'all' 的记录
+      // 兼容旧数据：'true' 对应 'all'
+      let arr: BalanceChange[] = changes.filter(c => c.visibility === 'all' || c.visibility === 'true');
       if (filterType) {
         arr = arr.filter((c: BalanceChange) => c.change_type === filterType);
       }
@@ -188,12 +192,13 @@ function TrustAccountPageInner() {
                         </div>
                       </th>
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.amount', 'Amount')}</th>
+                      <th className="py-2 px-4 font-semibold">{t('trustAccount.receiver', 'Receiver')}</th>
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.remark', 'Remark')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pagedChanges.length === 0 ? (
-                      <tr><td colSpan={4} className="py-4 text-center text-gray-400">{t('trustAccount.noRecords', 'No records')}</td></tr>
+                      <tr><td colSpan={5} className="py-4 text-center text-gray-400">{t('trustAccount.noRecords', 'No records')}</td></tr>
                     ) : pagedChanges.map((change: BalanceChange) => (
                       <tr key={change.id}>
                         <td className="py-2 px-4 whitespace-nowrap">{change.created_at.slice(0, 19).replace('T', ' ')}</td>
@@ -204,7 +209,12 @@ function TrustAccountPageInner() {
                           {!['RECHARGE','CONSUMPTION','OTHER'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
                         </td>
                         <td className="py-2 px-4 whitespace-nowrap">{change.change_amount > 0 ? '+' : ''}{change.change_amount}</td>
-                        <td className="py-2 px-4 whitespace-nowrap">{change.remark ?? '-'}</td>
+                        <td className="py-2 px-4 whitespace-nowrap">{change.receiver ?? '-'}</td>
+                        <td className="py-2 px-4 whitespace-nowrap">
+                          {change.remark === '余额调整' || change.remark === 'Balance Adjustment' 
+                            ? t('trustAccount.balanceAdjustment', 'Balance Adjustment')
+                            : (change.remark ?? '-')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

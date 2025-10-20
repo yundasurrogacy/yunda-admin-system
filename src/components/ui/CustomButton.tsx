@@ -8,7 +8,7 @@ interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
 export const CustomButton: React.FC<CustomButtonProps> = ({ children, className = "", ...props }) => {
   return (
     <button
-      className={`custom-btn font-serif px-4 py-2 rounded transition-all duration-200 text-white font-semibold ${className}`}
+      className={`custom-btn font-serif px-4 py-2 rounded transition-all duration-200 text-white font-semibold focus:outline-none focus:ring-0 ${className}`}
       {...props}
     >
       {children}

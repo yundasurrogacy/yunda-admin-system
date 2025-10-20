@@ -164,11 +164,12 @@ export default function SurrogateApplicationDetailPage() {
   // 认证检查 loading
   if (isAuthenticated === null) {
     return (
-      <PageContent>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-sage-700">{t('loading')}</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+          <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
         </div>
-      </PageContent>
+      </div>
     )
   }
 
@@ -180,21 +181,34 @@ export default function SurrogateApplicationDetailPage() {
   // 数据加载中
   if (loading) {
     return (
-        <PageContent>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg">{t('loading')}</div>
-          </div>
-        </PageContent>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
+          <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+        </div>
+      </div>
     )
   }
 
   if (!application || !parsedData) {
     return (
-        <PageContent>
-          <div className="text-center py-8 text-sage-500">
-            {t('applicationNotFound')}
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-sage-400 mb-4">
+            <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
           </div>
-        </PageContent>
+          <p className="text-xl text-sage-600 font-medium mb-2">{t('applicationNotFound', { defaultValue: '未找到申请' })}</p>
+          <p className="text-sm text-sage-400 mb-6">{t('applicationNotFoundDesc', { defaultValue: '该申请可能已被删除或不存在' })}</p>
+          <CustomButton
+            onClick={() => router.push('/admin/surrogates-applications')}
+            className="bg-sage-200 text-sage-800 hover:bg-sage-300 cursor-pointer"
+          >
+            {t('backToApplications', { defaultValue: '返回申请列表' })}
+          </CustomButton>
+        </div>
+      </div>
     )
   }
 
@@ -204,7 +218,7 @@ export default function SurrogateApplicationDetailPage() {
   return (
       <PageContent>
         <PageHeader
-          title={t('surrogateApplicationDetails')}
+          title={t('SurrogateApplicationDetails')}
           rightContent={
             <div className="flex items-center gap-4">
               <CustomButton

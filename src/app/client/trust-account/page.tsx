@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSidebar } from '@/context/sidebar-context';
 // 不再使用全屏 Modal，直接在页面内渲染表单卡片
 // import ManagerLayout from '@/components/manager-layout';
 // import { AdminLayout } from '../../../components/admin-layout'
@@ -25,8 +24,9 @@ interface BalanceChange {
   balance_before: number | null;
   balance_after: number | null;
   remark: string | null;
+  receiver: string | null;
   created_at: string;
-    Visibility?: string;
+  visibility?: string;
 }
 
 function TrustAccountPageInner() {
@@ -35,19 +35,8 @@ function TrustAccountPageInner() {
   const searchParams = useSearchParams();
   const caseId = searchParams.get('caseId');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [balance, setBalance] = useState<number | null>(null);
   const [changes, setChanges] = useState<BalanceChange[]>([]);
   const [loading, setLoading] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  // 菜单栏宽度和展开状态（推荐用 context 获取）
-  const sidebarWidth = '16rem'; // 可根据实际侧边栏宽度调整
-  const { sidebarOpen } = useSidebar();
-  // change_amount 用字符串保存，保证输入负号时受控
-  // change_amount 用字符串保存，彻底消除类型警告
-  type FormDataType = Omit<Partial<BalanceChange>, 'change_amount'> & { change_amount?: string };
-  const [formData, setFormData] = useState<FormDataType>({ Visibility: 'true' });
-  const [formSubmitting, setFormSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
   const pageSize = 10; // 每页显示10条
@@ -95,7 +84,6 @@ function TrustAccountPageInner() {
     fetch(`/api/trust-account?caseId=${caseId}`)
       .then(res => res.json())
       .then(data => {
-        setBalance(data.balance ?? null);
         const sorted = (data.changes ?? []).slice().sort((a: BalanceChange, b: BalanceChange) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         setChanges(sorted);
       })
@@ -108,7 +96,22 @@ function TrustAccountPageInner() {
 
   // 使用 useMemo 缓存显示的变更记录和分页数据
   const displayedChanges = useMemo(() => {
-    let arr: BalanceChange[] = changes.filter(c => c.Visibility === 'true');
+    // 调试：打印原始数据
+    console.log('🔍 Client - Raw changes data:', changes);
+    console.log('🔍 Client - Visibility values:', changes.map(c => ({ id: c.id, visibility: c.visibility })));
+    
+    // Client 只能看到 visibility 为 'all' 或 'intended_parents' 的记录
+    // 兼容旧数据：'true' 对应 'all'，'false' 对应 'intended_parents'
+    let arr: BalanceChange[] = changes.filter(c => {
+      const vis = c.visibility;
+      // 新格式：'all' 或 'intended_parents'
+      // 旧格式：'true' 对应 'all'，'false' 对应 'intended_parents'
+      return vis === 'all' || vis === 'intended_parents' || vis === 'true';
+    });
+    
+    console.log('🔍 Client - Filtered changes:', arr);
+    console.log('🔍 Client - Filtered visibility values:', arr.map(c => ({ id: c.id, visibility: c.visibility })));
+    
     if (filterType) {
       arr = arr.filter((c: BalanceChange) => c.change_type === filterType);
     }
@@ -146,116 +149,14 @@ function TrustAccountPageInner() {
     return true;
   }, [totalPages]);
 
-  // 使用 useCallback 缓存事件处理函数
-  const handleAdd = useCallback(() => {
-    if (showForm) return; // 防止重复点击
-    setEditId(null);
-    setFormData({
-      change_type: '',
-      change_amount: '',
-      remark: '',
-      Visibility: 'true',
-    });
-    setShowForm(true);
-  }, [showForm]);
-
-  const handleEdit = useCallback((item: BalanceChange) => {
-    setEditId(item.id);
-    setFormData({
-      change_type: item.change_type,
-      change_amount: String(item.change_amount ?? ''),
-      remark: item.remark,
-      Visibility: item.Visibility ?? 'true',
-    });
-    setShowForm(true);
-  }, []);
-
-  const handleDelete = useCallback(async (id: number) => {
-    if (window.confirm('确定要删除该记录吗？')) {
-      try {
-        const res = await fetch(`/api/trust-account/change?id=${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('删除失败');
-        setShowForm(false);
-        fetchChanges(); // 删除后刷新数据
-      } catch (e) {
-        alert('删除失败');
-      }
-    }
-  }, [fetchChanges]);
-
-  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (name === 'change_amount') {
-      // 允许输入负号和小数
-      if (/^-?\d*(\.\d*)?$/.test(value) || value === '' || value === '-') {
-        setFormData(prev => ({
-          ...prev,
-          change_amount: value as string
-        }));
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  }, []);
-
-  // 表单提交
-  const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formSubmitting) return;
-    setFormSubmitting(true);
-    if (!caseId) {
-      setFormSubmitting(false);
-      return;
-    }
-    try {
-      // 自动计算变动前/后余额
-      let balance_before = null;
-      let balance_after = null;
-      // change_amount 字符串转 number，支持负号和小数
-      const changeAmountNum = formData.change_amount && formData.change_amount !== '-' ? Number(formData.change_amount) : 0;
-      if (!editId) {
-        // 新增时取最新一条的 balance_after 作为 balance_before
-        let latest = changes.length > 0 ? changes[changes.length - 1] : null;
-        balance_before = latest && latest.balance_after !== null && latest.balance_after !== undefined
-          ? Number(latest.balance_after)
-          : 0;
-        balance_after = balance_before + changeAmountNum;
-      } else {
-        // 编辑时用原始变动前余额
-        const editing = changes.find(c => c.id === editId);
-        balance_before = editing?.balance_before ?? 0;
-        balance_after = balance_before + changeAmountNum;
-      }
-      const method = editId ? 'PUT' : 'POST';
-      const payload = editId
-        ? { ...formData, id: editId, balance_before, balance_after }
-        : { ...formData, caseId, balance_before, balance_after };
-      const res = await fetch('/api/trust-account/change', {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('保存失败');
-      setShowForm(false);
-      fetchChanges(); // 新增/编辑后刷新数据
-    } catch (e) {
-      alert('保存失败');
-    } finally {
-      setFormSubmitting(false);
-    }
-  }, [formSubmitting, caseId, formData, editId, changes, fetchChanges]);
+  // 使用 useCallback 缓存事件处理函数（read-only: no add/edit/delete）
 
   // 使用 useCallback 缓存其他事件处理函数
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
 
-  const handleCloseForm = useCallback(() => {
-    setShowForm(false);
-  }, []);
+  // read-only: no modal to close
 
   const handleSortToggle = useCallback(() => {
     setSortDateDesc(v => !v);
@@ -366,116 +267,11 @@ function TrustAccountPageInner() {
               background: 'rgba(0,0,0,0.08)',
             }}
           > */}
-        {showForm && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              zIndex: 1000,
-              display: 'flex',
-              pointerEvents: 'none',
-              background: 'rgba(0,0,0,0.08)',
-              transition: 'left 0.3s,width 0.3s',
-            }}
-          >
-            <Card
-              className="p-6 bg-white border border-sage-200 shadow-2xl max-w-xl w-full relative text-sage-800"
-              style={{
-                pointerEvents: 'auto',
-                position: 'absolute',
-                left:
-                  typeof window !== 'undefined' && window.innerWidth >= 768 && sidebarOpen
-                    ? `calc(50% + ${parseInt(sidebarWidth) / 2}rem)`
-                    : '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-              }}
-            >
-              {/* <button type="button" aria-label="关闭" className="absolute top-2 right-2 text-xl text-gray-400 hover:text-gray-600 cursor-pointer" onClick={() => setShowForm(false)} style={{lineHeight:1}}>
-                ×
-              </button> */}
-              <form onSubmit={handleFormSubmit} className="space-y-4">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-lg font-bold text-sage-800">{editId ? t('trustAccount.editRecord', 'Edit Record') : t('trustAccount.addRecord', 'Add Record')}</div>
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-sage-800">{t('trustAccount.type', 'Type')}</label>
-                  <select
-                    name="change_type"
-                    value={formData.change_type || ''}
-                    onChange={handleFormChange}
-                    className="border rounded px-2 py-1 w-full text-sage-800"
-                    required
-                  >
-                    <option value="">{t('pleaseSelect', 'Please select')}</option>
-                    <option value="RECHARGE">{t('trustAccount.typeRecharge', 'Recharge')}</option>
-                    <option value="CONSUMPTION">{t('trustAccount.typeConsumption', 'Consumption')}</option>
-                    <option value="OTHER">{t('trustAccount.typeOther', 'Other')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-sage-800">{t('trustAccount.visibility', 'Visibility')}</label>
-                  <select
-                    name="Visibility"
-                    value={formData.Visibility || 'true'}
-                    onChange={handleFormChange}
-                    className="border rounded px-2 py-1 w-full text-sage-800"
-                  >
-                    <option value="true">{t('trustAccount.visibilityTrue', 'True')}</option>
-                    <option value="false">{t('trustAccount.visibilityFalse', 'False')}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-sage-800">{t('trustAccount.amount', 'Amount')}</label>
-                  <input
-                    type="text"
-                    name="change_amount"
-                    value={formData.change_amount ?? ''}
-                    onChange={handleFormChange}
-                    className="border rounded px-2 py-1 w-full text-sage-800 text-left"
-                    required
-                    inputMode="decimal"
-                    readOnly={!!editId}
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-sage-800">{t('trustAccount.remark', 'Remark')}</label>
-                  <textarea
-                    name="remark"
-                    value={formData.remark ?? ''}
-                    onChange={handleFormChange}
-                    className="border rounded px-2 py-1 w-full text-sage-800"
-                    rows={2}
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <CustomButton type="button" className="px-3 py-1 rounded bg-gray-200 text-sage-800 cursor-pointer" onClick={handleCloseForm}>{t('cancel', 'Cancel')}</CustomButton>
-                  <CustomButton
-                    type="submit"
-                    className="px-3 py-1 rounded bg-sage-600 text-white cursor-pointer"
-                    style={{ opacity: formSubmitting ? 0.5 : 1 }}
-                    disabled={formSubmitting}
-                  >
-                    {formSubmitting ? t('saving', '保存中...') : t('save', '保存')}
-                  </CustomButton>
-                </div>
-              </form>
-            </Card>
-          </div>
-        )}
+        {/* read-only: no modal form for client */}
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.history', 'Transaction History')}</h2>
-            <CustomButton
-              className="bg-sage-600 text-white px-3 py-1 rounded hover:bg-sage-700 cursor-pointer"
-              onClick={handleAdd}
-              disabled={showForm}
-            >
-              {t('add', 'Add')}
-            </CustomButton>
+            {/* read-only: remove add button */}
           </div>
           {loading ? (
             <div className="flex items-center justify-center py-12 text-lg text-sage-500 animate-pulse">
@@ -516,6 +312,7 @@ function TrustAccountPageInner() {
                       </th>
                       {/* <th className="py-2 px-4 font-semibold">{t('trustAccount.visibility', 'Visibility')}</th> */}
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.amount', 'Amount')}</th>
+                      <th className="py-2 px-4 font-semibold">{t('trustAccount.receiver', 'Receiver')}</th>
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.remark', 'Remark')}</th>
                     </tr>
                   </thead>
@@ -525,15 +322,12 @@ function TrustAccountPageInner() {
                     ) : pagedChanges.map((change: BalanceChange, idx) => (
                       <tr
                         key={change.id}
-                        style={{ cursor: 'pointer', background: idx % 2 === 0 ? '#FAFAF9' : '#fff', transition: 'background 0.2s' }}
-                        onClick={() => handleEdit(change)}
+                        style={{ background: idx % 2 === 0 ? '#FAFAF9' : '#fff', transition: 'background 0.2s' }}
                         onMouseEnter={e => {
                           e.currentTarget.style.background = '#F5F7F6';
-                          e.currentTarget.style.cursor = 'pointer';
                         }}
                         onMouseLeave={e => {
                           e.currentTarget.style.background = idx % 2 === 0 ? '#FAFAF9' : '#fff';
-                          e.currentTarget.style.cursor = '';
                         }}
                       >
                         <td className="py-2 px-4 whitespace-nowrap">{change.created_at.slice(0, 19).replace('T', ' ')}</td>
@@ -552,7 +346,12 @@ function TrustAccountPageInner() {
                         <td className="py-2 px-4 whitespace-nowrap text-left font-mono" style={{color: change.change_amount > 0 ? '#22c55e' : change.change_amount < 0 ? '#ef4444' : '#222'}}>
                           {change.change_amount > 0 ? '+' : ''}{change.change_amount}
                         </td>
-                        <td className="py-2 px-4 whitespace-nowrap">{change.remark ?? '-'}</td>
+                        <td className="py-2 px-4 whitespace-nowrap">{change.receiver ?? '-'}</td>
+                        <td className="py-2 px-4 whitespace-nowrap">
+                          {change.remark === '余额调整' || change.remark === 'Balance Adjustment' 
+                            ? t('trustAccount.balanceAdjustment', 'Balance Adjustment')
+                            : (change.remark ?? '-')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -387,17 +387,21 @@ export type Blogs = {
   __typename?: 'blogs';
   /** 分类名称 */
   category?: Maybe<Scalars['String']['output']>;
-  /** 内容 */
+  /** 中文_内容 */
   content?: Maybe<Scalars['String']['output']>;
   /** 封面图 */
   cover_img_url?: Maybe<Scalars['String']['output']>;
   created_at: Scalars['timestamptz']['output'];
+  /** 多语言_英文内容 */
+  en_content?: Maybe<Scalars['String']['output']>;
+  /** 多语言_英文标题 */
+  en_title?: Maybe<Scalars['String']['output']>;
   id: Scalars['bigint']['output'];
   /** 作者来源 */
   reference_author?: Maybe<Scalars['String']['output']>;
   /** 标签，多个用｜分割，如：准父母｜心里准备 */
   tags?: Maybe<Scalars['String']['output']>;
-  /** 标题 */
+  /** 中文_标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at: Scalars['timestamptz']['output'];
 };
@@ -447,6 +451,8 @@ export type Blogs_Bool_Exp = {
   content?: InputMaybe<String_Comparison_Exp>;
   cover_img_url?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  en_content?: InputMaybe<String_Comparison_Exp>;
+  en_title?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Bigint_Comparison_Exp>;
   reference_author?: InputMaybe<String_Comparison_Exp>;
   tags?: InputMaybe<String_Comparison_Exp>;
@@ -469,17 +475,21 @@ export type Blogs_Inc_Input = {
 export type Blogs_Insert_Input = {
   /** 分类名称 */
   category?: InputMaybe<Scalars['String']['input']>;
-  /** 内容 */
+  /** 中文_内容 */
   content?: InputMaybe<Scalars['String']['input']>;
   /** 封面图 */
   cover_img_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 多语言_英文内容 */
+  en_content?: InputMaybe<Scalars['String']['input']>;
+  /** 多语言_英文标题 */
+  en_title?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 作者来源 */
   reference_author?: InputMaybe<Scalars['String']['input']>;
   /** 标签，多个用｜分割，如：准父母｜心里准备 */
   tags?: InputMaybe<Scalars['String']['input']>;
-  /** 标题 */
+  /** 中文_标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
@@ -489,17 +499,21 @@ export type Blogs_Max_Fields = {
   __typename?: 'blogs_max_fields';
   /** 分类名称 */
   category?: Maybe<Scalars['String']['output']>;
-  /** 内容 */
+  /** 中文_内容 */
   content?: Maybe<Scalars['String']['output']>;
   /** 封面图 */
   cover_img_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 多语言_英文内容 */
+  en_content?: Maybe<Scalars['String']['output']>;
+  /** 多语言_英文标题 */
+  en_title?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
   /** 作者来源 */
   reference_author?: Maybe<Scalars['String']['output']>;
   /** 标签，多个用｜分割，如：准父母｜心里准备 */
   tags?: Maybe<Scalars['String']['output']>;
-  /** 标题 */
+  /** 中文_标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
 };
@@ -509,17 +523,21 @@ export type Blogs_Min_Fields = {
   __typename?: 'blogs_min_fields';
   /** 分类名称 */
   category?: Maybe<Scalars['String']['output']>;
-  /** 内容 */
+  /** 中文_内容 */
   content?: Maybe<Scalars['String']['output']>;
   /** 封面图 */
   cover_img_url?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 多语言_英文内容 */
+  en_content?: Maybe<Scalars['String']['output']>;
+  /** 多语言_英文标题 */
+  en_title?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
   /** 作者来源 */
   reference_author?: Maybe<Scalars['String']['output']>;
   /** 标签，多个用｜分割，如：准父母｜心里准备 */
   tags?: Maybe<Scalars['String']['output']>;
-  /** 标题 */
+  /** 中文_标题 */
   title?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
 };
@@ -546,6 +564,8 @@ export type Blogs_Order_By = {
   content?: InputMaybe<Order_By>;
   cover_img_url?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
+  en_content?: InputMaybe<Order_By>;
+  en_title?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   reference_author?: InputMaybe<Order_By>;
   tags?: InputMaybe<Order_By>;
@@ -569,6 +589,10 @@ export enum Blogs_Select_Column {
   /** column name */
   CreatedAt = 'created_at',
   /** column name */
+  EnContent = 'en_content',
+  /** column name */
+  EnTitle = 'en_title',
+  /** column name */
   Id = 'id',
   /** column name */
   ReferenceAuthor = 'reference_author',
@@ -584,17 +608,21 @@ export enum Blogs_Select_Column {
 export type Blogs_Set_Input = {
   /** 分类名称 */
   category?: InputMaybe<Scalars['String']['input']>;
-  /** 内容 */
+  /** 中文_内容 */
   content?: InputMaybe<Scalars['String']['input']>;
   /** 封面图 */
   cover_img_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 多语言_英文内容 */
+  en_content?: InputMaybe<Scalars['String']['input']>;
+  /** 多语言_英文标题 */
+  en_title?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 作者来源 */
   reference_author?: InputMaybe<Scalars['String']['input']>;
   /** 标签，多个用｜分割，如：准父母｜心里准备 */
   tags?: InputMaybe<Scalars['String']['input']>;
-  /** 标题 */
+  /** 中文_标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
@@ -629,17 +657,21 @@ export type Blogs_Stream_Cursor_Input = {
 export type Blogs_Stream_Cursor_Value_Input = {
   /** 分类名称 */
   category?: InputMaybe<Scalars['String']['input']>;
-  /** 内容 */
+  /** 中文_内容 */
   content?: InputMaybe<Scalars['String']['input']>;
   /** 封面图 */
   cover_img_url?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 多语言_英文内容 */
+  en_content?: InputMaybe<Scalars['String']['input']>;
+  /** 多语言_英文标题 */
+  en_title?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   /** 作者来源 */
   reference_author?: InputMaybe<Scalars['String']['input']>;
   /** 标签，多个用｜分割，如：准父母｜心里准备 */
   tags?: InputMaybe<Scalars['String']['input']>;
-  /** 标题 */
+  /** 中文_标题 */
   title?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
 };
@@ -660,6 +692,10 @@ export enum Blogs_Update_Column {
   CoverImgUrl = 'cover_img_url',
   /** column name */
   CreatedAt = 'created_at',
+  /** column name */
+  EnContent = 'en_content',
+  /** column name */
+  EnTitle = 'en_title',
   /** column name */
   Id = 'id',
   /** column name */
@@ -714,7 +750,7 @@ export type Cases = {
   id: Scalars['bigint']['output'];
   /** An object relationship */
   intended_parent?: Maybe<Intended_Parents>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
   /** An array relationship */
   ivf_clinics: Array<Ivf_Clinics>;
@@ -732,7 +768,7 @@ export type Cases = {
   process_status?: Maybe<Scalars['String']['output']>;
   /** An object relationship */
   surrogate_mother?: Maybe<Surrogate_Mothers>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['bigint']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance: Scalars['numeric']['output'];
@@ -912,9 +948,9 @@ export type Cases_Avg_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -925,9 +961,9 @@ export type Cases_Avg_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -963,10 +999,12 @@ export type Cases_Bool_Exp = {
 
 /** unique or primary key constraints on table "cases" */
 export enum Cases_Constraint {
+  /** unique or primary key constraint on columns "intended_parent_intended_parents" */
+  CasesIntendedParentIntendedParentsKey = 'cases_intended_parent_intended_parents_key',
   /** unique or primary key constraint on columns "id" */
   CasesPkey = 'cases_pkey',
-  /** unique or primary key constraint on columns "intended_parent_intended_parents", "surrogate_mother_surrogate_mothers" */
-  CasesSurrogateMotherSurrogateMothersIntendedParentIntend = 'cases_surrogate_mother_surrogate_mothers_intended_parent_intend'
+  /** unique or primary key constraint on columns "surrogate_mother_surrogate_mothers" */
+  CasesSurrogateMotherSurrogateMothersKey = 'cases_surrogate_mother_surrogate_mothers_key'
 }
 
 /** 案子的相关文件 */
@@ -1494,9 +1532,9 @@ export type Cases_Inc_Input = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Scalars['bigint']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Scalars['bigint']['input']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Scalars['numeric']['input']>;
@@ -1511,7 +1549,7 @@ export type Cases_Insert_Input = {
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
   intended_parent?: InputMaybe<Intended_Parents_Obj_Rel_Insert_Input>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   ivf_clinics?: InputMaybe<Ivf_Clinics_Arr_Rel_Insert_Input>;
   journeys?: InputMaybe<Journeys_Arr_Rel_Insert_Input>;
@@ -1519,7 +1557,7 @@ export type Cases_Insert_Input = {
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: InputMaybe<Scalars['String']['input']>;
   surrogate_mother?: InputMaybe<Surrogate_Mothers_Obj_Rel_Insert_Input>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Scalars['bigint']['input']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Scalars['numeric']['input']>;
@@ -1534,11 +1572,11 @@ export type Cases_Max_Fields = {
   client_manager_client_managers?: Maybe<Scalars['bigint']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: Maybe<Scalars['String']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['bigint']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['numeric']['output']>;
@@ -1551,11 +1589,11 @@ export type Cases_Max_Order_By = {
   client_manager_client_managers?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1569,11 +1607,11 @@ export type Cases_Min_Fields = {
   client_manager_client_managers?: Maybe<Scalars['bigint']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: Maybe<Scalars['String']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['bigint']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['numeric']['output']>;
@@ -1586,11 +1624,11 @@ export type Cases_Min_Order_By = {
   client_manager_client_managers?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1671,11 +1709,11 @@ export type Cases_Set_Input = {
   client_manager_client_managers?: InputMaybe<Scalars['bigint']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: InputMaybe<Scalars['String']['input']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Scalars['bigint']['input']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Scalars['numeric']['input']>;
@@ -1688,9 +1726,9 @@ export type Cases_Stddev_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -1701,9 +1739,9 @@ export type Cases_Stddev_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1715,9 +1753,9 @@ export type Cases_Stddev_Pop_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -1728,9 +1766,9 @@ export type Cases_Stddev_Pop_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1742,9 +1780,9 @@ export type Cases_Stddev_Samp_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -1755,9 +1793,9 @@ export type Cases_Stddev_Samp_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1777,11 +1815,11 @@ export type Cases_Stream_Cursor_Value_Input = {
   client_manager_client_managers?: InputMaybe<Scalars['bigint']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Scalars['bigint']['input']>;
   /** 状态分类 1.Matching 2.LegalStage 3.CyclePrep 4.Pregnant 5.Transferred */
   process_status?: InputMaybe<Scalars['String']['input']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Scalars['bigint']['input']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Scalars['numeric']['input']>;
@@ -1794,9 +1832,9 @@ export type Cases_Sum_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['bigint']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['bigint']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['bigint']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['numeric']['output']>;
@@ -1807,9 +1845,9 @@ export type Cases_Sum_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1850,9 +1888,9 @@ export type Cases_Var_Pop_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -1863,9 +1901,9 @@ export type Cases_Var_Pop_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1877,9 +1915,9 @@ export type Cases_Var_Samp_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -1890,9 +1928,9 @@ export type Cases_Var_Samp_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -1904,9 +1942,9 @@ export type Cases_Variance_Fields = {
   /** 外键，客户经理 */
   client_manager_client_managers?: Maybe<Scalars['Float']['output']>;
   id?: Maybe<Scalars['Float']['output']>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: Maybe<Scalars['Float']['output']>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: Maybe<Scalars['Float']['output']>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: Maybe<Scalars['Float']['output']>;
@@ -1917,9 +1955,9 @@ export type Cases_Variance_Order_By = {
   /** 外键，客户经理 */
   client_manager_client_managers?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  /** 外键，准父母 */
+  /** 外键，准父母，一个准父母只有一个case */
   intended_parent_intended_parents?: InputMaybe<Order_By>;
-  /** 外键，代孕妈妈 */
+  /** 外键，代孕妈妈，一个代孕妈妈只有一个case */
   surrogate_mother_surrogate_mothers?: InputMaybe<Order_By>;
   /** 当前case的信托账户余额 */
   trust_account_balance?: InputMaybe<Order_By>;
@@ -2208,6 +2246,8 @@ export type Intended_Parents = {
   __typename?: 'intended_parents';
   /** 基本信息 */
   basic_information?: Maybe<Scalars['jsonb']['output']>;
+  /** An object relationship */
+  case?: Maybe<Cases>;
   /** An array relationship */
   cases: Array<Cases>;
   /** An aggregate relationship */
@@ -2363,6 +2403,7 @@ export type Intended_Parents_Bool_Exp = {
   _not?: InputMaybe<Intended_Parents_Bool_Exp>;
   _or?: InputMaybe<Array<Intended_Parents_Bool_Exp>>;
   basic_information?: InputMaybe<Jsonb_Comparison_Exp>;
+  case?: InputMaybe<Cases_Bool_Exp>;
   cases?: InputMaybe<Cases_Bool_Exp>;
   cases_aggregate?: InputMaybe<Cases_Aggregate_Bool_Exp>;
   contact_information?: InputMaybe<Jsonb_Comparison_Exp>;
@@ -2440,6 +2481,7 @@ export type Intended_Parents_Inc_Input = {
 export type Intended_Parents_Insert_Input = {
   /** 基本信息 */
   basic_information?: InputMaybe<Scalars['jsonb']['input']>;
+  case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   cases?: InputMaybe<Cases_Arr_Rel_Insert_Input>;
   /** 联系信息 */
   contact_information?: InputMaybe<Scalars['jsonb']['input']>;
@@ -2515,6 +2557,7 @@ export type Intended_Parents_On_Conflict = {
 /** Ordering options when selecting data from "intended_parents". */
 export type Intended_Parents_Order_By = {
   basic_information?: InputMaybe<Order_By>;
+  case?: InputMaybe<Cases_Order_By>;
   cases_aggregate?: InputMaybe<Cases_Aggregate_Order_By>;
   contact_information?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -6757,6 +6800,8 @@ export type Surrogate_Mothers = {
   __typename?: 'surrogate_mothers';
   /** 关于你自己 */
   about_you?: Maybe<Scalars['jsonb']['output']>;
+  /** An object relationship */
+  case?: Maybe<Cases>;
   /** An array relationship */
   cases: Array<Cases>;
   /** An aggregate relationship */
@@ -6906,6 +6951,7 @@ export type Surrogate_Mothers_Bool_Exp = {
   _not?: InputMaybe<Surrogate_Mothers_Bool_Exp>;
   _or?: InputMaybe<Array<Surrogate_Mothers_Bool_Exp>>;
   about_you?: InputMaybe<Jsonb_Comparison_Exp>;
+  case?: InputMaybe<Cases_Bool_Exp>;
   cases?: InputMaybe<Cases_Bool_Exp>;
   cases_aggregate?: InputMaybe<Cases_Aggregate_Bool_Exp>;
   contact_information?: InputMaybe<Jsonb_Comparison_Exp>;
@@ -6977,6 +7023,7 @@ export type Surrogate_Mothers_Inc_Input = {
 export type Surrogate_Mothers_Insert_Input = {
   /** 关于你自己 */
   about_you?: InputMaybe<Scalars['jsonb']['input']>;
+  case?: InputMaybe<Cases_Obj_Rel_Insert_Input>;
   cases?: InputMaybe<Cases_Arr_Rel_Insert_Input>;
   /** 联系方式 */
   contact_information?: InputMaybe<Scalars['jsonb']['input']>;
@@ -7045,6 +7092,7 @@ export type Surrogate_Mothers_On_Conflict = {
 /** Ordering options when selecting data from "surrogate_mothers". */
 export type Surrogate_Mothers_Order_By = {
   about_you?: InputMaybe<Order_By>;
+  case?: InputMaybe<Cases_Order_By>;
   cases_aggregate?: InputMaybe<Cases_Aggregate_Order_By>;
   contact_information?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
@@ -7263,9 +7311,13 @@ export type Trust_Account_Balance_Changes = {
   change_type: Scalars['String']['output'];
   created_at: Scalars['timestamptz']['output'];
   id: Scalars['bigint']['output'];
+  /** 收款人 */
+  receiver?: Maybe<Scalars['String']['output']>;
   /** 备注 */
   remark?: Maybe<Scalars['String']['output']>;
   updated_at: Scalars['timestamptz']['output'];
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: Maybe<Scalars['String']['output']>;
 };
 
 /** aggregated selection of "trust_account_balance_changes" */
@@ -7371,8 +7423,10 @@ export type Trust_Account_Balance_Changes_Bool_Exp = {
   change_type?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Bigint_Comparison_Exp>;
+  receiver?: InputMaybe<String_Comparison_Exp>;
   remark?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  visibility?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "trust_account_balance_changes" */
@@ -7409,9 +7463,13 @@ export type Trust_Account_Balance_Changes_Insert_Input = {
   change_type?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 收款人 */
+  receiver?: InputMaybe<Scalars['String']['input']>;
   /** 备注 */
   remark?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate max on columns */
@@ -7429,9 +7487,13 @@ export type Trust_Account_Balance_Changes_Max_Fields = {
   change_type?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
+  /** 收款人 */
+  receiver?: Maybe<Scalars['String']['output']>;
   /** 备注 */
   remark?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by max() on columns of table "trust_account_balance_changes" */
@@ -7448,9 +7510,13 @@ export type Trust_Account_Balance_Changes_Max_Order_By = {
   change_type?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  /** 收款人 */
+  receiver?: InputMaybe<Order_By>;
   /** 备注 */
   remark?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -7468,9 +7534,13 @@ export type Trust_Account_Balance_Changes_Min_Fields = {
   change_type?: Maybe<Scalars['String']['output']>;
   created_at?: Maybe<Scalars['timestamptz']['output']>;
   id?: Maybe<Scalars['bigint']['output']>;
+  /** 收款人 */
+  receiver?: Maybe<Scalars['String']['output']>;
   /** 备注 */
   remark?: Maybe<Scalars['String']['output']>;
   updated_at?: Maybe<Scalars['timestamptz']['output']>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: Maybe<Scalars['String']['output']>;
 };
 
 /** order by min() on columns of table "trust_account_balance_changes" */
@@ -7487,9 +7557,13 @@ export type Trust_Account_Balance_Changes_Min_Order_By = {
   change_type?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  /** 收款人 */
+  receiver?: InputMaybe<Order_By>;
   /** 备注 */
   remark?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "trust_account_balance_changes" */
@@ -7518,8 +7592,10 @@ export type Trust_Account_Balance_Changes_Order_By = {
   change_type?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  receiver?: InputMaybe<Order_By>;
   remark?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
+  visibility?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: trust_account_balance_changes */
@@ -7544,9 +7620,13 @@ export enum Trust_Account_Balance_Changes_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Receiver = 'receiver',
+  /** column name */
   Remark = 'remark',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updated_at',
+  /** column name */
+  Visibility = 'visibility'
 }
 
 /** input type for updating data in table "trust_account_balance_changes" */
@@ -7563,9 +7643,13 @@ export type Trust_Account_Balance_Changes_Set_Input = {
   change_type?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 收款人 */
+  receiver?: InputMaybe<Scalars['String']['input']>;
   /** 备注 */
   remark?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate stddev on columns */
@@ -7671,9 +7755,13 @@ export type Trust_Account_Balance_Changes_Stream_Cursor_Value_Input = {
   change_type?: InputMaybe<Scalars['String']['input']>;
   created_at?: InputMaybe<Scalars['timestamptz']['input']>;
   id?: InputMaybe<Scalars['bigint']['input']>;
+  /** 收款人 */
+  receiver?: InputMaybe<Scalars['String']['input']>;
   /** 备注 */
   remark?: InputMaybe<Scalars['String']['input']>;
   updated_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  /** 谁可见选项，1.intended_parents 2.all */
+  visibility?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** aggregate sum on columns */
@@ -7720,9 +7808,13 @@ export enum Trust_Account_Balance_Changes_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Receiver = 'receiver',
+  /** column name */
   Remark = 'remark',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updated_at',
+  /** column name */
+  Visibility = 'visibility'
 }
 
 export type Trust_Account_Balance_Changes_Updates = {

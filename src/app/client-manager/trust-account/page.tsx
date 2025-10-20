@@ -25,8 +25,9 @@ interface BalanceChange {
   balance_before: number | null;
   balance_after: number | null;
   remark: string | null;
+  receiver: string | null;
   created_at: string;
-    Visibility?: string;
+  visibility?: string;
 }
 
 function TrustAccountPageInner() {
@@ -49,10 +50,12 @@ function TrustAccountPageInner() {
   // change_amount 用字符串保存，保证输入负号时受控
   // change_amount 用字符串保存，彻底消除类型警告
   type FormDataType = Omit<Partial<BalanceChange>, 'change_amount'> & { change_amount?: string };
-  const [formData, setFormData] = useState<FormDataType>({ Visibility: 'true' });
+  const [formData, setFormData] = useState<FormDataType>({ visibility: 'all' });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
+  const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [balanceInput, setBalanceInput] = useState("");
   const pageSize = 10; // 每页显示10条
   const [sortDateDesc, setSortDateDesc] = useState(false);
   const [filterType, setFilterType] = useState<string | null>(null);
@@ -148,7 +151,8 @@ function TrustAccountPageInner() {
       change_type: '',
       change_amount: '',
       remark: '',
-      Visibility: 'true',
+      receiver: '',
+      visibility: 'all',
     });
     setShowForm(true);
   }, [showForm]);
@@ -159,7 +163,8 @@ function TrustAccountPageInner() {
       change_type: item.change_type,
       change_amount: String(item.change_amount ?? ''),
       remark: item.remark,
-      Visibility: item.Visibility ?? 'true',
+      receiver: item.receiver,
+      visibility: item.visibility ?? 'all',
     });
     setShowForm(true);
   }, []);
@@ -263,6 +268,70 @@ function TrustAccountPageInner() {
     setShowForm(false);
   }, []);
 
+  // 开始编辑余额
+  const handleStartEditBalance = useCallback(() => {
+    const currentBalanceNum = changes.length > 0 && changes[changes.length - 1].balance_after !== null 
+      ? Number(changes[changes.length - 1].balance_after) 
+      : 0;
+    setBalanceInput(String(currentBalanceNum));
+    setIsEditingBalance(true);
+  }, [changes]);
+
+  // 取消编辑余额
+  const handleCancelEditBalance = useCallback(() => {
+    setIsEditingBalance(false);
+    setBalanceInput("");
+  }, []);
+
+  // 保存余额
+  const handleSaveBalance = useCallback(async () => {
+    if (!caseId || !balanceInput) return;
+    
+    const newBalance = Number(balanceInput);
+    if (isNaN(newBalance)) {
+      alert(t('trustAccount.invalidAmount', 'Please enter a valid amount'));
+      return;
+    }
+    
+    try {
+      // 获取当前余额
+      const currentBalanceNum = changes.length > 0 && changes[changes.length - 1].balance_after !== null 
+        ? Number(changes[changes.length - 1].balance_after) 
+        : 0;
+      
+      // 计算差额
+      const changeAmount = newBalance - currentBalanceNum;
+      
+      // 自动创建一条记录
+      const payload = {
+        caseId,
+        change_type: 'OTHER',
+        change_amount: changeAmount,
+        balance_before: currentBalanceNum,
+        balance_after: newBalance,
+        receiver: null,
+        remark: t('trustAccount.balanceAdjustment', 'Balance Adjustment'),
+        visibility: 'all',
+      };
+      
+      const res = await fetch('/api/trust-account/change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!res.ok) throw new Error('修改失败');
+      
+      setIsEditingBalance(false);
+      setBalanceInput("");
+      await fetchChanges(); // 刷新数据
+      console.log('Balance updated successfully');
+    } catch (e) {
+      console.error('修改余额失败:', e);
+      alert(t('trustAccount.balanceEditFailed', 'Failed to edit balance, please try again'));
+    }
+  }, [caseId, balanceInput, changes, fetchChanges, t]);
+
   // 使用 useCallback 缓存分页处理函数
   const handlePrevPage = useCallback(() => {
     setPage(p => Math.max(1, p - 1));
@@ -332,11 +401,52 @@ function TrustAccountPageInner() {
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.balance', 'Account Balance')}</h2>
-            <span className="text-2xl font-bold text-sage-800">
-              {currentBalance !== null
-                ? `$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
-                : '--'}
-            </span>
+            {!isEditingBalance ? (
+              <span 
+                className="text-2xl font-bold text-sage-800 cursor-pointer hover:text-sage-600 transition-colors duration-200 px-2 py-1 rounded hover:bg-sage-50"
+                onClick={handleStartEditBalance}
+                title={t('trustAccount.clickToEdit', 'Click to edit')}
+              >
+                {currentBalance !== null
+                  ? `$${currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+                  : '--'}
+              </span>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={balanceInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^-?\d*\.?\d*$/.test(value) || value === '' || value === '-') {
+                      setBalanceInput(value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSaveBalance();
+                    } else if (e.key === 'Escape') {
+                      handleCancelEditBalance();
+                    }
+                  }}
+                  className="text-2xl font-bold text-sage-800 border-2 border-sage-400 rounded px-2 py-1 w-48 focus:outline-none focus:border-sage-600"
+                  autoFocus
+                  inputMode="decimal"
+                />
+                <CustomButton
+                  onClick={handleSaveBalance}
+                  className="px-3 py-1 text-sm bg-sage-600 text-white hover:bg-sage-700 cursor-pointer rounded"
+                >
+                  {t('save', 'Save')}
+                </CustomButton>
+                <CustomButton
+                  onClick={handleCancelEditBalance}
+                  className="px-3 py-1 text-sm bg-gray-200 text-sage-800 hover:bg-gray-300 cursor-pointer rounded"
+                >
+                  {t('cancel', 'Cancel')}
+                </CustomButton>
+              </div>
+            )}
           </div>
           <div className="text-xs text-sage-500">{t('trustAccount.updatedToday', 'Updated today')}</div>
         </Card>
@@ -408,13 +518,13 @@ function TrustAccountPageInner() {
                 <div>
                   <label className="block mb-1 font-medium text-sage-800">{t('trustAccount.visibility', 'Visibility')}</label>
                   <select
-                    name="Visibility"
-                    value={formData.Visibility || 'true'}
+                    name="visibility"
+                    value={formData.visibility || 'all'}
                     onChange={handleFormChange}
                     className="border rounded px-2 py-1 w-full text-sage-800"
                   >
-                    <option value="true">{t('trustAccount.visibilityTrue', 'True')}</option>
-                    <option value="false">{t('trustAccount.visibilityFalse', 'False')}</option>
+                    <option value="all">{t('trustAccount.visibilityAll', 'All')}</option>
+                    <option value="intended_parents">{t('trustAccount.visibilityIntendedParents', 'Intended Parents Only')}</option>
                   </select>
                 </div>
                 <div>
@@ -428,6 +538,17 @@ function TrustAccountPageInner() {
                     required
                     inputMode="decimal"
                     readOnly={!!editId}
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium text-sage-800">{t('trustAccount.receiver', 'Receiver')}</label>
+                  <input
+                    type="text"
+                    name="receiver"
+                    value={formData.receiver ?? ''}
+                    onChange={handleFormChange}
+                    className="border rounded px-2 py-1 w-full text-sage-800"
+                    placeholder={t('trustAccount.pleaseEnterReceiver', 'Please enter receiver')}
                   />
                 </div>
                 <div>
@@ -505,12 +626,13 @@ function TrustAccountPageInner() {
                       </th>
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.visibility', 'Visibility')}</th>
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.amount', 'Amount')}</th>
+                      <th className="py-2 px-4 font-semibold">{t('trustAccount.receiver', 'Receiver')}</th>
                       <th className="py-2 px-4 font-semibold">{t('trustAccount.remark', 'Remark')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pagedChanges.length === 0 ? (
-                      <tr><td colSpan={5} className="py-8 text-center text-gray-400 text-base">{t('trustAccount.noRecords', 'No records')}</td></tr>
+                      <tr><td colSpan={6} className="py-8 text-center text-gray-400 text-base">{t('trustAccount.noRecords', 'No records')}</td></tr>
                     ) : pagedChanges.map((change: BalanceChange, idx) => (
                       <tr
                         key={change.id}
@@ -533,15 +655,20 @@ function TrustAccountPageInner() {
                           {!['RECHARGE','CONSUMPTION','OTHER'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
                         </td>
                         <td className="py-2 px-4 whitespace-nowrap">
-                          {change.Visibility === 'true'
-                            ? <span className="inline-flex items-center text-green-600 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#22c55e"/><path d="M7 10l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityTrue', 'True')}</span>
-                            : <span className="inline-flex items-center text-gray-400 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#d1d5db"/><path d="M7 10l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityFalse', 'False')}</span>
+                          {change.visibility === 'all'
+                            ? <span className="inline-flex items-center text-green-600 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#22c55e"/><path d="M7 10l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityAll', 'All')}</span>
+                            : <span className="inline-flex items-center text-blue-600 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#3b82f6"/><path d="M8 12l-2-2 2-2M12 8l2 2-2 2" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityIntendedParents', 'Intended Parents Only')}</span>
                           }
                         </td>
                         <td className="py-2 px-4 whitespace-nowrap text-left font-mono" style={{color: change.change_amount > 0 ? '#22c55e' : change.change_amount < 0 ? '#ef4444' : '#222'}}>
                           {change.change_amount > 0 ? '+' : ''}{change.change_amount}
                         </td>
-                        <td className="py-2 px-4 whitespace-nowrap">{change.remark ?? '-'}</td>
+                        <td className="py-2 px-4 whitespace-nowrap">{change.receiver ?? '-'}</td>
+                        <td className="py-2 px-4 whitespace-nowrap">
+                          {change.remark === '余额调整' || change.remark === 'Balance Adjustment' 
+                            ? t('trustAccount.balanceAdjustment', 'Balance Adjustment')
+                            : (change.remark ?? '-')}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

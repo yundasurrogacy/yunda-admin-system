@@ -54,20 +54,17 @@ export default function ClientLoginPage() {
         document.cookie = `userEmail_client=${clientInfo.email}; path=/`;
         document.cookie = `userId_client=${clientInfo.id}; path=/`;
 
-        toast({
-          title: t("loginSuccess", { defaultValue: "登录成功" }),
-          description: t("clientLoginSuccess", { defaultValue: "欢迎回来！" }),
-          variant: "default",
-        });
-
-        // 直接使用硬编码路径进行重定向
-        const homePath = '/client/dashboard'
-        // console.log(`[ClientLogin] Redirecting to: ${homePath}`)
-        router.replace(homePath)
-        // 立即重定向
-        // setTimeout(() => {
-        //   router.replace(homePath)
-        // }, 300) // 减少延迟
+        // 立即跳转，提供更丝滑的用户体验
+        router.replace('/client/dashboard')
+        
+        // 显示成功提示（异步，不阻塞跳转）
+        setTimeout(() => {
+          toast({
+            title: t("loginSuccess", { defaultValue: "登录成功" }),
+            description: t("clientLoginSuccess", { defaultValue: "欢迎回来！" }),
+            variant: "default",
+          });
+        }, 100)
 
         return;
       }

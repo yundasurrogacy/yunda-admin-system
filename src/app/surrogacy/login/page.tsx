@@ -50,16 +50,17 @@ export default function SurrogacyLoginPage() {
         document.cookie = `userEmail_surrogacy=${surrogacyInfo.email}; path=/`;
         document.cookie = `userId_surrogacy=${surrogacyInfo.id}; path=/`;
 
-        toast({
-          title: t("loginSuccess", { defaultValue: "登录成功" }),
-          description: t("surrogacyLoginSuccess", { defaultValue: "欢迎回来，代理妈妈！" }),
-          variant: "default",
-        });
-        const homePath = '/surrogacy/dashboard'
-        router.replace(homePath)
-        // setTimeout(() => {
-        //   router.replace(homePath)
-        // }, 300)
+        // 立即跳转，提供更丝滑的用户体验
+        router.replace('/surrogacy/dashboard')
+        
+        // 显示成功提示（异步，不阻塞跳转）
+        setTimeout(() => {
+          toast({
+            title: t("loginSuccess", { defaultValue: "登录成功" }),
+            description: t("surrogacyLoginSuccess", { defaultValue: "欢迎回来，代理妈妈！" }),
+            variant: "default",
+          });
+        }, 100)
         return;
       }
       throw new Error(response.error || response.data?.error || t("loginError"));
