@@ -409,8 +409,10 @@ function AdminBlogsPage() {
   // 使用 useCallback 缓存数据加载函数
   const fetchBlogs = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(BLOG_API);
+    // 请求所有博客数据，不使用服务端分页（设置一个很大的 limit）
+    const res = await fetch(`${BLOG_API}?limit=1000`);
     const data = await res.json();
+    console.log(data)
     setBlogs(data.blogs || []);
     setLoading(false);
   }, []);
