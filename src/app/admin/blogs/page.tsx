@@ -231,43 +231,6 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             </div>
           </div>
 
-          {/* 4. 英文标题 */}
-          <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')}</Label>
-            <Input 
-              name="en_title" 
-              value={form.en_title} 
-              onChange={handleChange} 
-              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
-              placeholder={t('pleaseEnterEnglishTitle')}
-            />
-          </div>
-
-          {/* 5. 英文内容 */}
-          <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishContent')}</Label>
-            <RichTextEditor
-              value={form.en_content} 
-              onChange={(value) => setForm({ ...form, en_content: value })}
-              placeholder={t('pleaseEnterEnglishContent')}
-              minHeight="200px"
-              className="text-[16px]"
-            />
-          </div>
-
-          {/* 6. 中文标题 */}
-          <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
-            <Input 
-              name="title" 
-              value={form.title} 
-              onChange={handleChange} 
-              required 
-              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
-              placeholder={t('pleaseEnterChineseTitle')}
-            />
-          </div>
-
           {/* 3. 封面图 */}
           <div className="space-y-2">
             <Label className="text-base font-semibold text-sage-700 capitalize">{t('coverImage')}</Label>
@@ -373,6 +336,44 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
               </div>
             )}
             </div>
+          {/* 4. 英文标题 */}
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')}</Label>
+            <Input 
+              name="en_title" 
+              value={form.en_title} 
+              onChange={handleChange} 
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              placeholder={t('pleaseEnterEnglishTitle')}
+            />
+          </div>
+
+          {/* 5. 英文内容 */}
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('englishContent')}</Label>
+            <RichTextEditor
+              value={form.en_content} 
+              onChange={(value) => setForm({ ...form, en_content: value })}
+              placeholder={t('pleaseEnterEnglishContent')}
+              minHeight="200px"
+              className="text-[16px]"
+            />
+          </div>
+
+          {/* 6. 中文标题 */}
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
+            <Input 
+              name="title" 
+              value={form.title} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              placeholder={t('pleaseEnterChineseTitle')}
+            />
+          </div>
+
+
 
           {/* 7. 中文内容 */}
           <div className="space-y-2">
