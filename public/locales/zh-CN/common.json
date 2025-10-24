@@ -1262,6 +1262,17 @@
     "uploadFailed": "上传失败，请重试",
     "uploadError": "上传出错，请重试"
   },
+  "blogValidation": {
+    "englishTitleRequired": "英文标题是必填字段，请填写",
+    "englishContentRequired": "英文内容是必填字段，请填写",
+    "alreadySubmitting": "正在提交中，请稍候...",
+    "submitError": "提交时发生错误",
+    "blogAddedSuccess": "博客添加成功",
+    "blogEditedSuccess": "博客编辑成功",
+    "blogDeletedSuccess": "博客删除成功",
+    "imageUploadSuccess": "图片上传成功",
+    "imageUploadFailed": "图片上传失败"
+  },
   "allCategories": "全部分类",
   "currentFilters": "当前筛选",
   "clearAll": "清除全部",

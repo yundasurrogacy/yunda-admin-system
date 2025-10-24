@@ -1261,6 +1261,17 @@
     "uploadFailed": "Upload failed, please try again",
     "uploadError": "Upload error, please try again"
   },
+  "blogValidation": {
+    "englishTitleRequired": "English title is required, please fill in",
+    "englishContentRequired": "English content is required, please fill in",
+    "alreadySubmitting": "Already submitting, please wait...",
+    "submitError": "Error occurred during submission",
+    "blogAddedSuccess": "Blog added successfully",
+    "blogEditedSuccess": "Blog edited successfully",
+    "blogDeletedSuccess": "Blog deleted successfully",
+    "imageUploadSuccess": "Image uploaded successfully",
+    "imageUploadFailed": "Image upload failed"
+  },
   "allCategories": "All Categories",
   "currentFilters": "Current Filters",
   "clearAll": "Clear All",

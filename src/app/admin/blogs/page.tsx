@@ -50,6 +50,21 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('warning');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'warning') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
 
   useEffect(() => {
     setForm({
@@ -87,9 +102,9 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       // console.log('Image URL:', imageUrl); // 添加调试信息
       setForm({ ...form, cover_img_url: imageUrl });
       setImageError(false); // 重置错误状态
-      console.log('Image uploaded successfully');
+      console.log(t('blogValidation.imageUploadSuccess'));
     } else {
-      console.error('Image upload failed');
+      console.error(t('blogValidation.imageUploadFailed'));
     }
     setUploading(false);
     // 清空file input的值，以便能重新选择同一个文件
@@ -105,7 +120,18 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     
     // 防止重复提交
     if (submitting) {
-      console.log('Already submitting, please wait...');
+      console.log(t('blogValidation.alreadySubmitting'));
+      return;
+    }
+    
+    // 验证必填字段
+    if (!form.en_title.trim()) {
+      showToastMessage(t('blogValidation.englishTitleRequired'), 'warning');
+      return;
+    }
+    
+    if (!form.en_content.trim()) {
+      showToastMessage(t('blogValidation.englishContentRequired'), 'warning');
       return;
     }
     
@@ -114,7 +140,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     try {
       await onSubmit(form);
     } catch (error) {
-      console.error('Submit error:', error);
+      console.error(t('blogValidation.submitError'), error);
     } finally {
       setSubmitting(false);
     }
@@ -231,6 +257,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             </div>
           </div>
 
+          
           {/* 3. 封面图 */}
           <div className="space-y-2">
             <Label className="text-base font-semibold text-sage-700 capitalize">{t('coverImage')}</Label>
@@ -259,24 +286,28 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             {/* 有图片时的预览和操作区块 */}
             {form.cover_img_url && !imageError && (
               <div className="space-y-1">
-                <div className="relative w-full h-32 rounded-lg overflow-hidden border border-sage-200 bg-white flex items-center justify-center">
-                  <img 
-                    src={form.cover_img_url} 
-                    alt="cover" 
-                    className="w-full h-full object-cover"
-                    onError={() => setImageError(true)}
-                    onLoad={() => setImageError(false)}
-                  />
-                  <div className="absolute inset-0 bg-transparent cursor-pointer">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleUpload} 
-                      disabled={uploading}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                    />
-                  </div>
-                </div>
+                 <div className="relative w-full rounded-lg overflow-hidden border border-sage-200 bg-gray-50">
+                   <img 
+                     src={form.cover_img_url} 
+                     alt="cover" 
+                     className="w-full h-auto object-contain cursor-pointer"
+                     style={{ 
+                       objectFit: 'contain',
+                       maxHeight: '200px'
+                     }}
+                     onError={() => setImageError(true)}
+                     onLoad={() => setImageError(false)}
+                     onClick={() => document.getElementById('coverImageUpload')?.click()}
+                   />
+                   <input 
+                     type="file" 
+                     accept="image/*" 
+                     onChange={handleUpload} 
+                     disabled={uploading}
+                     id="coverImageUpload"
+                     className="hidden"
+                   />
+                 </div>
                 <div className="flex gap-2 justify-end">
                   <label className="cursor-pointer">
                     <input 
@@ -336,13 +367,15 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
               </div>
             )}
             </div>
+
           {/* 4. 英文标题 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')} <span className="text-red-500">*</span></Label>
             <Input 
               name="en_title" 
               value={form.en_title} 
               onChange={handleChange} 
+              required
               className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
               placeholder={t('pleaseEnterEnglishTitle')}
             />
@@ -350,7 +383,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
           {/* 5. 英文内容 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishContent')}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('englishContent')} <span className="text-red-500">*</span></Label>
             <RichTextEditor
               value={form.en_content} 
               onChange={(value) => setForm({ ...form, en_content: value })}
@@ -367,12 +400,10 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
               name="title" 
               value={form.title} 
               onChange={handleChange} 
-              required 
               className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
               placeholder={t('pleaseEnterChineseTitle')}
             />
           </div>
-
 
 
           {/* 7. 中文内容 */}
@@ -425,6 +456,58 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
           </div>
         </form>
       </div>
+
+      {/* Toast 提示组件 */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+          <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+            toastType === 'success' 
+              ? 'bg-green-50 border-green-400 text-green-800' 
+              : toastType === 'error'
+              ? 'bg-red-50 border-red-400 text-red-800'
+              : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+          }`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+              toastType === 'success' 
+                ? 'bg-green-100' 
+                : toastType === 'error'
+                ? 'bg-red-100'
+                : 'bg-yellow-100'
+            }`}>
+              {toastType === 'success' && (
+                <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {toastType === 'error' && (
+                <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              {toastType === 'warning' && (
+                <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </div>
+            <span className="text-sm font-medium flex-1">{toastMessage}</span>
+            <button
+              onClick={() => setShowToast(false)}
+              className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                toastType === 'success' 
+                  ? 'hover:bg-green-600' 
+                  : toastType === 'error'
+                  ? 'hover:bg-red-600'
+                  : 'hover:bg-yellow-600'
+              }`}
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -585,7 +668,7 @@ function AdminBlogsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
-    console.log('Blog deleted successfully');
+    console.log(t('blogValidation.blogDeletedSuccess'));
     fetchBlogs();
   }, [fetchBlogs]);
 
@@ -597,19 +680,19 @@ function AdminBlogsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         });
-        console.log('Blog edited successfully');
+        console.log(t('blogValidation.blogEditedSuccess'));
       } else {
         await fetch(BLOG_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         });
-        console.log('Blog added successfully');
+        console.log(t('blogValidation.blogAddedSuccess'));
       }
       setAddOpen(false);
       fetchBlogs();
     } catch (error) {
-      console.error('Error submitting blog:', error);
+      console.error(t('blogValidation.submitError'), error);
       // 可以在这里添加错误提示
     }
   }, [fetchBlogs]);
