@@ -45,16 +45,16 @@ export async function GET(request: NextRequest) {
 
     // 构建where条件
     if (category && category !== '全部' && search && search.trim()) {
-      // 同时有分类和搜索条件
-      whereClause = 'where: {_and: [{category: {_eq: $category}}, {title: {_ilike: $search}}]}';
+      // 同时有分类和搜索条件 - 搜索中文和英文标题
+      whereClause = 'where: {_and: [{category: {_eq: $category}}, {_or: [{title: {_ilike: $search}}, {en_title: {_ilike: $search}}]}]}';
       whereVariables = { category, search: `%${search.trim()}%` };
     } else if (category && category !== '全部') {
       // 只有分类条件
       whereClause = 'where: {category: {_eq: $category}}';
       whereVariables = { category };
     } else if (search && search.trim()) {
-      // 只有搜索条件
-      whereClause = 'where: {title: {_ilike: $search}}';
+      // 只有搜索条件 - 搜索中文和英文标题
+      whereClause = 'where: {_or: [{title: {_ilike: $search}}, {en_title: {_ilike: $search}}]}';
       whereVariables = { search: `%${search.trim()}%` };
     }
 
