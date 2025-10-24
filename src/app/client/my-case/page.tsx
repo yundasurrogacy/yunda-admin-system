@@ -97,8 +97,7 @@ const CaseCard = memo(({
           </span>
           <Link
             href={`/client/trust-account?caseId=${item.id}`}
-            className="font-semibold text-blue-600 underline hover:bg-sage-50 rounded px-1 py-0.5 transition cursor-pointer"
-            style={{ textDecoration: 'none', color: 'inherit' }}
+            className="font-semibold text-blue-600 hover:underline hover:bg-sage-50 rounded px-1 py-0.5 transition cursor-pointer"
           >
             {trustBalanceDisplay}
           </Link>
@@ -110,7 +109,7 @@ const CaseCard = memo(({
           {item.surrogate_mother ? (
             <Link 
               href={`/client/surrogate-match/`} 
-              className="text-blue-600 underline cursor-pointer"
+              className="text-blue-600 hover:underline cursor-pointer transition-all"
             >
               {item.surrogate_mother.name}
             </Link>
@@ -121,24 +120,24 @@ const CaseCard = memo(({
       </div>
       <hr className="my-3 border-sage-100" />
       <div className="flex flex-wrap gap-2 text-sm">
-        <Link 
-          href={`/client/journey?caseId=${item.id}`} 
-          className="text-blue-600 underline cursor-pointer"
+        <CustomButton 
+          className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+          onClick={() => window.location.href = `/client/journey?caseId=${item.id}`}
         >
           {t('myCases.journey', 'JOURNEY')}
-        </Link>
-        <Link 
-          href={`/client/ivf-clinic?caseId=${item.id}`} 
-          className="text-blue-600 underline cursor-pointer"
+        </CustomButton>
+        <CustomButton 
+          className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+          onClick={() => window.location.href = `/client/ivf-clinic?caseId=${item.id}`}
         >
           {t('myCases.ivfClinic', 'IVF CLINIC')}
-        </Link>
-        <Link 
-          href={`/client/journal?caseId=${item.id}`} 
-          className="text-blue-600 underline cursor-pointer"
+        </CustomButton>
+        <CustomButton 
+          className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+          onClick={() => window.location.href = `/client/journal?caseId=${item.id}`}
         >
           {t('myCases.journal', 'JOURNAL')}
-        </Link>
+        </CustomButton>
       </div>
     </div>
   );

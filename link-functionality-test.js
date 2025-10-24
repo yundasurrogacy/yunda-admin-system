@@ -1,117 +1,161 @@
-// 富文本编辑器链接功能测试
+// 链接功能测试脚本
 // 在浏览器控制台中运行此脚本来测试链接功能
 
-console.log('🔗 开始测试富文本编辑器链接功能...');
+console.log('🔧 链接功能测试开始...');
 
-// 获取富文本编辑器元素
-const editor = document.querySelector('[contentEditable]');
-if (!editor) {
-  console.error('❌ 未找到富文本编辑器元素');
-} else {
-  console.log('✅ 找到富文本编辑器元素');
+function testLinkFunctionality() {
+  const editor = document.querySelector('[contentEditable]');
+  if (!editor) {
+    console.error('❌ 未找到富文本编辑器');
+    return;
+  }
   
-  // 测试1：检查链接按钮是否存在
-  const linkButton = document.querySelector('button[title*="插入链接"], button[title*="createLink"]');
+  console.log('\n📋 测试1: 插入链接功能');
+  
+  // 清空编辑器
+  editor.innerHTML = '';
+  editor.innerHTML = '测试链接功能';
+  
+  // 选中文本
+  const textNode = editor.firstChild;
+  const range = document.createRange();
+  range.setStart(textNode, 0);
+  range.setEnd(textNode, textNode.textContent.length);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  
+  console.log('✅ 选中文本:', selection.toString());
+  
+  // 查找插入链接按钮
+  const linkButton = Array.from(document.querySelectorAll('button')).find(btn => 
+    btn.title && (btn.title.includes('插入链接') || btn.title.includes('createLink'))
+  );
+  
   if (linkButton) {
-    console.log('✅ 找到链接按钮');
-  } else {
-    console.error('❌ 未找到链接按钮');
-  }
-  
-  // 测试2：检查链接模态框是否存在
-  const linkModal = document.querySelector('[class*="absolute"][class*="z-50"]');
-  if (linkModal) {
-    console.log('✅ 找到链接模态框容器');
-  } else {
-    console.log('⚠️ 链接模态框可能未显示');
-  }
-  
-  // 测试3：测试选择文本功能
-  const testTextSelection = () => {
-    console.log('\n📝 测试文本选择功能...');
+    console.log('✅ 找到插入链接按钮');
     
-    // 在编辑器中插入一些测试文本
-    editor.innerHTML = '<p>这是一段测试文本，请选择其中的一些文字。</p>';
-    editor.focus();
+    // 点击插入链接按钮
+    console.log('✅ 点击插入链接按钮...');
+    linkButton.click();
     
-    console.log('✅ 已插入测试文本');
-    console.log('📖 请手动选择一些文本，然后点击链接按钮测试');
-  };
-  
-  // 测试4：测试链接创建命令
-  const testLinkCommand = () => {
-    console.log('\n🔗 测试链接创建命令...');
-    
-    try {
-      // 先插入一些文本
-      editor.innerHTML = '<p>测试链接文本</p>';
-      editor.focus();
-      
-      // 选择文本
-      const range = document.createRange();
-      const textNode = editor.querySelector('p')?.firstChild;
-      if (textNode) {
-        range.setStart(textNode, 0);
-        range.setEnd(textNode, 4); // 选择前4个字符
-        const selection = window.getSelection();
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+    setTimeout(() => {
+      // 检查是否显示链接模态框
+      const linkModal = document.querySelector('[class*="absolute"][class*="bg-white"][class*="border"]');
+      if (linkModal && linkModal.textContent?.includes('插入链接')) {
+        console.log('✅ 链接模态框显示成功');
         
-        // 尝试创建链接
-        const success = document.execCommand('createLink', false, 'https://example.com');
-        if (success) {
-          console.log('✅ 链接创建命令执行成功');
-          console.log('📄 编辑器内容:', editor.innerHTML);
+        // 查找URL输入框
+        const urlInput = linkModal.querySelector('input[type="url"]');
+        if (urlInput) {
+          console.log('✅ 找到URL输入框');
+          
+          // 输入URL
+          (urlInput as HTMLInputElement).value = 'https://www.example.com';
+          urlInput.dispatchEvent(new Event('input', { bubbles: true }));
+          
+          console.log('✅ 输入URL:', (urlInput as HTMLInputElement).value);
+          
+          // 查找确认按钮
+          const confirmButton = Array.from(linkModal.querySelectorAll('button')).find(btn => 
+            btn.textContent?.includes('确认') || btn.textContent?.includes('confirm')
+          );
+          
+          if (confirmButton) {
+            console.log('✅ 找到确认按钮');
+            
+            // 点击确认按钮
+            console.log('✅ 点击确认按钮...');
+            confirmButton.click();
+            
+            setTimeout(() => {
+              // 检查是否创建了链接
+              const link = editor.querySelector('a');
+              if (link) {
+                console.log('🎉 链接创建成功！');
+                console.log('✅ 链接HTML:', link.outerHTML);
+                console.log('✅ 链接URL:', link.href);
+                console.log('✅ 链接文本:', link.textContent);
+                
+                // 测试链接样式
+                const linkStyle = window.getComputedStyle(link);
+                console.log('✅ 链接样式:');
+                console.log(`  - 颜色: ${linkStyle.color}`);
+                console.log(`  - 下划线: ${linkStyle.textDecoration}`);
+                console.log(`  - 光标: ${linkStyle.cursor}`);
+                
+                // 测试链接工具栏
+                console.log('\n📋 测试2: 链接工具栏功能');
+                
+                // 选中链接
+                const linkRange = document.createRange();
+                linkRange.selectNodeContents(link);
+                selection.removeAllRanges();
+                selection.addRange(linkRange);
+                
+                console.log('✅ 选中链接:', link.textContent);
+                
+                setTimeout(() => {
+                  // 检查是否显示链接工具栏
+                  const linkToolbar = document.querySelector('[class*="absolute"][class*="bg-white"]');
+                  if (linkToolbar && linkToolbar.textContent?.includes('🔗')) {
+                    console.log('✅ 链接工具栏显示成功');
+                    
+                    // 查找移除链接按钮
+                    const removeButton = Array.from(linkToolbar.querySelectorAll('button')).find(btn => 
+                      btn.textContent?.includes('🔓')
+                    );
+                    
+                    if (removeButton) {
+                      console.log('✅ 找到移除链接按钮');
+                      
+                      // 点击移除链接按钮
+                      console.log('✅ 点击移除链接按钮...');
+                      removeButton.click();
+                      
+                      setTimeout(() => {
+                        // 检查链接是否被移除
+                        const linkAfter = editor.querySelector('a');
+                        const textAfter = editor.textContent;
+                        
+                        if (!linkAfter && textAfter.includes('测试链接功能')) {
+                          console.log('🎉 链接移除成功！');
+                          console.log('✅ 移除后文本:', textAfter);
+                        } else {
+                          console.log('❌ 链接移除失败');
+                        }
+                        
+                        console.log('\n🎯 测试完成！');
+                        console.log('✅ 如果看到"🎉"消息，说明链接功能正常');
+                        console.log('✅ 链接应该可以正确创建、显示工具栏和移除');
+                        
+                      }, 300);
+                    } else {
+                      console.log('❌ 未找到移除链接按钮');
+                    }
+                  } else {
+                    console.log('❌ 链接工具栏未显示');
+                  }
+                }, 300);
+                
+              } else {
+                console.log('❌ 链接创建失败');
+              }
+            }, 300);
+          } else {
+            console.log('❌ 未找到确认按钮');
+          }
         } else {
-          console.error('❌ 链接创建命令执行失败');
+          console.log('❌ 未找到URL输入框');
         }
+      } else {
+        console.log('❌ 链接模态框未显示');
       }
-    } catch (error) {
-      console.error('❌ 链接创建测试出错:', error);
-    }
-  };
-  
-  // 测试5：检查链接样式
-  const testLinkStyles = () => {
-    console.log('\n🎨 检查链接样式...');
-    
-    const links = editor.querySelectorAll('a');
-    if (links.length > 0) {
-      console.log(`✅ 找到 ${links.length} 个链接`);
-      links.forEach((link, index) => {
-        console.log(`链接 ${index + 1}:`, {
-          href: link.getAttribute('href'),
-          text: link.textContent,
-          target: link.getAttribute('target'),
-          rel: link.getAttribute('rel')
-        });
-      });
-    } else {
-      console.log('⚠️ 未找到任何链接');
-    }
-  };
-  
-  // 运行所有测试
-  const runAllTests = () => {
-    console.log('🎯 开始链接功能测试...\n');
-    
-    testTextSelection();
-    testLinkCommand();
-    testLinkStyles();
-    
-    console.log('\n📋 手动测试步骤:');
-    console.log('1. 在编辑器中输入一些文本');
-    console.log('2. 选择部分文本');
-    console.log('3. 点击链接按钮 (🔗)');
-    console.log('4. 在弹出框中输入URL');
-    console.log('5. 点击确定按钮');
-    console.log('6. 检查文本是否变成了可点击的链接');
-    console.log('7. 测试键盘快捷键 Ctrl+K');
-    console.log('8. 测试没有选中文本时的链接插入');
-    
-    console.log('\n🎉 链接功能测试完成！');
-  };
-  
-  // 执行测试
-  runAllTests();
+    }, 300);
+  } else {
+    console.log('❌ 未找到插入链接按钮');
+  }
 }
+
+// 运行测试
+testLinkFunctionality();

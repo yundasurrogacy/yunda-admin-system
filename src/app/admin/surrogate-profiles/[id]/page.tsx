@@ -165,6 +165,17 @@ export default function SurrogateProfileDetailPage() {
   const ay = useMemo(() => data?.about_you || {}, [data])
   const interview = useMemo(() => data?.gestational_surrogacy_interview || {}, [data])
 
+  // 使用 useMemo 缓存身高显示
+  const heightDisplay = useMemo(() => {
+    if (!ci?.height) return t('noData', '暂无数据');
+    // 处理 "5'5\"" 格式的身高数据
+    if (typeof ci.height === 'string' && ci.height.includes("'")) {
+      return ci.height; // 直接显示 "5'5\"" 格式
+    }
+    // 如果是纯数字，添加英尺单位
+    return `${ci.height} ${t('ft', '英尺')}`;
+  }, [ci?.height, t]);
+
   // 通用空值显示（国际化）
   const displayValue = useCallback((val: any, emptyText = t('none', '无')) => {
     if (val === null || val === undefined) return emptyText;
@@ -576,13 +587,13 @@ export default function SurrogateProfileDetailPage() {
                     <span className="text-sage-500 capitalize">{t('height')}:</span>
                     <span className="text-sage-800 capitalize">{editMode ? (
                       <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.height || ''} onChange={e => handleFieldChange('contact_information', 'height', e.target.value)} placeholder={t('height')} />
-                    ) : (<>{displayValue(ci?.height)} cm</>)}</span>
+                    ) : heightDisplay}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('weight')}:</span>
                     <span className="text-sage-800 capitalize">{editMode ? (
                       <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.weight || ''} onChange={e => handleFieldChange('contact_information', 'weight', e.target.value)} placeholder={t('weight')} />
-                    ) : (<>{displayValue(ci?.weight)} kg</>)}</span>
+                    ) : (<>{displayValue(ci?.weight)} {t('lbs', '磅')}</>)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('bmi')}:</span>
@@ -741,7 +752,7 @@ export default function SurrogateProfileDetailPage() {
                                   handleFieldChange('pregnancy_and_health', 'pregnancy_histories', newArr);
                                 }} placeholder={t('birthWeight')} />
                               ) : (
-                                <div className="text-sage-800 capitalize">{displayValue(history.birth_weight)} kg</div>
+                                <div className="text-sage-800 capitalize">{displayValue(history.birth_weight)} {t('lbs', '磅')}</div>
                               )}
                             </div>
                             <div>

@@ -73,3 +73,65 @@ body {
     transform: scale(0.95);
   }
 }
+
+/* 富文本编辑器链接样式 - 覆盖Tailwind CSS重置 */
+[contentEditable] a,
+[contentEditable] a:link,
+[contentEditable] a:visited,
+[contentEditable] a:focus,
+[contentEditable] a:active {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  text-decoration-color: #2563eb !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 1px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  background: none !important;
+  outline: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+}
+
+[contentEditable] a:hover {
+  color: #1d4ed8 !important;
+  text-decoration: none !important;
+  background-color: rgba(37, 99, 235, 0.1) !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+}
+
+[contentEditable] a:visited {
+  color: #7c3aed !important;
+}
+
+[contentEditable] a:focus {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* 确保链接样式优先级最高 */
+[contentEditable] a[href] {
+  color: #2563eb !important;
+  text-decoration: underline !important;
+  text-decoration-color: #2563eb !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 1px !important;
+  cursor: pointer !important;
+  display: inline !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  background: none !important;
+  outline: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}

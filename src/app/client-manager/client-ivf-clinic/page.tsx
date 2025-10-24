@@ -522,8 +522,7 @@ function IVFClinicContent() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 min-h-screen bg-main-bg">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
         <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer transition-colors"
@@ -534,8 +533,8 @@ function IVFClinicContent() {
           </svg>
           {t('back', '返回')}
         </CustomButton>
-        <h1 className="text-2xl sm:text-3xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
-        <p className="text-sage-800 mb-8 font-medium text-sm sm:text-base">{t('ivfClinic.description')}</p>
+      <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
+      <p className="text-sage-800 mb-8 font-medium">{t('ivfClinic.description')}</p>
         
         {/* 全局加载状态 */}
         {/* {loading && (
@@ -1640,7 +1639,6 @@ function IVFClinicContent() {
             </div>
           </div>
         )}
-      </div>
       </div>
     </div>
   )

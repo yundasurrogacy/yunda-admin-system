@@ -260,14 +260,14 @@ export default function SurrogateProfileDetailPage() {
                     <span className="text-sage-500">{t('surrogateProfileDetail.occupation', '职业')}:</span>
                     <span className="text-sage-800">{about?.occupation ?? t('noData', '暂无数据')}</span>
                   </div>
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <span className="text-sage-500">{t('surrogateProfileDetail.contactSource', '信息来源')}:</span>
                     <span className="text-sage-800">{
                       about?.contact_source
                         ? String(t(`surrogateProfileDetail.contactSource.${about.contact_source}`, about.contact_source))
                         : t('noData', '暂无数据')
                     }</span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between">
                     <span className="text-sage-500">{t('surrogateProfileDetail.maritalStatus', '婚姻状况')}:</span>
                     <span className="text-sage-800">{about?.marital_status ?? t('noData', '暂无数据')}</span>
@@ -299,6 +299,14 @@ export default function SurrogateProfileDetailPage() {
                   <div className="flex justify-between">
                     <span className="text-sage-500">{t('surrogateProfileDetail.hasHighSchoolDiploma', '有高中毕业证')}:</span>
                     <span className="text-sage-800">{typeof about?.has_high_school_diploma === 'boolean' ? (about.has_high_school_diploma ? t('surrogateProfileDetail.yes', '是') : t('surrogateProfileDetail.no', '否')) : t('noData', '暂无数据')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sage-500">{t('surrogateProfileDetail.contactSourceLabel', '信息来源')}:</span>
+                    <span className="text-sage-800">{
+                      about?.contact_source
+                        ? String(t(`surrogateProfileDetail.contactSource.${about.contact_source}`, about.contact_source))
+                        : t('noData', '暂无数据')
+                    }</span>
                   </div>
                 </div>
               </div>

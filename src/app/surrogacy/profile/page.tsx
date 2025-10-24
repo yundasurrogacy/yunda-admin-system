@@ -136,6 +136,17 @@ export default function SurrogacyProfile() {
       : currentContact?.cell_phone ?? t('noData', '暂无数据');
   }, [currentContact?.cell_phone_country_code, currentContact?.cell_phone, t]);
 
+  // 使用 useMemo 缓存身高显示
+  const heightDisplay = useMemo(() => {
+    if (!currentContact?.height) return t('noData', '暂无数据');
+    // 处理 "5'5\"" 格式的身高数据
+    if (typeof currentContact.height === 'string' && currentContact.height.includes("'")) {
+      return currentContact.height; // 直接显示 "5'5\"" 格式
+    }
+    // 如果是纯数字，添加英尺单位
+    return `${currentContact.height} ${t('ft', '英尺')}`;
+  }, [currentContact?.height, t]);
+
   // 使用 useMemo 缓存医疗状况显示
   const medicalConditionsDisplay = useMemo(() => {
     return Array.isArray(currentHealth?.medical_conditions) 
@@ -289,14 +300,14 @@ export default function SurrogacyProfile() {
                   <span className="text-sage-500">{t('surrogateProfileDetail.occupation', '职业')}:</span>
                   <span className="text-sage-800">{currentAbout?.occupation ?? t('noData', '暂无数据')}</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-sage-500">{t('surrogateProfileDetail.contactSource', '信息来源')}:</span>
                   <span className="text-sage-800">{
                     currentAbout?.contact_source
                       ? String(t(`surrogateProfileDetail.contactSource.${currentAbout.contact_source}`, currentAbout.contact_source))
                       : t('noData', '暂无数据')
                   }</span>
-                </div>
+                </div> */}
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('surrogateProfileDetail.maritalStatus', '婚姻状况')}:</span>
                   <span className="text-sage-800">{currentAbout?.marital_status ?? t('noData', '暂无数据')}</span>
@@ -328,6 +339,10 @@ export default function SurrogacyProfile() {
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('surrogateProfileDetail.hasHighSchoolDiploma', '有高中毕业证')}:</span>
                   <span className="text-sage-800">{typeof currentAbout?.has_high_school_diploma === 'boolean' ? (currentAbout.has_high_school_diploma ? t('surrogateProfileDetail.yes', '是') : t('surrogateProfileDetail.no', '否')) : t('noData', '暂无数据')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sage-500">{t('surrogateProfileDetail.contactSourceLabel', '信息来源')}:</span>
+                  <span className="text-sage-800">{currentAbout?.contact_source ? String(t(`surrogateProfileDetail.contactSource.${currentAbout.contact_source}`, currentAbout.contact_source)) : t('noData', '暂无数据')}</span>
                 </div>
 
               </div>
@@ -378,11 +393,11 @@ export default function SurrogacyProfile() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('height', '身高')}:</span>
-                  <span className="text-sage-800">{currentContact?.height ?? t('noData', '暂无数据')} {t('cm', '公分')}</span>
+                  <span className="text-sage-800">{heightDisplay}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('weight', '体重')}:</span>
-                  <span className="text-sage-800">{currentContact?.weight ?? t('noData', '暂无数据')} {t('kg', '公斤')}</span>
+                  <span className="text-sage-800">{currentContact?.weight ?? t('noData', '暂无数据')} {t('lbs', '磅')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sage-500">{t('bmi', 'BMI')}:</span>
@@ -473,7 +488,7 @@ export default function SurrogacyProfile() {
                           </div>
                           <div>
                             <span className="text-sage-500">{t('birthWeight', '出生体重')}:</span>
-                            <div className="text-sage-800">{history.birth_weight || t('noData', '暂无数据')} {t('kg', '公斤')}</div>
+                            <div className="text-sage-800">{history.birth_weight || t('noData', '暂无数据')} {t('lbs', '磅')}</div>
                           </div>
                           <div>
                             <span className="text-sage-500">{t('gestationalWeeks', '孕周')}:</span>

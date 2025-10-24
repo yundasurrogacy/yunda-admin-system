@@ -519,17 +519,17 @@ export default function AllCasesPage() {
                   <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
-                      <span className="cursor-pointer text-blue-600 underline" onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}>
+                      <span className="cursor-pointer text-blue-600 hover:underline transition-all" onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}>
                         {trustBalance}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">{t('intendedParent')}：</span>
-                      <span className="text-green-600 cursor-pointer underline font-medium" onClick={() => router.push(`/admin/client-profiles/${c.intended_parent?.id}`)}>{parentName}</span>
+                      <span className="text-green-600 cursor-pointer hover:underline font-medium transition-all" onClick={() => router.push(`/admin/client-profiles/${c.intended_parent?.id}`)}>{parentName}</span>
                     </div>
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">{t('surrogateMother')}：</span>
-                      <span className="text-blue-600 cursor-pointer underline font-medium" onClick={() => router.push(`/admin/surrogate-profiles/${c.surrogate_mother?.id}`)}>{surrogateName}</span>
+                      <span className="text-blue-600 cursor-pointer hover:underline font-medium transition-all" onClick={() => router.push(`/admin/surrogate-profiles/${c.surrogate_mother?.id}`)}>{surrogateName}</span>
                     </div>
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">{t('clientManager')}：</span>
@@ -542,11 +542,30 @@ export default function AllCasesPage() {
                   </div>
                   <hr className="my-3 border-sage-100" />
                   <div className="flex flex-wrap gap-2 text-sm font-medium">
-                    {/* ...existing card links... */}
-                    <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/client-journey?caseId=${c.id}`)}>{t('myCases.intendedParentsJourney', 'Intended Parents Journey ')}</span> 
-                    <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/admin/surrogacy-journey?caseId=${c.id}`)}>{t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey ')}</span>
-                    <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/client-ivf-clinic?caseId=${c.id}`)}>{t('myCases.intendedParentsIvfClinic')}</span>
-                    <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/admin/surrogate-ivf-clinic?caseId=${c.id}`)}>{t('myCases.gestationalCarrierIvfClinic')}</span>
+                    <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/client-journey?caseId=${c.id}`)}
+                    >
+                      {t('myCases.intendedParentsJourney', 'Intended Parents Journey')}
+                    </CustomButton>
+                    <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/surrogacy-journey?caseId=${c.id}`)}
+                    >
+                      {t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey')}
+                    </CustomButton>
+                    <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/client-ivf-clinic?caseId=${c.id}`)}
+                    >
+                      {t('myCases.intendedParentsIvfClinic')}
+                    </CustomButton>
+                    <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/surrogate-ivf-clinic?caseId=${c.id}`)}
+                    >
+                      {t('myCases.gestationalCarrierIvfClinic')}
+                    </CustomButton>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>

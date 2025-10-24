@@ -441,7 +441,7 @@ const MyCasesPage = () => {
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
-                    <span className="cursor-pointer text-blue-600 underline" onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}>
+                    <span className="cursor-pointer text-blue-600 hover:underline transition-all" onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}>
                       {item.trust_account_balance_changes && item.trust_account_balance_changes.length > 0 && item.trust_account_balance_changes[0].balance_after !== null && item.trust_account_balance_changes[0].balance_after !== undefined
                         ? `$${Number(item.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                         : '-'}
@@ -450,7 +450,7 @@ const MyCasesPage = () => {
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('intendedParentLabel')}</span>
                     {item.intended_parent && item.intended_parent.id ? (
-                      <span className="text-blue-600 underline cursor-pointer" onClick={() => handleParentDetail(item.intended_parent!.id)}>
+                      <span className="text-blue-600 hover:underline cursor-pointer transition-all" onClick={() => handleParentDetail(item.intended_parent!.id)}>
                         {(() => {
                           if (item.intended_parent.basic_information) {
                             try {
@@ -470,7 +470,7 @@ const MyCasesPage = () => {
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('surrogateMotherLabel')}</span>
                     {item.surrogate_mother && item.surrogate_mother.id ? (
-                      <span className="text-blue-600 underline cursor-pointer" onClick={() => handleSurrogateDetail(item.surrogate_mother!.id)}>
+                      <span className="text-blue-600 hover:underline cursor-pointer transition-all" onClick={() => handleSurrogateDetail(item.surrogate_mother!.id)}>
                         {(() => {
                           if (item.surrogate_mother.contact_information) {
                             try {
@@ -490,15 +490,30 @@ const MyCasesPage = () => {
                 </div>
                 <hr className="my-3 border-sage-100" />
                 <div className="flex flex-wrap gap-2 text-sm">
-                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journey?caseId=${item.id}`)}>{t('myCases.journey', 'JOURNEY')}</span> */}
-                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/journey`)}>{t('myCases.journey', 'JOURNEY')}</span> */}
-                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/client-journey?caseId=${item.id}`)}>{t('myCases.intendedParentsJourney', 'Intended Parents Journey ')}</span>
-                  <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/surrogacy-journey?caseId=${item.id}`)}>{t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey ')}</span>
-                  {/* <span className="text-blue-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/ivf-clinic?caseId=${item.id}`)}>{t('myCases.ivfClinic', 'IVF CLINIC')}</span> */}
-                  {/* <span className="text-purple-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/appointments?caseId=${item.id}`)}>{t('myCases.appointments', 'APPOINTMENTS')}</span> */}
-                  {/* <span className="text-pink-600 underline cursor-pointer" onClick={() => router.push(`/client-manager/medication?caseId=${item.id}`)}>{t('myCases.medication', 'MEDICATION')}</span> */}
-                  <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/client-manager/client-ivf-clinic?caseId=${item.id}`)}>{t('myCases.intendedParentsIvfClinic')}</span>
-                  <span className="text-blue-600 underline cursor-pointer font-medium" onClick={() => router.push(`/client-manager/surrogate-ivf-clinic?caseId=${item.id}`)}>{t('myCases.gestationalCarrierIvfClinic')}</span>
+                  <CustomButton 
+                    className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/client-manager/client-journey?caseId=${item.id}`)}
+                  >
+                    {t('myCases.intendedParentsJourney', 'Intended Parents Journey')}
+                  </CustomButton>
+                  <CustomButton 
+                    className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/client-manager/surrogacy-journey?caseId=${item.id}`)}
+                  >
+                    {t('myCases.gestationalCarrierJourney', 'Gestational Carrier Journey')}
+                  </CustomButton>
+                  <CustomButton 
+                    className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/client-manager/client-ivf-clinic?caseId=${item.id}`)}
+                  >
+                    {t('myCases.intendedParentsIvfClinic')}
+                  </CustomButton>
+                  <CustomButton 
+                    className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/client-manager/surrogate-ivf-clinic?caseId=${item.id}`)}
+                  >
+                    {t('myCases.gestationalCarrierIvfClinic')}
+                  </CustomButton>
                 </div>
               </div>
             ))}

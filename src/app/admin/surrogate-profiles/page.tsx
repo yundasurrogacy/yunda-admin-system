@@ -126,10 +126,10 @@ const SurrogateCard = memo(({
           <span className="text-sage-600">BMI: {ci?.bmi ?? '-'}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('height')}: {ci?.height ?? '-'}cm</span>
+          <span className="text-sage-600">{t('height')}: {ci?.height ?? '-'} {typeof ci?.height === 'string' && ci.height.includes("'") ? '' : t('ft')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('weight')}: {ci?.weight ?? '-'}kg</span>
+          <span className="text-sage-600">{t('weight')}: {ci?.weight ?? '-'} {t('lbs')}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-normal">
           <span className="text-sage-600">{t('ethnicity')}: {ci?.ethnicity_selected_key ?? '-'}</span>
@@ -156,7 +156,7 @@ const SurrogateCard = memo(({
         <ul className="list-disc ml-6">
           {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
             <li key={idx} className="text-sage-600 text-sm font-normal">
-              {h.delivery_date} | {h.delivery_method} | {h.number_of_babies}胎 | {h.birth_weight}kg
+              {h.delivery_date} | {h.delivery_method} | {h.number_of_babies}胎 | {h.birth_weight}{t('lbs')}
             </li>
           )) : <li className="text-sage-600 text-sm font-normal">-</li>}
         </ul>

@@ -198,7 +198,7 @@ function IVFClinicContent() {
   if (error) {
     return (
       <div className="p-8 min-h-screen bg-main-bg">
-        <CustomButton
+        {/* <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
           onClick={handleBack}
         >
@@ -206,7 +206,7 @@ function IVFClinicContent() {
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </CustomButton>
+        </CustomButton> */}
         <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-white rounded-xl">
           <div className="text-4xl text-red-400 mb-4">⚠️</div>
           <h3 className="text-lg font-medium text-gray-600 mb-2">加载失败</h3>
@@ -226,7 +226,7 @@ function IVFClinicContent() {
   if (loading) {
     return (
       <div className="p-8 min-h-screen bg-main-bg">
-        <CustomButton
+        {/* <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
           onClick={handleBack}
         >
@@ -234,7 +234,7 @@ function IVFClinicContent() {
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </CustomButton>
+        </CustomButton> */}
         <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
         <p className="text-sage-800 mb-8 font-medium">{t('ivfClinic.description')}</p>
         <div className="flex items-center justify-center py-12">
@@ -250,7 +250,7 @@ function IVFClinicContent() {
   return (
     <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
-        <CustomButton
+        {/* <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
           onClick={handleBack}
         >
@@ -258,7 +258,7 @@ function IVFClinicContent() {
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </CustomButton>
+        </CustomButton> */}
       <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
       <p className="text-sage-800 mb-8 font-medium">{t('ivfClinic.description')}</p>
       

@@ -413,9 +413,9 @@ function JourneyInner() {
 
   return (
     <>
-      <div className="p-8 min-h-screen" style={{ background: '#FBF0DA40' }}>
+      <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
-        <CustomButton
+        {/* <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 text-base font-semibold cursor-pointer"
           onClick={handleBack}
         >
@@ -423,25 +423,25 @@ function JourneyInner() {
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </CustomButton>
-        <h1 className="text-2xl font-semibold font-serif text-[#271F18] mb-2">{t('journey.Intended Parents Journey')}</h1>
+        </CustomButton> */}
+        <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('journey.Intended Parents Journey')}</h1>
         {/* <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p> */}
-        <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
+        <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-serif">{t('journey.currentStatus')}</h2>
-            <span className="rounded bg-[#D9D9D9] px-4 py-1 text-xs font-serif text-[#271F18]">
+            <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
+            <span className="rounded bg-sage-100 px-4 py-1 text-xs text-sage-700">
               {currentStatusDisplay}
             </span>
           </div>
-          <div className="text-sm">
+          <div className="text-sm text-sage-600">
             {updatedDisplay}
           </div>
         </Card>
-        <Card className="rounded-xl bg-[#FBF0DA40] p-6 font-serif text-[#271F18] mb-6">
-          <h2 className="text-xl font-serif mb-4">{t('journey.statusTimeline')}</h2>
+        <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
+          <h2 className="text-xl text-sage-800 mb-4">{t('journey.statusTimeline')}</h2>
           <div className="relative pl-8">
             {/* 竖线 */}
-            {timeline.length > 0 && <div className="absolute left-4 top-0 w-0.5 h-full bg-[#D9D9D9]" />}
+            {timeline.length > 0 && <div className="absolute left-4 top-0 w-0.5 h-full bg-sage-200" />}
             {timeline.map((step, idx) => {
               // 阶段前缀
               const lang = i18n.language || 'zh';
@@ -451,21 +451,21 @@ function JourneyInner() {
               return (
                 <div key={idx} className="mb-8 relative">
                   {/* 圆点 */}
-                  <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-[#D9D9D9]" />
-                  <h3 className="font-serif text-lg mb-2">{stagePrefix}{step.stage}</h3>
-                  <div className="mb-2 text-[#6B5B3A] text-sm whitespace-pre-line">{step.description}</div>
+                  <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-sage-200" />
+                  <h3 className="text-lg mb-2 text-sage-800">{stagePrefix}{step.stage}</h3>
+                  <div className="mb-2 text-sage-600 text-sm whitespace-pre-line">{step.description}</div>
                   <ul className="mb-2">
                     {step.items.map((item: { id: any; title: string; process_status?: string }) => (
                       <li key={item.id} className="flex justify-between items-center py-1">
                         <div className="flex flex-col">
-                          <span>{item.title}</span>
+                          <span className="text-sage-800">{item.title}</span>
                           {/* 状态只读展示 */}
-                          <span className="text-xs text-gray-700 mt-1 border border-gray-300 rounded px-2 py-1 w-fit bg-white cursor-default">
+                          <span className="text-xs text-sage-700 mt-1 border border-sage-200 rounded px-2 py-1 w-fit bg-sage-50 cursor-default">
                             {item.process_status ? statusOptions.find(opt => opt.value === item.process_status)?.label || item.process_status : statusOptions[0].label}
                           </span>
                         </div>
                         <CustomButton
-                          className="rounded px-4 py-1 text-xs cursor-pointer"
+                          className="rounded px-4 py-1 text-xs bg-sage-100 text-sage-700 hover:bg-sage-200 transition-colors cursor-pointer"
                           onClick={() => handleViewClick(step.stageNumber, item.title)}
                         >
                           {t('viewDetails')}

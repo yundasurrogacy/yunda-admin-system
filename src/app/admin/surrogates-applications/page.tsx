@@ -164,7 +164,14 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <span>{t('heightWeight', { defaultValue: '身高体重' })}:</span>
-          <span className="truncate">{contactInfo.height || t('notAvailable', { defaultValue: 'N/A' })} / {contactInfo.weight || t('notAvailable', { defaultValue: 'N/A' })}</span>
+          <span className="truncate">
+            {contactInfo.height 
+              ? (typeof contactInfo.height === 'string' && contactInfo.height.includes("'") 
+                  ? contactInfo.height 
+                  : `${contactInfo.height} ${t('ft', 'ft')}`)
+              : t('notAvailable', { defaultValue: 'N/A' })
+            } / {contactInfo.weight ? `${contactInfo.weight} ${t('lbs', 'lbs')}` : t('notAvailable', { defaultValue: 'N/A' })}
+          </span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <span>{t('identity', { defaultValue: '身份' })}:</span>

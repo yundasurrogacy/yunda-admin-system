@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { CustomButton } from "@/components/ui/CustomButton";
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -67,7 +68,7 @@ const CaseCard = memo(({ item, t, getCaseIdDisplay }: {
       <div className="flex items-center gap-2 truncate">
         <span className="font-mono text-xs text-sage-400">{t('myCases.intendedParentLabel')}</span>
         {item.intended_parent ? (
-          <Link href={`/surrogacy/intended-parents`} className="text-green-600 underline">
+          <Link href={`/surrogacy/intended-parents`} className="text-green-600 hover:underline transition-all">
             {item.intended_parent.name}
           </Link>
         ) : (
@@ -77,9 +78,24 @@ const CaseCard = memo(({ item, t, getCaseIdDisplay }: {
     </div>
     <hr className="my-3 border-sage-100" />
     <div className="flex flex-wrap gap-2 text-sm">
-      <Link href={`/surrogacy/journey?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.journey')}</Link>
-      <Link href={`/surrogacy/ivf-clinic?caseId=${item.id}`} className="text-blue-600 underline">{t('myCases.ivfClinic')}</Link>
-      <Link href={`/surrogacy/journal/?caseId=${item.id}`} className="text-green-600 underline">{t('myCases.journal')}</Link>
+      <CustomButton 
+        className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+        onClick={() => window.location.href = `/surrogacy/journey?caseId=${item.id}`}
+      >
+        {t('myCases.journey')}
+      </CustomButton>
+      <CustomButton 
+        className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+        onClick={() => window.location.href = `/surrogacy/ivf-clinic?caseId=${item.id}`}
+      >
+        {t('myCases.ivfClinic')}
+      </CustomButton>
+      <CustomButton 
+        className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+        onClick={() => window.location.href = `/surrogacy/journal/?caseId=${item.id}`}
+      >
+        {t('myCases.journal')}
+      </CustomButton>
     </div>
   </div>
 ));

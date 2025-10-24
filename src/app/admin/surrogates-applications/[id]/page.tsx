@@ -159,6 +159,17 @@ export default function SurrogateApplicationDetailPage() {
     }
   }, [application, parsedData])
 
+  // 使用 useMemo 缓存身高显示
+  const heightDisplay = useMemo(() => {
+    if (!parsedData?.contactInfo?.height) return t('notAvailable');
+    // 处理 "5'5\"" 格式的身高数据
+    if (typeof parsedData.contactInfo.height === 'string' && parsedData.contactInfo.height.includes("'")) {
+      return parsedData.contactInfo.height; // 直接显示 "5'5\"" 格式
+    }
+    // 如果是纯数字，添加英尺单位
+    return `${parsedData.contactInfo.height} ${t('ft', '英尺')}`;
+  }, [parsedData?.contactInfo?.height, t]);
+
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
   // 认证检查 loading
@@ -309,42 +320,42 @@ export default function SurrogateApplicationDetailPage() {
                   <FileText className="w-5 h-5" />
                   {t('basicInformation')}
                 </h3>
-                <div className="space-y-2 text-sm font-medium text-sage-800">
-                  <div className="flex justify-between">
-                    <span>{t('occupation')}:</span>
-                    <span>{aboutYou.occupation || t('notAvailable')}</span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('occupation')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.occupation || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('education')}:</span>
-                    <span>{aboutYou.education_level || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('education')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.education_level || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('maritalStatus')}:</span>
-                    <span>{aboutYou.marital_status || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('maritalStatus')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.marital_status || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('partnerSupport')}:</span>
-                    <span>{aboutYou.partner_support || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('partnerSupport')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.partner_support || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('householdIncome')}:</span>
-                    <span>{aboutYou.household_income || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('householdIncome')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.household_income || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('surrogacyExperience')}:</span>
-                    <span>{aboutYou.is_former_surrogate ? t('experienced') : t('firstTime')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogacyExperience')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.is_former_surrogate ? t('experienced') : t('firstTime')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('surrogateProfileDetail.surrogateExperience', '代孕经历说明')}:</span>
-                    <span>{aboutYou.surrogate_experience || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogateProfileDetail.surrogateExperience', '代孕经历说明')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.surrogate_experience || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('surrogateProfileDetail.hasHighSchoolDiploma', '有高中毕业证')}:</span>
-                    <span>{aboutYou.has_high_school_diploma ? t('yes') : t('no')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogateProfileDetail.hasHighSchoolDiploma', '有高中毕业证')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.has_high_school_diploma ? t('yes') : t('no')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('surrogateProfileDetail.contactSourceLabel', '联系来源')}:</span>
-                    <span>{aboutYou.contact_source ? String(t(`surrogateProfileDetail.contactSource.${aboutYou.contact_source}`, aboutYou.contact_source)) : t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogateProfileDetail.contactSourceLabel', '联系来源')}:</span>
+                    <span className="text-sage-800 font-semibold">{aboutYou.contact_source ? String(t(`surrogateProfileDetail.contactSource.${aboutYou.contact_source}`, aboutYou.contact_source)) : t('notAvailable')}</span>
                   </div>
                 </div>
               </div>
@@ -354,34 +365,34 @@ export default function SurrogateApplicationDetailPage() {
                   <User className="w-5 h-5" />
                   {t('contactInformation')}
                 </h3>
-                <div className="space-y-2 text-sm font-medium text-sage-800">
-                  <div className="flex justify-between">
-                    <span>{t('dateOfBirth')}:</span>
-                    <span>{contactInfo.date_of_birth || t('notAvailable')}</span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('dateOfBirth')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.date_of_birth || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('phone')}:</span>
-                    <span>{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('phone')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('email')}:</span>
-                    <span>{contactInfo.email_address || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('email')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.email_address || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('city')}:</span>
-                    <span>{contactInfo.city || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('city')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.city || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('stateOrProvince')}:</span>
-                    <span>{contactInfo.state_or_province || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('stateOrProvince')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.state_or_province || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('country')}:</span>
-                    <span>{contactInfo.country || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('country')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.country || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('zipCode')}:</span>
-                    <span>{contactInfo.zip_code || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('zipCode')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.zip_code || t('notAvailable')}</span>
                   </div>
                 </div>
               </div>
@@ -391,26 +402,26 @@ export default function SurrogateApplicationDetailPage() {
                   <Activity className="w-5 h-5" />
                   {t('physicalCharacteristics')}
                 </h3>
-                <div className="space-y-2 text-sm font-medium text-sage-800">
-                  <div className="flex justify-between">
-                    <span>{t('height')}:</span>
-                    <span>{contactInfo.height ? `${contactInfo.height} ${t('cm')}` : t('notAvailable')}</span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('height')}:</span>
+                    <span className="text-sage-800 font-semibold">{heightDisplay}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('weight')}:</span>
-                    <span>{contactInfo.weight ? `${contactInfo.weight} ${t('kg')}` : t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('weight')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.weight ? `${contactInfo.weight} ${t('lbs', '磅')}` : t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('bmi')}:</span>
-                    <span>{contactInfo.bmi || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('bmi')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.bmi || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('ethnicity')}:</span>
-                    <span>{contactInfo.ethnicity || t('notAvailable')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('ethnicity')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.ethnicity || t('notAvailable')}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>{t('surrogacyExperienceCount')}:</span>
-                    <span>{contactInfo.surrogacy_experience_count || 0} {t('timesCount')}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogacyExperienceCount')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.surrogacy_experience_count || 0} {t('timesCount')}</span>
                   </div>
                 </div>
               </div>
@@ -483,7 +494,7 @@ export default function SurrogateApplicationDetailPage() {
                           </div>
                           <div>
                             <span className="text-sage-500">{t('birthWeight')}:</span>
-                            <div className="text-sage-800">{history.birth_weight ? `${history.birth_weight} ${t('kg')}` : t('notAvailable')}</div>
+                            <div className="text-sage-800">{history.birth_weight ? `${history.birth_weight} ${t('lbs', '磅')}` : t('notAvailable')}</div>
                           </div>
                           <div>
                             <span className="text-sage-500">{t('gestationalWeeks')}:</span>
