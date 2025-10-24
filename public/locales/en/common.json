@@ -1231,5 +1231,21 @@
     "videoTooLarge": "Video size cannot exceed 50MB",
     "uploadFailed": "Upload failed, please try again",
     "uploadError": "Upload error, please try again"
+  },
+  "allCategories": "All Categories",
+  "currentFilters": "Current Filters",
+  "clearAll": "Clear All",
+  "search": "Search",
+  "pagination": {
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "page": "Page",
+    "of": "of",
+    "pages": "pages",
+    "prevPageAria": "Previous page",
+    "nextPageAria": "Next page",
+    "inputAria": "Enter page number",
+    "total": "Total",
+    "items": "items"
   }
 }

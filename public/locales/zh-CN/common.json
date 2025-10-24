@@ -1232,5 +1232,21 @@
     "videoTooLarge": "视频大小不能超过50MB",
     "uploadFailed": "上传失败，请重试",
     "uploadError": "上传出错，请重试"
+  },
+  "allCategories": "全部分类",
+  "currentFilters": "当前筛选",
+  "clearAll": "清除全部",
+  "search": "搜索",
+  "pagination": {
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "page": "第",
+    "of": "共",
+    "pages": "页",
+    "prevPageAria": "上一页",
+    "nextPageAria": "下一页",
+    "inputAria": "输入页码",
+    "total": "共",
+    "items": "条记录"
   }
 }

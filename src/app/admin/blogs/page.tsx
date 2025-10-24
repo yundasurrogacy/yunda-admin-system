@@ -145,25 +145,25 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
           <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
 
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle', { defaultValue: '中文标题' })}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
             <Input 
               name="title" 
               value={form.title} 
               onChange={handleChange} 
               required 
               className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
-              placeholder={t('pleaseEnterChineseTitle', '请输入中文标题')}
+              placeholder={t('pleaseEnterChineseTitle')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishTitle', { defaultValue: '英文标题' })}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')}</Label>
             <Input 
               name="en_title" 
               value={form.en_title} 
               onChange={handleChange} 
               className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
-              placeholder={t('pleaseEnterEnglishTitle', 'Please enter English title')}
+              placeholder={t('pleaseEnterEnglishTitle')}
             />
           </div>
 
@@ -206,22 +206,22 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseContent', { defaultValue: '中文内容' })}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('chineseContent')}</Label>
             <RichTextEditor
               value={form.content} 
               onChange={(value) => setForm({ ...form, content: value })}
-              placeholder={t('pleaseEnterChineseContent', '请输入中文内容')}
+              placeholder={t('pleaseEnterChineseContent')}
               minHeight="200px"
               className="text-[16px]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishContent', { defaultValue: '英文内容' })}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('englishContent')}</Label>
             <RichTextEditor
               value={form.en_content} 
               onChange={(value) => setForm({ ...form, en_content: value })}
-              placeholder={t('pleaseEnterEnglishContent', 'Please enter English content')}
+              placeholder={t('pleaseEnterEnglishContent')}
               minHeight="200px"
               className="text-[16px]"
             />
@@ -356,6 +356,24 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   );
 }
 
+// 分类映射函数
+const getCategoryTranslationKey = (category: string): string => {
+  const categoryMap: Record<string, string> = {
+    '代孕妈妈相关': 'categoryRelatedToSurrogate',
+    '准父母相关': 'categoryRelatedToParents',
+    '孕达品牌相关': 'categoryRelatedToBrand',
+    '代孕流程相关': 'categoryRelatedToProcess',
+    '法律法规相关': 'categoryRelatedToLaw',
+    '行业动态相关': 'categoryRelatedToIndustry',
+    '医学健康相关': 'categoryRelatedToMedical',
+    '教育科普相关': 'categoryRelatedToEducation',
+    '成功案例相关': 'categoryRelatedToSuccess',
+    '心理情绪相关': 'categoryRelatedToPsychology',
+  };
+  
+  return categoryMap[category] || category;
+};
+
 function AdminBlogsPage() {
   const { t, i18n } = useTranslation("common")
   const router = useRouter()
@@ -369,7 +387,12 @@ function AdminBlogsPage() {
   const [editing, setEditing] = useState<any>(null);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
-  const [pageSize, setPageSize] = useState(8);
+  const [pageSize] = useState(8); // 固定页面大小，不再动态计算
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 认证检查和 cookie 读取
@@ -392,49 +415,83 @@ function AdminBlogsPage() {
     setPageInput(String(page));
   }, [page]);
 
-  // 自适应每页条数
-  useEffect(() => {
-    function calcPageSize() {
-      if (!containerRef.current) return;
-      const width = containerRef.current.offsetWidth;
-      const cardWidth = 340 + 32;
-      const columns = Math.max(1, Math.floor(width / cardWidth));
-      setPageSize(columns * 2); // 2 行
+  // 移除动态页面大小计算，使用固定的服务端分页
+
+  // 获取分类列表
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch('/api/blog/categories');
+      const data = await res.json();
+      setAvailableCategories(data.categories || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setAvailableCategories([]);
     }
-    calcPageSize();
-    window.addEventListener('resize', calcPageSize);
-    return () => window.removeEventListener('resize', calcPageSize);
   }, []);
 
   // 使用 useCallback 缓存数据加载函数
   const fetchBlogs = useCallback(async () => {
     setLoading(true);
-    // 请求所有博客数据，不使用服务端分页（设置一个很大的 limit）
-    const res = await fetch(`${BLOG_API}?limit=1000`);
-    const data = await res.json();
-    console.log(data)
-    setBlogs(data.blogs || []);
-    setLoading(false);
-  }, []);
+    try {
+      // 构建查询参数
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: pageSize.toString()
+      });
+      
+      if (searchValue.trim()) {
+        params.append('search', searchValue.trim());
+      }
+      
+      if (selectedCategory) {
+        params.append('category', selectedCategory);
+      }
+      
+      // 使用服务端分页，支持搜索和筛选
+      const res = await fetch(`${BLOG_API}?${params.toString()}`);
+      const data = await res.json();
+      console.log('Blog data:', data);
+      
+      if (data.blogs) {
+        setBlogs(data.blogs);
+      } else {
+        // 兼容旧的API响应格式
+        setBlogs(Array.isArray(data) ? data : data.data || []);
+      }
+      
+      // 设置分页信息
+      if (data.pagination) {
+        setTotalPages(data.pagination.totalPages || 1);
+        setTotalCount(data.pagination.totalCount || 0);
+      } else {
+        // 如果没有分页信息，使用默认值
+        setTotalPages(1);
+        setTotalCount(data.blogs?.length || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+      setBlogs([]);
+      setTotalPages(1);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, searchValue, selectedCategory]);
 
   // 只在认证后才加载数据
   useEffect(() => {
     if (isAuthenticated) {
-    fetchBlogs();
+      fetchBlogs();
+      fetchCategories();
     }
-  }, [isAuthenticated, fetchBlogs]);
+  }, [isAuthenticated, fetchBlogs, fetchCategories]);
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
-  // 使用 useMemo 缓存分页数据
-  const { totalPages, pagedBlogs } = useMemo(() => {
-    const pages = Math.max(1, Math.ceil(blogs.length / pageSize));
-    const paged = blogs.slice((page - 1) * pageSize, page * pageSize);
-    return { totalPages: pages, pagedBlogs: paged };
-  }, [blogs, page, pageSize]);
-
   // 翻页时如果超出总页数，自动回到最后一页
   useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
+    if (page > totalPages && totalPages > 0) {
+      setPage(totalPages);
+    }
   }, [totalPages, page]);
 
   // 使用 useCallback 缓存事件处理函数
@@ -526,6 +583,25 @@ function AdminBlogsPage() {
     setAddOpen(open);
   }, []);
 
+  // 搜索处理函数
+  const handleSearch = useCallback((value: string) => {
+    setSearchValue(value);
+    setPage(1); // 重置到第一页
+  }, []);
+
+  // 分类筛选处理函数
+  const handleCategoryChange = useCallback((category: string) => {
+    setSelectedCategory(category);
+    setPage(1); // 重置到第一页
+  }, []);
+
+  // 清除筛选条件
+  const handleClearFilters = useCallback(() => {
+    setSearchValue('');
+    setSelectedCategory('');
+    setPage(1);
+  }, []);
+
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
   // 认证检查 loading
@@ -546,9 +622,12 @@ function AdminBlogsPage() {
 
   return (
       <PageContent>
-        <PageHeader title={t('blogManagement', { defaultValue: '博客管理' })}
+        <PageHeader 
+          title={t('blogManagement')}
+          showSearch
+          onSearch={handleSearch}
           rightContent={
-            <CustomButton className="font-medium text-sage-800 cursor-pointer" onClick={handleAdd}>{t('addBlog', { defaultValue: '添加博客' })}</CustomButton>
+            <CustomButton className="font-medium text-sage-800 cursor-pointer" onClick={handleAdd}>{t('addBlog')}</CustomButton>
           }
         />
         <BlogForm
@@ -557,12 +636,81 @@ function AdminBlogsPage() {
           onSubmit={handleSubmit}
           initialValues={editing}
         />
+        
+        {/* 分类筛选控件 */}
+        <div className="mt-6 bg-white rounded-lg border border-sage-200 p-6 shadow-sm">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {/* 全部分类按钮 */}
+            <button
+              onClick={() => handleCategoryChange('')}
+              className={`px-4 py-2 rounded-full text-sm transition-all duration-200 cursor-pointer ${
+                selectedCategory === '' ? "bg-sage-200 text-sage-800" : "bg-sage-100 text-sage-600 hover:bg-sage-150"
+              }`}
+            >
+              {t('allCategories')}
+            </button>
+            
+            {/* 动态分类按钮 */}
+            {availableCategories.map((category) => {
+              const categoryKey = getCategoryTranslationKey(category);
+              const displayCategory = t(categoryKey);
+              
+              return (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryChange(category)}
+                  className={`px-4 py-2 rounded-full text-sm transition-all duration-200 cursor-pointer capitalize ${
+                    selectedCategory === category ? "bg-sage-200 text-sage-800" : "bg-sage-100 text-sage-600 hover:bg-sage-150"
+                  }`}
+                >
+                  {displayCategory}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* 当前筛选条件显示 */}
+          {(searchValue || selectedCategory) && (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-sm text-sage-600">{t('currentFilters')}:</span>
+              {searchValue && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  {t('search')}: "{searchValue}"
+                  <button
+                    onClick={() => setSearchValue('')}
+                    className="ml-2 text-blue-500 hover:text-blue-700 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {selectedCategory && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  {t('category')}: {t(getCategoryTranslationKey(selectedCategory))}
+                  <button
+                    onClick={() => setSelectedCategory('')}
+                    className="ml-2 text-green-500 hover:text-green-700 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={handleClearFilters}
+                className="px-3 py-1 text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-full transition-colors cursor-pointer"
+              >
+                {t('clearAll')}
+              </button>
+            </div>
+          )}
+        </div>
+        
         <div className="mt-8">
           {loading ? (
             <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
               <div className="flex flex-col items-center gap-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600"></div>
-                <div className="text-lg text-sage-700">{t('loading', { defaultValue: '加载中...' })}</div>
+                <div className="text-lg text-sage-700">{t('loading')}</div>
               </div>
             </div>
           ) : blogs.length === 0 ? (
@@ -573,8 +721,8 @@ function AdminBlogsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                   </svg>
                 </div>
-                <p className="text-xl text-sage-600 font-medium mb-2">{t('noBlog', { defaultValue: '暂无博客' })}</p>
-                <p className="text-sm text-sage-400 mb-6">{t('noBlogDesc', { defaultValue: '还没有创建任何博客，点击上方按钮开始创建' })}</p>
+                <p className="text-xl text-sage-600 font-medium mb-2">{t('noBlog')}</p>
+                <p className="text-sm text-sage-400 mb-6">{t('noBlogDesc')}</p>
               </div>
             </div>
           ) : (
@@ -588,28 +736,14 @@ function AdminBlogsPage() {
                   alignItems: 'stretch',
                 }}
               >
-                {pagedBlogs.map((blog) => {
+                {blogs.map((blog) => {
                   // 根据当前语言选择显示的标题和内容
                   const displayTitle = i18n.language === 'zh-CN' ? blog.title : (blog.en_title || blog.title);
                   const displayContent = i18n.language === 'zh-CN' ? blog.content : (blog.en_content || blog.content);
                   
-                  // 创建分类中文到翻译key的映射
-                  const categoryMap: Record<string, string> = {
-                    '代孕妈妈相关': 'categoryRelatedToSurrogate',
-                    '准父母相关': 'categoryRelatedToParents',
-                    '孕达品牌相关': 'categoryRelatedToBrand',
-                    '代孕流程相关': 'categoryRelatedToProcess',
-                    '法律法规相关': 'categoryRelatedToLaw',
-                    '行业动态相关': 'categoryRelatedToIndustry',
-                    '医学健康相关': 'categoryRelatedToMedical',
-                    '教育科普相关': 'categoryRelatedToEducation',
-                    '成功案例相关': 'categoryRelatedToSuccess',
-                    '心理情绪相关': 'categoryRelatedToPsychology',
-                  };
-                  
                   // 获取翻译key，如果找不到则直接使用原值
-                  const categoryKey = categoryMap[blog.category] || blog.category;
-                  const displayCategory = t(categoryKey, { defaultValue: blog.category });
+                  const categoryKey = getCategoryTranslationKey(blog.category);
+                  const displayCategory = t(categoryKey);
                   
                   return (
                   <div
@@ -665,8 +799,8 @@ function AdminBlogsPage() {
                         {t('createdAt')}<br />{blog.created_at ? new Date(blog.created_at).toLocaleString() : "-"}
                       </span>
                       <div className="flex gap-2">
-                        <CustomButton className="font-medium cursor-pointer px-3 py-1 text-sm" onClick={() => handleEdit(blog)}>{t('edit', { defaultValue: '编辑' })}</CustomButton>
-                        <CustomButton className="font-medium cursor-pointer border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm" onClick={() => handleDelete(blog.id)}>{t('delete', { defaultValue: '删除' })}</CustomButton>
+                        <CustomButton className="font-medium cursor-pointer px-3 py-1 text-sm" onClick={() => handleEdit(blog)}>{t('edit')}</CustomButton>
+                        <CustomButton className="font-medium cursor-pointer border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm" onClick={() => handleDelete(blog.id)}>{t('delete')}</CustomButton>
                       </div>
                     </div>
                   </div>
@@ -674,24 +808,32 @@ function AdminBlogsPage() {
                 })}
               </div>
               {/* 分页控件 */}
-              <div className="flex items-center justify-center gap-4 mt-8">
-                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={handlePrevPage} disabled={page === 1}>{t('pagination.prevPage', '上一页')}</CustomButton>
-                <span>
-                  {t('pagination.page', '第')}
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={pageInput}
-                    onChange={handlePageInputChange}
-                    onBlur={handlePageInputBlur}
-                    onKeyDown={handlePageInputKeyDown}
-                    className="w-12 border rounded text-center mx-1"
-                    style={{height: 28}}
-                  />
-                  {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
-                </span>
-                <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={handleNextPage} disabled={page === totalPages}>{t('pagination.nextPage', '下一页')}</CustomButton>
+              <div className="flex flex-col items-center justify-center gap-4 mt-8">
+                {/* 总数信息 */}
+                {/* <div className="text-sm text-sage-600">
+                  {t('pagination.total', '共')} {totalCount} {t('pagination.items', '条记录')}
+                </div> */}
+                
+                {/* 分页控件 */}
+                <div className="flex items-center justify-center gap-4">
+                  <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={handlePrevPage} disabled={page === 1}>{t('pagination.prevPage')}</CustomButton>
+                  <span>
+                    {t('pagination.page')}
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={pageInput}
+                      onChange={handlePageInputChange}
+                      onBlur={handlePageInputBlur}
+                      onKeyDown={handlePageInputKeyDown}
+                      className="w-12 border rounded text-center mx-1"
+                      style={{height: 28}}
+                    />
+                    {t('pagination.of')} {totalPages} {t('pagination.pages')}
+                  </span>
+                  <CustomButton className="border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm cursor-pointer" onClick={handleNextPage} disabled={page === totalPages}>{t('pagination.nextPage')}</CustomButton>
+                </div>
               </div>
             </>
           )}

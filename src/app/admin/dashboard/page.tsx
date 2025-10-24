@@ -27,7 +27,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
-import {getSurrogatesApplications, getParentsApplications } from '@/lib/graphql/applications'
+import {getSurrogatesApplications, getParentsApplications, getIntendedParents, getSurrogateMothers } from '@/lib/graphql/applications'
 
 // 将 getCookie 函数移到组件外部，避免每次渲染重新创建
 function getCookie(name: string) {
@@ -156,17 +156,20 @@ export default function DashboardPage() {
     
     setLoading(true);
     try {
-      const [casesData, surrogates, parents] = await Promise.all([
+      const [casesData, surrogates, parents, surrogateUsers, parentUsers] = await Promise.all([
         fetch("/api/cases-list").then(r => r.json()),
         getSurrogatesApplications(10000, 0),
-        getParentsApplications(10000, 0)
+        getParentsApplications(10000, 0),
+        getSurrogateMothers(10000, 0),
+        getIntendedParents(10000, 0)
       ]);
       
       setCases(Array.isArray(casesData) ? casesData : casesData.data || []);
       setSurrogateApplications(surrogates || []);
       setParentApplications(parents || []);
-      setGcTotal(surrogates?.length || 0);
-      setIpTotal(parents?.length || 0);
+      // 使用实际的用户数据而不是申请数据
+      setGcTotal(surrogateUsers?.length || 0);
+      setIpTotal(parentUsers?.length || 0);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
