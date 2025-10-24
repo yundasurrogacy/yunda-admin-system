@@ -24,6 +24,17 @@ function getCookie(name: string) {
 function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   const { t } = useTranslation("common")
   const { sidebarOpen } = useSidebar()
+  
+  // 确保所有表单值都是字符串，避免 null 值
+  const sanitizeFormValues = (values: any) => {
+    if (!values) return {};
+    const sanitized: any = {};
+    Object.keys(values).forEach(key => {
+      sanitized[key] = values[key] === null || values[key] === undefined ? '' : String(values[key]);
+    });
+    return sanitized;
+  };
+
   const [form, setForm] = useState({
     title: '',
     content: '',
@@ -33,10 +44,12 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     cover_img_url: '',
     reference_author: '',
     tags: '',
-    ...initialValues,
+    route_id: '',
+    ...sanitizeFormValues(initialValues),
   });
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setForm({
@@ -48,7 +61,8 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       cover_img_url: '',
       reference_author: '',
       tags: '',
-      ...initialValues,
+      route_id: '',
+      ...sanitizeFormValues(initialValues),
     })
   }, [initialValues, open])
 
@@ -88,7 +102,22 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    onSubmit(form);
+    
+    // 防止重复提交
+    if (submitting) {
+      console.log('Already submitting, please wait...');
+      return;
+    }
+    
+    setSubmitting(true);
+    
+    try {
+      await onSubmit(form);
+    } catch (error) {
+      console.error('Submit error:', error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const categoryOptions = [
@@ -122,19 +151,26 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
       {/* 弹窗内容 */}
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-fadeIn relative z-10 max-h-[90vh] flex flex-col pointer-events-auto"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden animate-fadeIn relative z-10 max-h-[95vh] flex flex-col pointer-events-auto transform transition-all duration-300 ease-out hover:shadow-3xl"
         style={modalStyle}
       >
         {/* 固定标题栏 */}
-        <div className="px-6 py-4 border-b border-sage-200 bg-white flex items-center justify-between sticky top-0 z-10">
-          <h2 className="text-2xl font-bold text-sage-800 tracking-wide capitalize">{form.id ? t('editBlog') : t('addBlog')}</h2>
+        <div className="px-8 py-6 border-b border-sage-200 bg-gradient-to-r from-sage-50 to-white flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#C2A87A] rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-sage-800 tracking-wide capitalize">{form.id ? t('editBlog') : t('addBlog')}</h2>
+          </div>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-all duration-200 cursor-pointer group"
             aria-label={t('close', '关闭')}
           >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="group-hover:rotate-90 transition-transform duration-200">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -142,31 +178,21 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
         {/* 可滚动的表单内容 */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
+          <div className="px-8 py-6 space-y-6 overflow-y-auto flex-1 bg-gradient-to-b from-white to-sage-25">
 
+          {/* 1. 路由标识 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
+            <Label className="text-base font-semibold text-sage-700">{t('routeId')}</Label>
             <Input 
-              name="title" 
-              value={form.title} 
+              name="route_id" 
+              value={form.route_id} 
               onChange={handleChange} 
-              required 
+              placeholder={t('pleaseEnterRouteId')}
               className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
-              placeholder={t('pleaseEnterChineseTitle')}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')}</Label>
-            <Input 
-              name="en_title" 
-              value={form.en_title} 
-              onChange={handleChange} 
-              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
-              placeholder={t('pleaseEnterEnglishTitle')}
-            />
-          </div>
-
+          {/* 2. 作者、标签、分类 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="space-y-2">
               <Label className="text-base font-semibold text-sage-700 capitalize">{t('author')}</Label>
@@ -205,17 +231,19 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             </div>
           </div>
 
+          {/* 4. 英文标题 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseContent')}</Label>
-            <RichTextEditor
-              value={form.content} 
-              onChange={(value) => setForm({ ...form, content: value })}
-              placeholder={t('pleaseEnterChineseContent')}
-              minHeight="200px"
-              className="text-[16px]"
+            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')}</Label>
+            <Input 
+              name="en_title" 
+              value={form.en_title} 
+              onChange={handleChange} 
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              placeholder={t('pleaseEnterEnglishTitle')}
             />
           </div>
 
+          {/* 5. 英文内容 */}
           <div className="space-y-2">
             <Label className="text-base font-semibold text-sage-700">{t('englishContent')}</Label>
             <RichTextEditor
@@ -227,7 +255,21 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             />
           </div>
 
-            <div className="space-y-2">
+          {/* 6. 中文标题 */}
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
+            <Input 
+              name="title" 
+              value={form.title} 
+              onChange={handleChange} 
+              required 
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              placeholder={t('pleaseEnterChineseTitle')}
+            />
+          </div>
+
+          {/* 3. 封面图 */}
+          <div className="space-y-2">
             <Label className="text-base font-semibold text-sage-700 capitalize">{t('coverImage')}</Label>
             {/* 没有图片时的上传区块 */}
             {!form.cover_img_url && (
@@ -331,23 +373,53 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
               </div>
             )}
             </div>
+
+          {/* 7. 中文内容 */}
+          <div className="space-y-2">
+            <Label className="text-base font-semibold text-sage-700">{t('chineseContent')}</Label>
+            <RichTextEditor
+              value={form.content} 
+              onChange={(value) => setForm({ ...form, content: value })}
+              placeholder={t('pleaseEnterChineseContent')}
+              minHeight="200px"
+              className="text-[16px]"
+            />
+          </div>
           </div>
 
           {/* 固定底部按钮栏 */}
-          <div className="px-6 py-4 border-t border-sage-200 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
+          <div className="px-8 py-6 border-t border-sage-200 bg-gradient-to-r from-sage-50 to-white flex justify-end gap-4 sticky bottom-0">
             <CustomButton 
               type="button" 
               onClick={() => onOpenChange(false)}
-              className="min-w-[100px] px-6 py-2 text-base font-semibold border border-sage-300 text-sage-700 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer capitalize"
+              disabled={submitting}
+              className={`min-w-[120px] px-6 py-3 text-base font-semibold border rounded-lg transition-all duration-200 capitalize ${
+                submitting 
+                  ? 'border-gray-300 text-gray-400 cursor-not-allowed' 
+                  : 'border-sage-300 text-sage-700 hover:bg-sage-100 hover:border-sage-400 cursor-pointer shadow-sm hover:shadow-md'
+              }`}
             >
               {t('cancel')}
             </CustomButton>
             <CustomButton 
               type="submit" 
-              disabled={uploading}
-              className="min-w-[120px] px-6 py-2 text-base font-semibold bg-[#C2A87A] text-white rounded-lg hover:bg-[#a88a5c] transition-colors shadow cursor-pointer capitalize"
+              disabled={uploading || submitting}
+              className={`min-w-[140px] px-6 py-3 text-base font-semibold rounded-lg transition-all duration-200 shadow-lg capitalize ${
+                uploading || submitting 
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  : 'bg-[#C2A87A] text-white hover:bg-[#a88a5c] cursor-pointer hover:shadow-xl transform hover:-translate-y-0.5'
+              }`}
             >
-              {uploading ? t('uploading') : (form.id ? t('save') : t('add'))}
+              {submitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>{t('saving')}</span>
+                </div>
+              ) : uploading ? (
+                t('uploading')
+              ) : (
+                form.id ? t('save') : t('add')
+              )}
             </CustomButton>
           </div>
         </form>
@@ -517,23 +589,28 @@ function AdminBlogsPage() {
   }, [fetchBlogs]);
 
   const handleSubmit = useCallback(async (form: any) => {
-    if (form.id) {
-      await fetch(BLOG_API, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      console.log('Blog edited successfully');
-    } else {
-      await fetch(BLOG_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      console.log('Blog added successfully');
+    try {
+      if (form.id) {
+        await fetch(BLOG_API, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        });
+        console.log('Blog edited successfully');
+      } else {
+        await fetch(BLOG_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        });
+        console.log('Blog added successfully');
+      }
+      setAddOpen(false);
+      fetchBlogs();
+    } catch (error) {
+      console.error('Error submitting blog:', error);
+      // 可以在这里添加错误提示
     }
-    setAddOpen(false);
-    fetchBlogs();
   }, [fetchBlogs]);
 
   const handlePrevPage = useCallback(() => {
@@ -745,6 +822,7 @@ function AdminBlogsPage() {
                   const categoryKey = getCategoryTranslationKey(blog.category);
                   const displayCategory = t(categoryKey);
                   
+                  
                   return (
                   <div
                     key={blog.id}
@@ -779,6 +857,10 @@ function AdminBlogsPage() {
                           <span className="truncate font-medium">{blog.tags}</span>
                         </div>
                       )}
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="font-mono text-xs text-sage-400">{t('routeId')}：</span>
+                        <span className="truncate font-medium">{blog.route_id || t('notAvailable')}</span>
+                      </div>
                       <div className="flex items-start gap-2">
                         <span className="font-mono text-xs text-sage-400 flex-shrink-0">{t('content')}：</span>
                         <div 

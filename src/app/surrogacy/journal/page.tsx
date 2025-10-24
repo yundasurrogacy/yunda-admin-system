@@ -310,7 +310,7 @@ function JournalPageInner() {
                         <div className="flex flex-col sm:flex-row gap-2 mt-2">
                           <input
                             type="text"
-                            className="border rounded px-2 py-1 text-xs flex-1 min-w-0 text-sage-800"
+                            className="border border-gray-300 rounded px-2 py-1 text-xs flex-1 min-w-0 text-sage-800 focus:outline-none focus:border-sage-400 focus:shadow-sm transition-colors"
                             placeholder={t('ivfClinic.addNewNote', '写评论...')}
                             value={commentText}
                             onChange={handleCommentTextChange}
@@ -332,7 +332,7 @@ function JournalPageInner() {
             <div className="bg-[#FBF0DA] rounded-xl shadow-md p-4 mb-2">
               <div className="text-lg font-semibold text-sage-800 mb-2">{t('myCases.publishUpdate', t('journey.stage1.title', "This week, I'm feeling..."))}</div>
               <textarea
-                className="w-full h-24 rounded-md border border-[#E6E6E6] p-2 text-base text-sage-800 resize-none focus:outline-none focus:ring-2 focus:ring-[#271F18]"
+                className="w-full h-24 rounded-md border border-gray-300 p-2 text-base text-sage-800 resize-none focus:outline-none focus:border-sage-400 focus:shadow-sm transition-colors"
                 placeholder={t('ivfClinic.noteContent', 'Write a message...')}
                 value={message}
                 onChange={handleMessageChange}

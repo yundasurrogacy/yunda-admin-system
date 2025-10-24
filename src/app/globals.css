@@ -17,7 +17,31 @@
 
 body {
   background: var(--background);
-/* 卡片全局样式建议 */
+/* 博客弹窗动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 悬浮阴影效果 */
+.shadow-3xl {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* 背景模糊效果 */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
 .card-bg, .bg-card, .card, .Card, .unocss-card {
   background: var(--card-background) !important;
 }

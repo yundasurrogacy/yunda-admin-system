@@ -238,8 +238,8 @@ const JournalPage: React.FC = () => {
     >
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-4 md:p-8 flex flex-col gap-6">
         {/* 标题与描述 */}
-        <h1 className="text-2xl font-medium mb-1 text-sage-800">{t('myCases.journalTitle', t('journal.title', 'My Journal'))}</h1>
-        <p className="mb-6 text-base text-sage-800">{t('journey.description', 'Record your experiences and feelings through your journey as a surrogate')}</p>
+        <h1 className="text-2xl font-medium mb-1 text-sage-800">{t('myCases.surrogateJournalTitle', t('journal.surrogateTitle', 'Surrogate Journal'))}</h1>
+        <p className="mb-6 text-base text-sage-800">{t('journal.surrogateDescription', 'Here you can find the latest updates and photos from your surrogate mother, allowing you to follow her progress in real-time')}</p>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* 左侧日志卡片区 */}
           <div className="flex-1 flex flex-col gap-6 min-w-0">
@@ -271,7 +271,7 @@ const JournalPage: React.FC = () => {
                       <div className="text-xs text-[#271F18] opacity-60 ml-0 md:ml-4 flex-shrink-0 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
                     </div>
                     <button
-                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start"
+                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start focus:outline-none cursor-pointer"
                       onClick={() => handleToggleComments(post.id)}
                     >
                       {activePostId === post.id ? t('cancel', '关闭评论') : t('viewDetails', '查看评论')}
@@ -288,13 +288,13 @@ const JournalPage: React.FC = () => {
                         <div className="flex flex-col sm:flex-row gap-2 mt-2">
                           <input
                             type="text"
-                            className="border rounded px-2 py-1 text-xs flex-1 min-w-0"
+                            className="border border-gray-300 rounded px-2 py-1 text-xs flex-1 min-w-0 focus:outline-none focus:border-sage-400 focus:shadow-sm transition-colors"
                             placeholder={t('ivfClinic.addNewNote', '写评论...')}
                             value={commentText}
                             onChange={handleCommentTextChange}
                           />
                           <button
-                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium"
+                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium focus:outline-none hover:bg-[#1a1a1a] transition cursor-pointer"
                             onClick={() => handleComment(post.id)}
                           >{t('submit', '发表评论')}</button>
                         </div>
