@@ -163,6 +163,23 @@ function JourneyInner() {
   const [timeline, setTimeline] = useState<any[]>([]);
   const [actualCaseId, setActualCaseId] = useState<string | null>(caseId); // 实际的 caseId
 
+  // Toast 通知状态
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
+
   // 认证检查和 cookie 读取
   useEffect(() => {
     // 只在客户端执行
@@ -209,12 +226,12 @@ function JourneyInner() {
       if (res.ok) {
         window.location.reload();
       } else {
-        console.error('Failed to update status');
+        showToastMessage(t('journey.updateStatusFailed') || '更新状态失败', 'error');
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      showToastMessage(t('journey.updateStatusError') || '更新状态时出错', 'error');
     }
-  }, []);
+  }, [t, showToastMessage]);
 
   // 使用 useCallback 缓存查看详情函数
   const handleViewClick = useCallback((stageNumber: number, itemTitle: string) => {
@@ -318,7 +335,7 @@ function JourneyInner() {
           setTimeline(baseTimeline);
         }
       } catch (error) {
-        console.error("Failed to fetch case data:", error);
+        showToastMessage(t('journey.fetchDataError') || '获取数据失败', 'error');
         setProcessStatus('');
         setUpdatedAt('');
         setTimeline(baseTimeline);
@@ -327,7 +344,7 @@ function JourneyInner() {
       }
     };
     fetchCases();
-  }, [caseId, i18n.language, isAuthenticated]);
+  }, [caseId, i18n.language, isAuthenticated, t, showToastMessage]);
 
   // 使用 useMemo 缓存中文阶段数组
   const zhStages = useMemo(() => ['一','二','三','四','五','六','七','八'], []);
@@ -425,6 +442,58 @@ function JourneyInner() {
           })}
         </div>
       </Card>
+
+      {/* Toast 通知组件 */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+          <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+            toastType === 'success' 
+              ? 'bg-green-50 border-green-400 text-green-800' 
+              : toastType === 'error'
+              ? 'bg-red-50 border-red-400 text-red-800'
+              : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+          }`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+              toastType === 'success' 
+                ? 'bg-green-100' 
+                : toastType === 'error'
+                ? 'bg-red-100'
+                : 'bg-yellow-100'
+            }`}>
+              {toastType === 'success' && (
+                <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {toastType === 'error' && (
+                <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              {toastType === 'warning' && (
+                <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </div>
+            <span className="text-sm font-medium flex-1">{toastMessage}</span>
+            <button
+              onClick={() => setShowToast(false)}
+              className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                toastType === 'success' 
+                  ? 'hover:bg-green-600' 
+                  : toastType === 'error'
+                  ? 'hover:bg-red-600'
+                  : 'hover:bg-yellow-600'
+              }`}
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -246,9 +246,24 @@ export default function ClientManagerPage() {
           />
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-500 font-medium">{t('loading')}</div>
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-4"></div>
+              <div className="text-lg text-sage-700">{t('loading')}</div>
+            </div>
+          </div>
         ) : total === 0 ? (
-          <div className="p-8 text-center text-gray-500 font-medium">{t('noClientManager')}</div>
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-sage-400 mb-4">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+              <p className="text-xl text-sage-600 font-medium mb-2">{t('noClientManager')}</p>
+              <p className="text-sm text-sage-400 mb-6">{t('noClientManagerDesc', { defaultValue: '暂无客户经理记录' })}</p>
+            </div>
+          </div>
         ) : (
           <>
             <div

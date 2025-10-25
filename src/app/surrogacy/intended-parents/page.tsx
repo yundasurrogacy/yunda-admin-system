@@ -158,7 +158,7 @@ export default function IntendedParents() {
     <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
       <div className="flex items-center justify-between pt-6 pb-2">
               {/* 返回按钮 */}
-              <CustomButton
+              {/* <CustomButton
                 className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
                 onClick={handleBack}
               >
@@ -166,8 +166,8 @@ export default function IntendedParents() {
                   <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 {t('back', '返回')}
-              </CustomButton>
-        <h1 className="text-2xl font-medium text-sage-800">{t('intendedParents.title')}</h1>
+              </CustomButton> */}
+        <h1 className="text-2xl font-medium text-sage-800">{t('Client Profile')}</h1>
         {/* <Badge variant="outline" className="px-3 py-1 bg-green-100 text-green-800 border-green-200">
           {t('intendedParents.status.matched', '已匹配')}
         </Badge> */}

@@ -25,7 +25,9 @@ export function getClientSidebarConfig() {
       items: [
         { label: t('DASHBOARD'), href: "/client/dashboard", icon: LayoutDashboard },
         { label: t('MY PROFILE'), href: "/client/my-account", icon: UserCircle },
-        { label: t('MY CASE'), href: "/client/my-case", icon: Briefcase },
+        { label: t('SURROGATE PROFILE'), href: "/client/surrogate-match", icon: HeartPulse },
+        { label: t('TRUST ACCOUNT'), href: "/client/trust-account", icon: FolderOpen },
+        // { label: t('MY CASE'), href: "/client/my-case", icon: Briefcase },
         // { label: t('DOCUMENTS'), href: "/client/documents", icon: FolderOpen },
         // { label: t('JOURNEY'), href: "/client/journey", icon: Briefcase },
         // { label: t('IVF CLINIC'), href: "/client/ivf-clinic", icon: Stethoscope },
@@ -75,8 +77,8 @@ export function getSurrogacySidebarConfig() {
       items: [
         { label: t('DASHBOARD'), href: "/surrogacy/dashboard", icon: LayoutDashboard },
         { label: t('MY PROFILE'), href: "/surrogacy/profile", icon: UserCircle },
-        { label: t('MY CASE'), href: "/surrogacy/my-case", icon: Briefcase },
-        // { label: t('MY INTENDED PARENTS'), href: "/surrogacy/intended-parents", icon: UserCircle },
+        // { label: t('MY CASE'), href: "/surrogacy/my-case", icon: Briefcase },
+        { label: t('CLIENT PROFILE'), href: "/surrogacy/intended-parents", icon: UserCircle },
       ]
     },
     {

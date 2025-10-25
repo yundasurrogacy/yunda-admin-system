@@ -255,7 +255,24 @@ export default function DocumentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-sage-100">
-                {filteredDocuments.map((doc, index) => (
+                {filteredDocuments.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-12">
+                      <div className="flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-sage-400 mb-4">
+                            <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            </svg>
+                          </div>
+                          <p className="text-xl text-sage-600 font-medium mb-2">{t('documents.noDocuments', { defaultValue: '暂无文档' })}</p>
+                          <p className="text-sm text-sage-400 mb-6">{t('documents.noDocumentsDesc', { defaultValue: '当前筛选条件下没有找到文档' })}</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDocuments.map((doc, index) => (
                     <tr key={index} className="hover:bg-sage-25 transition-colors duration-150">
                       <td className="px-6 py-4 text-sm text-sage-800">
                         {doc.file_url ? (
@@ -271,7 +288,8 @@ export default function DocumentsPage() {
                       <td className="px-6 py-4 text-sm text-sage-600">{doc.note}</td>
                       {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.journey_journeys}</td> */}
                     </tr>
-                  ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>

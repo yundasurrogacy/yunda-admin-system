@@ -223,7 +223,17 @@ export default function SurrogateProfileDetailPage() {
   if (!surrogate) {
     return (
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
-        <div className="text-center py-8 text-red-600">{t('notFoundSurrogate', '未找到代孕母信息')}</div>
+        <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+          <div className="text-center">
+            <div className="text-sage-400 mb-4">
+              <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+              </svg>
+            </div>
+            <p className="text-xl text-sage-600 font-medium mb-2">{t('notFoundSurrogate', '未找到代孕母信息')}</p>
+            <p className="text-sm text-sage-400 mb-6">{t('notFoundSurrogateDesc', '请检查代孕母ID是否正确')}</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -233,17 +243,10 @@ export default function SurrogateProfileDetailPage() {
   <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
       <div className="flex items-center justify-between pt-6 pb-2">
         <div>
-          <h1 className="text-2xl font-medium text-sage-800">{t('matchedSurrogate', '匹配的代孕母')}</h1>
+          <h1 className="text-2xl font-medium text-sage-800">{t('Surrogate Profile')}</h1>
           <p className="text-sage-600 text-sm mt-1">{t('matchedSurrogateDesc', '以下是为您匹配的代孕母详细信息')}</p>
         </div>
         <div className="flex items-center gap-4">
-          <CustomButton
-            onClick={handleBackToCases}
-            className="bg-white cursor-pointer"
-          >
-            {/* <ArrowLeft className="w-4 h-4 mr-2 cursor-pointer" /> */}
-            {t('backToCases', '返回我的案例')}
-          </CustomButton>
         </div>
       </div>
 

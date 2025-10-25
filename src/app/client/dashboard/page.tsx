@@ -257,8 +257,8 @@ export default function ClientDashboardPage() {
     router.push('/client/journey');
   }, [router]);
 
-  const handleNavigateToMyCase = useCallback(() => {
-    router.push('/client/my-case');
+  const handleNavigateToSurrogateProfile = useCallback(() => {
+    router.push('/client/surrogate-match');
   }, [router]);
 
   const handleNavigateToDocuments = useCallback(() => {
@@ -394,7 +394,7 @@ export default function ClientDashboardPage() {
           {/* Current Status */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-          onClick={handleNavigateToMyCase}
+          onClick={handleNavigateToSurrogateProfile}
         >
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
@@ -508,10 +508,10 @@ export default function ClientDashboardPage() {
             <CardContent className="space-y-3">
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-sage-100 hover:bg-sage-200 text-sage-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
-                onClick={handleNavigateToMyCase}
+                onClick={handleNavigateToSurrogateProfile}
               >
-                <Home className="w-4 h-4 mr-3" />
-                {t('dashboard.myCases', 'My Case')}
+                <Heart className="w-4 h-4 mr-3" />
+                {t('dashboard.surrogateProfile', 'Surrogate Profile')}
               </CustomButton>
               <CustomButton 
                 className="w-full justify-start px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
@@ -530,12 +530,12 @@ export default function ClientDashboardPage() {
             </CardContent>
           </Card>
 
-          {/* IVF CLINIC & Trust Balance */}
+          {/* IVF CLINIC & Trust Account */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
                 <Shield className="w-5 h-5" />
-                {t('dashboard.ivfClinic', 'Ivf Clinic')} & {t('dashboard.trustBalance', 'Trust Balance')}
+                {t('dashboard.ivfClinic', 'Ivf Clinic')} & {t('dashboard.trustAccount', 'Trust Account')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -567,7 +567,7 @@ export default function ClientDashboardPage() {
                       <FileCheck className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-sage-800">{t('dashboard.trustBalance', 'Trust Balance')}</span>
+                      <span className="text-sm font-medium text-sage-800">{t('dashboard.trustAccount', 'Trust Account')}</span>
                       <p className="text-xs text-sage-600">{t('dashboard.accountBalance', 'Account balance')}</p>
                     </div>
                   </div>

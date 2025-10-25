@@ -441,7 +441,7 @@ export default function AllCasesPage() {
             <div className="text-center">
               <div className="text-sage-400 mb-4">
                 <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <p className="text-xl text-sage-600 font-medium mb-2">{t('noCases', { defaultValue: '暂无案例' })}</p>
@@ -519,7 +519,7 @@ export default function AllCasesPage() {
                   <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
-                      <span className="cursor-pointer text-blue-600 hover:underline transition-all" onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}>
+                      <span className="text-blue-600 hover:underline transition-all cursor-pointer" onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}>
                         {trustBalance}
                       </span>
                     </div>
@@ -566,11 +566,17 @@ export default function AllCasesPage() {
                     >
                       {t('myCases.gestationalCarrierIvfClinic')}
                     </CustomButton>
+                    <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}
+                    >
+                      {t('myCases.trust-account')}
+                    </CustomButton>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-2">
                     <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>
                     {managerName === "-" && (
-                      <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer" onClick={() => handleOpenAssignDialog(c.id)}>
+                      <CustomButton className="px-4 py-2 rounded-md border border-sage-300 bg-white text-sage-800 text-sm font-medium cursor-pointer hover:bg-sage-50 transition-colors" onClick={() => handleOpenAssignDialog(c.id)}>
                         {t('assignClientManager')}
                       </CustomButton>
                     )}
@@ -620,7 +626,7 @@ export default function AllCasesPage() {
             <div className="p-6 bg-white rounded-xl shadow-xl w-full max-w-md mx-auto">
               <h2 className="text-xl font-bold mb-4">{t('addNewCase')}</h2>
               <div className="mb-4">
-                <label className="block mb-2">{t('selectSurrogateMother')}</label>
+                <label className="block mb-2 font-medium capitalize">{t('selectSurrogateMother')}</label>
                 <select className="w-full border rounded px-2 py-1 cursor-pointer" value={selectedSurrogateId ?? ""} onChange={e => setSelectedSurrogateId(Number(e.target.value))}>
                   <option value="">{t('pleaseSelect')}</option>
                   {/* 过滤掉已有案例中的代孕母 */}
@@ -632,7 +638,7 @@ export default function AllCasesPage() {
                 </select>
               </div>
               <div className="mb-4">
-                <label className="block mb-2">{t('selectIntendedParent')}</label>
+                <label className="block mb-2 font-medium capitalize">{t('selectIntendedParent')}</label>
                 <select className="w-full border rounded px-2 py-1 cursor-pointer" value={selectedParentId ?? ""} onChange={e => setSelectedParentId(Number(e.target.value))}>
                   <option value="">{t('pleaseSelect')}</option>
                   {/* 过滤掉已有案例中的准父母 */}
@@ -644,7 +650,7 @@ export default function AllCasesPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <CustomButton onClick={handleCreateCase} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAdd')}</CustomButton>
+                <CustomButton onClick={handleCreateCase} disabled={loading} className="bg-sage-600 text-white cursor-pointer">{loading ? t('processing') : t('confirmAdd')}</CustomButton>
                 <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={handleCloseCreateDialog}>{t('cancel')}</CustomButton>
               </div>
             </div>
@@ -656,14 +662,14 @@ export default function AllCasesPage() {
             <div className="p-6 bg-white rounded-xl shadow-xl w-full max-w-md mx-auto">
               <h2 className="text-xl font-bold mb-4">{t('assignClientManager')}</h2>
               <div className="mb-4">
-                <label className="block mb-2">{t('selectClientManager')}</label>
+                <label className="block mb-2 font-medium capitalize">{t('selectClientManager')}</label>
                 <select className="w-full border rounded px-2 py-1 cursor-pointer" value={selectedManagerId ?? ""} onChange={e => setSelectedManagerId(Number(e.target.value))}>
                   <option value="">{t('pleaseSelect')}</option>
                   {managers.map((m: any) => <option key={m.id} value={m.id}>{m.name || m.email}</option>)}
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <CustomButton onClick={handleAssignManager} disabled={loading} className="bg-sage-600 text-white">{loading ? t('processing') : t('confirmAssign')}</CustomButton>
+                <CustomButton onClick={handleAssignManager} disabled={loading} className="bg-sage-600 text-white cursor-pointer">{loading ? t('processing') : t('confirmAssign')}</CustomButton>
                 <CustomButton className="px-3 py-1 rounded border border-sage-300 bg-white text-sage-800 text-sm cursor-pointer" onClick={handleCloseAssignDialog}>{t('cancel')}</CustomButton>
               </div>
             </div>

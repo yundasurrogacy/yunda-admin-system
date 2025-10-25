@@ -16,12 +16,14 @@
   "adminManagement": "Admin Management",
   "addAdmin": "Add Admin",
   "noAdmin": "No Admin",
+  "noAdminDesc": "No admin records found",
   "adminShort": "A",
   "admin": "Admin",
   "clientManagerManagement": "Client Manager Management",
   "addClientManager": "Add Client Manager",
   "submit": "Submit",
   "noClientManager": "No Client Manager",
+  "noClientManagerDesc": "No client manager records found",
   "managerShort": "M",
   "manager": "Manager",
   "id": "ID: ",
@@ -36,9 +38,11 @@
   "clientManager": "Client Manager",
   "notAssigned": "Not Assigned",
   "CLIENT PROFILES": "CLIENT PROFILES",
-  "CLIENT PROFILE": "Client Profiles",
+  "CLIENT PROFILE": "CLIENT PROFILE",
+  "Client Profile": "Client Profile",
   "SURROGATE PROFILES": "SURROGATE PROFILES",
-  "SURROGATE PROFILE": "Surrogate Profiles",
+  "SURROGATE PROFILE": "SURROGATE PROFILE",
+  "Surrogate Profile": "Surrogate Profile",
   "ViewProfile": "View Profile",
   "assignClientManager": "Assign Client Manager",
   "selectSurrogateMother": "Select Surrogate",
@@ -173,7 +177,11 @@
     "searchPlaceholder": "Search",
     "loadingFailed": "Loading failed: {{error}}",
     "view": "View",
-    "clientStatus": "Client"
+    "clientStatus": "Client",
+    "noClients": "No Client Profiles",
+    "noClientsDesc": "Currently there are no client profiles",
+    "noClientsFiltered": "No Client Profiles",
+    "noClientsDescFiltered": "No client profiles found under current filters"
   },
   "surrogateProfiles": {
     "title": "Surrogate Profile",
@@ -181,7 +189,11 @@
     "fetchCasesFailed": "Failed to fetch cases",
     "fetchDataFailed": "Failed to fetch data",
     "role": "Surrogate",
-    "view": "View"
+    "view": "View",
+    "noSurrogates": "No Surrogates",
+    "noSurrogatesDesc": "Currently there are no surrogates",
+    "noSurrogatesFiltered": "No Surrogates",
+    "noSurrogatesDescFiltered": "No surrogates found under current filters"
   },
   "surrogateProfileDetail": {
     "surrogateProfile":"Surrogate Profile",
@@ -326,7 +338,8 @@
       "fetchFailed": "Failed to fetch cases"
     },
     "trust-account": "TRUST ACCOUNT",
-    "noCases": "No cases yet",
+    "noCases": "No Cases",
+    "noCasesDesc": "Currently no cases available",
     "caseIdLabel": "Case ID: ",
     "statusLabel": "Status: ",
     "trustBalanceLabel": "Trust Balance: ",
@@ -347,6 +360,56 @@
     "Medication":"MEDICATION",
     "My Intended Parents": "MY INTENDED PARENTS"
   },
+  "documents": {
+    "title": "Documents",
+    "addDocument": "Add Document",
+    "loading": "Loading documents...",
+    "search": "Search",
+    "client": "Client",
+    "surrogate": "Surrogate",
+    "filters": {
+      "all": "All",
+      "embryoDocs": "Embryo Documents",
+      "surrogateInfo": "Surrogate Information",
+      "legalDocs": "Legal Documents",
+      "other": "Other"
+    },
+    "types": {
+      "embryoDocs": "Embryo Documents",
+      "surrogateInfo": "Surrogate Information",
+      "legalDocs": "Legal Documents",
+      "other": "Other"
+    },
+    "stats": {
+      "totalDocuments": "total documents",
+      "filteredBy": "Filtered by",
+      "lastUpdated": "Last updated"
+    },
+    "errors": {
+      "noSurrogateId": "No surrogate ID found",
+      "noParentId": "No parent ID found",
+      "fetchFailed": "Failed to fetch documents",
+      "unknownError": "Unknown error occurred"
+    },
+    "actions": {
+      "reload": "Reload"
+    },
+    "empty": {
+      "title": "No Documents",
+      "description": "Currently no documents available"
+    },
+    "table": {
+      "name": "Name",
+      "type": "Type",
+      "status": "Status",
+      "uploadedBy": "Uploaded By",
+      "clientName": "Client Name",
+      "note": "Note",
+      "journey": "Journey"
+    }
+  },
+  "notFoundSurrogate": "Surrogate Profile Not Found",
+  "notFoundSurrogateDesc": "Please check if the surrogate ID is correct",
   "loadingText": "Loading...",
   "noCases": "No cases yet",
   "noCasesDesc": "No cases found under current filter",
@@ -619,6 +682,7 @@
       "activeJourneys": "Active journeys",
       "ivfClinic": "Ivf Clinic",
       "trustBalance": "Trust Balance",
+      "trustAccount": "Trust Account",
       "medicalTeamUpdates": "Medical team & updates",
       "accountBalance": "Account balance",
       "currentStatus": "Current Status",
@@ -630,6 +694,7 @@
       "lastUpdated": "Last updated",
       "quickActionsClient": "Quick Actions",
       "myCases": "My Case",
+      "surrogateProfile": "Surrogate Profile",
       "myJourney": "My Journey",
       "documentsClient": "Documents",
       "resourcesSupport": "Resources & Support",
@@ -897,6 +962,7 @@
       "visibilityAll": "All",
       "visibilityIntendedParents": "Intended Parents Only",
       "noRecords": "No Records",
+      "noRecordsDesc": "No records found under current filters",
       "balance": "Account Balance",
       "history": "Transaction History",
       "addRecord": "Add Record",
@@ -1059,94 +1125,8 @@
     "advisorPhone": "Phone",
     "advisorEmail": "Email"
   },
-  "documents": {
-    "title": "Documents",
-    "addDocument": "Add Document",
-    "loading": "Loading documents...",
-    "search": "Search",
-    "client": "Client",
-    "surrogate": "Surrogate",
-    "filters": {
-      "all": "All",
-      "embryoDocs": "Embryo Documents",
-      "surrogateInfo": "Surrogate Information",
-      "legalDocs": "Legal Documents",
-      "other": "Other"
-    },
-    "types": {
-      "embryoDocs": "Embryo Documents",
-      "surrogateInfo": "Surrogate Information",
-      "legalDocs": "Legal Documents",
-      "other": "Other"
-    },
-    "stats": {
-      "totalDocuments": "total documents",
-      "filteredBy": "Filtered by",
-      "lastUpdated": "Last updated"
-    },
-    "errors": {
-      "noSurrogateId": "No surrogate ID found",
-      "fetchFailed": "Failed to fetch documents",
-      "unknownError": "Unknown error occurred"
-    },
-    "actions": {
-      "reload": "Reload"
-    },
-    "empty": {
-      "title": "No documents found",
-      "description": "No documents have been uploaded yet."
-    },
-    "table": {
-      "name": "Name",
-      "type": "Type",
-      "status": "Status",
-      "uploadedBy": "Uploaded By",
-      "clientName": "Client Name",
-      "note": "Note",
-      "journey": "Journey"
-    }
-  },
   "pageLayout": {
     "searchPlaceholder": "Search..."
-  },
-  "clientDocuments": {
-    "title": "Documents",
-    "addDocument": "Add Document",
-    "loading": "Loading documents...",
-    "filters": {
-      "all": "All",
-      "embryoDocs": "Embryo Documents",
-      "surrogateInfo": "Surrogate Information",
-      "legalDocs": "Legal Documents",
-      "other": "Other"
-    },
-    "types": {
-      "embryoDocs": "Embryo Documents",
-      "surrogateInfo": "Surrogate Information",
-      "legalDocs": "Legal Documents",
-      "other": "Other"
-    },
-    "errors": {
-      "noParentId": "No parent ID found",
-      "fetchFailed": "Failed to fetch documents",
-      "unknownError": "Unknown error occurred"
-    },
-    "actions": {
-      "reload": "Reload"
-    },
-    "empty": {
-      "title": "No documents found",
-      "description": "No documents have been uploaded yet."
-    },
-    "table": {
-      "name": "Name",
-      "type": "Type",
-      "status": "Status",
-      "uploadedBy": "Uploaded By",
-      "clientName": "Client Name",
-      "note": "Note",
-      "journey": "Journey"
-    }
   },
   "matchedSurrogate": "Matched Surrogate",
   "matchedSurrogateDesc": "Below is the detailed information of the surrogate matched for you",
@@ -1202,12 +1182,10 @@
   "hipaaRelease": "HIPAA Release",
   "multipleReduction": "Multiple Reduction",
   "terminationWilling": "Termination Willing",
-  "created": "Created",
   "updated": "Updated",
   "noData": "No Data",
   "fetchError": "Failed to fetch data",
   "notFoundCase": "Case not found",
-  "notFoundSurrogate": "Surrogate not found",
   "applicationPhotos": "Application Photos",
   "photoNumber": "Photo {{number}}",
   "noPhotosUploaded": "No photos uploaded",

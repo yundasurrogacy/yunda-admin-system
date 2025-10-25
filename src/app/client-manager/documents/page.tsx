@@ -236,42 +236,56 @@ export default function DocumentsPage() {
         </div>
 
         {/* Documents Table */}
-        <div className="bg-white rounded-lg border border-sage-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-sage-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.name", "Name")}</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.type", "Type")}</th>
-                  {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.status", "Status")}</th> */}
-                  {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.uploadedBy", "Uploaded By")}</th> */}
-                  {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.clientName", "Client Name")}</th> */}
-                  <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.note", "Note")}</th>
-                  {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.journey", "Journey")}</th> */}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-sage-100">
-                {filteredDocuments.map((doc, index) => (
-                    <tr key={index} className="hover:bg-sage-25 transition-colors duration-150">
-                      <td className="px-6 py-4 text-sm text-sage-800">
-                        {doc.file_url ? (
-                          <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-sage-800 underline hover:text-sage-600 cursor-pointer">
-                            {doc.name}
-                          </a>
-                        ) : doc.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-sage-600">{doc.type}</td>
-                      {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.status}</td> */}
-                      {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.uploadedBy}</td> */}
-                      {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.clientName}</td> */}
-                      <td className="px-6 py-4 text-sm text-sage-600">{doc.note}</td>
-                      {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.journey_journeys}</td> */}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+        {filteredDocuments.length === 0 ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-sage-400 mb-4">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <p className="text-xl text-sage-600 font-medium mb-2">{t('documents.noDocuments', { defaultValue: '暂无文档' })}</p>
+              <p className="text-sm text-sage-400 mb-6">{t('documents.noDocumentsDesc', { defaultValue: '当前筛选条件下没有找到文档' })}</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-lg border border-sage-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-sage-50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.name", "Name")}</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.type", "Type")}</th>
+                    {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.status", "Status")}</th> */}
+                    {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.uploadedBy", "Uploaded By")}</th> */}
+                    {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.clientName", "Client Name")}</th> */}
+                    <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.note", "Note")}</th>
+                    {/* <th className="px-6 py-4 text-left text-sm font-medium text-sage-700">{t("documents.table.journey", "Journey")}</th> */}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-sage-100">
+                  {filteredDocuments.map((doc, index) => (
+                      <tr key={index} className="hover:bg-sage-25 transition-colors duration-150">
+                        <td className="px-6 py-4 text-sm text-sage-800">
+                          {doc.file_url ? (
+                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-sage-800 underline hover:text-sage-600 cursor-pointer">
+                              {doc.name}
+                            </a>
+                          ) : doc.name}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-sage-600">{doc.type}</td>
+                        {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.status}</td> */}
+                        {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.uploadedBy}</td> */}
+                        {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.clientName}</td> */}
+                        <td className="px-6 py-4 text-sm text-sage-600">{doc.note}</td>
+                        {/* <td className="px-6 py-4 text-sm text-sage-600">{doc.journey_journeys}</td> */}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </PageContent>
     // </ManagerLayout>
   )

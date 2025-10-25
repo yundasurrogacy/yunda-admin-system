@@ -57,6 +57,23 @@ function TrustAccountPageInner() {
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [balanceInput, setBalanceInput] = useState("");
 
+  // Toast 通知状态
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
+
   // 认证检查和 cookie 读取
   useEffect(() => {
     // 只在客户端执行
@@ -322,7 +339,7 @@ function TrustAccountPageInner() {
     
     const newBalance = Number(balanceInput);
     if (isNaN(newBalance)) {
-      alert(t('trustAccount.invalidAmount', 'Please enter a valid amount'));
+      showToastMessage(t('trustAccount.invalidAmount', 'Please enter a valid amount'), 'error');
       return;
     }
     
@@ -358,12 +375,13 @@ function TrustAccountPageInner() {
       setIsEditingBalance(false);
       setBalanceInput("");
       await fetchChanges(); // 刷新数据
+      showToastMessage(t('trustAccount.balanceUpdatedSuccessfully', 'Balance updated successfully'), 'success');
       console.log('Balance updated successfully');
     } catch (e) {
       console.error('修改余额失败:', e);
-      alert(t('trustAccount.balanceEditFailed', 'Failed to edit balance, please try again'));
+      showToastMessage(t('trustAccount.balanceEditFailed', 'Failed to edit balance, please try again'), 'error');
     }
-  }, [caseId, balanceInput, changes, fetchChanges, t]);
+  }, [caseId, balanceInput, changes, fetchChanges, t, showToastMessage]);
 
   // 缓存最新余额计算
   const currentBalance = useMemo(() => {
@@ -639,7 +657,21 @@ function TrustAccountPageInner() {
                   </thead>
                   <tbody>
                     {pagedChanges.length === 0 ? (
-                      <tr><td colSpan={6} className="py-8 text-center text-gray-400 text-base">{t('trustAccount.noRecords', 'No records')}</td></tr>
+                      <tr>
+                        <td colSpan={6} className="py-12">
+                          <div className="flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-sage-400 mb-4">
+                                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                              </div>
+                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords', { defaultValue: '暂无记录' })}</p>
+                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc', { defaultValue: '当前筛选条件下没有找到记录' })}</p>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     ) : pagedChanges.map((change: BalanceChange, idx) => (
                       <tr
                         key={change.id}
@@ -712,6 +744,58 @@ function TrustAccountPageInner() {
             </>
           )}
         </Card>
+
+        {/* Toast 通知组件 */}
+        {showToast && (
+          <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+            <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+              toastType === 'success' 
+                ? 'bg-green-50 border-green-400 text-green-800' 
+                : toastType === 'error'
+                ? 'bg-red-50 border-red-400 text-red-800'
+                : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+            }`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                toastType === 'success' 
+                  ? 'bg-green-100' 
+                  : toastType === 'error'
+                  ? 'bg-red-100'
+                  : 'bg-yellow-100'
+              }`}>
+                {toastType === 'success' && (
+                  <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {toastType === 'error' && (
+                  <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {toastType === 'warning' && (
+                  <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-medium flex-1">{toastMessage}</span>
+              <button
+                onClick={() => setShowToast(false)}
+                className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                  toastType === 'success' 
+                    ? 'hover:bg-green-600' 
+                    : toastType === 'error'
+                    ? 'hover:bg-red-600'
+                    : 'hover:bg-yellow-600'
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
   );
 }

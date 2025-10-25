@@ -14,12 +14,14 @@
   "adminManagement": "管理员管理",
   "addAdmin": "添加管理员",
   "noAdmin": "暂无管理员",
+  "noAdminDesc": "暂无管理员记录",
   "adminShort": "A",
   "admin": "管理员",
   "clientManagerManagement": "客户经理管理",
   "addClientManager": "添加客户经理",
   "submit": "提交",
   "noClientManager": "暂无客户经理",
+  "noClientManagerDesc": "暂无客户经理记录",
   "managerShort": "M",
   "manager": "客户经理",
   "id": "ID: ",
@@ -57,8 +59,10 @@
   "SURROGATES APPLICATIONS": "代孕母申请表",
   "CLIENT PROFILES": "客户资料",
   "CLIENT PROFILE": "客户资料",
+  "Client Profile": "客户资料",
   "SURROGATE PROFILES": "代孕母资料",
   "SURROGATE PROFILE": "代孕母资料",
+  "Surrogate Profile": "代孕母资料",
   "ViewProfile": "查看资料",
   "ALL CASES": "所有案子",
   "MY CASES": "我的案子",
@@ -191,7 +195,11 @@
     "searchPlaceholder": "搜索",
     "loadingFailed": "加载失败: {{error}}",
     "view": "查看",
-    "clientStatus": "客户"
+    "clientStatus": "客户",
+    "noClients": "暂无客户资料",
+    "noClientsDesc": "目前没有任何客户资料",
+    "noClientsFiltered": "暂无客户资料",
+    "noClientsDescFiltered": "当前筛选条件下没有找到客户资料"
   },
   "surrogateProfiles": {
     "title": "代孕母资料",
@@ -199,7 +207,11 @@
     "fetchCasesFailed": "获取案子失败",
     "fetchDataFailed": "数据获取失败",
     "role": "代孕母",
-    "view": "查看"
+    "view": "查看",
+    "noSurrogates": "暂无代孕母",
+    "noSurrogatesDesc": "目前没有任何代孕母",
+    "noSurrogatesFiltered": "暂无代孕母",
+    "noSurrogatesDescFiltered": "当前筛选条件下没有找到代孕母"
   },
   "surrogateProfileDetail": {
     "surrogateProfile":"代孕母详情",
@@ -399,7 +411,6 @@
   "stateOrProvince": "州/省",
   "zipCode": "邮编",
   "uploadPhotos": "上传照片",
-  "notFoundSurrogate": "未找到该代孕母信息",
   "babies": "胎儿",
   "medicationsList": "药物清单",
   "backToSurrogateProfiles": "返回代孕母列表",
@@ -430,7 +441,8 @@
       "fetchFailed": "获取案子失败"
     },
     "trust-account": "信托账户",
-    "noCases": "暂无案子",
+    "noCases": "暂无案例",
+    "noCasesDesc": "目前没有任何案例",
     "caseIdLabel": "案件ID：",
     "statusLabel": "状态：",
     "trustBalanceLabel": "信托余额：",
@@ -452,12 +464,15 @@
     "medication": "药物"
 
   },
+  "notFoundSurrogate": "未找到代孕母信息",
+  "notFoundSurrogateDesc": "请检查代孕母ID是否正确",
   "trustAccount": {
     "title": "信托账户",
     "visibility": "可见性",
     "visibilityAll": "全部可见",
     "visibilityIntendedParents": "仅准父母可见",
     "noRecords": "暂无记录",
+    "noRecordsDesc": "当前筛选条件下没有找到记录",
     "balance": "账户余额",
     "history": "交易记录",
     "addRecord": "添加记录",
@@ -712,6 +727,7 @@
       "activeJourneys": "活跃旅程",
       "ivfClinic": "Ivf 诊所",
       "trustBalance": "信托余额",
+      "trustAccount": "信托账户",
       "medicalTeamUpdates": "医疗团队和更新",
       "accountBalance": "账户余额",
       "currentStatus": "当前状态",
@@ -723,6 +739,7 @@
       "lastUpdated": "最后更新",
       "quickActionsClient": "快速操作",
       "myCases": "我的案例",
+      "surrogateProfile": "代孕母资料",
       "myJourney": "我的旅程",
       "documentsClient": "文档",
       "resourcesSupport": "资源和支持",
@@ -1061,45 +1078,6 @@
   "pageLayout": {
     "searchPlaceholder": "搜索..."
   },
-  "clientDocuments": {
-    "title": "文档",
-    "addDocument": "添加文档",
-    "loading": "正在加载文档...",
-    "filters": {
-      "all": "全部",
-      "embryoDocs": "胚胎文件",
-      "surrogateInfo": "代孕母信息",
-      "legalDocs": "法律文件",
-      "other": "其他"
-    },
-    "types": {
-      "embryoDocs": "胚胎文件",
-      "surrogateInfo": "代孕母信息",
-      "legalDocs": "法律文件",
-      "other": "其他"
-    },
-    "errors": {
-      "noParentId": "未找到用户ID",
-      "fetchFailed": "获取文档失败",
-      "unknownError": "发生未知错误"
-    },
-    "actions": {
-      "reload": "重新加载"
-    },
-    "empty": {
-      "title": "暂无文档",
-      "description": "尚未上传任何文档。"
-    },
-    "table": {
-      "name": "文件名",
-      "type": "类型",
-      "status": "状态",
-      "uploadedBy": "上传者",
-      "clientName": "客户名称",
-      "note": "备注",
-      "journey": "旅程"
-    }
-  },
   "matchedSurrogate": "匹配的代孕母",
   "matchedSurrogateDesc": "以下是为您匹配的代孕母详细信息",
   "surrogateMatchInfo": "代孕母匹配信息",
@@ -1113,7 +1091,6 @@
   "in": "英寸",
   "lbs": "磅",
   "aboutYou": "关于您",
-  "created": "创建时间",
   "updated": "更新时间",
   "notFoundCase": "未找到匹配的案例",
   "fetchError": "获取数据失败",

@@ -80,8 +80,8 @@ const ClientCard = memo(({
           <div className="text-sage-500 text-sm truncate">{client.id}</div>
         </div>
         <div className="flex flex-col gap-2 items-end">
-          <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('active')}</span>
-          <span className={`px-3 py-1 text-xs rounded-full ${getServiceColor(service)}`}>{t(service)}</span>
+          {/* <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('active')}</span> */}
+          {/* <span className={`px-3 py-1 text-xs rounded-full ${getServiceColor(service)}`}>{t(service)}</span> */}
         </div>
       </div>
       <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
@@ -133,6 +133,7 @@ export default function ClientProfilesPage() {
   
   // 分页相关
   const [allClients, setAllClients] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
@@ -143,6 +144,23 @@ export default function ClientProfilesPage() {
   const [resetPassword, setResetPassword] = useState("")
   const [resetLoading, setResetLoading] = useState(false)
   const { register, handleSubmit, reset } = useForm()
+
+  // Toast 通知状态
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -179,8 +197,15 @@ export default function ClientProfilesPage() {
   useEffect(() => {
     async function fetchClients() {
       if (isAuthenticated) {
-      const data = await getIntendedParents(10000, 0)
-      setAllClients(data)
+        setIsLoading(true)
+        try {
+          const data = await getIntendedParents(10000, 0)
+          setAllClients(data)
+        } catch (error) {
+          console.error('Failed to fetch clients:', error)
+        } finally {
+          setIsLoading(false)
+        }
       }
     }
     fetchClients()
@@ -332,13 +357,14 @@ export default function ClientProfilesPage() {
       email: formData.email_address,
     }
     await insertIntendedParent(data)
+    showToastMessage(t('clientCreatedSuccessfully') || '准父母创建成功！', 'success')
     setShowDialog(false)
     reset()
     // 刷新列表
     const dataList = await getIntendedParents(10000, 0)
     setAllClients(dataList)
     setPage(1)
-  }, [reset])
+  }, [reset, showToastMessage, t])
 
   // 重置密码弹窗提交
   const handleResetPassword = useCallback(async () => {
@@ -352,18 +378,18 @@ export default function ClientProfilesPage() {
       })
       const result = await res.json()
       if (res.ok && result?.update_intended_parents?.affected_rows > 0) {
-        alert(t('resetPasswordSuccess'))
+        showToastMessage(t('resetPasswordSuccess') || '密码重置成功！', 'success')
         setShowResetDialog(false)
         setResetPassword("")
         setResetClientId(null)
       } else {
-        alert(t('resetPasswordFailed'))
+        showToastMessage(t('resetPasswordFailed') || '密码重置失败', 'error')
       }
     } catch (e) {
-      alert(t('requestError'))
+      showToastMessage(t('requestError') || '请求异常，请稍后重试', 'error')
     }
     setResetLoading(false)
-  }, [resetClientId, resetPassword, t])
+  }, [resetClientId, resetPassword, t, showToastMessage])
 
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
@@ -401,84 +427,103 @@ export default function ClientProfilesPage() {
           />
         </div>
 
-        {/* Client Grid - 自适应卡片布局 */}
-        <div
-          className="grid w-full"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '32px',
-            alignItems: 'stretch',
-          }}
-        >
-          {pagedClients.map((client: any) => (
-            <ClientCard
-                key={client.id}
-              client={client}
-              onViewProfile={handleViewProfile}
-              onResetPassword={handleOpenResetDialog}
-              t={t}
-            />
-          ))}
-        </div>
-
-        {/* 分页控件 */}
-        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <CustomButton
-            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-            disabled={page === 1}
-            onClick={handlePrevPage}
-          >
-            {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </CustomButton>
-          <span className="text-sage-700 text-sm flex items-center gap-2">
-            {t('pagination.page', { defaultValue: '第' })}
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={pageInput}
-              onChange={handlePageInputChange}
-              onBlur={handlePageInputBlur}
-              onKeyDown={handlePageInputKeyDown}
-              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
-              aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
-            />
-            {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
-          </span>
-          <CustomButton
-            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-            disabled={page >= totalPages}
-            onClick={handleNextPage}
-          >
-            {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </CustomButton>
-        </div>
-
-        {pagedClients.length === 0 && (
-          <div className="text-center py-8 text-sage-500">
-            {t('noApplications', { defaultValue: '暂无申请记录' })}
+        {isLoading ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-4"></div>
+              <div className="text-lg text-sage-700">{t('loading')}</div>
+            </div>
           </div>
+        ) : pagedClients.length === 0 ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-sage-400 mb-4">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+              <p className="text-xl text-sage-600 font-medium mb-2">{t('noApplications', { defaultValue: '暂无申请记录' })}</p>
+              <p className="text-sm text-sage-400 mb-6">{t('noApplicationsDesc', { defaultValue: '当前筛选条件下没有找到记录' })}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Client Grid - 自适应卡片布局 */}
+            <div
+              className="grid w-full"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '32px',
+                alignItems: 'stretch',
+              }}
+            >
+              {pagedClients.map((client: any) => (
+                <ClientCard
+                    key={client.id}
+                  client={client}
+                  onViewProfile={handleViewProfile}
+                  onResetPassword={handleOpenResetDialog}
+                  t={t}
+                />
+              ))}
+            </div>
+
+            {/* 分页控件 */}
+            <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+              <CustomButton
+                className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
+                disabled={page === 1}
+                onClick={handlePrevPage}
+              >
+                {t('pagination.prevPage', { defaultValue: '上一页' })}
+              </CustomButton>
+              <span className="text-sage-700 text-sm flex items-center gap-2">
+                {t('pagination.page', { defaultValue: '第' })}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={pageInput}
+                  onChange={handlePageInputChange}
+                  onBlur={handlePageInputBlur}
+                  onKeyDown={handlePageInputKeyDown}
+                  className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+                  aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
+                />
+                {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
+              </span>
+              <CustomButton
+                className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
+                disabled={page >= totalPages}
+                onClick={handleNextPage}
+              >
+                {t('pagination.nextPage', { defaultValue: '下一页' })}
+              </CustomButton>
+            </div>
+          </>
         )}
 
         {/* 新建准父母弹窗表单 */}
         {/* 重置密码弹窗 */}
         {showResetDialog && (
-          <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-            <h2 className="text-xl font-bold text-sage-700 mb-4 text-center capitalize">{t('resetClientPassword')}</h2>
-            <div className="flex flex-col gap-4">
-              <input
-                type="password"
-                value={resetPassword}
-                onChange={handlePasswordChange}
-                placeholder={t('pleaseEnterNewPassword')}
-                className="border border-sage-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition capitalize"
-              />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl border border-sage-200 w-full max-w-md p-8 animate-fade-in">
+              <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center">{t('resetClientPassword')}</h2>
+              <div className="flex flex-col gap-6 mb-6">
+                <input
+                  type="password"
+                  value={resetPassword}
+                  onChange={handlePasswordChange}
+                  placeholder={t('pleaseEnterNewPassword')}
+                  className="border border-sage-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <CustomButton type="button" className="px-6 py-2 rounded-lg border border-sage-300 bg-white hover:bg-sage-50 cursor-pointer" onClick={handleCloseResetDialog}>{t('cancel')}</CustomButton>
+                <CustomButton type="button" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer" onClick={handleResetPassword} disabled={resetLoading || !resetPassword}>{resetLoading ? t('resetting') : t('confirmReset')}</CustomButton>
+              </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <CustomButton type="button" className="px-6 py-2 rounded-lg border border-sage-300 bg-white hover:bg-sage-50 cursor-pointer capitalize" onClick={handleCloseResetDialog}>{t('cancel')}</CustomButton>
-              <CustomButton type="button" className="bg-sage-600 text-white px-6 py-2 rounded-lg shadow hover:bg-sage-700 transition cursor-pointer capitalize" onClick={handleResetPassword} disabled={resetLoading || !resetPassword}>{resetLoading ? t('resetting') : t('confirmReset')}</CustomButton>
-            </div>
-          </Dialog>
+          </div>
         )}
 
         <Dialog open={showDialog} onOpenChange={() => {}}>
@@ -616,6 +661,58 @@ export default function ClientProfilesPage() {
             </div>
           </div>
         </Dialog>
+
+        {/* Toast 通知组件 */}
+        {showToast && (
+          <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+            <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+              toastType === 'success' 
+                ? 'bg-green-50 border-green-400 text-green-800' 
+                : toastType === 'error'
+                ? 'bg-red-50 border-red-400 text-red-800'
+                : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+            }`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                toastType === 'success' 
+                  ? 'bg-green-100' 
+                  : toastType === 'error'
+                  ? 'bg-red-100'
+                  : 'bg-yellow-100'
+              }`}>
+                {toastType === 'success' && (
+                  <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {toastType === 'error' && (
+                  <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {toastType === 'warning' && (
+                  <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-medium flex-1">{toastMessage}</span>
+              <button
+                onClick={() => setShowToast(false)}
+                className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                  toastType === 'success' 
+                    ? 'hover:bg-green-600' 
+                    : toastType === 'error'
+                    ? 'hover:bg-red-600'
+                    : 'hover:bg-yellow-600'
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </PageContent>
   )
 }

@@ -551,6 +551,23 @@ function AdminBlogsPage() {
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Toast 通知状态
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
+
   // 认证检查和 cookie 读取
   useEffect(() => {
     // 只在客户端执行
@@ -662,40 +679,57 @@ function AdminBlogsPage() {
   }, []);
 
   const handleDelete = useCallback(async (id: number) => {
-    // 直接删除，不使用浏览器确认弹窗
-    await fetch(BLOG_API, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    console.log(t('blogValidation.blogDeletedSuccess'));
-    fetchBlogs();
-  }, [fetchBlogs]);
+    try {
+      const res = await fetch(BLOG_API, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      
+      if (res.ok) {
+        showToastMessage(t('blogValidation.blogDeletedSuccess'), 'success');
+        fetchBlogs();
+      } else {
+        showToastMessage(t('blogValidation.blogDeletedFailed'), 'error');
+      }
+    } catch (error) {
+      showToastMessage(t('blogValidation.deleteError'), 'error');
+    }
+  }, [fetchBlogs, showToastMessage, t]);
 
   const handleSubmit = useCallback(async (form: any) => {
     try {
       if (form.id) {
-        await fetch(BLOG_API, {
+        const res = await fetch(BLOG_API, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         });
-        console.log(t('blogValidation.blogEditedSuccess'));
+        if (res.ok) {
+          showToastMessage(t('blogValidation.blogEditedSuccess'), 'success');
+          setAddOpen(false);
+          fetchBlogs();
+        } else {
+          showToastMessage(t('blogValidation.blogEditedFailed'), 'error');
+        }
       } else {
-        await fetch(BLOG_API, {
+        const res = await fetch(BLOG_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         });
-        console.log(t('blogValidation.blogAddedSuccess'));
+        if (res.ok) {
+          showToastMessage(t('blogValidation.blogAddedSuccess'), 'success');
+          setAddOpen(false);
+          fetchBlogs();
+        } else {
+          showToastMessage(t('blogValidation.blogAddedFailed'), 'error');
+        }
       }
-      setAddOpen(false);
-      fetchBlogs();
     } catch (error) {
-      console.error(t('blogValidation.submitError'), error);
-      // 可以在这里添加错误提示
+      showToastMessage(t('blogValidation.submitError'), 'error');
     }
-  }, [fetchBlogs]);
+  }, [fetchBlogs, showToastMessage, t]);
 
   const handlePrevPage = useCallback(() => {
     setPage(p => Math.max(1, p - 1));
@@ -1004,6 +1038,58 @@ function AdminBlogsPage() {
             </>
           )}
         </div>
+
+        {/* Toast 通知组件 */}
+        {showToast && (
+          <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+            <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+              toastType === 'success' 
+                ? 'bg-green-50 border-green-400 text-green-800' 
+                : toastType === 'error'
+                ? 'bg-red-50 border-red-400 text-red-800'
+                : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+            }`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                toastType === 'success' 
+                  ? 'bg-green-100' 
+                  : toastType === 'error'
+                  ? 'bg-red-100'
+                  : 'bg-yellow-100'
+              }`}>
+                {toastType === 'success' && (
+                  <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {toastType === 'error' && (
+                  <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {toastType === 'warning' && (
+                  <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-medium flex-1">{toastMessage}</span>
+              <button
+                onClick={() => setShowToast(false)}
+                className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                  toastType === 'success' 
+                    ? 'hover:bg-green-600' 
+                    : toastType === 'error'
+                    ? 'hover:bg-red-600'
+                    : 'hover:bg-yellow-600'
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </PageContent>
   )
 }

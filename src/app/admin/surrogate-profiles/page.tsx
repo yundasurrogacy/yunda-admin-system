@@ -156,7 +156,7 @@ const SurrogateCard = memo(({
         <ul className="list-disc ml-6">
           {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
             <li key={idx} className="text-sage-600 text-sm font-normal">
-              {h.delivery_date} | {h.delivery_method} | {h.number_of_babies}胎 | {h.birth_weight}{t('lbs')}
+              {h.delivery_date} | {h.delivery_method} | {h.number_of_babies}{t('surrogateProfileDetail.babiesUnit')} | {h.birth_weight}{t('lbs')}
             </li>
           )) : <li className="text-sage-600 text-sm font-normal">-</li>}
         </ul>
@@ -284,6 +284,7 @@ export default function SurrogateProfilesPage() {
   // 分页相关
   const [allSurrogates, setAllSurrogates] = useState<SurrogateMother[]>([])
   const [surrogates, setSurrogates] = useState<SurrogateMother[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchValue, setSearchValue] = useState("")
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
@@ -308,8 +309,15 @@ export default function SurrogateProfilesPage() {
   useEffect(() => {
     async function fetchSurrogates() {
       if (isAuthenticated) {
-      const data = await getSurrogateMothers(10000, 0)
-      setAllSurrogates(data)
+        setIsLoading(true)
+        try {
+          const data = await getSurrogateMothers(10000, 0)
+          setAllSurrogates(data)
+        } catch (error) {
+          console.error('Failed to fetch surrogates:', error)
+        } finally {
+          setIsLoading(false)
+        }
       }
     }
     fetchSurrogates()
@@ -491,14 +499,14 @@ export default function SurrogateProfilesPage() {
       email: formData.email_address,
     }
     await insertSurrogateMother(data)
-    showToastMessage('代孕妈妈创建成功！', 'success');
+    showToastMessage(t('surrogateCreatedSuccessfully') || '代孕妈妈创建成功！', 'success');
     setShowDialog(false)
     reset()
     // 刷新列表
     const dataList = await getSurrogateMothers(10000, 0)
     setAllSurrogates(dataList)
     setPage(1)
-  }, [reset])
+  }, [reset, t, showToastMessage])
 
   const handleResetPassword = useCallback(async () => {
     if (!selectedSurrogateId || !passwordValue) {
@@ -515,21 +523,21 @@ export default function SurrogateProfilesPage() {
       })
       const data = await res.json()
       if (res.ok && data?.update_surrogate_mothers?.affected_rows > 0) {
-        showToastMessage('密码重置成功！', 'success');
+        showToastMessage(t('resetPasswordSuccess') || '密码重置成功！', 'success');
         setShowPasswordDialog(false)
         setPasswordValue("")
         setSelectedSurrogateId(null)
       } else {
-        setPasswordError(data.error || "重置失败")
-        showToastMessage(data.error || '密码重置失败', 'error');
+        setPasswordError(data.error || t('resetFailed') || "重置失败")
+        showToastMessage(data.error || t('resetPasswordFailed') || '密码重置失败', 'error');
       }
     } catch (e) {
       console.error('重置密码失败:', e);
-      showToastMessage('请求异常，请稍后重试', 'error');
+      showToastMessage(t('requestError') || '请求异常，请稍后重试', 'error');
     } finally {
       setPasswordLoading(false)
     }
-  }, [selectedSurrogateId, passwordValue, t])
+  }, [selectedSurrogateId, passwordValue, t, showToastMessage])
 
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
@@ -566,64 +574,81 @@ export default function SurrogateProfilesPage() {
             onChange={handleSearchChange}
           />
         </div>
-        {/* Surrogate Grid - 弹性布局美化 */}
-        <div
-          className="grid w-full"
-          style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '32px',
-            alignItems: 'stretch',
-            minHeight: '320px',
-          }}
-        >
-          {pagedSurrogates.map((surrogate) => (
-            <SurrogateCard
-              key={surrogate.id}
-              surrogate={surrogate}
-              onViewProfile={handleViewProfile}
-              onResetPassword={handleOpenPasswordDialog}
-              t={t}
-            />
-          ))}
-        </div>
-
-        {/* 分页控件 */}
-        <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
-          <CustomButton
-            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-            disabled={page === 1}
-            onClick={handlePrevPage}
-          >
-            {t('pagination.prevPage', { defaultValue: '上一页' })}
-          </CustomButton>
-          <span className="text-sage-700 text-sm flex items-center gap-2">
-            {t('pagination.page', { defaultValue: '第' })}
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={pageInput}
-              onChange={handlePageInputChange}
-              onBlur={handlePageInputBlur}
-              onKeyDown={handlePageInputKeyDown}
-              className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
-              aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
-            />
-            {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
-          </span>
-          <CustomButton
-            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-            disabled={page >= totalPages}
-            onClick={handleNextPage}
-          >
-            {t('pagination.nextPage', { defaultValue: '下一页' })}
-          </CustomButton>
-        </div>
-
-        {pagedSurrogates.length === 0 && (
-          <div className="text-center py-8 text-sage-500">
-            {t('noApplications', { defaultValue: '暂无记录' })}
+        {isLoading ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-4"></div>
+              <div className="text-lg text-sage-700">{t('loading')}</div>
+            </div>
           </div>
+        ) : pagedSurrogates.length === 0 ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-sage-400 mb-4">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+              <p className="text-xl text-sage-600 font-medium mb-2">{t('noApplications', { defaultValue: '暂无记录' })}</p>
+              <p className="text-sm text-sage-400 mb-6">{t('noApplicationsDesc', { defaultValue: '当前筛选条件下没有找到记录' })}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Surrogate Grid - 弹性布局美化 */}
+            <div
+              className="grid w-full"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '32px',
+                alignItems: 'stretch',
+                minHeight: '320px',
+              }}
+            >
+              {pagedSurrogates.map((surrogate) => (
+                <SurrogateCard
+                  key={surrogate.id}
+                  surrogate={surrogate}
+                  onViewProfile={handleViewProfile}
+                  onResetPassword={handleOpenPasswordDialog}
+                  t={t}
+                />
+              ))}
+            </div>
+
+            {/* 分页控件 */}
+            <div className="flex flex-wrap justify-center items-center mt-8 gap-4">
+              <CustomButton
+                className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
+                disabled={page === 1}
+                onClick={handlePrevPage}
+              >
+                {t('pagination.prevPage', { defaultValue: '上一页' })}
+              </CustomButton>
+              <span className="text-sage-700 text-sm flex items-center gap-2">
+                {t('pagination.page', { defaultValue: '第' })}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={pageInput}
+                  onChange={handlePageInputChange}
+                  onBlur={handlePageInputBlur}
+                  onKeyDown={handlePageInputKeyDown}
+                  className="w-14 px-2 py-1 border border-sage-200 rounded text-center focus:outline-none focus:ring-2 focus:ring-sage-300"
+                  aria-label={t('pagination.jumpToPage', { defaultValue: '跳转到页码' })}
+                />
+                {t('pagination.of', { defaultValue: '共' })} {totalPages} {t('pagination.pages', { defaultValue: '页' })}
+              </span>
+              <CustomButton
+                className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
+                disabled={page >= totalPages}
+                onClick={handleNextPage}
+              >
+                {t('pagination.nextPage', { defaultValue: '下一页' })}
+              </CustomButton>
+            </div>
+          </>
         )}
       {/* 新建代孕母弹窗表单 */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
@@ -879,27 +904,31 @@ export default function SurrogateProfilesPage() {
       </Dialog>
 
       {/* 重置密码弹窗 */}
-        <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-          <>
-            <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center tracking-wide capitalize">{t('setOrResetPassword')}</h2>
-            <Input
-              type="password"
-              placeholder={t('pleaseEnterNewPassword')}
-              value={passwordValue}
-              onChange={handlePasswordChange}
-              className="mb-6 px-4 py-3 border-2 border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition w-full text-lg capitalize"
-            />
-            {passwordError && <div className="text-red-500 text-sm mb-2 text-center w-full capitalize">{passwordError}</div>}
-            <div className="flex justify-end gap-4 w-full mt-2">
-              <CustomButton className="px-6 py-2 rounded-lg text-base border border-sage-300 bg-white cursor-pointer capitalize" onClick={handleClosePasswordDialog}>
-                {t('cancel')}
-              </CustomButton>
-              <CustomButton className="px-6 py-2 rounded-lg text-base bg-sage-600 text-white hover:bg-sage-700 cursor-pointer capitalize" onClick={handleResetPassword} disabled={passwordLoading}>
-                {passwordLoading ? t('processing') : t('confirmReset')}
-              </CustomButton>
+        {showPasswordDialog && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl border border-sage-200 w-full max-w-md p-8 animate-fade-in">
+              <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center">{t('resetPassword')}</h2>
+              <div className="flex flex-col gap-4 mb-6">
+                <input
+                  type="password"
+                  placeholder={t('pleaseEnterNewPassword')}
+                  value={passwordValue}
+                  onChange={handlePasswordChange}
+                  className="px-4 py-3 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition w-full"
+                />
+                {passwordError && <div className="text-red-500 text-sm text-center">{passwordError}</div>}
+              </div>
+              <div className="flex justify-end gap-3">
+                <CustomButton className="px-6 py-2 rounded-lg border border-sage-300 bg-white cursor-pointer" onClick={handleClosePasswordDialog}>
+                  {t('cancel')}
+                </CustomButton>
+                <CustomButton className="px-6 py-2 rounded-lg bg-sage-600 text-white hover:bg-sage-700 cursor-pointer" onClick={handleResetPassword} disabled={passwordLoading}>
+                  {passwordLoading ? t('processing') : t('confirmReset')}
+                </CustomButton>
+              </div>
             </div>
-          </>
-        </Dialog>
+          </div>
+        )}
 
         {/* Toast 通知组件 */}
         {showToast && (

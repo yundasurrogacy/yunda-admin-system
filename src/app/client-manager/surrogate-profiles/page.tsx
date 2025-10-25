@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Search } from 'lucide-react'
+import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 // 获取 cookie 的辅助函数
@@ -21,6 +22,7 @@ interface Surrogate {
   id: string
   name: string
   location: string
+  country: string
   status: 'Matched' | 'In Progress'
 }
 
@@ -32,7 +34,7 @@ export default function SurrogateProfiles() {
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null>(null)
   
   const [searchTerm, setSearchTerm] = React.useState('')
-  const [hovered, setHovered] = React.useState<string | null>(null)
+  const [hoveredId, setHoveredId] = React.useState<string | null>(null)
   const [allSurrogates, setAllSurrogates] = React.useState<Surrogate[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -77,10 +79,14 @@ export default function SurrogateProfiles() {
         const res = await fetch(`/api/surrogate_mothers-detail?surrogacy=${surrogateId}`)
         if (res.ok) {
           const detail = await res.json()
+          const firstName = detail.contact_information?.first_name || ''
+          const lastName = detail.contact_information?.last_name || ''
+          const fullName = `${firstName} ${lastName}`.trim() || detail.contact_information?.name || detail.name || ''
           details.push({
             id: detail.id,
-            name: detail.contact_information?.name || detail.name || '',
+            name: fullName,
             location: detail.location || detail.contact_information?.location || '',
+            country: detail.contact_information?.country || '',
             status: detail.status || 'Matched',
           })
         }
@@ -141,11 +147,11 @@ export default function SurrogateProfiles() {
 
   // 使用 useCallback 缓存鼠标悬停处理函数
   const handleMouseEnter = useCallback((id: string) => {
-    setHovered(id);
+    setHoveredId(id);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    setHovered(null);
+    setHoveredId(null);
   }, []);
 
   // 使用 useCallback 缓存分页处理函数
@@ -214,48 +220,74 @@ export default function SurrogateProfiles() {
       <div className="p-8 min-h-screen bg-main-bg">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-medium text-sage-800">{t('surrogateProfiles.title')}</h1>
-          <div className="relative">
+          <div className="relative w-72">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
             <Input
-              className="w-[240px] pl-9 bg-white font-medium text-sage-800 border-none shadow rounded-full focus:ring-0 focus:outline-none"
+              type="text"
               placeholder={t('surrogateProfiles.searchPlaceholder')}
               value={searchTerm}
               onChange={handleSearchChange}
+              className="pl-9 bg-white w-full font-medium text-sage-800 rounded-full"
             />
           </div>
         </div>
         {loading ? (
-          <div className="font-medium text-sage-800">{t('loading')}</div>
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-4"></div>
+              <div className="text-lg text-sage-700">{t('loading')}</div>
+            </div>
+          </div>
         ) : error ? (
           <div className="font-medium text-red-500">{error}</div>
+        ) : pagedSurrogates.length === 0 ? (
+          <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+            <div className="text-center">
+              <div className="text-sage-400 mb-4">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+              <p className="text-xl text-sage-600 font-medium mb-2">
+                {searchTerm ? t('surrogateProfiles.noSurrogatesFiltered', { defaultValue: '暂无代孕母' }) : t('surrogateProfiles.noSurrogates', { defaultValue: '暂无代孕母' })}
+              </p>
+              <p className="text-sm text-sage-400 mb-6">
+                {searchTerm ? t('surrogateProfiles.noSurrogatesDescFiltered', { defaultValue: '当前筛选条件下没有找到代孕母' }) : t('surrogateProfiles.noSurrogatesDesc', { defaultValue: '目前没有任何代孕母' })}
+              </p>
+            </div>
+          </div>
         ) : (
           <>
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-3 gap-6"
               ref={containerRef}
             >
-              {pagedSurrogates.map((surrogate, idx) => (
-                <div
-                  key={`${surrogate.id}-${idx}`}
-                  className="rounded-xl bg-sage-50 p-6 shadow text-sage-800 font-medium flex flex-col justify-between min-h-[120px] hover:shadow-lg transition-shadow"
+              {pagedSurrogates.map((surrogate) => (
+                <Card 
+                  key={surrogate.id} 
+                  className="relative p-6 rounded-xl bg-white hover:shadow-lg transition-shadow text-sage-800 font-medium"
                   onMouseEnter={() => handleMouseEnter(surrogate.id)}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div>
-                    <div className="text-lg font-medium mb-1 text-sage-800">{surrogate.name}</div>
-                    <div className="text-sm mb-1 text-sage-800">{surrogate.location}</div>
-                    <div className="text-sm mb-2 text-sage-800">{t('surrogateProfiles.role')}</div>
-                    <div className="text-sm mb-2 text-sage-800">{surrogate.status}</div>
-                  </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="text-lg font-semibold text-sage-800">{surrogate.name}</h3>
+                      <p className="text-sm text-sage-800 opacity-60">{surrogate.country || surrogate.location}</p>
+                    </div>
                     <CustomButton
-                      className={`rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-xs shadow-none border border-sage-200 transition-colors cursor-pointer ${hovered === surrogate.id ? 'bg-sage-200 border-sage-800' : ''}`}
+                      className={
+                        (hoveredId === surrogate.id
+                          ? "rounded bg-white border border-sage-200 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
+                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none border border-sage-200"
+                        ) + " cursor-pointer"
+                      }
                       onClick={() => handleViewProfile(surrogate.id)}
                     >
                       {t('surrogateProfiles.view')}
                     </CustomButton>
                   </div>
-                </div>
+                  <p className="text-sm text-sage-800 opacity-60">{surrogate.status === 'Matched' ? t('surrogateProfiles.role') : surrogate.status}</p>
+                </Card>
               ))}
             </div>
             {/* 分页控件 */}

@@ -342,6 +342,10 @@ export default function SurrogacyDashboard() {
     }
   }, [router, caseId]);
 
+  const handleNavigateToClientProfile = useCallback(() => {
+    router.push('/surrogacy/intended-parents');
+  }, [router]);
+
   const handleNavigateToDocuments = useCallback(() => {
     router.push('/surrogacy/documents');
   }, [router]);
@@ -554,11 +558,11 @@ export default function SurrogacyDashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               <QuickActionButton 
-                label={t('dashboard.myCasesSurrogacy', 'My Case')}
-                IconComponent={Home}
+                label={t('dashboard.clientProfileSurrogacy', 'Client Profile')}
+                IconComponent={Users}
                 bgColor="bg-sage-100"
                 textColor="text-sage-800"
-                onClick={handleNavigateToMyCase}
+                onClick={handleNavigateToClientProfile}
               />
               <QuickActionButton 
                 label={t('dashboard.myJourneySurrogacy', 'My Journey')}

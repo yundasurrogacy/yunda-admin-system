@@ -369,7 +369,7 @@ const MyCasesPage = () => {
             <div className="text-center">
               <div className="text-sage-400 mb-4">
                 <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <p className="text-xl text-sage-600 font-medium mb-2">{t('noCases', { defaultValue: '暂无案例' })}</p>
@@ -441,7 +441,7 @@ const MyCasesPage = () => {
                 <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('trustBalanceLabel')}</span>
-                    <span className="cursor-pointer text-blue-600 hover:underline transition-all" onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}>
+                    <span className="text-blue-600 hover:underline transition-all cursor-pointer" onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}>
                       {item.trust_account_balance_changes && item.trust_account_balance_changes.length > 0 && item.trust_account_balance_changes[0].balance_after !== null && item.trust_account_balance_changes[0].balance_after !== undefined
                         ? `$${Number(item.trust_account_balance_changes[0].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                         : '-'}
@@ -450,7 +450,7 @@ const MyCasesPage = () => {
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('intendedParentLabel')}</span>
                     {item.intended_parent && item.intended_parent.id ? (
-                      <span className="text-blue-600 hover:underline cursor-pointer transition-all" onClick={() => handleParentDetail(item.intended_parent!.id)}>
+                      <span className="text-blue-600 hover:underline transition-all cursor-pointer" onClick={() => handleParentDetail(item.intended_parent!.id)}>
                         {(() => {
                           if (item.intended_parent.basic_information) {
                             try {
@@ -470,7 +470,7 @@ const MyCasesPage = () => {
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-mono text-xs text-sage-400">{t('surrogateMotherLabel')}</span>
                     {item.surrogate_mother && item.surrogate_mother.id ? (
-                      <span className="text-blue-600 hover:underline cursor-pointer transition-all" onClick={() => handleSurrogateDetail(item.surrogate_mother!.id)}>
+                      <span className="text-blue-600 hover:underline transition-all cursor-pointer" onClick={() => handleSurrogateDetail(item.surrogate_mother!.id)}>
                         {(() => {
                           if (item.surrogate_mother.contact_information) {
                             try {
@@ -514,6 +514,12 @@ const MyCasesPage = () => {
                   >
                     {t('myCases.gestationalCarrierIvfClinic')}
                   </CustomButton>
+                  <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}
+                    >
+                      {t('myCases.trust-account')}
+                    </CustomButton>
                 </div>
               </div>
             ))}

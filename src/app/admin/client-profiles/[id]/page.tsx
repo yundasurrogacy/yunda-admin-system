@@ -163,13 +163,13 @@ export default function ClientProfileDetailPage() {
       setEditData(data);
       
       // 显示成功提示
-      showToastMessage('保存成功！', 'success');
+      showToastMessage(t('saveSuccess') || '保存成功！', 'success');
     } catch (e) {
       console.error('🔧 保存失败:', e);
-      showToastMessage(`保存失败: ${e instanceof Error ? e.message : '未知错误'}`, 'error');
+      showToastMessage(`${t('saveFailed') || '保存失败'}: ${e instanceof Error ? e.message : t('unknownError') || '未知错误'}`, 'error');
     }
     setSaving(false);
-  }, [params?.id, editData]);
+  }, [params?.id, editData, t, showToastMessage]);
 
   const handleBack = useCallback(() => {
     router.back();
