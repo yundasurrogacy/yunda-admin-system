@@ -113,10 +113,10 @@ const SurrogateCard = memo(({
           <MapPin className="w-4 h-4 text-sage-500" />
           <span className="text-sage-600">{t('country')}: {ci?.country || '-'}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
+        {/* <div className="flex items-center gap-2 text-sm font-normal">
           <Heart className="w-4 h-4 text-sage-500" />
           <span className="text-sage-600">{ph?.has_given_birth ? t('hasBirthHistory') : t('noBirthHistory')}</span>
-        </div>
+        </div> */}
         <div className="flex items-center gap-2 text-sm font-normal">
           <Calendar className="w-4 h-4 text-sage-500" />
           <span className="text-sage-600">{t('lastUpdate')}: {surrogate.updated_at?.slice(0, 10) || '-'}</span>
@@ -198,6 +198,23 @@ export default function SurrogateProfilesPage() {
   const [selectedSurrogateId, setSelectedSurrogateId] = useState<number | null>(null)
   const [passwordError, setPasswordError] = useState("")
   const { register, handleSubmit, reset } = useForm()
+
+  // Toast 通知状态
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -474,6 +491,7 @@ export default function SurrogateProfilesPage() {
       email: formData.email_address,
     }
     await insertSurrogateMother(data)
+    showToastMessage('代孕妈妈创建成功！', 'success');
     setShowDialog(false)
     reset()
     // 刷新列表
@@ -497,14 +515,17 @@ export default function SurrogateProfilesPage() {
       })
       const data = await res.json()
       if (res.ok && data?.update_surrogate_mothers?.affected_rows > 0) {
+        showToastMessage('密码重置成功！', 'success');
         setShowPasswordDialog(false)
         setPasswordValue("")
         setSelectedSurrogateId(null)
       } else {
         setPasswordError(data.error || "重置失败")
+        showToastMessage(data.error || '密码重置失败', 'error');
       }
     } catch (e) {
-      alert("请求异常")
+      console.error('重置密码失败:', e);
+      showToastMessage('请求异常，请稍后重试', 'error');
     } finally {
       setPasswordLoading(false)
     }
@@ -879,6 +900,58 @@ export default function SurrogateProfilesPage() {
             </div>
           </>
         </Dialog>
+
+        {/* Toast 通知组件 */}
+        {showToast && (
+          <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+            <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+              toastType === 'success' 
+                ? 'bg-green-50 border-green-400 text-green-800' 
+                : toastType === 'error'
+                ? 'bg-red-50 border-red-400 text-red-800'
+                : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+            }`}>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                toastType === 'success' 
+                  ? 'bg-green-100' 
+                  : toastType === 'error'
+                  ? 'bg-red-100'
+                  : 'bg-yellow-100'
+              }`}>
+                {toastType === 'success' && (
+                  <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {toastType === 'error' && (
+                  <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+                {toastType === 'warning' && (
+                  <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm font-medium flex-1">{toastMessage}</span>
+              <button
+                onClick={() => setShowToast(false)}
+                className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                  toastType === 'success' 
+                    ? 'hover:bg-green-600' 
+                    : toastType === 'error'
+                    ? 'hover:bg-red-600'
+                    : 'hover:bg-yellow-600'
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
       </PageContent>
   )
 }

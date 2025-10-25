@@ -108,10 +108,10 @@ export default function SurrogateProfileDetailPage() {
 
   // 保存
   const handleSave = useCallback(async () => {
-    if (!params?.id) return;
+    if (!params?.id || !editData) return;
     setSaving(true);
     try {
-      let photos = (editData.upload_photos || []).filter((p: any) => p.url || p.preview);
+      let photos = (editData?.upload_photos || []).filter((p: any) => p.url || p.preview);
       // 自动上传有 preview 但无 url 的
       const needUpload = photos.filter((p: any) => !p.url && p.preview);
       for (let i = 0; i < needUpload.length; i++) {
@@ -152,7 +152,7 @@ export default function SurrogateProfileDetailPage() {
       console.error('保存失败:', e);
     }
     setSaving(false);
-  }, [params?.id])
+  }, [params?.id, editData])
 
   const handleBack = useCallback(() => {
     router.back()

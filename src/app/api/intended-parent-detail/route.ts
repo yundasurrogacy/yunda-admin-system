@@ -1,4 +1,7 @@
 
+import { NextResponse } from "next/server";
+import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client";
+
 export async function PUT(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -40,8 +43,6 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: '更新失败', detail: String(e) }, { status: 500 });
   }
 }
-import { NextResponse } from "next/server";
-import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client";
 
 export async function GET(req: Request) {
   try {

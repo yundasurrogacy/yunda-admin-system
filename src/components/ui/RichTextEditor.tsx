@@ -18,6 +18,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
   const videoInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation('common');
   const isUpdatingRef = useRef(false);
+  const isInsertingLinkRef = useRef(false);
   const [uploading, setUploading] = useState(false);
   const [showRouteIdModal, setShowRouteIdModal] = useState(false);
   const [routeId, setRouteId] = useState('');
@@ -26,8 +27,6 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
-  const [showLinkToolbar, setShowLinkToolbar] = useState(false);
-  const [linkToolbarPosition, setLinkToolbarPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
   const [activeFormatting, setActiveFormatting] = useState<Set<string>>(new Set());
   const [showToast, setShowToast] = useState(false);
@@ -47,11 +46,116 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
   }, []);
 
 
+  // 处理HTML链接标签转换
+  const convertHtmlLinks = useCallback((html: string): string => {
+    console.log('🔧 convertHtmlLinks - 输入HTML:', html);
+    // 匹配 <a href="...">...</a> 格式的链接，支持更复杂的HTML结构
+    const linkRegex = /<a\s+href\s*=\s*["']([^"']+)["'][^>]*>([^<]*(?:<[^>]*>[^<]*)*)<\/a>/gi;
+    
+    const result = html.replace(linkRegex, (match, href, text) => {
+      console.log('🔧 convertHtmlLinks 处理链接:', { match, href, text });
+      // 创建新的链接元素
+      const linkElement = document.createElement('a');
+      linkElement.href = href;
+      linkElement.textContent = text;
+      linkElement.target = '_blank';
+      linkElement.rel = 'noopener noreferrer';
+      
+      // 设置样式
+      linkElement.setAttribute('style', `
+        color: #2563eb !important;
+        text-decoration: underline !important;
+        text-decoration-color: #2563eb !important;
+        text-decoration-style: solid !important;
+        text-decoration-thickness: 1px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        background: none !important;
+        outline: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: inline !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+      `);
+      
+      // 添加悬停效果
+      linkElement.addEventListener('mouseenter', () => {
+        linkElement.setAttribute('style', `
+          color: #1d4ed8 !important;
+          text-decoration: none !important;
+          background-color: rgba(37, 99, 235, 0.1) !important;
+          padding: 2px 4px !important;
+          border-radius: 4px !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          outline: none !important;
+          border: none !important;
+          margin: 0 !important;
+          display: inline !important;
+          font-family: inherit !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          line-height: inherit !important;
+        `);
+      });
+      
+      linkElement.addEventListener('mouseleave', () => {
+        linkElement.setAttribute('style', `
+          color: #2563eb !important;
+          text-decoration: underline !important;
+          text-decoration-color: #2563eb !important;
+          text-decoration-style: solid !important;
+          text-decoration-thickness: 1px !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          background: none !important;
+          outline: none !important;
+          border: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          display: inline !important;
+          font-family: inherit !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          line-height: inherit !important;
+        `);
+      });
+      
+      return linkElement.outerHTML;
+    });
+    
+    console.log('🔧 convertHtmlLinks - 输出HTML:', result);
+    return result;
+  }, []);
+
   // 处理内容变化
   const handleInput = useCallback(() => {
     if (editorRef.current && !isUpdatingRef.current) {
       isUpdatingRef.current = true;
-      onChange(editorRef.current.innerHTML);
+      
+      // 获取当前HTML内容
+      let htmlContent = editorRef.current.innerHTML;
+      console.log('🔧 handleInput - 原始HTML内容:', htmlContent);
+      
+      // 转换HTML链接标签
+      htmlContent = convertHtmlLinks(htmlContent);
+      console.log('🔧 handleInput - 转换后HTML内容:', htmlContent);
+      
+      // 如果内容有变化，更新编辑器
+      if (htmlContent !== editorRef.current.innerHTML) {
+        console.log('🔧 handleInput - 内容有变化，更新编辑器');
+        console.log('🔧 handleInput - 更新前:', editorRef.current.innerHTML);
+        editorRef.current.innerHTML = htmlContent;
+        console.log('🔧 handleInput - 更新后:', editorRef.current.innerHTML);
+      } else {
+        console.log('🔧 handleInput - 内容无变化，跳过更新');
+      }
+      
+      onChange(htmlContent);
       
       // 延迟更新活动格式状态，避免循环依赖
       setTimeout(() => {
@@ -59,7 +163,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         isUpdatingRef.current = false;
       }, 0);
     }
-  }, [onChange]);
+  }, [onChange, convertHtmlLinks]);
 
   // 应用块级格式的现代方法 - 支持切换功能
   const applyBlockFormat = useCallback((tagName: string) => {
@@ -578,18 +682,31 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
   // 增强的链接检测函数 - 处理各种选择情况
   const findLinkElementEnhanced = useCallback((selection: Selection): HTMLAnchorElement | null => {
     if (!selection || selection.rangeCount === 0) {
+      console.log('🔧 findLinkElementEnhanced: 没有选择');
       return null;
     }
 
     const range = selection.getRangeAt(0);
+    console.log('🔧 findLinkElementEnhanced: 检查选择范围');
+    console.log('🔧 选择内容:', selection.toString());
+    console.log('🔧 选择容器:', range.commonAncestorContainer);
+    console.log('🔧 选择容器类型:', range.commonAncestorContainer.nodeType);
     
     // 方法1: 检查选择范围内的所有节点
+    // 如果选择容器是文本节点，需要从其父元素开始搜索
+    let searchContainer = range.commonAncestorContainer;
+    if (searchContainer.nodeType === Node.TEXT_NODE) {
+      searchContainer = searchContainer.parentElement || searchContainer;
+      console.log('🔧 选择容器是文本节点，使用父元素:', searchContainer);
+    }
+    
     const walker = document.createTreeWalker(
-      range.commonAncestorContainer,
+      searchContainer,
       NodeFilter.SHOW_ELEMENT,
       {
         acceptNode: (node) => {
           if (node.nodeName.toLowerCase() === 'a') {
+            console.log('🔧 找到链接元素:', node);
             return NodeFilter.FILTER_ACCEPT;
           }
           return NodeFilter.FILTER_SKIP;
@@ -599,6 +716,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
     let linkNode = walker.nextNode();
     if (linkNode) {
+      console.log('🔧 方法1找到链接:', linkNode);
       return linkNode as HTMLAnchorElement;
     }
 
@@ -606,16 +724,27 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
     const startContainer = range.startContainer;
     const endContainer = range.endContainer;
     
+    console.log('🔧 方法2: 检查选择边界');
+    console.log('🔧 开始容器:', startContainer);
+    console.log('🔧 结束容器:', endContainer);
+    
     const startLink = findLinkElement(startContainer);
-    if (startLink) return startLink;
+    if (startLink) {
+      console.log('🔧 方法2在开始容器找到链接:', startLink);
+      return startLink;
+    }
     
     const endLink = findLinkElement(endContainer);
-    if (endLink) return endLink;
+    if (endLink) {
+      console.log('🔧 方法2在结束容器找到链接:', endLink);
+      return endLink;
+    }
 
     // 方法3: 检查选择范围内的文本节点
+    console.log('🔧 方法3: 检查选择范围内的文本节点');
     const textNodes: Node[] = [];
     const walker2 = document.createTreeWalker(
-      range.commonAncestorContainer,
+      searchContainer, // 使用修正后的搜索容器
       NodeFilter.SHOW_TEXT,
       null
     );
@@ -624,13 +753,17 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
     while (textNode) {
       if (range.intersectsNode(textNode)) {
         textNodes.push(textNode);
+        console.log('🔧 找到相交的文本节点:', textNode);
       }
       textNode = walker2.nextNode();
     }
 
     for (const textNode of textNodes) {
       const link = findLinkElement(textNode);
-      if (link) return link;
+      if (link) {
+        console.log('🔧 方法3在文本节点找到链接:', link);
+        return link;
+      }
     }
 
     return null;
@@ -640,7 +773,6 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
   const handleSelection = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
-      setShowLinkToolbar(false);
       setSelectedText('');
       return;
     }
@@ -652,30 +784,18 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
       const linkElement = findLinkElementEnhanced(selection);
       
       if (linkElement) {
-        // 选中了链接，显示链接工具栏
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        const editorRect = editorRef.current?.getBoundingClientRect();
-        
-        if (editorRect) {
-          setLinkToolbarPosition({
-            top: rect.top - editorRect.top - 40,
-            left: rect.left - editorRect.left
-          });
-          setShowLinkToolbar(true);
+        // 选中了链接
+        console.log('🔧 选中了链接:', linkElement);
           setSelectedText(selectedText);
-        }
       } else {
         // 选中了普通文本，可以创建链接
         setSelectedText(selectedText);
-        setShowLinkToolbar(false);
       }
       
       // 更新格式状态
       updateActiveFormatting();
     } else {
       // 没有选中文本
-      setShowLinkToolbar(false);
       setSelectedText('');
     }
   }, [updateActiveFormatting, findLinkElementEnhanced]);
@@ -726,7 +846,6 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         }, 10);
         
         showToastMessage(t('richEditor.linkRemoved', '链接已移除'), 'success');
-        setShowLinkToolbar(false);
         
         // 触发输入事件
         handleInput();
@@ -745,8 +864,15 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
   // 初始化编辑器内容
   useEffect(() => {
-    if (editorRef.current && !isUpdatingRef.current) {
+    if (editorRef.current && !isUpdatingRef.current && !isInsertingLinkRef.current) {
+      console.log('🔧 useEffect - 重置编辑器内容:', value);
       editorRef.current.innerHTML = value || '';
+    } else {
+      console.log('🔧 useEffect - 跳过重置，原因:', {
+        hasEditor: !!editorRef.current,
+        isUpdating: isUpdatingRef.current,
+        isInsertingLink: isInsertingLinkRef.current
+      });
     }
   }, [value]);
 
@@ -779,15 +905,156 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         applyListFormat(command);
         console.log('🔧 executeCommand - applyListFormat调用完成'); // 调试日志
       } else if (command === 'createLink') {
-        // 处理创建链接命令
-        if (!selectedText.trim()) {
+        // 使用优化的浏览器弹窗方法
+        console.log('🔧 使用浏览器弹窗创建链接');
+        
+        // 保存当前选择范围
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          console.log('🔧 没有选择范围');
           showToastMessage(t('richEditor.pleaseSelectText', '请先选中要添加链接的文本'), 'warning');
           return;
         }
-        setShowLinkModal(true);
+        
+        const range = selection.getRangeAt(0);
+        const selectedText = range.toString();
+        
+        if (!selectedText.trim()) {
+          console.log('🔧 没有选中文本');
+          showToastMessage(t('richEditor.pleaseSelectText', '请先选中要添加链接的文本'), 'warning');
+          return;
+        }
+        
+        console.log('🔧 当前选中文本:', selectedText);
+        
+        // 使用浏览器弹窗
+        const url = prompt(t('richEditor.pleaseEnterUrl', '请输入链接地址'));
+        if (url && url.trim()) {
+          console.log('🔧 用户输入的链接:', url);
+          
+          // 重新获取选择范围（防止弹窗后丢失）
+          const currentSelection = window.getSelection();
+          if (currentSelection && currentSelection.rangeCount > 0) {
+            const currentRange = currentSelection.getRangeAt(0);
+            const currentText = currentRange.toString();
+            
+            // 如果选择范围丢失，尝试恢复
+            if (!currentText.trim()) {
+              console.log('🔧 选择范围丢失，尝试恢复');
+              currentSelection.removeAllRanges();
+              currentSelection.addRange(range);
+            }
+          }
+          
+          const success = document.execCommand('createLink', false, url.trim());
+          if (success) {
+            console.log('🔧 execCommand 创建链接成功');
+            showToastMessage(t('richEditor.linkCreated', '链接创建成功'), 'success');
+            
+            // 手动应用样式到新创建的链接
+            setTimeout(() => {
+              const finalSelection = window.getSelection();
+              if (finalSelection && finalSelection.rangeCount > 0) {
+                const finalRange = finalSelection.getRangeAt(0);
+                const linkElement = finalRange.commonAncestorContainer.nodeType === Node.TEXT_NODE 
+                  ? finalRange.commonAncestorContainer.parentElement?.closest('a')
+                  : (finalRange.commonAncestorContainer as Element).closest('a');
+                
+                if (linkElement) {
+                  console.log('🔧 找到新创建的链接，应用样式');
+                  linkElement.style.setProperty('color', '#2563eb', 'important');
+                  linkElement.style.setProperty('text-decoration', 'underline', 'important');
+                  linkElement.style.setProperty('cursor', 'pointer', 'important');
+                  linkElement.target = '_blank';
+                  linkElement.rel = 'noopener noreferrer';
+                } else {
+                  console.log('🔧 未找到新创建的链接元素');
+                }
+              }
+            }, 100);
+          } else {
+            console.log('🔧 execCommand 创建链接失败');
+            showToastMessage(t('richEditor.linkCreationFailed', '链接创建失败'), 'error');
+          }
+        } else {
+          console.log('🔧 用户取消或输入为空');
+        }
+        return;
       } else if (command === 'unlink') {
-        // 处理移除链接命令
-        handleRemoveLink();
+        // 使用简单的 execCommand 方法移除链接
+        console.log('🔧 使用 execCommand 移除链接');
+        
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          console.log('🔧 没有选择范围');
+          showToastMessage(t('richEditor.pleaseSelectLink', '请先选中要移除的链接'), 'warning');
+          return;
+        }
+        
+        const range = selection.getRangeAt(0);
+        console.log('🔧 选择范围内容:', range.toString());
+        
+        // 检查是否选中了链接
+        let linkElement = null;
+        if (range.commonAncestorContainer.nodeType === Node.TEXT_NODE) {
+          linkElement = range.commonAncestorContainer.parentElement?.closest('a');
+        } else {
+          linkElement = (range.commonAncestorContainer as Element).closest('a');
+        }
+        
+        if (!linkElement) {
+          console.log('🔧 没有找到链接元素');
+          showToastMessage(t('richEditor.noLinkFound', '没有找到链接，请选中链接文本'), 'warning');
+          return;
+        }
+        
+        console.log('🔧 找到链接元素:', linkElement);
+        
+        // 选中整个链接元素
+        const newRange = document.createRange();
+        newRange.selectNodeContents(linkElement);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        
+        console.log('🔧 已选中整个链接元素，准备移除');
+        
+        const success = document.execCommand('unlink', false);
+        if (success) {
+          console.log('🔧 execCommand 移除链接成功');
+          
+          // 自动执行清除格式功能
+          setTimeout(() => {
+            console.log('🔧 自动执行清除格式功能');
+            const clearFormatSuccess = document.execCommand('removeFormat', false);
+            if (clearFormatSuccess) {
+              console.log('🔧 清除格式成功');
+            } else {
+              console.log('🔧 清除格式失败，尝试备用方法');
+              // 备用方法：手动清除样式
+              const selection = window.getSelection();
+              if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const textNode = range.commonAncestorContainer.nodeType === Node.TEXT_NODE 
+                  ? range.commonAncestorContainer 
+                  : range.startContainer;
+                
+                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                  const parentElement = textNode.parentElement;
+                  if (parentElement) {
+                    parentElement.removeAttribute('style');
+                    console.log('🔧 备用方法：手动移除样式属性');
+                  }
+                }
+              }
+            }
+          }, 100);
+          
+          showToastMessage(t('richEditor.linkRemoved', '链接已移除'), 'success');
+        } else {
+          console.log('🔧 execCommand 移除链接失败');
+          showToastMessage(t('richEditor.linkRemoveError', '链接移除失败'), 'error');
+        }
+        return;
       } else {
         // 执行其他命令
         const success = document.execCommand(command, false, value);
@@ -871,92 +1138,159 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
   // 处理链接插入
   const handleInsertLink = useCallback(() => {
+    console.log('🚀🚀🚀 handleInsertLink 函数开始执行 🚀🚀🚀');
+    console.log('🔧 handleInsertLink 被调用');
+    console.log('🔧 linkUrl:', linkUrl);
+    console.log('🔧 selectedText:', selectedText);
+    
     if (!linkUrl.trim()) {
+      console.log('🔧 链接URL为空');
       showToastMessage(t('richEditor.pleaseEnterUrl', '请输入链接地址'), 'warning');
       return;
     }
     
     if (!selectedText.trim()) {
+      console.log('🔧 选中文本为空');
       showToastMessage(t('richEditor.pleaseSelectText', '请先选中要添加链接的文本'), 'warning');
       return;
     }
     
     try {
+      console.log('🔧 开始创建链接...');
+      isInsertingLinkRef.current = true; // 设置链接插入标志
+      
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
+        console.log('🔧 没有选择范围');
         showToastMessage(t('richEditor.noSelection', '没有选中文本'), 'warning');
         return;
       }
       
+      console.log('🔧 选择范围存在，继续处理...');
       const range = selection.getRangeAt(0);
+      
+      console.log('🔧 创建链接元素...');
+      // 使用DOM元素创建链接，与convertHtmlLinks保持一致
       const linkElement = document.createElement('a');
       linkElement.href = linkUrl.trim();
       linkElement.textContent = selectedText.trim();
       linkElement.target = '_blank';
       linkElement.rel = 'noopener noreferrer';
       
-      // 使用HTML标签的方式，不依赖CSS样式
-      // 直接设置HTML属性，让浏览器使用默认的链接样式
-      linkElement.setAttribute('href', linkUrl.trim());
-      linkElement.setAttribute('target', '_blank');
-      linkElement.setAttribute('rel', 'noopener noreferrer');
+      console.log('🔧 链接元素创建完成:', linkElement);
       
+      // 设置样式
+      linkElement.setAttribute('style', `
+        color: #2563eb !important;
+        text-decoration: underline !important;
+        text-decoration-color: #2563eb !important;
+        text-decoration-style: solid !important;
+        text-decoration-thickness: 1px !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        background: none !important;
+        outline: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: inline !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+      `);
+      
+      // 添加悬停效果
+      linkElement.addEventListener('mouseenter', () => {
+        linkElement.setAttribute('style', `
+          color: #1d4ed8 !important;
+          text-decoration: none !important;
+          background-color: rgba(37, 99, 235, 0.1) !important;
+          padding: 2px 4px !important;
+          border-radius: 4px !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          outline: none !important;
+          border: none !important;
+          margin: 0 !important;
+          display: inline !important;
+          font-family: inherit !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          line-height: inherit !important;
+        `);
+      });
+      
+      linkElement.addEventListener('mouseleave', () => {
+        linkElement.setAttribute('style', `
+          color: #2563eb !important;
+          text-decoration: underline !important;
+          text-decoration-color: #2563eb !important;
+          text-decoration-style: solid !important;
+          text-decoration-thickness: 1px !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          background: none !important;
+          outline: none !important;
+          border: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          display: inline !important;
+          font-family: inherit !important;
+          font-size: inherit !important;
+          font-weight: inherit !important;
+          line-height: inherit !important;
+        `);
+      });
+      
+      // 插入DOM元素
+      console.log('🔧 准备插入链接元素');
+      console.log('🔧 当前选择范围:', range);
+      console.log('🔧 选择范围内容:', range.toString());
+      console.log('🔧 选择范围容器:', range.commonAncestorContainer);
+      console.log('🔧 选择范围容器类型:', range.commonAncestorContainer.nodeType);
+      
+      console.log('🔧 执行删除内容...');
       range.deleteContents();
+      console.log('🔧 删除内容后，范围内容:', range.toString());
+      
+      console.log('🔧 执行插入链接...');
       range.insertNode(linkElement);
+      console.log('🔧 插入链接后，范围内容:', range.toString());
+      console.log('🔧 插入后容器HTML:', range.commonAncestorContainer.parentElement?.innerHTML || '无父元素');
       
-      // 强制触发重绘，确保样式立即生效
-      linkElement.offsetHeight;
+      console.log('🔧 链接元素已插入:', linkElement);
+      console.log('🔧 链接元素HTML:', linkElement.outerHTML);
+      console.log('🔧 链接元素样式:', linkElement.getAttribute('style'));
       
+      console.log('🔧 准备选中新创建的链接...');
       // 选中新创建的链接
       const newRange = document.createRange();
       newRange.selectNodeContents(linkElement);
       selection.removeAllRanges();
       selection.addRange(newRange);
       
-      // 延迟检查样式是否正确应用
-      setTimeout(() => {
-        const computedStyle = window.getComputedStyle(linkElement);
-        console.log('🔧 链接样式检查:');
-        console.log('  - 颜色:', computedStyle.color);
-        console.log('  - 下划线:', computedStyle.textDecoration);
-        console.log('  - 光标:', computedStyle.cursor);
-        console.log('  - HTML属性:', linkElement.outerHTML);
-        
-        // 检查样式是否正确应用
-        const hasColor = computedStyle.color && computedStyle.color !== 'rgba(0, 0, 0, 0)' && computedStyle.color !== 'rgb(0, 0, 0)';
-        const hasUnderline = computedStyle.textDecoration.includes('underline');
-        const hasPointer = computedStyle.cursor === 'pointer';
-        
-        console.log('🔧 样式验证:');
-        console.log('  - 有颜色:', hasColor);
-        console.log('  - 下划线:', hasUnderline);
-        console.log('  - 指针:', hasPointer);
-        
-        if (hasColor && hasUnderline && hasPointer) {
-          console.log('✅ 全局CSS样式已正确应用');
-        } else {
-          console.log('🔧 全局CSS样式未生效，尝试强制应用内联样式...');
-          
-          // 如果全局CSS样式不生效，使用内联样式作为备用
-          linkElement.style.setProperty('color', '#2563eb', 'important');
-          linkElement.style.setProperty('text-decoration', 'underline', 'important');
-          linkElement.style.setProperty('cursor', 'pointer', 'important');
-          
+      console.log('🔧 链接元素已选中');
+      
+      // 立即测试链接检测和强制样式应用
           setTimeout(() => {
-            const fixedStyle = window.getComputedStyle(linkElement);
-            console.log('🔧 内联样式应用后检查:');
-            console.log('  - 颜色:', fixedStyle.color);
-            console.log('  - 下划线:', fixedStyle.textDecoration);
-            console.log('  - 光标:', fixedStyle.cursor);
+        const testSelection = window.getSelection();
+        if (testSelection && testSelection.rangeCount > 0) {
+          const testLink = findLinkElementEnhanced(testSelection);
+          console.log('🔧 创建后立即测试链接检测:', testLink ? '找到链接' : '未找到链接');
+          if (testLink) {
+            console.log('🔧 找到的链接元素:', testLink);
+            console.log('🔧 链接样式:', testLink.getAttribute('style'));
             
-            if (fixedStyle.color === 'rgb(37, 99, 235)' || fixedStyle.color === '#2563eb') {
-              console.log('🎉 内联样式应用成功！');
-            } else {
-              console.log('❌ 内联样式应用失败');
-            }
-          }, 10);
+            // 强制应用样式
+            testLink.style.setProperty('color', '#2563eb', 'important');
+            testLink.style.setProperty('text-decoration', 'underline', 'important');
+            testLink.style.setProperty('text-decoration-color', '#2563eb', 'important');
+            testLink.style.setProperty('cursor', 'pointer', 'important');
+            console.log('🔧 强制应用样式后:', testLink.style.cssText);
+          }
         }
-      }, 10);
+      }, 100);
       
       showToastMessage(t('richEditor.linkCreated', '链接创建成功'), 'success');
       setShowLinkModal(false);
@@ -964,18 +1298,26 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
       setLinkText('');
       setSelectedText('');
       
-      // 延迟触发选择检测，确保链接工具栏显示
+      // 延迟触发输入事件，避免干扰链接插入
       setTimeout(() => {
-        handleSelection();
-      }, 50);
-      
-      // 触发输入事件
+        console.log('🔧 延迟调用 handleInput');
       handleInput();
+      }, 200);
+      
+      // 额外延迟，确保链接完全插入后再允许重置
+      setTimeout(() => {
+        console.log('🔧 链接插入完成，允许内容重置');
+        isInsertingLinkRef.current = false; // 清除链接插入标志
+      }, 500);
     } catch (error) {
-      console.error('Error creating link:', error);
+      console.error('❌ 链接创建过程中发生错误:', error);
+      console.error('❌ 错误堆栈:', (error as Error).stack);
+      console.error('❌ 错误类型:', typeof error);
+      console.error('❌ 错误消息:', (error as Error).message);
+      isInsertingLinkRef.current = false; // 清除链接插入标志
       showToastMessage(t('richEditor.linkCreationFailed', '链接创建失败'), 'error');
     }
-  }, [linkUrl, selectedText, handleInput, showToastMessage, t, handleSelection]);
+  }, [linkUrl, selectedText, handleInput, showToastMessage, t]);
   
   // 处理路由标识插入
   const handleInsertRouteId = useCallback(() => {
@@ -1611,76 +1953,124 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
 
       {/* 路由标识插入模态框 */}
-      {/* 链接工具栏 */}
-      {showLinkToolbar && (
-        <div 
-          className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-50 flex gap-1"
-          style={{
-            top: `${linkToolbarPosition.top}px`,
-            left: `${linkToolbarPosition.left}px`
-          }}
-        >
+
+      {/* 链接模态框 - 美化版本 */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden animate-slideIn">
+            {/* 模态框头部 */}
+            <div className="px-6 py-5 border-b border-sage-200 bg-gradient-to-r from-sage-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#C2A87A] rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-sage-800">{t('richEditor.createLink', '插入链接')}</h3>
+                  <p className="text-sm text-sage-600 mt-1">{t('richEditor.createLinkDesc', '为选中的文本添加链接')}</p>
+                </div>
+              </div>
           <button
             type="button"
               onClick={() => {
-                const selection = window.getSelection();
-                if (selection && selection.rangeCount > 0) {
-                  const linkElement = findLinkElementEnhanced(selection);
-                  
-                  if (linkElement) {
-                    const href = linkElement.href;
-                    window.open(href, '_blank');
-                  }
-                }
-              }}
-            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors cursor-pointer"
-            title={t('richEditor.openLink', '打开链接')}
-          >
-            🔗
-          </button>
-          <button
-            type="button"
-            onClick={handleRemoveLink}
-            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors cursor-pointer"
-            title={t('richEditor.removeLink', '移除链接')}
-          >
-            🔓
+                  setShowLinkModal(false);
+                  setLinkUrl('');
+                  setLinkText('');
+                }}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label={t('close', '关闭')}
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
           </button>
         </div>
-      )}
 
-      {/* 链接模态框 */}
-      {showLinkModal && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-1">
-          <h3 className="text-base font-semibold mb-3 text-sage-800">{t('richEditor.createLink', '插入链接')}</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('richEditor.linkUrl', '链接地址')}
+            {/* 模态框内容 */}
+            <div className="px-6 py-6 space-y-6">
+              {/* 链接地址输入 */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-sage-700">
+                  {t('richEditor.linkUrl', '链接地址')} <span className="text-red-500">*</span>
               </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="w-5 h-5 text-sage-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
               <input
                 type="url"
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder={t('richEditor.pleaseEnterUrl', '请输入链接地址')}
-                className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-base"
+                    placeholder={t('richEditor.pleaseEnterUrl', '请输入链接地址，如：https://example.com')}
+                    className="w-full pl-10 pr-4 py-3 border border-sage-300 rounded-xl focus:ring-2 focus:ring-[#C2A87A] focus:border-[#C2A87A] text-base transition-all duration-200 hover:border-sage-400"
                 autoFocus
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {linkUrl && (
+                  <div className="flex items-center gap-2 text-xs text-sage-600">
+                    <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{t('richEditor.urlValid', '链接地址格式正确')}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 链接文本输入 */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-sage-700">
                 {t('richEditor.linkText', '链接文本')}
               </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="w-5 h-5 text-sage-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                  </div>
               <input
                 type="text"
                 value={linkText || selectedText}
                 onChange={(e) => setLinkText(e.target.value)}
-                placeholder={t('richEditor.linkText', '链接文本')}
-                className="w-full px-3 py-2 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-base"
+                    placeholder={t('richEditor.linkTextPlaceholder', '链接显示的文本（可选）')}
+                    className="w-full pl-10 pr-4 py-3 border border-sage-300 rounded-xl focus:ring-2 focus:ring-[#C2A87A] focus:border-[#C2A87A] text-base transition-all duration-200 hover:border-sage-400"
               />
             </div>
+                {selectedText && (
+                  <div className="flex items-center gap-2 text-xs text-sage-600">
+                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <span>{t('richEditor.selectedText', '已选中文本')}: "{selectedText}"</span>
           </div>
-          <div className="flex gap-3 justify-end mt-4">
+                )}
+              </div>
+
+              {/* 预览区域 */}
+              {(linkUrl || linkText || selectedText) && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-sage-700">
+                    {t('richEditor.preview', '预览')}
+                  </label>
+                  <div className="p-4 bg-sage-50 rounded-xl border border-sage-200">
+                    <div className="text-sm text-sage-600 mb-2">{t('richEditor.previewDesc', '链接预览')}:</div>
+                    <a 
+                      href={linkUrl || '#'} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[#C2A87A] hover:text-[#a88a5c] underline transition-colors"
+                    >
+                      {linkText || selectedText || t('richEditor.clickHere', '点击这里')}
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 模态框底部按钮 */}
+            <div className="px-6 py-4 border-t border-sage-200 bg-gradient-to-r from-sage-50 to-white flex gap-3 justify-end">
             <button
               type="button"
               onClick={() => {
@@ -1688,24 +2078,36 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
                 setLinkUrl('');
                 setLinkText('');
               }}
-              className="min-w-[80px] px-4 py-2 text-base font-semibold border border-sage-300 text-sage-700 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer capitalize"
+                className="px-6 py-2.5 text-base font-semibold border border-sage-300 text-sage-700 rounded-xl hover:bg-sage-100 hover:border-sage-400 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
             >
               {t('cancel', '取消')}
             </button>
             <button
               type="button"
               onClick={handleInsertLink}
-              className="min-w-[80px] px-4 py-2 text-base font-semibold bg-[#C2A87A] text-white rounded-lg hover:bg-[#a88a5c] transition-colors shadow cursor-pointer capitalize"
-            >
+                disabled={!linkUrl.trim()}
+                className={`px-6 py-2.5 text-base font-semibold rounded-xl transition-all duration-200 shadow-lg cursor-pointer ${
+                  linkUrl.trim() 
+                    ? 'bg-[#C2A87A] text-white hover:bg-[#a88a5c] hover:shadow-xl transform hover:-translate-y-0.5' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
               {t('confirm', '确认')}
+                </div>
             </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* 路由标识模态框 */}
       {showRouteIdModal && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-4 mt-1">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-full max-w-md mx-4">
           <h3 className="text-base font-semibold mb-3 text-sage-800">{t('richEditor.insertRouteId', '插入路由标识')}</h3>
           <input
             type="text"
@@ -1731,6 +2133,7 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
             >
               {t('submit', '确定')}
             </button>
+          </div>
           </div>
         </div>
       )}

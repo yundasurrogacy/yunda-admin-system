@@ -174,21 +174,21 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   };
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pointer-events-none">
       {/* 弹窗内容 */}
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden animate-fadeIn relative z-10 max-h-[95vh] flex flex-col pointer-events-auto transform transition-all duration-300 ease-out hover:shadow-3xl"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl overflow-hidden animate-fadeIn relative z-10 max-h-[98vh] sm:max-h-[95vh] flex flex-col pointer-events-auto transform transition-all duration-300 ease-out hover:shadow-3xl"
         style={modalStyle}
       >
         {/* 固定标题栏 */}
-        <div className="px-8 py-6 border-b border-sage-200 bg-gradient-to-r from-sage-50 to-white flex items-center justify-between sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#C2A87A] rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-sage-200 bg-gradient-to-r from-sage-50 to-white flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#C2A87A] rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-sage-800 tracking-wide capitalize">{form.id ? t('editBlog') : t('addBlog')}</h2>
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-sage-800 tracking-wide capitalize">{form.id ? t('editBlog') : t('addBlog')}</h2>
           </div>
           <button
             type="button"
@@ -204,24 +204,24 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
         {/* 可滚动的表单内容 */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="px-8 py-6 space-y-6 overflow-y-auto flex-1 bg-gradient-to-b from-white to-sage-25">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1 bg-gradient-to-b from-white to-sage-25">
 
           {/* 1. 路由标识 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('routeId')}</Label>
+            <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('routeId')}</Label>
             <Input 
               name="route_id" 
               value={form.route_id} 
               onChange={handleChange} 
               placeholder={t('pleaseEnterRouteId')}
-              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 sm:py-1 text-sm sm:text-[16px]"
             />
           </div>
 
           {/* 2. 作者、标签、分类 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700 capitalize">{t('author')}</Label>
+              <Label className="text-sm sm:text-base font-semibold text-sage-700 capitalize">{t('author')}</Label>
               <Input 
                 name="reference_author" 
                 value={form.reference_author} 
@@ -231,7 +231,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700 capitalize">{t('tags')}</Label>
+              <Label className="text-sm sm:text-base font-semibold text-sage-700 capitalize">{t('tags')}</Label>
               <Input 
                 name="tags" 
                 value={form.tags} 
@@ -241,13 +241,13 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-base font-semibold text-sage-700 capitalize">{t('category')}</Label>
+              <Label className="text-sm sm:text-base font-semibold text-sage-700 capitalize">{t('category')}</Label>
               <select 
                 name="category" 
                 value={form.category} 
                 onChange={handleChange} 
                 required 
-                className="w-full px-4 py-1 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-[16px] bg-white capitalize cursor-pointer"
+                className="w-full px-3 sm:px-4 py-2 sm:py-1 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 text-sm sm:text-[16px] bg-white capitalize cursor-pointer"
               >
                 <option value="" className="capitalize cursor-pointer">{t('pleaseSelectCategory')}</option>
                 {categoryOptions.map(opt => (
@@ -260,7 +260,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
           
           {/* 3. 封面图 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700 capitalize">{t('coverImage')}</Label>
+            <Label className="text-sm sm:text-base font-semibold text-sage-700 capitalize">{t('coverImage')}</Label>
             {/* 没有图片时的上传区块 */}
             {!form.cover_img_url && (
               <div className="relative w-full h-24 flex items-center justify-center border-2 border-dashed border-sage-300 rounded-lg bg-sage-50 hover:border-sage-400 transition-colors cursor-pointer">
@@ -370,37 +370,37 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
           {/* 4. 英文标题 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishTitle')} <span className="text-red-500">*</span></Label>
+            <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('englishTitle')} <span className="text-red-500">*</span></Label>
             <Input 
               name="en_title" 
               value={form.en_title} 
               onChange={handleChange} 
               required
-              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 sm:py-1 text-sm sm:text-[16px]"
               placeholder={t('pleaseEnterEnglishTitle')}
             />
           </div>
 
           {/* 5. 英文内容 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('englishContent')} <span className="text-red-500">*</span></Label>
+            <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('englishContent')} <span className="text-red-500">*</span></Label>
             <RichTextEditor
               value={form.en_content} 
               onChange={(value) => setForm({ ...form, en_content: value })}
               placeholder={t('pleaseEnterEnglishContent')}
               minHeight="200px"
-              className="text-[16px]"
+              className="text-sm sm:text-[16px]"
             />
           </div>
 
           {/* 6. 中文标题 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
+            <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('chineseTitle')}</Label>
             <Input 
               name="title" 
               value={form.title} 
               onChange={handleChange} 
-              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-4 py-1 text-[16px]"
+              className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 sm:py-1 text-sm sm:text-[16px]"
               placeholder={t('pleaseEnterChineseTitle')}
             />
           </div>
@@ -408,24 +408,24 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
 
           {/* 7. 中文内容 */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold text-sage-700">{t('chineseContent')}</Label>
+            <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('chineseContent')}</Label>
             <RichTextEditor
               value={form.content} 
               onChange={(value) => setForm({ ...form, content: value })}
               placeholder={t('pleaseEnterChineseContent')}
               minHeight="200px"
-              className="text-[16px]"
+              className="text-sm sm:text-[16px]"
             />
           </div>
           </div>
 
           {/* 固定底部按钮栏 */}
-          <div className="px-8 py-6 border-t border-sage-200 bg-gradient-to-r from-sage-50 to-white flex justify-end gap-4 sticky bottom-0">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-t border-sage-200 bg-gradient-to-r from-sage-50 to-white flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 sticky bottom-0">
             <CustomButton 
               type="button" 
               onClick={() => onOpenChange(false)}
               disabled={submitting}
-              className={`min-w-[120px] px-6 py-3 text-base font-semibold border rounded-lg transition-all duration-200 capitalize ${
+              className={`w-full sm:min-w-[120px] px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold border rounded-lg transition-all duration-200 capitalize ${
                 submitting 
                   ? 'border-gray-300 text-gray-400 cursor-not-allowed' 
                   : 'border-sage-300 text-sage-700 hover:bg-sage-100 hover:border-sage-400 cursor-pointer shadow-sm hover:shadow-md'
@@ -436,7 +436,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             <CustomButton 
               type="submit" 
               disabled={uploading || submitting}
-              className={`min-w-[140px] px-6 py-3 text-base font-semibold rounded-lg transition-all duration-200 shadow-lg capitalize ${
+              className={`w-full sm:min-w-[140px] px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-lg transition-all duration-200 shadow-lg capitalize ${
                 uploading || submitting 
                   ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
                   : 'bg-[#C2A87A] text-white hover:bg-[#a88a5c] cursor-pointer hover:shadow-xl transform hover:-translate-y-0.5'

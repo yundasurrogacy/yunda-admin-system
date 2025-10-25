@@ -54,6 +54,23 @@ export default function ClientProfileDetailPage() {
   // 编辑表单数据
   const [editData, setEditData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  
+  // Toast 通知状态
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
+
+  // 显示Toast提示
+  const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  }, []);
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -121,22 +138,38 @@ export default function ClientProfileDetailPage() {
     if (!params?.id) return;
     setSaving(true);
     try {
+      console.log('🔧 开始保存数据:', editData);
       const res = await fetch(`/api/intended-parent-detail?id=${params.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editData),
       });
-      if (!res.ok) throw new Error('保存失败');
+      
+      console.log('🔧 API响应状态:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('🔧 API错误详情:', errorData);
+        throw new Error(`保存失败: ${errorData.error || res.statusText}`);
+      }
+      
+      const result = await res.json();
+      console.log('🔧 保存成功:', result);
+      
       setEditMode(false);
       // 保存后刷新数据
       const data = await getIntendedParentById(Number(params.id));
       setClient(data);
       setEditData(data);
+      
+      // 显示成功提示
+      showToastMessage('保存成功！', 'success');
     } catch (e) {
-      alert('保存失败');
+      console.error('🔧 保存失败:', e);
+      showToastMessage(`保存失败: ${e instanceof Error ? e.message : '未知错误'}`, 'error');
     }
     setSaving(false);
-  }, [params?.id]);
+  }, [params?.id, editData]);
 
   const handleBack = useCallback(() => {
     router.back();
@@ -257,6 +290,7 @@ export default function ClientProfileDetailPage() {
   }
 
   return (
+    <>
       <div className="min-h-screen bg-main-bg space-y-6 animate-fade-in px-4 lg:px-12">
             {/* 返回按钮 */}
             <CustomButton
@@ -527,5 +561,58 @@ export default function ClientProfileDetailPage() {
         {/* 其他区块（原有内容保留） */}
         {/* ...existing code... */}
       </div>
+
+      {/* Toast 通知组件 */}
+      {showToast && (
+        <div className="fixed top-4 right-4 z-[9999] animate-fadeIn">
+          <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 flex items-center gap-3 min-w-[300px] max-w-[500px] ${
+            toastType === 'success' 
+              ? 'bg-green-50 border-green-400 text-green-800' 
+              : toastType === 'error'
+              ? 'bg-red-50 border-red-400 text-red-800'
+              : 'bg-yellow-50 border-yellow-400 text-yellow-800'
+          }`}>
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+              toastType === 'success' 
+                ? 'bg-green-100' 
+                : toastType === 'error'
+                ? 'bg-red-100'
+                : 'bg-yellow-100'
+            }`}>
+              {toastType === 'success' && (
+                <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+              {toastType === 'error' && (
+                <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              {toastType === 'warning' && (
+                <svg className="w-3 h-3 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </div>
+            <span className="text-sm font-medium flex-1">{toastMessage}</span>
+            <button
+              onClick={() => setShowToast(false)}
+              className={`w-5 h-5 rounded-full flex items-center justify-center hover:bg-opacity-20 transition-colors ${
+                toastType === 'success' 
+                  ? 'hover:bg-green-600' 
+                  : toastType === 'error'
+                  ? 'hover:bg-red-600'
+                  : 'hover:bg-yellow-600'
+              }`}
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

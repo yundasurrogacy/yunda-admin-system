@@ -9,9 +9,11 @@ import LayoutWithGlobalSidebarHeader from "@/components/LayoutWithGlobalSidebarH
 // import { usePathname } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Yunda Surrogacy Management System",
-  description: "Professional surrogacy service management platform",
+  title: "孕达代孕管理系统",
+  description: "专业的代孕服务管理平台",
 };
+
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // 全局 sidebar/header 持久化渲染，sidebar config 根据 appType 自动切换
