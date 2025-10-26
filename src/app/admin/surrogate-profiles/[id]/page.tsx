@@ -37,6 +37,26 @@ const calculateAge = (dateOfBirth: string | undefined): number => {
   return age;
 }
 
+// 简单全屏图片预览组件
+function ImagePreviewModal({ open, images, current, onClose }: { open: boolean, images: {url: string, name?: string}[], current: number, onClose: () => void }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={onClose}>
+      <img
+        src={images[current]?.url}
+        alt={images[current]?.name || `photo-${current + 1}`}
+        className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-white"
+        onClick={e => e.stopPropagation()}
+      />
+      <button
+        className="absolute top-6 right-8 text-white text-3xl font-bold cursor-pointer bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70"
+        onClick={onClose}
+        aria-label="关闭"
+      >×</button>
+    </div>
+  );
+}
+
 export default function SurrogateProfileDetailPage() {
   const router = useRouter()
   const { t, i18n } = useTranslation("common")
@@ -52,6 +72,10 @@ export default function SurrogateProfileDetailPage() {
   // 编辑表单数据
   const [editData, setEditData] = useState<any>(null)
   const [saving, setSaving] = useState(false)
+
+  // 图片预览相关 state
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -157,6 +181,16 @@ export default function SurrogateProfileDetailPage() {
   const handleBack = useCallback(() => {
     router.back()
   }, [router])
+
+  // 图片预览处理函数
+  const handlePreviewOpen = useCallback((index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
+  }, []);
+
+  const handlePreviewClose = useCallback(() => {
+    setPreviewOpen(false);
+  }, []);
 
   // 使用 useMemo 缓存数据源和计算值
   const data = useMemo(() => editMode ? editData : surrogate, [editMode, editData, surrogate])
@@ -270,15 +304,9 @@ export default function SurrogateProfileDetailPage() {
                           alt={photo.name || `photo-${idx+1}`}
                           className="object-cover w-full h-full transition-transform duration-200 hover:scale-105 cursor-pointer"
                           loading="lazy"
-                          onClick={e => {
-                            const img = e.currentTarget;
-                            if (img.requestFullscreen) {
-                              img.requestFullscreen();
-                            } else if ((img as any).webkitRequestFullscreen) {
-                              (img as any).webkitRequestFullscreen();
-                            } else if ((img as any).msRequestFullscreen) {
-                              (img as any).msRequestFullscreen();
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation(); // 阻止事件冒泡
+                            handlePreviewOpen(idx);
                           }}
                         />
                         <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow font-medium">
@@ -373,46 +401,52 @@ export default function SurrogateProfileDetailPage() {
                 </CustomButton>
               </div>
               <div className="text-xs text-sage-500">{t('uploadPhotoTip', '支持多张图片上传，保存后生效')}</div>
+              <ImagePreviewModal
+                open={previewOpen}
+                images={editData?.upload_photos || []}
+                current={previewIndex}
+                onClose={handlePreviewClose}
+              />
             </>
           ) : (
             Array.isArray(surrogate.upload_photos) && surrogate.upload_photos.length > 0 ? (
-              <div className="flex gap-6 justify-center flex-wrap w-full">
-                {surrogate.upload_photos
-                  .filter(photo => photo.url && typeof photo.url === 'string' && photo.url.trim() !== '')
-                  .map((photo, idx) => (
-                    <div key={idx} className="flex flex-col items-center">
-                      <div className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative">
-                        <img
-                          src={photo.url}
-                          alt={photo.name || `photo-${idx+1}`}
-                          className="object-cover w-full h-full transition-transform duration-200 hover:scale-105 cursor-pointer"
-                          loading="lazy"
-                          onClick={e => {
-                            const img = e.currentTarget;
-                            if (img.requestFullscreen) {
-                              img.requestFullscreen();
-                            } else if ((img as any).webkitRequestFullscreen) {
-                              (img as any).webkitRequestFullscreen();
-                            } else if ((img as any).msRequestFullscreen) {
-                              (img as any).msRequestFullscreen();
-                            }
-                          }}
-                        />
-                        <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow font-medium">
-                          {`${t('photo')} ${idx+1}`}
-                        </span>
-                      </div>
-                      {photo.name && (
-                        <span
-                          className="mt-2 inline-block bg-sage-100 text-sage-700 px-3 py-1 rounded-full text-xs font-medium border border-sage-200 max-w-[11rem] overflow-hidden text-ellipsis whitespace-nowrap"
-                          title={photo.name}
+              <>
+                <div className="flex gap-6 justify-center flex-wrap w-full">
+                  {surrogate.upload_photos
+                    .filter(photo => photo.url && typeof photo.url === 'string' && photo.url.trim() !== '')
+                    .map((photo, idx) => (
+                      <div key={idx} className="flex flex-col items-center">
+                        <div className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative cursor-pointer"
+                          onClick={() => handlePreviewOpen(idx)}
                         >
-                          {photo.name}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-              </div>
+                          <img
+                            src={photo.url}
+                            alt={photo.name || `photo-${idx+1}`}
+                            className="object-cover w-full h-full transition-transform duration-200 hover:scale-105"
+                            loading="lazy"
+                          />
+                          <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow font-medium">
+                            {`${t('photo')} ${idx+1}`}
+                          </span>
+                        </div>
+                        {photo.name && (
+                          <span
+                            className="mt-2 inline-block bg-sage-100 text-sage-700 px-3 py-1 rounded-full text-xs font-medium border border-sage-200 max-w-[11rem] overflow-hidden text-ellipsis whitespace-nowrap"
+                            title={photo.name}
+                          >
+                            {photo.name}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                </div>
+                <ImagePreviewModal
+                  open={previewOpen}
+                  images={surrogate.upload_photos.filter(photo => photo.url && typeof photo.url === 'string' && photo.url.trim() !== '')}
+                  current={previewIndex}
+                  onClose={handlePreviewClose}
+                />
+              </>
             ) : (
               <div className="text-sage-500 text-sm font-normal">{t('noPhotosUploaded')}</div>
             )

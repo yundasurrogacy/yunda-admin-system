@@ -11,6 +11,26 @@ import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/appli
 import type { Application, ApplicationStatus } from '@/types/applications'
 import { useTranslation } from 'react-i18next'
 
+// 简单全屏图片预览组件
+function ImagePreviewModal({ open, images, current, onClose }: { open: boolean, images: {url: string, name?: string}[], current: number, onClose: () => void }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={onClose}>
+      <img
+        src={images[current]?.url}
+        alt={images[current]?.name || `photo-${current + 1}`}
+        className="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-white"
+        onClick={e => e.stopPropagation()}
+      />
+      <button
+        className="absolute top-6 right-8 text-white text-3xl font-bold cursor-pointer bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70"
+        onClick={onClose}
+        aria-label="关闭"
+      >×</button>
+    </div>
+  );
+}
+
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
   if (typeof document === 'undefined') return undefined;
@@ -54,6 +74,10 @@ export default function SurrogateApplicationDetailPage() {
   
   // 认证相关状态
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  // 图片预览相关 state
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewIndex, setPreviewIndex] = useState(0)
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -126,6 +150,16 @@ export default function SurrogateApplicationDetailPage() {
   const handleReject = useCallback(() => {
     handleStatusUpdate('rejected')
   }, [handleStatusUpdate])
+
+  // 图片预览处理函数
+  const handlePreviewOpen = useCallback((index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
+  }, []);
+
+  const handlePreviewClose = useCallback(() => {
+    setPreviewOpen(false);
+  }, []);
 
   // 使用 useMemo 缓存解析后的应用数据，避免每次渲染重新解析
   const parsedData = useMemo(() => {
@@ -263,32 +297,34 @@ export default function SurrogateApplicationDetailPage() {
             {t('applicationPhotos')}
           </h3>
           {Array.isArray(appData.upload_photos) && appData.upload_photos.length > 0 ? (
-            <div className="flex gap-6 justify-center flex-wrap w-full">
-              {appData.upload_photos.map((photo: any, idx: number) => (
-                <div key={idx} className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative">
-                  <img
-                    src={photo.url}
-                    alt={photo.name || `photo-${idx+1}`}
-                    className="object-cover w-full h-full transition-transform duration-200 hover:scale-105 cursor-pointer"
-                    loading="lazy"
-                    onClick={e => {
-                      const img = e.currentTarget;
-                      if (img.requestFullscreen) {
-                        img.requestFullscreen();
-                      } else if ((img as any).webkitRequestFullscreen) {
-                        (img as any).webkitRequestFullscreen();
-                      } else if ((img as any).msRequestFullscreen) {
-                        (img as any).msRequestFullscreen();
-                      }
-                    }}
-                  />
-                  {/* 图片序号标签 */}
-                  <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow font-medium">
-                    {t('photoNumber', { number: idx + 1 })}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="flex gap-6 justify-center flex-wrap w-full">
+                {appData.upload_photos.map((photo: any, idx: number) => (
+                  <div 
+                    key={idx} 
+                    className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative cursor-pointer"
+                    onClick={() => handlePreviewOpen(idx)}
+                  >
+                    <img
+                      src={photo.url}
+                      alt={photo.name || `photo-${idx+1}`}
+                      className="object-cover w-full h-full transition-transform duration-200 hover:scale-105"
+                      loading="lazy"
+                    />
+                    {/* 图片序号标签 */}
+                    <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow font-medium">
+                      {t('photoNumber', { number: idx + 1 })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <ImagePreviewModal
+                open={previewOpen}
+                images={appData.upload_photos}
+                current={previewIndex}
+                onClose={handlePreviewClose}
+              />
+            </>
           ) : (
             <div className="text-sage-800 text-sm font-medium">{t('noPhotosUploaded')}</div>
           )}

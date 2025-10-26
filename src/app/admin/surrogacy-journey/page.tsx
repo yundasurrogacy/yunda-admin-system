@@ -181,7 +181,11 @@ function JourneyInner() {
         if (caseId) {
           const res = await fetch(`/api/cases-list?caseId=${caseId}`);
           const data = await res.json();
-          const currentCase = Array.isArray(data) ? data[0] : (data.cases?.[0] || data.data?.[0] || null);
+          console.log('data', data);
+          // data 总是一个数组，需要根据 caseId 查找匹配的 case
+          const casesArray = Array.isArray(data) ? data : [];
+          const currentCase = casesArray.find((c: any) => c.id?.toString() === caseId?.toString());
+          console.log('currentCase', currentCase);
           if (currentCase) {
             setProcessStatus(currentCase.process_status || '');
             setUpdatedAt(currentCase.updated_at || '');

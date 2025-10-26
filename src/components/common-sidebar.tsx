@@ -203,7 +203,7 @@ export function CommonSidebar({
                       <div
                         key={href}
                         className={cn(
-                          "px-6 py-3 text-sm font-medium cursor-pointer transition-colors duration-200",
+                          "px-6 py-3 text-base font-medium cursor-pointer transition-colors duration-200",
                           "cursor-pointer",
                           themeClasses.text,
                           themeClasses.hoverBg,
@@ -268,7 +268,7 @@ export function CommonSidebar({
                       <div
                         key={href}
                         className={cn(
-                          "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
+                          "px-6 py-2.5 text-base font-medium cursor-pointer transition-colors duration-200",
                           "cursor-pointer",
                           themeClasses.text,
                           themeClasses.hoverBg,

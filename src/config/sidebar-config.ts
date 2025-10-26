@@ -23,12 +23,12 @@ export function getClientSidebarConfig() {
   return [
     {
       items: [
-        { label: t('DASHBOARD'), href: "/client/dashboard", icon: LayoutDashboard },
-        { label: t('MY PROFILE'), href: "/client/my-account", icon: UserCircle },
-        { label: t('SURROGATE PROFILE'), href: "/client/surrogate-match", icon: HeartPulse },
-        { label: t('TRUST ACCOUNT'), href: "/client/trust-account", icon: FolderOpen },
-        // { label: t('MY CASE'), href: "/client/my-case", icon: Briefcase },
-        // { label: t('DOCUMENTS'), href: "/client/documents", icon: FolderOpen },
+        { label: t('dashboard_title'), href: "/client/dashboard", icon: LayoutDashboard },
+        { label: t('my_profile_title'), href: "/client/my-account", icon: UserCircle },
+        { label: t('surrogate_profile_title'), href: "/client/surrogate-match", icon: HeartPulse },
+        { label: t('myCases.trustAccount'), href: "/client/trust-account", icon: FolderOpen },
+        // { label: t('my_case_title'), href: "/client/my-case", icon: Briefcase },
+        // { label: t('documents_title'), href: "/client/documents", icon: FolderOpen },
         // { label: t('JOURNEY'), href: "/client/journey", icon: Briefcase },
         // { label: t('IVF CLINIC'), href: "/client/ivf-clinic", icon: Stethoscope },
       ]
@@ -38,7 +38,7 @@ export function getClientSidebarConfig() {
         { label: t('myCases.journey'), href: (item: any) => `/client/journey`, color: 'blue' },
         { label: t('myCases.ivfClinic'), href: (item: any) => `/client/ivf-clinic`, color: 'blue' },
         { label: t('myCases.journal'), href: (item: any) => `/client/journal`, color: 'green' },
-        { label: t('DOCUMENTS'), href: "/client/documents", icon: FolderOpen },
+        { label: t('documents_title'), href: "/client/documents", icon: FolderOpen },
         // { label: t('SURROGATE MATCH'), href: "/client/surrogate-match", icon: HeartPulse },
         // { label: t('TRUST ACCOUNT'), href: "/client/trust-account", icon: FolderOpen },
         // { label: t('MESSAGES'), href: "/client/messages", icon: MessageCircle },
@@ -54,16 +54,16 @@ export function getAdminSidebarConfig() {
   return [
     {
   items: [
-        { label: t('DASHBOARD'), href: "/admin/dashboard", icon: LayoutDashboard },
-        { label: t('PARENTS APPLICATIONS'), href: "/admin/parents-applications", icon: UserCircle },
-        { label: t('SURROGATES APPLICATIONS'), href: "/admin/surrogates-applications", icon: HeartPulse },
-        { label: t('CLIENT PROFILES'), href: "/admin/client-profiles", icon: UserCircle },
-        { label: t('SURROGATE PROFILES'), href: "/admin/surrogate-profiles", icon: HeartPulse },
-        { label: t('ALL CASES'), href: "/admin/all-cases", icon: Briefcase },
-        { label: t('CLIENT MANAGERS'), href: "/admin/client-manager", icon: Briefcase },
-        { label: t('MANAGERS'), href: "/admin/managers", icon: Briefcase },
-        { label: t('DOCUMENTS'), href: "/admin/documents", icon: FolderOpen },
-        { label: t('BLOGS'), href: "/admin/blogs", icon: FolderOpen },
+        { label: t('dashboard_title'), href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: t('parents_applications_title'), href: "/admin/parents-applications", icon: UserCircle },
+        { label: t('surrogates_applications_title'), href: "/admin/surrogates-applications", icon: HeartPulse },
+        { label: t('client_profiles_title'), href: "/admin/client-profiles", icon: UserCircle },
+        { label: t('surrogate_profiles_title'), href: "/admin/surrogate-profiles", icon: HeartPulse },
+        { label: t('all_cases_title'), href: "/admin/all-cases", icon: Briefcase },
+        { label: t('client_managers_title'), href: "/admin/client-manager", icon: Briefcase },
+        { label: t('managers_title'), href: "/admin/managers", icon: Briefcase },
+        { label: t('documents_title'), href: "/admin/documents", icon: FolderOpen },
+        { label: t('blogs_title'), href: "/admin/blogs", icon: FolderOpen },
       ]
     }
   ]
@@ -75,10 +75,10 @@ export function getSurrogacySidebarConfig() {
   return [
     {
       items: [
-        { label: t('DASHBOARD'), href: "/surrogacy/dashboard", icon: LayoutDashboard },
-        { label: t('MY PROFILE'), href: "/surrogacy/profile", icon: UserCircle },
-        // { label: t('MY CASE'), href: "/surrogacy/my-case", icon: Briefcase },
-        { label: t('CLIENT PROFILE'), href: "/surrogacy/intended-parents", icon: UserCircle },
+        { label: t('dashboard_title'), href: "/surrogacy/dashboard", icon: LayoutDashboard },
+        { label: t('my_profile_title'), href: "/surrogacy/profile", icon: UserCircle },
+        // { label: t('my_case_title'), href: "/surrogacy/my-case", icon: Briefcase },
+        { label: t('client_profile_title'), href: "/surrogacy/intended-parents", icon: UserCircle },
       ]
     },
     {
@@ -87,7 +87,7 @@ export function getSurrogacySidebarConfig() {
         { label: t('myCases.journey'), href: (item: any) => `/surrogacy/journey`, color: 'blue' },
         { label: t('myCases.ivfClinic'), href: (item: any) => `/surrogacy/ivf-clinic`, color: 'blue' },
         { label: t('myCases.journal'), href: (item: any) => `/surrogacy/journal`, color: 'green' },
-        { label: t('DOCUMENTS'), href: "/surrogacy/documents", icon: FolderOpen },
+        { label: t('documents_title'), href: "/surrogacy/documents", icon: FolderOpen },
         // { label: t('myCases.My Intended Parents'), href: (item: any) => `/surrogacy/intended-parents`, color: 'green' },
         // { label: t('myCases.journal'), href: (item: any) => `/surrogacy/journal`, color: 'green' },
         // { label: t('MY PROFILE'), href: "/surrogacy/profile", icon: UserCircle },
@@ -123,17 +123,17 @@ export function getManagerSidebarConfig() {
   return [
     {
       items: [
-        { label: t('DASHBOARD'), href: "/client-manager/dashboard", icon: LayoutDashboard },
-        { label: t('MY CASES'), href: "/client-manager/my-cases", icon: Briefcase },
+        { label: t('dashboard_title'), href: "/client-manager/dashboard", icon: LayoutDashboard },
+        { label: t('my_cases_title'), href: "/client-manager/my-cases", icon: Briefcase },
         // { label: t('clientProfiles'), href: "/client-manager/client-profiles", icon: UserCircle },
         // { label: t('surrogateProfiles'), href: "/client-manager/surrogate-profiles", icon: HeartPulse },
       ]
     },
     {
       items: [
-        { label: t('CLIENT PROFILES'), href: "/client-manager/client-profiles", icon: UserCircle },
-        { label: t('SURROGATE PROFILES'), href: "/client-manager/surrogate-profiles", icon: HeartPulse },
-        { label: t('DOCUMENTS'), href: "/client-manager/documents", icon: FolderOpen },
+        { label: t('client_profiles_title'), href: "/client-manager/client-profiles", icon: UserCircle },
+        { label: t('surrogate_profiles_title'), href: "/client-manager/surrogate-profiles", icon: HeartPulse },
+        { label: t('documents_title'), href: "/client-manager/documents", icon: FolderOpen },
         // { label: t('MEDICAL RECORDS'), href: "/client-manager/medical-records", icon: Stethoscope },
         // { label: t('COMMUNICATION LOGS'), href: "/client-manager/communication-logs", icon: MessageCircle },
       ]

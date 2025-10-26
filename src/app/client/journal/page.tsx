@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import React, { Suspense, useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useTranslation } from 'next-i18next';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -59,17 +59,19 @@ const CommentItem = memo(({
 
 CommentItem.displayName = 'CommentItem';
 
-const JournalPage: React.FC = () => {
+function JournalPageInner() {
   const { t } = useTranslation('common');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlCaseId = searchParams.get('caseId');
+  
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [message, setMessage] = useState("");
   const [visible, setVisible] = useState(true);
   const [photo, setPhoto] = useState<File | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [commentText, setCommentText] = useState("");
-  const [activePostId, setActivePostId] = useState<number | null>(null);
+  const [commentTexts, setCommentTexts] = useState<{ [postId: number]: string }>({});
   const [comments, setComments] = useState<{ [postId: number]: any[] }>({});
   const [caseId, setCaseId] = useState<number | null>(null);
   const [error, setError] = useState<string>("");
@@ -88,10 +90,15 @@ const JournalPage: React.FC = () => {
     }
   }, [router]);
 
-  // 获取动态列表
+  // 获取caseId：优先URL参数，无则取最新case
   useEffect(() => {
-    if (!isAuthenticated) return; // 只在认证后才加载数据
-    
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+
+    if (urlCaseId) {
+      setCaseId(Number(urlCaseId));
+      return;
+    }
     const parentId = getCookie('userId_client');
     if (!parentId) {
       setError(t('myCases.error.noUserId', '未找到用户ID，请重新登录。'));
@@ -101,35 +108,48 @@ const JournalPage: React.FC = () => {
     // 获取 case 列表
     fetch(`/api/cases-by-parent?parentId=${parentId}`)
       .then(async (res) => {
-  if (!res.ok) throw new Error(t('myCases.error.fetchFailed', '获取案子失败'));
+        if (!res.ok) throw new Error(t('myCases.error.fetchFailed', '获取案子失败'));
         const data = await res.json();
         const casesRaw = data.cases || data.data || data || [];
         if (casesRaw.length > 0) {
-          setCaseId(casesRaw[0].id);
+          // 取 updated_at 最大（最新）的那个 case
+          const latestCase = casesRaw.reduce((max: any, cur: any) => {
+            if (!max) return cur;
+            return new Date(cur.updated_at) > new Date(max.updated_at) ? cur : max;
+          }, null);
+          if (latestCase) setCaseId(latestCase.id);
         }
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [t, isAuthenticated]);
+  }, [urlCaseId, t, isAuthenticated]);
 
-  // caseId 变化时获取动态
+  // caseId 变化时获取动态和评论
   useEffect(() => {
     if (!caseId) return;
     setLoading(true);
     fetch(`/api/posts?caseId=${caseId}`)
       .then(res => res.json())
       .then(data => {
-        setPosts(data.data || []);
-        setLoading(false);
+        const postsData = data.data || [];
+        setPosts(postsData);
+        // 自动加载所有评论
+        const commentsPromises = postsData.map((post: any) => 
+          fetch(`/api/post_comments?postId=${post.id}`)
+            .then(res => res.json())
+            .then(result => ({ postId: post.id, comments: result.data || [] }))
+        );
+        Promise.all(commentsPromises).then(commentsData => {
+          const commentsMap: { [postId: number]: any[] } = {};
+          commentsData.forEach(({ postId, comments }) => {
+            commentsMap[postId] = comments;
+          });
+          setComments(commentsMap);
+          setLoading(false);
+        });
       });
   }, [caseId]);
 
-  // 使用 useCallback 缓存获取评论函数
-  const fetchComments = useCallback(async (postId: number) => {
-    const res = await fetch(`/api/post_comments?postId=${postId}`);
-    const data = await res.json();
-    setComments(prev => ({ ...prev, [postId]: data.data || [] }));
-  }, []);
 
   // 使用 useCallback 缓存发表动态函数
   const handlePost = useCallback(async () => {
@@ -157,16 +177,31 @@ const JournalPage: React.FC = () => {
     setMessage("");
     setPhoto(null);
     setLoading(false);
-    // 刷新动态
+    // 刷新动态和评论
     fetch(`/api/posts?caseId=${caseId}`)
       .then(res => res.json())
       .then(data => {
-        setPosts(data.data || []);
+        const postsData = data.data || [];
+        setPosts(postsData);
+        // 重新加载所有评论
+        const commentsPromises = postsData.map((post: any) => 
+          fetch(`/api/post_comments?postId=${post.id}`)
+            .then(res => res.json())
+            .then(result => ({ postId: post.id, comments: result.data || [] }))
+        );
+        Promise.all(commentsPromises).then(commentsData => {
+          const commentsMap: { [postId: number]: any[] } = {};
+          commentsData.forEach(({ postId, comments }) => {
+            commentsMap[postId] = comments;
+          });
+          setComments(commentsMap);
+        });
       });
   }, [message, caseId, photo, t]);
 
   // 使用 useCallback 缓存发表评论函数
   const handleComment = useCallback(async (postId: number) => {
+    const commentText = commentTexts[postId] || "";
     if (!commentText.trim()) return;
     setLoading(true);
     // 从 localStorage 获取 parentId
@@ -181,20 +216,14 @@ const JournalPage: React.FC = () => {
         intended_mother_surrogate_mothers: parentId ? Number(parentId) : undefined,
       }),
     });
-    setCommentText("");
+    setCommentTexts(prev => ({ ...prev, [postId]: "" }));
     setLoading(false);
-    fetchComments(postId);
-  }, [commentText, fetchComments]);
+    // 重新获取评论
+    const res = await fetch(`/api/post_comments?postId=${postId}`);
+    const data = await res.json();
+    setComments(prev => ({ ...prev, [postId]: data.data || [] }));
+  }, [commentTexts]);
 
-  // 使用 useCallback 缓存其他事件处理函数
-  const handleToggleComments = useCallback((postId: number) => {
-    if (activePostId === postId) {
-      setActivePostId(null);
-    } else {
-      setActivePostId(postId);
-      fetchComments(postId);
-    }
-  }, [activePostId, fetchComments]);
 
   const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
@@ -210,13 +239,12 @@ const JournalPage: React.FC = () => {
     setVisible(e.target.value === 'true');
   }, []);
 
-  const handleCommentTextChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setCommentText(e.target.value);
+  const handleCommentTextChange = useCallback((postId: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCommentTexts(prev => ({ ...prev, [postId]: e.target.value }));
   }, []);
 
   // 使用 useMemo 缓存按钮禁用状态
   const canPost = useMemo(() => message.trim() && caseId, [message, caseId]);
-  const canComment = useMemo(() => commentText.trim(), [commentText]);
 
   // 认证检查中
   if (isAuthenticated === null) {
@@ -249,57 +277,48 @@ const JournalPage: React.FC = () => {
               posts.map(post => (
                 <div
                   key={post.id}
-                  className="bg-[#FBF0DA] rounded-xl shadow-md p-4 flex flex-col md:flex-row gap-4 min-w-0"
+                  className="bg-[#FBF0DA] rounded-xl shadow-md p-4 flex flex-col gap-4 min-w-0"
                 >
-                  {/* 左侧图片区 */}
+                  {/* 1. 帖子文字内容 - 最上面 */}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="text-lg font-medium flex-1 min-w-0 text-sage-800">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
+                    <div className="text-xs text-[#271F18] opacity-60 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
+                  </div>
+
+                  {/* 2. 图片 - 在文字下面 */}
                   {Array.isArray(post.url) && post.url.length > 0 && (
-                    <div className="flex-shrink-0 w-full md:w-1/3 max-w-xs min-w-[120px] flex items-center justify-center mx-auto md:mx-0">
-                      <div className={`grid gap-2 ${post.url.length > 1 ? 'grid-cols-2' : 'grid-cols-1'} w-full`}>
+                    <div className="w-full">
+                      <div className={`grid gap-2 ${post.url.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         {post.url.slice(0, 4).map((url: string, index: number) => (
-                          <div key={index} className="w-full aspect-square bg-gray-200 rounded-md overflow-hidden flex items-center justify-center">
-                            <img src={url} alt={`post image ${index + 1}`} className="w-full h-full object-contain" />
+                          <div key={index} className="w-full rounded-md overflow-hidden">
+                            <img src={url} alt={`post image ${index + 1}`} className="w-full h-auto max-h-96 object-contain rounded-md mx-auto" />
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* 右侧内容区 */}
-                  <div className="flex-1 flex flex-col gap-2 min-w-0">
-                    <div className="flex flex-wrap justify-between items-start gap-2">
-                      <div className="text-lg font-medium flex-1 min-w-0 truncate text-sage-800">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
-                      <div className="text-xs text-[#271F18] opacity-60 ml-0 md:ml-4 flex-shrink-0 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
+                  {/* 3. 评论区域 - 最下面 */}
+                  <div className="pt-3 border-t border-sage-300">
+                    <div className="mb-2 text-sm font-semibold text-sage-800">{t('comments', '评论：')}</div>
+                    <div className="flex flex-col gap-2 mb-3">
+                      {(comments[post.id] || post.post_comments || []).map((c: any) => (
+                        <CommentItem key={c.id} comment={c} t={t} />
+                      ))}
                     </div>
-                    <button
-                      className="mt-2 px-3 py-1 bg-[#E6F2ED] text-sage-800 rounded-full text-xs font-medium shadow hover:bg-[#d0e7db] transition self-start focus:outline-none cursor-pointer"
-                      onClick={() => handleToggleComments(post.id)}
-                    >
-                      {activePostId === post.id ? t('cancel', '关闭评论') : t('viewDetails', '查看评论')}
-                    </button>
-
-                    {activePostId === post.id && (
-                      <div className="mt-2">
-                        <div className="mb-2 text-xs font-semibold text-sage-800">{t('comments', '评论：')}</div>
-                        <div className="flex flex-col gap-2">
-                          {(comments[post.id] || post.post_comments || []).map((c: any) => (
-                            <CommentItem key={c.id} comment={c} t={t} />
-                          ))}
-                        </div>
-                        <div className="flex flex-col sm:flex-row gap-2 mt-2">
-                          <input
-                            type="text"
-                            className="border border-gray-300 rounded px-2 py-1 text-xs flex-1 min-w-0 focus:outline-none focus:border-sage-400 focus:shadow-sm transition-colors"
-                            placeholder={t('ivfClinic.addNewNote', '写评论...')}
-                            value={commentText}
-                            onChange={handleCommentTextChange}
-                          />
-                          <button
-                            className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium focus:outline-none hover:bg-[#1a1a1a] transition cursor-pointer"
-                            onClick={() => handleComment(post.id)}
-                          >{t('submit', '发表评论')}</button>
-                        </div>
-                      </div>
-                    )}
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        className="border border-gray-300 rounded px-2 py-1 text-xs flex-1 min-w-0 focus:outline-none focus:border-sage-400 focus:shadow-sm transition-colors"
+                        placeholder={t('ivfClinic.addNewNote', '写评论...')}
+                        value={commentTexts[post.id] || ""}
+                        onChange={handleCommentTextChange(post.id)}
+                      />
+                      <button
+                        className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium focus:outline-none hover:bg-[#1a1a1a] transition cursor-pointer"
+                        onClick={() => handleComment(post.id)}
+                      >{t('submit', '发表评论')}</button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -312,4 +331,10 @@ const JournalPage: React.FC = () => {
   );
 };
 
-export default JournalPage;
+export default function JournalPage() {
+  return (
+    <Suspense fallback={<div className="p-8">加载中...</div>}>
+      <JournalPageInner />
+    </Suspense>
+  );
+}
