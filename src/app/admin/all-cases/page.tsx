@@ -570,7 +570,7 @@ export default function AllCasesPage() {
                       className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
                       onClick={() => router.push(`/admin/trust-account?caseId=${c.id}`)}
                     >
-                      {t('myCases.trust-account')}
+                      {t('myCases.trustAccount')}
                     </CustomButton>
                   </div>
                   <div className="flex items-center justify-between mt-2">

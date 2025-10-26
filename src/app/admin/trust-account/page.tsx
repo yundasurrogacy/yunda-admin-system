@@ -56,6 +56,7 @@ function TrustAccountPageInner() {
   const [pageInput, setPageInput] = useState("1");
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [balanceInput, setBalanceInput] = useState("");
+  const [isSavingBalance, setIsSavingBalance] = useState(false);
 
   // Toast 通知状态
   const [showToast, setShowToast] = useState(false);
@@ -335,6 +336,7 @@ function TrustAccountPageInner() {
 
   // 保存余额
   const handleSaveBalance = useCallback(async () => {
+    if (isSavingBalance) return; // 防止重复点击
     if (!caseId || !balanceInput) return;
     
     const newBalance = Number(balanceInput);
@@ -343,6 +345,7 @@ function TrustAccountPageInner() {
       return;
     }
     
+    setIsSavingBalance(true);
     try {
       // 获取当前余额
       const currentBalanceNum = changes.length > 0 && changes[changes.length - 1].balance_after !== null 
@@ -380,8 +383,10 @@ function TrustAccountPageInner() {
     } catch (e) {
       console.error('修改余额失败:', e);
       showToastMessage(t('trustAccount.balanceEditFailed', 'Failed to edit balance, please try again'), 'error');
+    } finally {
+      setIsSavingBalance(false);
     }
-  }, [caseId, balanceInput, changes, fetchChanges, t, showToastMessage]);
+  }, [isSavingBalance, caseId, balanceInput, changes, fetchChanges, t, showToastMessage]);
 
   // 缓存最新余额计算
   const currentBalance = useMemo(() => {
@@ -464,8 +469,10 @@ function TrustAccountPageInner() {
                 <CustomButton
                   onClick={handleSaveBalance}
                   className="px-3 py-1 text-sm bg-sage-600 text-white hover:bg-sage-700 cursor-pointer rounded"
+                  disabled={isSavingBalance}
+                  style={{ opacity: isSavingBalance ? 0.5 : 1 }}
                 >
-                  {t('save', 'Save')}
+                  {isSavingBalance ? t('saving', 'Saving...') : t('save', 'Save')}
                 </CustomButton>
                 <CustomButton
                   onClick={handleCancelEditBalance}
@@ -666,8 +673,8 @@ function TrustAccountPageInner() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                               </div>
-                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords', { defaultValue: '暂无记录' })}</p>
-                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc', { defaultValue: '当前筛选条件下没有找到记录' })}</p>
+                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords')}</p>
+                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc')}</p>
                             </div>
                           </div>
                         </td>
@@ -719,9 +726,9 @@ function TrustAccountPageInner() {
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer hover:bg-sage-50"
                   onClick={handlePrevPage}
                   disabled={page === 1}
-                >{t('pagination.prevPage', '上一页')}</CustomButton>
+                >{t('pagination.prevPage')}</CustomButton>
                 <span className="mx-2">
-                  {t('pagination.page', '第')}
+                  {t('pagination.page')}
                   <input
                     type="text"
                     inputMode="numeric"
@@ -733,13 +740,13 @@ function TrustAccountPageInner() {
                     className="w-12 border rounded text-center mx-1"
                     style={{height: 28}}
                   />
-                  {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
+                  {t('pagination.of')} {totalPages} {t('pagination.pages')}
                 </span>
                 <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer hover:bg-sage-50"
                   onClick={handleNextPage}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', '下一页')}</CustomButton>
+                >{t('pagination.nextPage')}</CustomButton>
               </div>
             </>
           )}
@@ -802,9 +809,14 @@ function TrustAccountPageInner() {
 
 import { Suspense } from 'react';
 
+const LoadingFallback = () => {
+  const { t } = useTranslation('common');
+  return <div className="p-8">{t('loadingText', 'Loading...')}</div>;
+};
+
 export default function TrustAccountPage() {
   return (
-    <Suspense fallback={<div className="p-8">加载中...</div>}>
+    <Suspense fallback={<LoadingFallback />}>
       <TrustAccountPageInner />
     </Suspense>
   );

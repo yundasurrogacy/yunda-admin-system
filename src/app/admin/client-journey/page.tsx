@@ -197,7 +197,7 @@ function JourneyInner() {
               const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'intended_parent');
               filteredJourneys.forEach((journey: any) => {
                 const stageIndex = journey.stage - 1;
-                if (stageIndex >= 0 && stageIndex < 7) {
+                if (stageIndex >= 0 && stageIndex < 8) {
                   baseTimeline[stageIndex].items.push({
                     id: journey.id,
                     title: journey.title,
@@ -227,12 +227,14 @@ function JourneyInner() {
           setProcessStatus(currentCase.process_status || '');
           setUpdatedAt(currentCase.updated_at || '');
           if (currentCase.journeys && currentCase.journeys.length > 0) {
-            currentCase.journeys.forEach((journey: any) => {
+            const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'intended_parent');
+            filteredJourneys.forEach((journey: any) => {
               const stageIndex = journey.stage - 1;
-              if (stageIndex >= 0 && stageIndex < 7) {
+              if (stageIndex >= 0 && stageIndex < 8) {
                 baseTimeline[stageIndex].items.push({
                   id: journey.id,
                   title: journey.title,
+                  process_status: journey.process_status,
                 });
               }
             });

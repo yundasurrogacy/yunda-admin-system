@@ -33,8 +33,9 @@ function TrustAccountPageInner() {
   const router = useRouter();
   const { t } = useTranslation('common');
   const searchParams = useSearchParams();
-  const caseId = searchParams.get('caseId');
+  const urlCaseId = searchParams.get('caseId');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [caseId, setCaseId] = useState<string | null>(null);
   const [changes, setChanges] = useState<BalanceChange[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -61,6 +62,39 @@ function TrustAccountPageInner() {
   useEffect(() => {
     setPageInput(String(page));
   }, [page]);
+
+  // 获取caseId：优先URL参数，无则取最新case
+  useEffect(() => {
+    // 只在认证后才加载数据
+    if (!isAuthenticated) return;
+
+    if (urlCaseId) {
+      setCaseId(urlCaseId);
+      return;
+    }
+    const parentId = getCookie('userId_client');
+    if (!parentId) {
+      setLoading(false);
+      return;
+    }
+    // 获取 case 列表
+    fetch(`/api/cases-by-parent?parentId=${parentId}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(t('myCases.error.fetchFailed', '获取案子失败'));
+        const data = await res.json();
+        const casesRaw = data.cases || data.data || data || [];
+        if (casesRaw.length > 0) {
+          // 取 updated_at 最大（最新）的那个 case
+          const latestCase = casesRaw.reduce((max: any, cur: any) => {
+            if (!max) return cur;
+            return new Date(cur.updated_at) > new Date(max.updated_at) ? cur : max;
+          }, null);
+          if (latestCase) setCaseId(latestCase.id);
+        }
+      })
+      .catch((e) => console.error('Failed to fetch cases:', e))
+      .finally(() => setLoading(false));
+  }, [urlCaseId, t, isAuthenticated]);
 
   // const displayedChanges: BalanceChange[] = React.useMemo(() => {
   //   let arr: BalanceChange[] = changes;
@@ -232,7 +266,7 @@ function TrustAccountPageInner() {
   return (
       <div className="p-8 min-h-screen bg-main-bg">
         {/* 返回按钮 */}
-        <CustomButton
+        {/* <CustomButton
           className="mb-4 px-5 py-2 rounded-full flex items-center gap-2 bg-[#E3E8E3] text-[#271F18] font-serif text-base font-semibold shadow hover:bg-[#f8f8f8] cursor-pointer"
           onClick={handleBack}
         >
@@ -240,7 +274,7 @@ function TrustAccountPageInner() {
             <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {t('back', '返回')}
-        </CustomButton>
+        </CustomButton> */}
         <h1 className="text-2xl font-bold text-sage-800 mb-2">{t('trustAccount.title', 'Trust Account')}</h1>
         <p className="text-sage-800 mb-8">{t('trustAccount.description', 'View your current account balance and financial transactions related to your trust account')}</p>
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
@@ -327,8 +361,8 @@ function TrustAccountPageInner() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                               </div>
-                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords', { defaultValue: '暂无记录' })}</p>
-                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc', { defaultValue: '当前筛选条件下没有找到记录' })}</p>
+                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords')}</p>
+                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc')}</p>
                             </div>
                           </div>
                         </td>
@@ -377,9 +411,9 @@ function TrustAccountPageInner() {
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer hover:bg-sage-50"
                   onClick={handlePrevPage}
                   disabled={page === 1}
-                >{t('pagination.prevPage', '上一页')}</CustomButton>
+                >{t('pagination.prevPage')}</CustomButton>
                 <span className="mx-2">
-                  {t('pagination.page', '第')}
+                  {t('pagination.page')}
                   <input
                     type="text"
                     inputMode="numeric"
@@ -391,13 +425,13 @@ function TrustAccountPageInner() {
                     className="w-12 border rounded text-center mx-1"
                     style={{height: 28}}
                   />
-                  {t('pagination.of', '共')} {totalPages} {t('pagination.pages', '页')}
+                  {t('pagination.of')} {totalPages} {t('pagination.pages')}
                 </span>
                 <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 cursor-pointer hover:bg-sage-50"
                   onClick={handleNextPage}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', '下一页')}</CustomButton>
+                >{t('pagination.nextPage')}</CustomButton>
               </div>
             </>
           )}
@@ -408,9 +442,14 @@ function TrustAccountPageInner() {
 
 import { Suspense } from 'react';
 
+const LoadingFallback = () => {
+  const { t } = useTranslation('common');
+  return <div className="p-8">{t('loadingText', 'Loading...')}</div>;
+};
+
 export default function TrustAccountPage() {
   return (
-    <Suspense fallback={<div className="p-8">加载中...</div>}>
+    <Suspense fallback={<LoadingFallback />}>
       <TrustAccountPageInner />
     </Suspense>
   );

@@ -270,7 +270,9 @@ function JourneyInner() {
         if (caseId) {
           const res = await fetch(`/api/cases-list?caseId=${caseId}`);
           const data = await res.json();
-          const currentCase = Array.isArray(data) ? data[0] : (data.cases?.[0] || data.data?.[0] || null);
+          // data 总是一个数组，需要根据 caseId 查找匹配的 case
+          const casesArray = Array.isArray(data) ? data : [];
+          const currentCase = casesArray.find((c: any) => c.id?.toString() === caseId?.toString());
           if (currentCase) {
             setActualCaseId(currentCase.id?.toString() || caseId); // 保存实际的 caseId
             setProcessStatus(currentCase.process_status || '');
@@ -280,7 +282,7 @@ function JourneyInner() {
               const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'surrogate_mother');
               filteredJourneys.forEach((journey: any) => {
                 const stageIndex = journey.stage - 1;
-                if (stageIndex >= 0 && stageIndex < 7) {
+                if (stageIndex >= 0 && stageIndex < 8) {
                   baseTimeline[stageIndex].items.push({
                     id: journey.id,
                     title: journey.title,
@@ -318,12 +320,14 @@ function JourneyInner() {
           setProcessStatus(currentCase.process_status || '');
           setUpdatedAt(currentCase.updated_at || '');
           if (currentCase.journeys && currentCase.journeys.length > 0) {
-            currentCase.journeys.forEach((journey: any) => {
+            const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'surrogate_mother');
+            filteredJourneys.forEach((journey: any) => {
               const stageIndex = journey.stage - 1;
-              if (stageIndex >= 0 && stageIndex < 7) {
+              if (stageIndex >= 0 && stageIndex < 8) {
                 baseTimeline[stageIndex].items.push({
                   id: journey.id,
                   title: journey.title,
+                  process_status: journey.process_status,
                 });
               }
             });

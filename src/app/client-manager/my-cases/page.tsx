@@ -518,7 +518,7 @@ const MyCasesPage = () => {
                       className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
                       onClick={() => router.push(`/client-manager/trust-account?caseId=${item.id}`)}
                     >
-                      {t('myCases.trust-account')}
+                      {t('myCases.trustAccount')}
                     </CustomButton>
                 </div>
               </div>

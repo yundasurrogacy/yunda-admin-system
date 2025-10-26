@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { useTranslation } from 'react-i18next'
 
 // 定义菜单项类型
 interface MenuItem {
@@ -40,6 +41,7 @@ export function CommonSidebar({
   const safeGroups = Array.isArray(groups) ? groups : [];
   const pathname = usePathname()
   const router = useRouter();
+  const { t } = useTranslation('common');
   // 多端 session 支持，type 传递给 useAuth，'client-manager' 映射为 'manager'
     const normalizedType = type === 'client-manager' ? 'manager' : type // Declare normalizedType once
   const authType = normalizedType
@@ -124,7 +126,7 @@ export function CommonSidebar({
       {showLoginTip && (
         <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
           <div className="bg-white rounded-lg shadow-lg px-8 py-6 min-w-[260px] flex flex-col items-center border border-sage-300">
-            <div className="text-base font-semibold mb-3 text-sage-800">请先登录后再访问页面</div>
+            <div className="text-base font-semibold mb-3 text-sage-800">{t('loginRequired', '请先登录后再访问页面')}</div>
             <div className="flex gap-4 mt-2">
               <button
                 className="px-5 py-1.5 bg-sage-600 text-white rounded font-medium hover:bg-sage-700 transition"
@@ -155,13 +157,13 @@ export function CommonSidebar({
                   // onClose();
                 }}
               >
-                去登录
+                {t('goToLogin', '去登录')}
               </button>
               <button
                 className="px-5 py-1.5 bg-gray-100 text-sage-700 rounded font-medium border border-sage-300 hover:bg-gray-200 transition"
                 onClick={() => setShowLoginTip(false)}
               >
-                取消
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -234,7 +236,7 @@ export function CommonSidebar({
                       <div
                         key={href}
                         className={cn(
-                          "px-6 py-2.5 text-sm font-medium cursor-pointer transition-colors duration-200",
+                          "px-6 py-2.5 text-base font-medium cursor-pointer transition-colors duration-200",
                           "cursor-pointer",
                           themeClasses.text,
                           themeClasses.hoverBg,

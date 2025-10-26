@@ -134,27 +134,27 @@ function TrustAccountPageInner() {
 
   return (
       <div className="p-8 min-h-screen bg-main-bg">
-        <h1 className="text-2xl font-bold text-sage-800 mb-2">{t('trustAccount.title', 'Trust Account')}</h1>
-        <p className="text-sage-800 mb-8">{t('trustAccount.description', 'View your current account balance and financial transactions related to your trust account')}</p>
+        <h1 className="text-2xl font-bold text-sage-800 mb-2">{t('trustAccount.title')}</h1>
+        <p className="text-sage-800 mb-8">{t('trustAccount.description')}</p>
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.balance', 'Account Balance')}</h2>
+            <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.balance')}</h2>
             <span className="text-2xl font-bold text-sage-800">
               {changes.length > 0 && changes[changes.length - 1].balance_after !== null && changes[changes.length - 1].balance_after !== undefined
                 ? `$${Number(changes[changes.length - 1].balance_after).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
                 : '--'}
             </span>
           </div>
-          <div className="text-xs text-sage-500">{t('trustAccount.updatedToday', 'Updated today')}</div>
+          <div className="text-xs text-sage-500">{t('trustAccount.updatedToday')}</div>
         </Card>
 
         {/* 只读模式无表单卡片 */}
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.history', 'Transaction History')}</h2>
+            <h2 className="text-xl font-semibold text-sage-800">{t('trustAccount.history')}</h2>
             {/* 只读模式无新增按钮 */}
           </div>
-          {loading ? <div>{t('loadingText', 'Loading...')}</div> : (
+          {loading ? <div>{t('loadingText')}</div> : (
             <>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm text-sage-800">
@@ -164,36 +164,36 @@ function TrustAccountPageInner() {
                         className="py-2 px-4 font-semibold select-none cursor-pointer"
                         style={{ cursor: 'pointer' }}
                         onClick={() => setSortDateDesc(v => !v)}
-                        title={t('trustAccount.sortByDate', 'Sort by date')}
+                        title={t('trustAccount.sortByDate')}
                       >
-                        {t('trustAccount.date', 'Date')}
+                        {t('trustAccount.date')}
                         <span style={{ marginLeft: 4, fontSize: 12 }}>
-                          {sortDateDesc ? t('trustAccount.desc', '▼') : t('trustAccount.asc', '▲')}
+                          {sortDateDesc ? t('trustAccount.desc') : t('trustAccount.asc')}
                         </span>
                       </th>
                       <th className="py-2 px-4 font-semibold select-none">
                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                          {t('trustAccount.type', 'Type')}
+                          {t('trustAccount.type')}
                           <select
                             value={filterType ?? ''}
                             onChange={e => { setFilterType(e.target.value || null); setPage(1); }}
                             style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', borderRadius: 4, border: '1px solid #ddd', background: '#f8f8f8', color: '#333', cursor: 'pointer' }}
                           >
-                            <option value="">{t('trustAccount.allTypes', 'All Types')}</option>
+                            <option value="">{t('trustAccount.allTypes')}</option>
                             {Array.from(new Set(changes.map(c => c.change_type))).map(type => (
                               <option key={type} value={type}>
-                                {type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
-                                {type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
-                                {type === 'OTHER' && t('trustAccount.typeOther', 'Other')}
-                                {!['RECHARGE','CONSUMPTION','OTHER'].includes(type) && t(`trustAccount.type.${type}`, type)}
+                                {type === 'RECHARGE' && t('trustAccount.typeRecharge')}
+                                {type === 'CONSUMPTION' && t('trustAccount.typeConsumption')}
+                                {type === 'OTHER' && t('trustAccount.typeOther')}
+                                {!['RECHARGE','CONSUMPTION','OTHER'].includes(type) && String(t(`trustAccount.type.${type}`, type))}
                               </option>
                             ))}
                           </select>
                         </div>
                       </th>
-                      <th className="py-2 px-4 font-semibold">{t('trustAccount.amount', 'Amount')}</th>
-                      <th className="py-2 px-4 font-semibold">{t('trustAccount.receiver', 'Receiver')}</th>
-                      <th className="py-2 px-4 font-semibold">{t('trustAccount.remark', 'Remark')}</th>
+                      <th className="py-2 px-4 font-semibold">{t('trustAccount.amount')}</th>
+                      <th className="py-2 px-4 font-semibold">{t('trustAccount.receiver')}</th>
+                      <th className="py-2 px-4 font-semibold">{t('trustAccount.remark')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -207,8 +207,8 @@ function TrustAccountPageInner() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                               </div>
-                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords', { defaultValue: '暂无记录' })}</p>
-                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc', { defaultValue: '当前筛选条件下没有找到记录' })}</p>
+                              <p className="text-xl text-sage-600 font-medium mb-2">{t('trustAccount.noRecords')}</p>
+                              <p className="text-sm text-sage-400 mb-6">{t('trustAccount.noRecordsDesc')}</p>
                             </div>
                           </div>
                         </td>
@@ -217,16 +217,16 @@ function TrustAccountPageInner() {
                       <tr key={change.id}>
                         <td className="py-2 px-4 whitespace-nowrap">{change.created_at.slice(0, 19).replace('T', ' ')}</td>
                         <td className="py-2 px-4 whitespace-nowrap">
-                          {change.change_type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
-                          {change.change_type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
-                          {change.change_type === 'OTHER' && t('trustAccount.typeOther', 'Other')}
+                          {change.change_type === 'RECHARGE' && t('trustAccount.typeRecharge')}
+                          {change.change_type === 'CONSUMPTION' && t('trustAccount.typeConsumption')}
+                          {change.change_type === 'OTHER' && t('trustAccount.typeOther')}
                           {!['RECHARGE','CONSUMPTION','OTHER'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
                         </td>
                         <td className="py-2 px-4 whitespace-nowrap">{change.change_amount > 0 ? '+' : ''}{change.change_amount}</td>
                         <td className="py-2 px-4 whitespace-nowrap">{change.receiver ?? '-'}</td>
                         <td className="py-2 px-4 whitespace-nowrap">
                           {change.remark === '余额调整' || change.remark === 'Balance Adjustment' 
-                            ? t('trustAccount.balanceAdjustment', 'Balance Adjustment')
+                            ? t('trustAccount.balanceAdjustment')
                             : (change.remark ?? '-')}
                         </td>
                       </tr>
@@ -240,9 +240,9 @@ function TrustAccountPageInner() {
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50 cursor-pointer"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
-                >{t('pagination.prevPage', 'Previous')}</CustomButton>
+                >{t('pagination.prevPage')}</CustomButton>
                 <span>
-                  {t('pagination.page', 'Page')}
+                  {t('pagination.page')}
                   <input
                     type="text"
                     inputMode="numeric"
@@ -274,13 +274,13 @@ function TrustAccountPageInner() {
                     className="w-12 border rounded text-center mx-1"
                     style={{height: 28}}
                   />
-                  {t('pagination.of', 'of')} {totalPages} {t('pagination.pages', 'pages')}
+                  {t('pagination.of')} {totalPages} {t('pagination.pages')}
                 </span>
                 <CustomButton
                   className="px-3 py-1 rounded border border-gray-300 bg-white text-sage-800 disabled:opacity-50 cursor-pointer"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                >{t('pagination.nextPage', 'Next')}</CustomButton>
+                >{t('pagination.nextPage')}</CustomButton>
               </div>
             </>
           )}
