@@ -457,6 +457,45 @@
       "clientName": "Client Name",
       "note": "Note",
       "journey": "Journey"
+    },
+    "noDocuments": "No Documents",
+    "noDocumentsDesc": "No documents found under current filter"
+  },
+  "clientDocuments": {
+    "title": "Documents",
+    "addDocument": "Add Document",
+    "loading": "Loading documents...",
+    "client": "Client",
+    "surrogate": "Surrogate",
+    "filters": {
+      "all": "All",
+      "embryoDocs": "Embryo Documents",
+      "surrogateInfo": "Surrogate Information",
+      "legalDocs": "Legal Documents",
+      "other": "Other"
+    },
+    "types": {
+      "embryoDocs": "Embryo Documents",
+      "surrogateInfo": "Surrogate Information",
+      "legalDocs": "Legal Documents",
+      "other": "Other"
+    },
+    "errors": {
+      "noParentId": "No parent ID found",
+      "fetchFailed": "Failed to fetch documents",
+      "unknownError": "Unknown error occurred"
+    },
+    "actions": {
+      "reload": "Reload"
+    },
+    "empty": {
+      "title": "No Documents",
+      "description": "Currently no documents available"
+    },
+    "table": {
+      "name": "Name",
+      "type": "Type",
+      "note": "Note"
     }
   },
   "notFoundSurrogate": "Surrogate Profile Not Found",

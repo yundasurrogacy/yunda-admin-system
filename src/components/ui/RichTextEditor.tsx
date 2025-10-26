@@ -1560,7 +1560,17 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
   }, [handleInput, t]);
 
   return (
-    <div className={`border border-gray-300 rounded-lg overflow-hidden bg-white relative ${className}`}>
+    <div 
+      className={`border border-gray-300 rounded-lg overflow-hidden bg-white relative ${className}`}
+      style={{ 
+        maxWidth: '100%', 
+        overflowX: 'hidden',
+        whiteSpace: 'pre-wrap',
+        overflowWrap: 'break-word',
+        wordWrap: 'break-word',
+        wordBreak: 'break-word'
+      }}
+    >
       {/* 工具栏 */}
       <div className="flex items-center gap-1 p-2 bg-gray-50 border-b border-gray-300 flex-wrap">
         {/* 格式化按钮 */}
@@ -1643,7 +1653,15 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         contentEditable
         onInput={handleInput}
         className="px-4 py-3 outline-none overflow-y-auto focus:ring-2 focus:ring-[#C2A87A] focus:ring-inset"
-        style={{ minHeight }}
+        style={{ 
+          minHeight,
+          whiteSpace: 'pre-wrap',
+          overflowWrap: 'break-word',
+          wordWrap: 'break-word',
+          wordBreak: 'break-word',
+          maxWidth: '100%',
+          overflowX: 'hidden'
+        }}
         data-placeholder={placeholder}
         suppressContentEditableWarning
       />
@@ -1661,14 +1679,59 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         }
         
         [contentEditable] {
-          word-wrap: break-word;
-          overflow-wrap: break-word;
+          white-space: pre-wrap !important;
+          overflow-wrap: break-word !important;
+          word-wrap: break-word !important;
+          word-break: break-word !important;
+          max-width: 100% !important;
+          overflow-x: hidden !important;
           /* 重置可能影响链接样式的属性 */
           color: inherit;
           font-family: inherit;
           font-size: inherit;
           line-height: inherit;
         }
+        
+        [contentEditable] * {
+          white-space: pre-wrap !important;
+          overflow-wrap: break-word !important;
+          word-wrap: break-word !important;
+          word-break: break-word !important;
+          max-width: 100% !important;
+        }
+        
+        /* 为特殊元素添加换行样式 */
+        [contentEditable] p,
+        [contentEditable] div,
+        [contentEditable] span,
+        [contentEditable] a,
+        [contentEditable] strong,
+        [contentEditable] em,
+        [contentEditable] u,
+        [contentEditable] s,
+        [contentEditable] code,
+        [contentEditable] pre {
+          white-space: pre-wrap !important;
+          overflow-wrap: break-word !important;
+          word-wrap: break-word !important;
+          word-break: break-word !important;
+          max-width: 100% !important;
+        }
+        
+        /* 链接特殊处理 */
+        [contentEditable] a {
+          word-break: break-all !important;
+        }
+        
+        /* pre 和 code 特殊处理 - 保留空格但允许换行 */
+        [contentEditable] pre {
+          white-space: pre-wrap !important;
+        }
+        
+        [contentEditable] code {
+          white-space: pre-wrap !important;
+        }
+        
         [contentEditable] h1 {
           font-size: 32px !important;
           font-weight: bold !important;

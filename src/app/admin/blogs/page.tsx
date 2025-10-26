@@ -530,6 +530,75 @@ const getCategoryTranslationKey = (category: string): string => {
   return categoryMap[category] || category;
 };
 
+// 清理富文本内容，处理超长链接和文本以避免溢出
+const cleanRichTextContent = (html: string): string => {
+  if (!html) return '';
+  
+  try {
+    // 创建一个临时的div元素来解析HTML，并添加样式
+    const tempDiv = document.createElement('div');
+    tempDiv.style.width = '100%';
+    tempDiv.style.wordBreak = 'break-word';
+    tempDiv.style.wordWrap = 'break-word';
+    tempDiv.style.overflowWrap = 'anywhere';
+    tempDiv.innerHTML = html;
+    
+    // 处理所有链接，将超长URL换行
+    tempDiv.querySelectorAll('a').forEach(link => {
+      const href = link.getAttribute('href') || '';
+      const text = link.textContent || '';
+      // 如果链接文本过长，插入零宽空格来允许换行
+      if (text.length > 40) {
+        link.textContent = text.replace(/(.{40})/g, '$1\u200B');
+      }
+    });
+    
+    // 处理所有图像，确保不会超出容器
+    tempDiv.querySelectorAll('img').forEach(img => {
+      img.style.maxWidth = '100%';
+      img.style.height = 'auto';
+    });
+    
+    // 处理所有文本节点，确保超长文本能被换行
+    const walker = document.createTreeWalker(
+      tempDiv,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+    
+    let node;
+    while (node = walker.nextNode()) {
+      const text = node.textContent || '';
+      // 如果文本没有空格且超过20个字符，插入零宽空格允许换行
+      if (text.length > 20 && !/\s/.test(text)) {
+        node.textContent = text.replace(/(.{20})/g, '$1\u200B');
+      }
+    }
+    
+    // 获取处理后的内容
+    let content = tempDiv.innerHTML;
+    
+    // 对超长的连续字符串进行处理
+    content = content.replace(/([^\s<>]{30})/g, (match) => {
+      return match.replace(/(.{20})/g, '$1\u200B');
+    });
+    
+    // 为所有元素添加样式，确保不会溢出
+    content = content.replace(/<(\w+)/g, (match, tag) => {
+      if (tag !== 'style' && tag !== 'script') {
+        return `<${tag} style="max-width:100%;word-break:break-word;overflow-wrap:anywhere;box-sizing:border-box"`;
+      }
+      return match;
+    });
+    
+    return content;
+  } catch (error) {
+    console.error('Error cleaning rich text:', error);
+    // 如果处理失败，返回包装后的原始内容
+    return `<div style="max-width:100%;word-break:break-word;overflow-wrap:anywhere">${html}</div>`;
+  }
+};
+
 function AdminBlogsPage() {
   const { t, i18n } = useTranslation("common")
   const router = useRouter()
@@ -601,6 +670,22 @@ function AdminBlogsPage() {
       
       // 检查响应状态
       if (!res.ok) {
+        // 对于错误响应，尝试获取错误详情
+        let errorText = '';
+        try {
+          errorText = await res.text();
+          console.error('Error response:', errorText);
+          // 尝试解析为JSON
+          try {
+            const errorData = JSON.parse(errorText);
+            console.error('Error details:', errorData);
+          } catch (e) {
+            // 如果不是JSON，就输出原始文本
+            console.error('Error text:', errorText);
+          }
+        } catch (e) {
+          console.error('Could not read error response');
+        }
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
@@ -1024,6 +1109,7 @@ function AdminBlogsPage() {
                   <div
                     key={blog.id}
                     className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden"
+                    style={{ maxWidth: '100%', overflowX: 'hidden' }}
                   >
                     <div className="flex items-center gap-4 mb-2">
                       <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -1058,18 +1144,61 @@ function AdminBlogsPage() {
                         <span className="font-mono text-xs text-sage-400">{t('routeId')}：</span>
                         <span className="truncate font-medium">{blog.route_id || t('notAvailable')}</span>
                       </div>
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-start gap-2 min-w-0" style={{ width: '100%', overflowX: 'hidden' }}>
                         <span className="font-mono text-xs text-sage-400 flex-shrink-0">{t('content')}：</span>
                         <div 
-                          className="flex-1 font-medium line-clamp-2 overflow-hidden text-ellipsis"
-                          dangerouslySetInnerHTML={{ __html: displayContent || '' }}
+                          className="flex-1 font-medium overflow-hidden min-w-0"
                           style={{ 
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            wordBreak: 'break-word',
+                            wordWrap: 'break-word',
+                            overflowWrap: 'anywhere',
+                            hyphens: 'auto',
+                            maxWidth: '100%',
+                            overflowX: 'hidden',
+                            overflowY: 'hidden',
+                            width: '100%'
                           }}
-                        />
+                        >
+                          <style dangerouslySetInnerHTML={{ __html: `
+                            .blog-content-wrapper-${blog.id} * {
+                              max-width: 100% !important;
+                              word-break: break-word !important;
+                              word-wrap: break-word !important;
+                              overflow-wrap: anywhere !important;
+                              box-sizing: border-box !important;
+                            }
+                            .blog-content-wrapper-${blog.id} a {
+                              word-break: break-all !important;
+                            }
+                            .blog-content-wrapper-${blog.id} img {
+                              max-width: 100% !important;
+                              height: auto !important;
+                            }
+                            .blog-content-wrapper-${blog.id} p,
+                            .blog-content-wrapper-${blog.id} div,
+                            .blog-content-wrapper-${blog.id} span,
+                            .blog-content-wrapper-${blog.id} li {
+                              word-break: break-word !important;
+                              overflow-wrap: anywhere !important;
+                            }
+                          `}} />
+                          <div
+                            className={`blog-content-wrapper-${blog.id}`}
+                            style={{
+                              wordBreak: 'break-word',
+                              wordWrap: 'break-word',
+                              overflowWrap: 'anywhere',
+                              maxWidth: '100%',
+                              width: '100%',
+                              display: 'block'
+                            }}
+                            dangerouslySetInnerHTML={{ __html: cleanRichTextContent(displayContent) }}
+                          />
+                        </div>
                       </div>
                     </div>
                     <hr className="my-3 border-sage-100" />

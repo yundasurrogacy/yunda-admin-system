@@ -1077,7 +1077,48 @@
       "clientName": "客户名称",
       "note": "备注",
       "journey": "旅程"
-    }
+    },
+    "noDocuments": "暂无文档",
+    "noDocumentsDesc": "当前筛选条件下没有找到文档"
+  },
+  "clientDocuments": {
+    "title": "文档",
+    "addDocument": "添加文档",
+    "loading": "正在加载文档...",
+    "client": "客户",
+    "surrogate": "代孕母",
+    "filters": {
+      "all": "全部",
+      "embryoDocs": "胚胎文档",
+      "surrogateInfo": "代孕母信息",
+      "legalDocs": "法律文档",
+      "other": "其他"
+    },
+    "types": {
+      "embryoDocs": "胚胎文档",
+      "surrogateInfo": "代孕母信息",
+      "legalDocs": "法律文档",
+      "other": "其他"
+    },
+    "errors": {
+      "noParentId": "未找到准父母ID",
+      "fetchFailed": "获取文档失败",
+      "unknownError": "发生未知错误"
+    },
+    "actions": {
+      "reload": "重新加载"
+    },
+    "empty": {
+      "title": "暂无文档",
+      "description": "目前没有任何文档"
+    },
+    "table": {
+      "name": "名称",
+      "type": "类型",
+      "note": "备注"
+    },
+    "noDocuments": "暂无文档",
+    "noDocumentsDesc": "当前筛选条件下没有找到文档"
   },
   "pageLayout": {
     "searchPlaceholder": "搜索..."
