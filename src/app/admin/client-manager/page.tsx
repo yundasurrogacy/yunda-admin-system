@@ -35,6 +35,12 @@ export default function ClientManagerPage() {
   const [form, setForm] = useState({ email: "", password: "" })
   const [addLoading, setAddLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [showPassword, setShowPassword] = useState<Record<number, boolean>>({})
+  const [showResetDialog, setShowResetDialog] = useState(false)
+  const [resetManagerId, setResetManagerId] = useState<number | null>(null)
+  const [resetPassword, setResetPassword] = useState("")
+  const [resetLoading, setResetLoading] = useState(false)
+  const [showPasswordInput, setShowPasswordInput] = useState(false)
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -126,6 +132,39 @@ export default function ClientManagerPage() {
   const handleCloseAddDialog = useCallback(() => {
     setAddOpen(false)
   }, [])
+
+  const handleOpenResetDialog = useCallback((id: number) => {
+    setShowResetDialog(true)
+    setResetManagerId(id)
+  }, [])
+
+  const handleCloseResetDialog = useCallback(() => {
+    setShowResetDialog(false)
+    setResetPassword("")
+    setResetManagerId(null)
+  }, [])
+
+  const handleResetPassword = useCallback(async () => {
+    if (!resetManagerId || !resetPassword) return
+    
+    setResetLoading(true)
+    try {
+      const res = await fetch("/api/client-managers-reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: resetManagerId, password: resetPassword })
+      })
+      const result = await res.json()
+      if (res.ok && result?.update_client_managers?.affected_rows > 0) {
+        handleCloseResetDialog()
+        await loadManagers()
+      }
+    } catch (error) {
+      console.error('Reset password error:', error)
+    } finally {
+      setResetLoading(false)
+    }
+  }, [resetManagerId, resetPassword, loadManagers, handleCloseResetDialog])
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
@@ -295,7 +334,26 @@ export default function ClientManagerPage() {
                   <div className="mt-2 space-y-1 text-sage-700 text-[15px] font-medium">
                     <div className="flex items-center gap-2 truncate">
                       <span className="font-mono text-xs text-sage-400">{t('passwordLabel')}：</span>
-                      <span className="truncate font-medium">{m.password}</span>
+                      <span className="truncate font-medium font-mono">
+                        {showPassword[m.id] ? m.password : '••••••••'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(prev => ({ ...prev, [m.id]: !prev[m.id] }))}
+                        className="ml-2 text-sage-600 hover:text-sage-800 transition-colors cursor-pointer"
+                        title={showPassword[m.id] ? t('hidePassword', '隐藏密码') : t('showPassword', '显示密码')}
+                      >
+                        {showPassword[m.id] ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
                   </div>
                   <hr className="my-3 border-sage-100" />
@@ -303,6 +361,12 @@ export default function ClientManagerPage() {
                     <span>
                       {t('createdAt')}<br />{m.created_at ? new Date(m.created_at).toLocaleString() : "-"}
                     </span>
+                    <CustomButton
+                      className="text-sage-600 px-2 py-1 border border-sage-300 cursor-pointer bg-white text-sm font-medium"
+                      onClick={() => handleOpenResetDialog(m.id)}
+                    >
+                      {t('resetPassword')}
+                    </CustomButton>
                   </div>
                 </div>
               ))}
@@ -340,6 +404,58 @@ export default function ClientManagerPage() {
               </CustomButton>
             </div>
           </>
+        )}
+
+        {/* 重置密码弹窗 */}
+        {showResetDialog && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl border border-sage-200 w-full max-w-md p-8 animate-fade-in">
+              <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center">{t('resetPassword')}</h2>
+              <div className="flex flex-col gap-6 mb-6">
+                <div className="relative">
+                  <input
+                    type={showPasswordInput ? "text" : "password"}
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    placeholder={t('pleaseEnterNewPassword')}
+                    className="border border-sage-300 p-3 pr-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition w-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordInput(!showPasswordInput)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sage-600 hover:text-sage-800 transition-colors cursor-pointer"
+                    title={showPasswordInput ? t('hidePassword', '隐藏密码') : t('showPassword', '显示密码')}
+                  >
+                    {showPasswordInput ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <CustomButton 
+                  onClick={handleCloseResetDialog}
+                  className="px-6 py-2 rounded-lg border border-sage-300 bg-white hover:bg-sage-50 cursor-pointer font-medium"
+                >
+                  {t('cancel')}
+                </CustomButton>
+                <CustomButton 
+                  onClick={handleResetPassword}
+                  disabled={resetLoading || !resetPassword}
+                  className="px-6 py-2 bg-sage-600 text-white rounded-lg shadow hover:bg-sage-700 transition cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+                >
+                  {resetLoading ? t('processing') : t('confirmReset')}
+                </CustomButton>
+              </div>
+            </div>
+          </div>
         )}
       </PageContent>
   )

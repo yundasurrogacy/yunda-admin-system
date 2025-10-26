@@ -12,6 +12,8 @@ export async function getIntendedParentById(id: number) {
         id
         created_at
         updated_at
+        email
+        password
         basic_information
         contact_information
         family_profile
@@ -40,6 +42,8 @@ export async function getIntendedParents(limit: number = 10, offset: number = 0)
         id
         created_at
         updated_at
+        email
+        password
         basic_information
         contact_information
         family_profile
@@ -61,6 +65,8 @@ export async function getSurrogateMotherById(id: number) {
     query GetSurrogateMotherById($id: bigint!) {
       surrogate_mothers_by_pk(id: $id) {
         id
+        email
+        password
         contact_information
         about_you
         pregnancy_and_health
@@ -91,6 +97,8 @@ export async function getSurrogateMothers(
         order_by: { created_at: desc }
       ) {
         id
+        email
+        password
         contact_information
         about_you
         pregnancy_and_health

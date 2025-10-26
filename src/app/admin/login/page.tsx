@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useToast } from "@/hooks/useToast"
+import { useSimpleToast } from "@/components/ui/simple-toast"
 import { useAuth } from "@/hooks/useAuth"
 import { LoginForm } from "@/components/enhanced-login-form"
 import { apiClient } from "@/lib/api-client-auth"
@@ -13,6 +14,7 @@ export default function AdminLoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+  const { showToast: simpleToast } = useSimpleToast()
   // const { login, isAuthenticated, getHomePath, user } = useAuth()
    const { login, isAuthenticated, getHomePath, user } = useAuth("admin")
 
@@ -38,49 +40,58 @@ export default function AdminLoginPage() {
     try {
       console.log(`[AdminLogin] Starting login for: ${username}`)
       const response = await apiClient.adminLogin({ username, password });
+      console.log('[AdminLogin] Full response:', response);
       
-      if (response.success && response.data?.success && response.data.manager) {
-        console.log(`[AdminLogin] Login API successful, manager data:`, response.data.manager)
-
-        // 使用新的认证系统
-        const userData = {
-          id: String(response.data.manager.id),
-          email: username,
-          role: 'admin' as const,
-          name: response.data.manager.name
-        }
-
-        console.log(`[AdminLogin] Calling login with user data:`, userData)
-        login(userData);
-
-        // 登录成功后写入 admin 专属 cookie，支持多端同时登录
-        document.cookie = `userRole_admin=admin; path=/`;
-        document.cookie = `userEmail_admin=${userData.email}; path=/`;
-        document.cookie = `userId_admin=${userData.id}; path=/`;
-
-        // 立即跳转，提供更丝滑的用户体验
-        router.replace('/admin/dashboard')
+              // 检查登录是否成功
+      if (!response.success) {
+        console.log('[AdminLogin] Login failed!');
+        // 始终使用本地化的错误消息
+        simpleToast(t("userNameOrPasswordError"), 'error');
         
-        // 显示成功提示（异步，不阻塞跳转）
-        setTimeout(() => {
-          toast({
-            title: t("loginSuccess", { defaultValue: "登录成功" }),
-            description: t("adminLoginSuccess", { defaultValue: "欢迎回来，管理员！" }),
-            variant: "default",
-          });
-        }, 100)
-
+        setLoading(false);
         return;
       }
+
+      // 检查 API 返回的数据
+      if (!response.data?.success || !response.data.manager) {
+        console.log('[AdminLogin] Invalid data structure!');
+        // 始终使用本地化的错误消息
+        simpleToast(t("userNameOrPasswordError"), 'error');
+        
+        setLoading(false);
+        return;
+      }
+
+      console.log(`[AdminLogin] Login API successful, manager data:`, response.data.manager)
+
+      // 使用新的认证系统
+      const userData = {
+        id: String(response.data.manager.id),
+        email: username,
+        role: 'admin' as const,
+        name: response.data.manager.name
+      }
+
+      console.log(`[AdminLogin] Calling login with user data:`, userData)
+      login(userData);
+
+      // 登录成功后写入 admin 专属 cookie，支持多端同时登录
+      document.cookie = `userRole_admin=admin; path=/`;
+      document.cookie = `userEmail_admin=${userData.email}; path=/`;
+      document.cookie = `userId_admin=${userData.id}; path=/`;
+
+      // 立即跳转，提供更丝滑的用户体验
+      router.replace('/admin/dashboard')
       
-      throw new Error(response.error || response.data?.error || t("loginError"));
+      // 显示成功提示（异步，不阻塞跳转）
+      setTimeout(() => {
+        simpleToast(t("adminLoginSuccess"), 'success');
+      }, 100)
+
     } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: t("loginFailed"),
-        description: error instanceof Error ? error.message : t("loginErrorDesc"),
-        variant: "destructive",
-      });
+      console.error('[AdminLogin] Login error:', error);
+      // 始终使用本地化的错误消息
+      simpleToast(t("unknownError"), 'error');
     } finally {
       setLoading(false);
     }

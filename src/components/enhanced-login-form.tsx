@@ -22,15 +22,15 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
     const errors: {username?: string, password?: string} = {}
     
     if (!username.trim()) {
-      errors.username = t('emailRequired', { defaultValue: '请输入邮箱' })
+      errors.username = t('emailRequired')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) {
-      errors.username = t('emailInvalid', { defaultValue: '邮箱格式不正确' })
+      errors.username = t('emailInvalid')
     }
     
     if (!password.trim()) {
-      errors.password = t('passwordRequired', { defaultValue: '请输入密码' })
+      errors.password = t('passwordRequired')
     } else if (password.length < 6) {
-      errors.password = t('passwordTooShort', { defaultValue: '密码长度至少6位' })
+      errors.password = t('passwordTooShort')
     }
     
     setFormErrors(errors)
@@ -42,8 +42,8 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
     
     if (!validateForm()) {
       toast({
-        title: t('formValidationError', { defaultValue: '表单验证失败' }),
-        description: t('pleaseCheckInput', { defaultValue: '请检查输入信息' }),
+        title: t('formValidationError'),
+        description: t('pleaseCheckInput'),
         variant: 'destructive'
       })
       return
@@ -67,7 +67,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
             htmlFor="email"
             className="block text-base font-medium text-sage-800 mb-2"
           >
-            {t('emailLabel', { defaultValue: '邮箱' })}
+            {t('emailLabel')}
           </label>
           <input
             id="email"
@@ -91,7 +91,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
               padding: "0 20px"
             }}
             className="font-medium text-sage-800 transition-colors disabled:opacity-50 focus:outline-none focus:ring-0"
-            placeholder={t('emailPlaceholder', { defaultValue: '请输入邮箱地址' })}
+            placeholder={t('emailPlaceholder')}
           />
           {formErrors.username && (
             <p className="text-red-500 text-sm mt-1 font-medium">{formErrors.username}</p>
@@ -102,7 +102,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
             htmlFor="password"
             className="block text-base font-medium text-sage-800 mb-2"
           >
-            {t('passwordLabel', { defaultValue: '密码' })}
+            {t('passwordLabel')}
           </label>
           <input
             id="password"
@@ -126,7 +126,7 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
               padding: "0 20px"
             }}
             className="font-medium text-sage-800 transition-colors disabled:opacity-50 focus:outline-none focus:ring-0"
-            placeholder={t('passwordPlaceholder', { defaultValue: '请输入密码' })}
+            placeholder={t('passwordPlaceholder')}
           />
           {formErrors.password && (
             <p className="text-red-500 text-sm mt-1 font-medium">{formErrors.password}</p>
@@ -156,10 +156,10 @@ export function LoginForm({ onSubmit, loading = false, className }: LoginFormPro
         {loading ? (
           <div className="flex items-center gap-2">
             <LoadingSpinner size="sm" />
-            <span>{t('loggingIn', { defaultValue: '登录中...' })}</span>
+            <span>{t('loggingIn')}</span>
           </div>
         ) : (
-          t('loginButton', { defaultValue: '登录' })
+          t('loginButton')
         )}
       </button>
     </form>

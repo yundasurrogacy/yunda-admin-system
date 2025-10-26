@@ -8,29 +8,41 @@ const corsHeaders = {
 };
 
 export async function GET(request: NextRequest) {
-  const hasuraClient = getHasuraClient();
-  const query = `query GetCategories { 
-    blogs { 
-      category 
-    } 
-  }`;
-  
-  const result = await hasuraClient.execute({ query });
-  const blogs = result?.blogs || [];
-  
-  // 统计每个分类的数量
-  const categoryCounts: Record<string, number> = {};
-  blogs.forEach((blog: any) => {
-    categoryCounts[blog.category] = (categoryCounts[blog.category] || 0) + 1;
-  });
-  
-  // 获取所有分类
-  const categories = [...new Set(blogs.map((blog: any) => blog.category))];
-  
-  return new NextResponse(JSON.stringify({
-    categories,
-    categoryCounts
-  }), { status: 200, headers: corsHeaders });
+  try {
+    const hasuraClient = getHasuraClient();
+    const query = `query GetCategories { 
+      blogs { 
+        category 
+      } 
+    }`;
+    
+    const result = await hasuraClient.execute({ query });
+    const blogs = result?.blogs || [];
+    
+    // 过滤掉没有分类的博客
+    const blogsWithCategory = blogs.filter((blog: any) => blog?.category);
+    
+    // 统计每个分类的数量
+    const categoryCounts: Record<string, number> = {};
+    blogsWithCategory.forEach((blog: any) => {
+      const category = blog.category;
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    });
+    
+    // 获取所有分类（过滤掉空值）
+    const categories = [...new Set(blogsWithCategory.map((blog: any) => blog.category))].filter(Boolean);
+    
+    return NextResponse.json({
+      categories,
+      categoryCounts
+    }, { headers: corsHeaders });
+  } catch (error) {
+    console.error('Error in GET /api/blog/categories:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch categories', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500, headers: corsHeaders }
+    );
+  }
 }
 
 export async function OPTIONS(request: NextRequest) {

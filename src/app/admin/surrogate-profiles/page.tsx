@@ -82,6 +82,7 @@ const SurrogateCard = memo(({
   const ph = surrogate.pregnancy_and_health
   const age = calculateAge(ci?.date_of_birth)
   const photoUrl = surrogate.upload_photos?.[0]?.url
+  const [showPassword, setShowPassword] = useState(false)
   
   return (
     <div className="bg-white rounded-lg border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full text-sage-800 font-medium" style={{minWidth: '0'}}>
@@ -162,6 +163,32 @@ const SurrogateCard = memo(({
         </ul>
       </div>
 
+      {surrogate.password && (
+        <div className="mb-2 font-normal flex items-center gap-2">
+          <span className="text-sage-600 font-mono text-xs">{t('passwordLabel', 'Password')}:</span>
+          <span className="font-mono text-sm flex-1">
+            {showPassword ? surrogate.password : '••••••••'}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="text-sage-600 hover:text-sage-800 transition-colors cursor-pointer flex-shrink-0"
+            title={showPassword ? t('hidePassword', '隐藏密码') : t('showPassword', '显示密码')}
+          >
+            {showPassword ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            )}
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
         <CustomButton
           className="text-sage-600 hover:text-sage-800 font-medium cursor-pointer bg-transparent"
@@ -197,6 +224,7 @@ export default function SurrogateProfilesPage() {
   const [passwordValue, setPasswordValue] = useState("")
   const [selectedSurrogateId, setSelectedSurrogateId] = useState<number | null>(null)
   const [passwordError, setPasswordError] = useState("")
+  const [showPasswordInput, setShowPasswordInput] = useState(false)
   const { register, handleSubmit, reset } = useForm()
 
   // Toast 通知状态
@@ -909,13 +937,32 @@ export default function SurrogateProfilesPage() {
             <div className="bg-white rounded-2xl shadow-2xl border border-sage-200 w-full max-w-md p-8 animate-fade-in">
               <h2 className="text-2xl font-bold text-sage-700 mb-6 text-center">{t('resetPassword')}</h2>
               <div className="flex flex-col gap-4 mb-6">
-                <input
-                  type="password"
-                  placeholder={t('pleaseEnterNewPassword')}
-                  value={passwordValue}
-                  onChange={handlePasswordChange}
-                  className="px-4 py-3 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition w-full"
-                />
+                <div className="relative">
+                  <input
+                    type={showPasswordInput ? "text" : "password"}
+                    placeholder={t('pleaseEnterNewPassword')}
+                    value={passwordValue}
+                    onChange={handlePasswordChange}
+                    className="px-4 py-3 pr-10 border border-sage-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sage-400 transition w-full"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordInput(!showPasswordInput)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sage-600 hover:text-sage-800 transition-colors cursor-pointer"
+                    title={showPasswordInput ? t('hidePassword', '隐藏密码') : t('showPassword', '显示密码')}
+                  >
+                    {showPasswordInput ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {passwordError && <div className="text-red-500 text-sm text-center">{passwordError}</div>}
               </div>
               <div className="flex justify-end gap-3">

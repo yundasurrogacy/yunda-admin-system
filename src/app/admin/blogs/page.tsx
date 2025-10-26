@@ -556,6 +556,10 @@ function AdminBlogsPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning'>('success');
 
+  // 删除确认弹窗状态
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState<{ id: number; title: string } | null>(null);
+
   // 显示Toast提示
   const showToastMessage = useCallback((message: string, type: 'success' | 'error' | 'warning' = 'success') => {
     setToastMessage(message);
@@ -594,7 +598,34 @@ function AdminBlogsPage() {
   const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch('/api/blog/categories');
-      const data = await res.json();
+      
+      // 检查响应状态
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      // 检查响应内容类型
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Response is not JSON');
+      }
+      
+      // 获取响应文本，检查是否为空
+      const text = await res.text();
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response');
+      }
+      
+      // 解析 JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response text:', text);
+        throw new Error('Invalid JSON response');
+      }
+      
       setAvailableCategories(data.categories || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -622,7 +653,34 @@ function AdminBlogsPage() {
       
       // 使用服务端分页，支持搜索和筛选
       const res = await fetch(`${BLOG_API}?${params.toString()}`);
-      const data = await res.json();
+      
+      // 检查响应状态
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      // 检查响应内容类型
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Response is not JSON');
+      }
+      
+      // 获取响应文本，检查是否为空
+      const text = await res.text();
+      if (!text || text.trim() === '') {
+        throw new Error('Empty response');
+      }
+      
+      // 解析 JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response text:', text);
+        throw new Error('Invalid JSON response');
+      }
+      
       console.log('Blog data:', data);
       
       if (data.blogs) {
@@ -643,13 +701,18 @@ function AdminBlogsPage() {
       }
     } catch (error) {
       console.error('Error fetching blogs:', error);
+      // 显示错误提示
+      showToastMessage(
+        error instanceof Error ? error.message : t('unknownError'),
+        'error'
+      );
       setBlogs([]);
       setTotalPages(1);
       setTotalCount(0);
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, searchValue, selectedCategory]);
+  }, [page, pageSize, searchValue, selectedCategory, showToastMessage, t]);
 
   // 只在认证后才加载数据
   useEffect(() => {
@@ -678,12 +741,20 @@ function AdminBlogsPage() {
     setAddOpen(true);
   }, []);
 
-  const handleDelete = useCallback(async (id: number) => {
+  const handleDeleteClick = useCallback((blog: any) => {
+    const displayTitle = i18n.language === 'zh-CN' ? blog.title : (blog.en_title || blog.title);
+    setBlogToDelete({ id: blog.id, title: displayTitle });
+    setShowDeleteConfirm(true);
+  }, [i18n.language]);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!blogToDelete) return;
+    
     try {
       const res = await fetch(BLOG_API, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id: blogToDelete.id }),
       });
       
       if (res.ok) {
@@ -694,8 +765,16 @@ function AdminBlogsPage() {
       }
     } catch (error) {
       showToastMessage(t('blogValidation.deleteError'), 'error');
+    } finally {
+      setShowDeleteConfirm(false);
+      setBlogToDelete(null);
     }
-  }, [fetchBlogs, showToastMessage, t]);
+  }, [blogToDelete, fetchBlogs, showToastMessage, t]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setShowDeleteConfirm(false);
+    setBlogToDelete(null);
+  }, []);
 
   const handleSubmit = useCallback(async (form: any) => {
     try {
@@ -1000,7 +1079,7 @@ function AdminBlogsPage() {
                       </span>
                       <div className="flex gap-2">
                         <CustomButton className="font-medium cursor-pointer px-3 py-1 text-sm" onClick={() => handleEdit(blog)}>{t('edit')}</CustomButton>
-                        <CustomButton className="font-medium cursor-pointer border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 px-3 py-1 text-sm" onClick={() => handleDelete(blog.id)}>{t('delete')}</CustomButton>
+                        <CustomButton className="font-medium cursor-pointer border border-red-300 text-red-700 bg-white hover:bg-red-50 px-3 py-1 text-sm" onClick={() => handleDeleteClick(blog)}>{t('delete')}</CustomButton>
                       </div>
                     </div>
                   </div>
@@ -1038,6 +1117,42 @@ function AdminBlogsPage() {
             </>
           )}
         </div>
+
+        {/* 删除确认弹窗 */}
+        {showDeleteConfirm && blogToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn border border-red-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-sage-800">{t('confirmDelete')}</h3>
+                </div>
+              </div>
+              <p className="text-sm text-sage-600 mb-2">{t('confirmDeleteDesc')}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                <p className="text-sm font-medium text-red-800 truncate">{blogToDelete.title}</p>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <CustomButton 
+                  onClick={handleDeleteCancel}
+                  className="px-6 py-2 border border-sage-300 text-sage-700 bg-white hover:bg-sage-50 rounded-lg cursor-pointer"
+                >
+                  {t('cancel')}
+                </CustomButton>
+                <CustomButton 
+                  onClick={handleDeleteConfirm}
+                  className="px-6 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg cursor-pointer"
+                >
+                  {t('confirmDelete')}
+                </CustomButton>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Toast 通知组件 */}
         {showToast && (

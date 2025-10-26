@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { SimpleToastProvider } from "@/components/ui/simple-toast";
 import { GlobalAuthCheck } from "@/components/global-auth-check";
 import { SidebarProvider } from "@/context/sidebar-context";
 import { AppTypeProvider } from "@/context/app-type-context";
@@ -24,11 +25,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         style={{ background: 'rgba(250,241,224,0.25)' }}
       >
         <ToastProvider>
-          <AppTypeProvider>
-            <SidebarProvider>
-              <LayoutWithGlobalSidebarHeader>{children}</LayoutWithGlobalSidebarHeader>
-            </SidebarProvider>
-          </AppTypeProvider>
+          <SimpleToastProvider>
+            <AppTypeProvider>
+              <SidebarProvider>
+                <LayoutWithGlobalSidebarHeader>{children}</LayoutWithGlobalSidebarHeader>
+              </SidebarProvider>
+            </AppTypeProvider>
+          </SimpleToastProvider>
         </ToastProvider>
       </body>
     </html>

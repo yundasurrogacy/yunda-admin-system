@@ -235,6 +235,8 @@ export interface SurrogateMotherApplicationData {
 // 代孕母完整记录（对应 surrogate_mothers 表）
 export interface SurrogateMother {
   id: number;
+  email: string;
+  password?: string;
   created_at: string;
   updated_at: string;
   contact_information?: ContactInformation;

@@ -167,6 +167,8 @@ export interface IntendedParentApplicationData {
 // 准父母完整记录（对应 intended_parents 表）
 export interface IntendedParent {
   id: number;
+  email: string;
+  password?: string;
   created_at: string;
   updated_at: string;
   basic_information?: BasicInformation;
