@@ -50,7 +50,7 @@ function TrustAccountPageInner() {
   // change_amount 用字符串保存，保证输入负号时受控
   // change_amount 用字符串保存，彻底消除类型警告
   type FormDataType = Omit<Partial<BalanceChange>, 'change_amount'> & { change_amount?: string };
-  const [formData, setFormData] = useState<FormDataType>({ visibility: 'all' });
+  const [formData, setFormData] = useState<FormDataType>({ visibility: 'manager', change_type: 'OTHER' });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
@@ -58,7 +58,7 @@ function TrustAccountPageInner() {
   const [balanceInput, setBalanceInput] = useState("");
   const [isSavingBalance, setIsSavingBalance] = useState(false);
   const pageSize = 10; // 每页显示10条
-  const [sortDateDesc, setSortDateDesc] = useState(false);
+  const [sortDateDesc, setSortDateDesc] = useState(true);
   const [filterType, setFilterType] = useState<string | null>(null);
 
   // Toast 通知状态
@@ -87,7 +87,8 @@ function TrustAccountPageInner() {
   
   // 使用 useMemo 缓存过滤和排序后的数据
   const displayedChanges: BalanceChange[] = useMemo(() => {
-    let arr: BalanceChange[] = changes;
+    // client-manager 能看到 visibility 为 'manager' 或 'all' 的记录
+    let arr: BalanceChange[] = changes.filter(c => c.visibility === 'manager' || c.visibility === 'all');
     if (filterType) {
       arr = arr.filter((c: BalanceChange) => c.change_type === filterType);
     }
@@ -166,11 +167,11 @@ function TrustAccountPageInner() {
     if (showForm) return; // 防止重复点击
     setEditId(null);
     setFormData({
-      change_type: '',
+      change_type: 'OTHER',
       change_amount: '',
       remark: '',
       receiver: '',
-      visibility: 'all',
+      visibility: 'manager',
     });
     setShowForm(true);
   }, [showForm]);
@@ -182,7 +183,7 @@ function TrustAccountPageInner() {
       change_amount: String(item.change_amount ?? ''),
       remark: item.remark,
       receiver: item.receiver,
-      visibility: item.visibility ?? 'all',
+      visibility: item.visibility ?? 'manager',
     });
     setShowForm(true);
   }, []);
@@ -325,13 +326,13 @@ function TrustAccountPageInner() {
       // 自动创建一条记录
       const payload = {
         caseId,
-        change_type: 'OTHER',
+        change_type: 'ADJUSTMENT',
         change_amount: changeAmount,
         balance_before: currentBalanceNum,
         balance_after: newBalance,
         receiver: null,
         remark: t('trustAccount.balanceAdjustment', 'Balance Adjustment'),
-        visibility: 'all',
+        visibility: 'manager',
       };
       
       const res = await fetch('/api/trust-account/change', {
@@ -532,10 +533,8 @@ function TrustAccountPageInner() {
                     className="border rounded px-2 py-1 w-full text-sage-800"
                     required
                   >
-                    <option value="">{t('pleaseSelect', 'Please select')}</option>
-                    <option value="RECHARGE">{t('trustAccount.typeRecharge', 'Recharge')}</option>
-                    <option value="CONSUMPTION">{t('trustAccount.typeConsumption', 'Consumption')}</option>
                     <option value="OTHER">{t('trustAccount.typeOther', 'Other')}</option>
+                    <option value="ADJUSTMENT">{t('trustAccount.typeAdjustment', 'Adjustment')}</option>
                   </select>
                 </div>
                 <div>
@@ -546,8 +545,8 @@ function TrustAccountPageInner() {
                     onChange={handleFormChange}
                     className="border rounded px-2 py-1 w-full text-sage-800"
                   >
+                    <option value="manager">{t('trustAccount.visibilityManager', 'Manager')}</option>
                     <option value="all">{t('trustAccount.visibilityAll', 'All')}</option>
-                    <option value="intended_parents">{t('trustAccount.visibilityIntendedParents', 'Intended Parents Only')}</option>
                   </select>
                 </div>
                 <div>
@@ -638,10 +637,9 @@ function TrustAccountPageInner() {
                             <option value="">{t('trustAccount.allTypes', 'All Types')}</option>
                             {uniqueChangeTypes.map(type => (
                               <option key={type} value={type}>
-                                {type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
-                                {type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
                                 {type === 'OTHER' && t('trustAccount.typeOther', 'Other')}
-                                {!['RECHARGE','CONSUMPTION','OTHER'].includes(type) && t(`trustAccount.type.${type}`, type)}
+                                {type === 'ADJUSTMENT' && t('trustAccount.typeAdjustment', 'Adjustment Assignment')}
+                                {!['OTHER','ADJUSTMENT'].includes(type) && t(`trustAccount.type.${type}`, type)}
                               </option>
                             ))}
                           </select>
@@ -686,10 +684,9 @@ function TrustAccountPageInner() {
                       >
                         <td className="py-2 px-4 whitespace-nowrap">{change.created_at.slice(0, 19).replace('T', ' ')}</td>
                         <td className="py-2 px-4 whitespace-nowrap">
-                          {change.change_type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
-                          {change.change_type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
                           {change.change_type === 'OTHER' && t('trustAccount.typeOther', 'Other')}
-                          {!['RECHARGE','CONSUMPTION','OTHER'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
+                          {change.change_type === 'ADJUSTMENT' && t('trustAccount.typeAdjustment', 'Adjustment')}
+                          {!['OTHER','ADJUSTMENT'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
                         </td>
                         <td className="py-2 px-4 whitespace-nowrap">
                           {change.visibility === 'all'
