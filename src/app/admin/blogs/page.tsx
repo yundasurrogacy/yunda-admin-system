@@ -539,6 +539,7 @@ function AdminBlogsPage() {
   
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [page, setPage] = useState(1);
@@ -714,13 +715,22 @@ function AdminBlogsPage() {
     }
   }, [page, pageSize, searchValue, selectedCategory, showToastMessage, t]);
 
-  // 只在认证后才加载数据
+  // 监听分页和筛选条件变化，重新获取数据
   useEffect(() => {
     if (isAuthenticated) {
       fetchBlogs();
-      fetchCategories();
     }
-  }, [isAuthenticated, fetchBlogs, fetchCategories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, searchValue, selectedCategory]);
+
+  // 只加载一次分类列表
+  useEffect(() => {
+    if (isAuthenticated && !dataLoaded) {
+      fetchCategories();
+      setDataLoaded(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
   // 翻页时如果超出总页数，自动回到最后一页

@@ -213,6 +213,7 @@ export default function ParentsApplicationsPage() {
   // 弹窗逻辑已移除
   const [applications, setApplications] = useState<Application[]>([])
   const [loading, setLoading] = useState(true)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
@@ -268,12 +269,15 @@ export default function ParentsApplicationsPage() {
 
   // 使用 useCallback 缓存数据加载函数
   const loadApplications = useCallback(async () => {
+    if (dataLoaded) return;
+    
     try {
       setLoading(true)
       const status = statusFilter === 'all' ? undefined : statusFilter
       const allData = await getParentsApplications(10000, 0, status)
       console.log('[ParentsApplications] 加载的数据:', allData?.length || 0, '条记录')
       setAllApplications(allData || []) // 确保数据不为 undefined
+      setDataLoaded(true)
     } catch (error) {
       console.error('Failed to load applications:', error)
       setAllApplications([]) // 出错时设置为空数组
@@ -281,14 +285,15 @@ export default function ParentsApplicationsPage() {
       setLoading(false)
       console.log('[ParentsApplications] 加载完成，loading设置为false')
     }
-  }, [statusFilter])
+  }, [statusFilter, dataLoaded])
 
   // 在认证成功后加载数据
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !dataLoaded) {
       loadApplications()
     }
-  }, [isAuthenticated, loadApplications])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // 使用 useCallback 缓存状态更新函数
   const handleStatusUpdate = useCallback(async (id: number, newStatus: ApplicationStatus) => {

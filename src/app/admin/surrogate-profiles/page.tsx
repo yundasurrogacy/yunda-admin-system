@@ -315,6 +315,7 @@ export default function SurrogateProfilesPage() {
   const [allSurrogates, setAllSurrogates] = useState<SurrogateMother[]>([])
   const [surrogates, setSurrogates] = useState<SurrogateMother[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [searchValue, setSearchValue] = useState("")
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
@@ -337,20 +338,22 @@ export default function SurrogateProfilesPage() {
 
   // 获取全部数据 - 只在认证后才加载
   useEffect(() => {
+    if (!isAuthenticated || dataLoaded) return;
+    
     async function fetchSurrogates() {
-      if (isAuthenticated) {
-        setIsLoading(true)
-        try {
-          const data = await getSurrogateMothers(10000, 0)
-          setAllSurrogates(data)
-        } catch (error) {
-          console.error('Failed to fetch surrogates:', error)
-        } finally {
-          setIsLoading(false)
-        }
+      setIsLoading(true)
+      try {
+        const data = await getSurrogateMothers(10000, 0)
+        setAllSurrogates(data)
+        setDataLoaded(true)
+      } catch (error) {
+        console.error('Failed to fetch surrogates:', error)
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchSurrogates()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致

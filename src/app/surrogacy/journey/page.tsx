@@ -405,7 +405,7 @@ function JourneyInner() {
       <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
-          <span className="rounded bg-sage-100 px-4 py-1 text-xs text-sage-700">
+          <span className="rounded bg-sage-200 px-4 py-2 text-lg font-bold text-sage-800">
             {currentStatusDisplay}
           </span>
         </div>

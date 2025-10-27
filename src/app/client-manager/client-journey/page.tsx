@@ -432,7 +432,7 @@ function JourneyInner() {
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
-            <span className="rounded bg-sage-100 px-4 py-1 text-xs text-sage-700">
+            <span className="rounded bg-sage-200 px-4 py-2 text-lg font-bold text-sage-800">
               {isLoading ? t('loadingText') : (processStatus ? t(`statusMapping.${statusKeyMap[processStatus] || processStatus}`, { defaultValue: processStatus }) : t('journey.noStatus'))}
             </span>
           </div>
@@ -440,11 +440,11 @@ function JourneyInner() {
             {updatedAt ? `${t('journey.updated')} ${updatedAt.slice(0, 10)}` : '-'}
           </div>
         </Card>
-        <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
-          <h2 className="text-xl text-sage-800 mb-4">{t('journey.statusTimeline')}</h2>
-          <div className="relative pl-8">
+        <Card className="rounded-xl bg-white p-8 text-sage-800 mb-6 shadow-sm">
+          <h2 className="text-2xl font-bold text-sage-800 mb-6">{t('journey.statusTimeline')}</h2>
+          <div className="relative pl-10">
             {/* 竖线 */}
-            {timeline.length > 0 && <div className="absolute left-4 top-0 w-0.5 h-full bg-sage-200" />}
+            {timeline.length > 0 && <div className="absolute left-5 top-0 w-0.5 h-full bg-sage-300" />}
             {timeline.map((step, idx) => {
               // 阶段前缀
               const lang = i18n.language || 'zh';
@@ -452,18 +452,19 @@ function JourneyInner() {
                 ? `Stage ${idx + 1}: `
                 : `阶段${zhStages[idx] || idx + 1}：`;
               return (
-                <div key={idx} className="mb-8 relative">
+                <div key={idx} className="mb-10 relative">
                   {/* 圆点 */}
-                  <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-sage-200" />
-                  <h3 className="text-lg mb-2 text-sage-800">{stagePrefix}{step.stage}</h3>
-                  <div className="mb-2 text-sage-600 text-sm whitespace-pre-line">{step.description}</div>
-                  <ul className="mb-2">
+                  <div className="absolute -left-[38px] top-1 w-6 h-6 rounded-full bg-white border-3 border-sage-500 shadow-md" />
+                  <div className="bg-sage-50 rounded-lg p-5 border border-sage-100">
+                    <h3 className="text-xl font-bold mb-3 text-sage-800">{stagePrefix}{step.stage}</h3>
+                    <div className="mb-4 text-sage-700 text-sm leading-relaxed whitespace-pre-line">{step.description}</div>
+                    <ul className="space-y-3">
                     {step.items.map((item: { id: any; title: string; process_status?: string }) => (
-                      <li key={item.id} className="flex justify-between items-center py-1">
-                        <div className="flex flex-col">
-                          <span className="text-sage-800">{item.title}</span>
+                      <li key={item.id} className="flex justify-between items-center py-3 px-4 bg-white rounded-lg border border-sage-100 hover:border-sage-300 transition-colors">
+                        <div className="flex flex-col flex-1">
+                          <span className="text-sage-800 font-medium mb-2">{item.title}</span>
                           <select
-                            className="text-xs text-sage-700 mt-1 border border-sage-200 rounded px-2 py-1 w-fit bg-sage-50 cursor-pointer"
+                            className="text-sm text-sage-700 border border-sage-200 rounded px-3 py-1 w-fit bg-white cursor-pointer hover:border-sage-400 transition-colors"
                             value={item.process_status || 'pending'}
                             onChange={e => handleStatusClick({ ...item, process_status: e.target.value })}
                             title={t('journey.switchStatus', '切换进度状态')}
@@ -474,14 +475,14 @@ function JourneyInner() {
                           </select>
                         </div>
                         <CustomButton
-                          className="rounded px-4 py-1 text-xs bg-sage-100 text-sage-700 hover:bg-sage-200 transition-colors cursor-pointer"
+                          className="rounded-lg px-5 py-2 text-sm bg-sage-100 text-sage-700 hover:bg-sage-200 transition-colors cursor-pointer shadow-sm"
                           onClick={() => handleViewClick(step.stageNumber, item.title)}
                         >
                           {t('viewDetails')}
                         </CustomButton>
                       </li>
                     ))}
-                  </ul>
+                    </ul>
                   {/* <CustomButton
                     className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
                     style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
@@ -494,13 +495,14 @@ function JourneyInner() {
                       +
                     </span>
                   </CustomButton> */}
-                  <CustomButton
-                    className="rounded-full px-5 py-2 text-sm mt-2 flex items-center gap-2 cursor-pointer"
-                    style={{ boxShadow: '0 2px 8px 0 #BFC9BF33' }}
-                    onClick={() => handleAddJourneyClick(step.stageNumber)}
-                  >
-                    <span className="cursor-pointer">+</span>
-                  </CustomButton>
+                    <CustomButton
+                      className="rounded-full px-6 py-2 text-sm mt-4 flex items-center gap-2 bg-sage-50 hover:bg-sage-100 text-sage-700 border border-sage-200 cursor-pointer transition-all shadow-sm"
+                      onClick={() => handleAddJourneyClick(step.stageNumber)}
+                    >
+                      <span className="cursor-pointer text-lg">+</span>
+                      {/* <span className="cursor-pointer">添加事项</span> */}
+                    </CustomButton>
+                  </div>
                 </div>
               );
             })}

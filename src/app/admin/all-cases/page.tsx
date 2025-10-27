@@ -8,6 +8,7 @@ import { Dialog } from "@/components/ui/dialog"
 import { CustomButton } from "@/components/ui/CustomButton"
 // import { AdminLayout } from "@/components/admin-layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { Download, Plus, UserPlus } from "lucide-react"
 
 // 获取 cookie 的辅助函数
@@ -56,6 +57,7 @@ export default function AllCasesPage() {
   const [selectedManagerId, setSelectedManagerId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
+  const [dataLoaded, setDataLoaded] = useState(false)
   // 分页相关
   const [allCases, setAllCases] = useState<any[]>([])
   const [cases, setCases] = useState<any[]>([])
@@ -104,6 +106,8 @@ export default function AllCasesPage() {
 
   // 刷新全部数据
   const fetchAllData = async () => {
+    if (dataLoaded) return;
+    
     try {
       setIsLoadingData(true);
       const [casesRes, surrogatesRes, clientsRes, managersRes] = await Promise.all([
@@ -118,6 +122,7 @@ export default function AllCasesPage() {
       setSurrogates(Array.isArray(surrogatesRes) ? surrogatesRes : surrogatesRes.data || []);
       setClients(Array.isArray(clientsRes) ? clientsRes : clientsRes.data || []);
       setManagers(Array.isArray(managersRes) ? managersRes : managersRes.data || []);
+      setDataLoaded(true);
     } catch (error) {
       console.error('Failed to fetch data:', error);
       setAllCases([]);
@@ -131,9 +136,10 @@ export default function AllCasesPage() {
   
   // 只在认证后才加载数据
   useEffect(() => { 
-    if (isAuthenticated) {
+    if (isAuthenticated && !dataLoaded) {
       fetchAllData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
@@ -370,16 +376,12 @@ export default function AllCasesPage() {
 
   return (
     // <AdminLayout>
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-semibold tracking-wider text-sage-800">{t('allCases')}</h1>
-          <div className="flex gap-2">
-            <CustomButton onClick={handleOpenCreateDialog} className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer">
-              {/* <Plus className="w-4 h-4 mr-2" /> */}
-              {t('addNewCase')}
-            </CustomButton>
-          </div>
+      <PageContent>
+        <div className="flex items-center justify-between mb-6">
+          <PageHeader title={t('allCases')} />
+          <CustomButton onClick={handleOpenCreateDialog} className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer">
+            {t('addNewCase')}
+          </CustomButton>
         </div>
         {/* 筛选器 */}
         <div className="flex flex-wrap gap-4 mb-6 items-center">
@@ -675,7 +677,7 @@ export default function AllCasesPage() {
             </div>
           </div>
         )}
-      </div>
+      </PageContent>
     // </AdminLayout>
   )
 }

@@ -30,6 +30,7 @@ export default function ClientManagerPage() {
   const [pageInput, setPageInput] = useState("1")
   const [pageSize, setPageSize] = useState(10)
   const [loading, setLoading] = useState(true)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
   const [form, setForm] = useState({ email: "", password: "" })
   const [addLoading, setAddLoading] = useState(false)
@@ -73,22 +74,26 @@ export default function ClientManagerPage() {
 
   // 使用 useCallback 缓存数据加载函数
   const loadManagers = useCallback(async () => {
+    if (dataLoaded) return;
+    
     setLoading(true)
     try {
       const res = await fetch("/api/managers")
       const data = await res.json()
       setAllManagers(Array.isArray(data) ? data : data.data || [])
+      setDataLoaded(true)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [dataLoaded])
 
   // 只在认证后才加载数据
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !dataLoaded) {
       loadManagers()
     }
-  }, [isAuthenticated, loadManagers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
   // 使用 useMemo 缓存搜索和分页逻辑

@@ -119,6 +119,7 @@ function JourneyInner() {
   const [processStatus, setProcessStatus] = useState<string>('');
   const [updatedAt, setUpdatedAt] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [timeline, setTimeline] = useState<any[]>([]);
   const [actualCaseId, setActualCaseId] = useState<string | null>(caseId); // 实际的 caseId
   
@@ -154,9 +155,9 @@ function JourneyInner() {
     }
   }, [router]);
 
-  // 获取案例数据并设置当前case的process_status和updated_at
+  // 获取案例数据并设置 sulla当前case的process_status和updated_at
   useEffect(() => {
-    if (!isAuthenticated) return; // 只在认证后才加载数据
+    if (!isAuthenticated || dataLoaded) return; // 只在认证后才加载数据
     
     const fetchCases = async () => {
       setIsLoading(true);
@@ -264,10 +265,12 @@ function JourneyInner() {
         setTimeline(baseTimeline);
       } finally {
         setIsLoading(false);
+        setDataLoaded(true);
       }
     };
     fetchCases();
-  }, [caseId, i18n.language, isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // 使用 useCallback 缓存事件处理函数
   const handleViewClick = useCallback((stageNumber: number, itemTitle: string) => {
@@ -433,7 +436,7 @@ function JourneyInner() {
         <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
-            <span className="rounded bg-sage-100 px-4 py-1 text-xs text-sage-700">
+            <span className="rounded bg-sage-200 px-4 py-2 text-lg font-bold text-sage-800">
               {currentStatusDisplay}
             </span>
           </div>

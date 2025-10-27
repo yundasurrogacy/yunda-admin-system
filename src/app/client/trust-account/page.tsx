@@ -38,6 +38,7 @@ function TrustAccountPageInner() {
   const [caseId, setCaseId] = useState<string | null>(null);
   const [changes, setChanges] = useState<BalanceChange[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
   const pageSize = 10; // 每页显示10条
@@ -66,15 +67,17 @@ function TrustAccountPageInner() {
   // 获取caseId：优先URL参数，无则取最新case
   useEffect(() => {
     // 只在认证后才加载数据
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || dataLoaded) return;
 
     if (urlCaseId) {
       setCaseId(urlCaseId);
+      setDataLoaded(true);
       return;
     }
     const parentId = getCookie('userId_client');
     if (!parentId) {
       setLoading(false);
+      setDataLoaded(true);
       return;
     }
     // 获取 case 列表
@@ -93,8 +96,12 @@ function TrustAccountPageInner() {
         }
       })
       .catch((e) => console.error('Failed to fetch cases:', e))
-      .finally(() => setLoading(false));
-  }, [urlCaseId, t, isAuthenticated]);
+      .finally(() => {
+        setLoading(false);
+        setDataLoaded(true);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // const displayedChanges: BalanceChange[] = React.useMemo(() => {
   //   let arr: BalanceChange[] = changes;

@@ -46,6 +46,7 @@ export default function SurrogateProfiles() {
   const [hoveredId, setHoveredId] = React.useState<string | null>(null)
   const [allSurrogates, setAllSurrogates] = React.useState<Surrogate[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [dataLoaded, setDataLoaded] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [page, setPage] = React.useState(1)
   const [pageInput, setPageInput] = React.useState('1')
@@ -70,7 +71,7 @@ export default function SurrogateProfiles() {
   // 使用 useCallback 缓存数据获取函数
   const fetchSurrogates = useCallback(async () => {
     // 只在认证后才加载数据
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || dataLoaded) return;
     
     setLoading(true)
     setError(null)
@@ -121,15 +122,19 @@ export default function SurrogateProfiles() {
         }
       }
       setAllSurrogates(details)
+      setDataLoaded(true)
     } catch (err: any) {
       setError(t('surrogateProfiles.fetchDataFailed'))
     }
     setLoading(false)
-  }, [t, isAuthenticated])
+  }, [t, isAuthenticated, dataLoaded])
 
   React.useEffect(() => {
-    fetchSurrogates()
-  }, [fetchSurrogates])
+    if (isAuthenticated && !dataLoaded) {
+      fetchSurrogates()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // 自适应 pageSize
   React.useEffect(() => {

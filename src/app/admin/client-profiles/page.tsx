@@ -160,6 +160,7 @@ export default function ClientProfilesPage() {
   // 分页相关
   const [allClients, setAllClients] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
   const [pageInput, setPageInput] = useState('1')
@@ -222,20 +223,22 @@ export default function ClientProfilesPage() {
 
   // 获取所有数据 - 只在认证后才加载
   useEffect(() => {
+    if (!isAuthenticated || dataLoaded) return;
+    
     async function fetchClients() {
-      if (isAuthenticated) {
-        setIsLoading(true)
-        try {
-          const data = await getIntendedParents(10000, 0)
-          setAllClients(data)
-        } catch (error) {
-          console.error('Failed to fetch clients:', error)
-        } finally {
-          setIsLoading(false)
-        }
+      setIsLoading(true)
+      try {
+        const data = await getIntendedParents(10000, 0)
+        setAllClients(data)
+        setDataLoaded(true)
+      } catch (error) {
+        console.error('Failed to fetch clients:', error)
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchClients()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致

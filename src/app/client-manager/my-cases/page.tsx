@@ -45,6 +45,7 @@ const MyCasesPage = () => {
   const [statusDropdownCaseId, setStatusDropdownCaseId] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [allCases, setAllCases] = useState<CaseItem[]>([]);
   const [selectedParent, setSelectedParent] = useState<string>('');
   const [selectedSurrogate, setSelectedSurrogate] = useState<string>('');
@@ -72,30 +73,35 @@ const MyCasesPage = () => {
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
   // 使用 useCallback 缓存数据获取函数
   const fetchCases = useCallback(async () => {
+    if (dataLoaded) return;
+    
     setIsLoading(true);
     try {
       const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
       if (!managerId) {
         setAllCases([]);
         setIsLoading(false);
+        setDataLoaded(true);
         return;
       }
       const res = await fetch(`/api/cases-by-manager?managerId=${managerId}`);
       const data = await res.json();
       setAllCases(Array.isArray(data) ? data : []);
+      setDataLoaded(true);
     } catch (error) {
       console.error('Failed to fetch cases:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [dataLoaded]);
 
   // 只在认证后才加载数据
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !dataLoaded) {
       fetchCases();
     }
-  }, [isAuthenticated, fetchCases]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // 自适应 pageSize
   useEffect(() => {

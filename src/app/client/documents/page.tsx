@@ -79,6 +79,7 @@ export default function DocumentsPage() {
   const [activeFilter, setActiveFilter] = useState("All")
   const [documents, setDocuments] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // 认证检查和 cookie 读取
@@ -126,7 +127,7 @@ export default function DocumentsPage() {
 
   // 获取接口数据并整理文档
   React.useEffect(() => {
-    if (!isAuthenticated) return; // 只在认证后才加载数据
+    if (!isAuthenticated || dataLoaded) return; // 只在认证后才加载数据
     
     const parentId = getCookie('userId_client');
     if (!parentId) {
@@ -167,6 +168,7 @@ export default function DocumentsPage() {
         setDocuments(docs)
         console.log('Documents loaded:', docs)
         console.log('Document types:', docs.map(d => ({ name: d.name, type: d.type, filterType: d.filterType })))
+        setDataLoaded(true)
       })
       .catch((err) => {
         console.error('Failed to fetch documents:', err)
@@ -175,7 +177,8 @@ export default function DocumentsPage() {
       .finally(() => {
         setLoading(false)
       })
-  }, [t, isAuthenticated])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 

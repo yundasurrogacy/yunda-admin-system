@@ -71,6 +71,7 @@ function FilesPageInner() {
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   // 文件列表结构调整为 journey 及其文件
   const [journeyFiles, setJourneyFiles] = useState<Array<{
     id: number;
@@ -104,7 +105,7 @@ function FilesPageInner() {
 
   // 页面初始化时获取 journey 及文件
   useEffect(() => {
-    if (!caseId || !isAuthenticated) return; // 只在认证后才加载数据
+    if (!caseId || !isAuthenticated || dataLoaded) return; // 只在认证后才加载数据
     
     // 构建 API 请求 URL，包含 about_role 参数
     const apiUrl = `/api/journey-get?caseId=${caseId}${aboutRole ? `&about_role=${aboutRole}` : ''}`;
@@ -129,8 +130,10 @@ function FilesPageInner() {
             }))
           );
         }
+        setDataLoaded(true);
       });
-  }, [caseId, aboutRole, isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // 使用 useCallback 缓存事件处理函数
   const handleBack = useCallback(() => {

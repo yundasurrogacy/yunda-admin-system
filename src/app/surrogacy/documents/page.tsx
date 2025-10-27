@@ -73,6 +73,7 @@ export default function DocumentsPage() {
   const [activeFilter, setActiveFilter] = useState("All")
   const [documents, setDocuments] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // 认证检查和 cookie 读取
@@ -109,7 +110,7 @@ export default function DocumentsPage() {
   // 获取接口数据并整理文档
   useEffect(() => {
     // 只在认证后才加载数据
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || dataLoaded) return;
 
     const surrogateId = getCookie('userId_surrogacy');
     if (!surrogateId) {
@@ -153,6 +154,7 @@ export default function DocumentsPage() {
         setDocuments(docs)
         console.log('Documents loaded:', docs)
         console.log('Document types:', docs.map(d => ({ name: d.name, type: d.type, filterType: d.filterType })))
+        setDataLoaded(true)
       })
       .catch((err) => {
         console.error('Failed to fetch documents:', err)
@@ -161,7 +163,8 @@ export default function DocumentsPage() {
       .finally(() => {
         setLoading(false)
       })
-  }, [t, isAuthenticated])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // 使用 useCallback 缓存过滤器切换函数
   const handleFilterChange = useCallback((filterKey: string) => {

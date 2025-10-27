@@ -25,6 +25,7 @@ function TrustAccountPageInner() {
   const [balance, setBalance] = useState<number | null>(null);
   const [changes, setChanges] = useState<BalanceChange[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   // 只读模式，无需表单相关状态
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
@@ -85,9 +86,12 @@ function TrustAccountPageInner() {
 
   // caseId 获取逻辑：优先 URL 参数，否则用 surrogateId 请求
   useEffect(() => {
+    if (dataLoaded) return;
+    
     const paramCaseId = searchParams.get('caseId');
     if (paramCaseId) {
       setCaseId(paramCaseId);
+      setDataLoaded(true);
       return;
     }
     function getCookie(name: string) {
@@ -110,8 +114,10 @@ function TrustAccountPageInner() {
           });
           setCaseId(sorted[0].id?.toString() || null);
         }
+        setDataLoaded(true);
       });
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!caseId) return;

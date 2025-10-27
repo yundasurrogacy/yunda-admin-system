@@ -54,6 +54,7 @@ export default function ClientProfilesPage() {
   
   const [allClients, setAllClients] = React.useState<ClientProfile[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
+  const [dataLoaded, setDataLoaded] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState('')
   const [page, setPage] = React.useState(1)
   const [pageInput, setPageInput] = React.useState('1')
@@ -106,6 +107,8 @@ export default function ClientProfilesPage() {
 
   // 使用 useCallback 缓存数据获取函数
   const fetchClients = useCallback(async () => {
+    if (dataLoaded) return;
+    
     setIsLoading(true);
     setError(null);
     try {
@@ -157,20 +160,22 @@ export default function ClientProfilesPage() {
         }
       }
       setAllClients(parentDetails);
+      setDataLoaded(true);
     } catch (err) {
       console.error('获取客户列表失败:', err);
       setError('获取客户列表失败，请稍后重试');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [dataLoaded]);
 
   // 只在认证后才加载数据
   React.useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !dataLoaded) {
       fetchClients();
     }
-  }, [isAuthenticated, fetchClients]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // 使用 useMemo 缓存筛选后的客户列表
   const filteredAllClients = useMemo(() => allClients.filter(client => {

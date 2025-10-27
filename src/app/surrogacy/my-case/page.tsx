@@ -111,6 +111,7 @@ export default function SurrogacyMyCasesPage() {
   
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // 认证检查和 cookie 读取
@@ -131,7 +132,7 @@ export default function SurrogacyMyCasesPage() {
   // 数据加载 - 只在认证后执行
   useEffect(() => {
     // 只在认证后才加载数据
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || dataLoaded) return;
     
     const surrogateId = getCookie('userId_surrogacy');
     if (!surrogateId) {
@@ -182,7 +183,8 @@ export default function SurrogacyMyCasesPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [t, isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // 使用 useMemo 缓存是否有案例
   const hasCases = useMemo(() => cases.length > 0, [cases.length]);

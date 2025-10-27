@@ -151,6 +151,7 @@ export default function MyCasesPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [allCases, setAllCases] = useState<CaseItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // 筛选相关 state
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -177,7 +178,7 @@ export default function MyCasesPage() {
 
   // 获取案件数据
   useEffect(() => {
-    if (!isAuthenticated) return; // 只在认证后才加载数据
+    if (!isAuthenticated || dataLoaded) return; // 只在认证后才加载数据
     
     const parentId = getCookie('userId_client');
     if (!parentId) {
@@ -223,10 +224,12 @@ export default function MyCasesPage() {
             })) || [],
           }))
         );
+        setDataLoaded(true);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [t, isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // page 变化时同步 pageInput
   useEffect(() => {
