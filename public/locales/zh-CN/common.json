@@ -1,11 +1,10 @@
 {
-
   "operation": "操作",
   "SurrogateApplications": "代孕母申请表",
   "ParentApplications": "意向父母申请表",
   "TotalGC": "代孕母总数",
   "TotalIP": "准父母总数",
-  "add":"添加",
+  "add": "添加",
   "documents_title": "文件",
   "allClientManagers": "所有客户经理",
   "searchManagers": "搜索客户经理",
@@ -60,7 +59,6 @@
   "all_cases_title": "所有案子",
   "my_cases_title": "我的案子",
   "my_case_title": "我的案子",
-  
   "client_managers_title": "案例经理",
   "managers_title": "管理员",
   "blogs_title": "博客",
@@ -91,7 +89,7 @@
   "chooseFile": "选择文件",
   "noFileSelected": "未选择文件",
   "uploadPhotoTip": "支持多张图片上传，保存后生效",
-  "photoUploadingTip":"有图片正在上传，请等待上传完成后再保存",
+  "photoUploadingTip": "有图片正在上传，请等待上传完成后再保存",
   "pleaseSelectImageFile": "请选择图片文件",
   "changeImage": "更换图片",
   "remove": "移除",
@@ -213,7 +211,7 @@
     "noSurrogatesDescFiltered": "当前筛选条件下没有找到代孕母"
   },
   "surrogateProfileDetail": {
-    "surrogateProfile":"代孕母详情",
+    "surrogateProfile": "代孕母详情",
     "fetchFailed": "获取代孕母资料失败",
     "notFound": "未找到代孕母资料",
     "backToList": "返回列表",
@@ -275,6 +273,53 @@
       "referral_upper": "推荐",
       "advertisement_upper": "广告",
       "other_upper": "其他"
+    },
+    "contactInfo": {
+      "title": "联系信息",
+      "firstName": "名字",
+      "lastName": "姓氏",
+      "dob": "出生日期",
+      "email": "邮箱",
+      "cellPhone": "手机",
+      "agreeToReceiveMessages": "同意接收信息",
+      "city": "城市",
+      "stateProvince": "州/省",
+      "country": "国家",
+      "zipCode": "邮编",
+      "ethnicity": "种族",
+      "bmi": "BMI",
+      "height": "身高",
+      "weight": "体重",
+      "usCitizenOrVisaStatus": "美国公民/签证状态",
+      "surrogacyExperienceCount": "代孕经验次数",
+      "physicalInfo": "身体状况"
+    },
+    "health": {
+      "title": "怀孕与健康",
+      "arrests": "逮捕记录",
+      "birthDetails": "生育详情",
+      "felonyCharges": "重罪指控",
+      "hasStillbirth": "曾经死产",
+      "hasGivenBirth": "曾经生育",
+      "substanceAbuse": "药物滥用",
+      "closestHospital": "最近医院",
+      "closestNICUIII": "最近NICU III",
+      "formalProbation": "正式缓刑",
+      "isBreastfeeding": "正在哺乳",
+      "medicationsList": "药物清单",
+      "domesticViolence": "家庭暴力",
+      "medicalConditions": "医疗状况",
+      "childAbuseNeglect": "儿童虐待/忽视",
+      "outstandingWarrant": "未执行逮捕令",
+      "pregnancyHistories": "怀孕历史",
+      "currentBirthControl": "当前避孕方式",
+      "isCurrentlyPregnant": "目前怀孕",
+      "isTakingMedications": "正在服药",
+      "backgroundCheckStatus": "背景调查状态",
+      "childProtectionInvestigation": "儿童保护调查",
+      "seriousPregnancyComplications": "严重怀孕并发症",
+      "medicalInfo": "医疗与药物信息",
+      "backgroundCheck": "背景调查"
     }
   },
   "parentsApplications": "意向父母申请表",
@@ -380,6 +425,7 @@
   "photoNumber": "照片{{number}}",
   "noPhotosUploaded": "未上传照片",
   "applicationNotFoundDesc": "该申请可能已被删除或不存在",
+  "backToApplications": "返回申请列表",
   "surrogacyExperienceCount": "代孕经验次数",
   "timesCount": "次",
   "experienced": "有经验",
@@ -465,7 +511,6 @@
     "myIntendedParents": "我的准父母",
     "appointments": "预约",
     "medication": "药物"
-
   },
   "notFoundSurrogate": "未找到代孕母信息",
   "notFoundSurrogateDesc": "请检查代孕母ID是否正确",
@@ -614,7 +659,7 @@
     "startDate": "开始日期",
     "notes": "备注",
     "doctorsNotes": "医生笔记",
-  "addNewNote": "添加新笔记",
+    "addNewNote": "添加新笔记",
     "noteContent": "笔记内容",
     "loadingText": "加载中...",
     "testingReports": "检测报告",
@@ -652,7 +697,7 @@
     "title": "仪表盘",
     "welcome": "欢迎来到仪表盘！访问您的进度、重要信息、数字签名以及各种参考资料，以支持您的旅程。",
     "applicationStatus": "申请状态",
-      "completed": "已完成",
+    "completed": "已完成",
     "nextSteps": "下一步",
     "quickAccess": "快速访问",
     "uploadJournal": "上传日记",
@@ -711,72 +756,72 @@
     "activeCasesInProgress": "进行中的活跃案例",
     "processJourneysTracked": "跟踪的流程旅程",
     "filesManaged": "管理的文件",
-      "appointmentsScheduled": "已安排的预约",
-      "pendingJourneys": "待处理旅程",
-      "caseStatusDistribution": "案例状态分布",
+    "appointmentsScheduled": "已安排的预约",
+    "pendingJourneys": "待处理旅程",
+    "caseStatusDistribution": "案例状态分布",
     "journeyProgress": "旅程进度",
     "recentActivity": "最近活动",
     "viewAllCases": "查看所有案例",
     "manageClients": "管理客户",
     "manageSurrogates": "管理代孕母",
     "documentCenter": "文档中心",
-      "noRecentActivity": "暂无最近活动",
-      "clientTitle": "仪表盘",
-      "clientWelcome": "欢迎来到您的旅程！跟踪您的进度并访问重要信息。",
-      "totalJourneysClient": "总旅程",
-      "completedClient": "已完成",
-      "inProgressClient": "进行中",
-      "intendedParentJourneys": "准父母旅程",
-      "finishedJourneys": "已完成的旅程",
-      "activeJourneys": "活跃旅程",
-      "ivfClinic": "Ivf 诊所",
-      "trustBalance": "信托余额",
-      "trustAccount": "信托账户",
-      "medicalTeamUpdates": "医疗团队和更新",
-      "accountBalance": "账户余额",
-      "currentStatus": "当前状态",
-      "caseStatus": "案例状态",
-      "journeyProgressClient": "旅程进度",
-      "completedProgress": "已完成",
-      "inProgressProgress": "进行中",
-      "totalProgress": "总进度",
-      "lastUpdated": "最后更新",
-      "quickActionsClient": "快速操作",
-      "myCases": "我的案例",
-      "surrogateProfile": "代孕母资料",
-      "myJourney": "我的旅程",
-      "documentsClient": "文档",
-      "resourcesSupport": "资源和支持",
-      "supportCenter": "支持中心",
-      "getHelp": "获取帮助",
-      "fileCenter": "文件中心",
-      "manageFiles": "管理文件",
-      "myAccount": "我的账户",
-      "profileSettings": "个人资料设置",
-      "noData": "无数据",
-      "clinicInfo": "诊所信息",
-      "surrogacyTitle": "仪表盘",
-      "surrogacyWelcome": "欢迎来到您的旅程！跟踪您的进度并访问重要信息。",
-      "totalJourneysSurrogacy": "总旅程",
-      "completedSurrogacy": "已完成",
-      "inProgressSurrogacy": "进行中",
-      "surrogateJourneys": "代孕母旅程",
-      "finishedJourneysSurrogacy": "已完成的旅程",
-      "activeJourneysSurrogacy": "活跃旅程",
-      "currentStatusSurrogacy": "当前状态",
-      "caseStatusSurrogacy": "案例状态",
-      "journeyProgressSurrogacy": "旅程进度",
-      "completedProgressSurrogacy": "已完成",
-      "inProgressProgressSurrogacy": "进行中",
-      "totalProgressSurrogacy": "总进度",
-      "lastUpdatedSurrogacy": "最后更新",
-      "quickActionsSurrogacy": "快速操作",
-      "myCasesSurrogacy": "我的案例",
-      "myJourneySurrogacy": "我的旅程",
-      "documentsSurrogacy": "文档",
-      "journalCommunication": "日记和沟通",
-      "ivfClinicSurrogacy": "Ivf 诊所",
-      "medicalTeamUpdatesSurrogacy": "医疗团队和更新",
+    "noRecentActivity": "暂无最近活动",
+    "clientTitle": "仪表盘",
+    "clientWelcome": "欢迎来到您的旅程！跟踪您的进度并访问重要信息。",
+    "totalJourneysClient": "总旅程",
+    "completedClient": "已完成",
+    "inProgressClient": "进行中",
+    "intendedParentJourneys": "准父母旅程",
+    "finishedJourneys": "已完成的旅程",
+    "activeJourneys": "活跃旅程",
+    "ivfClinic": "Ivf 诊所",
+    "trustBalance": "信托余额",
+    "trustAccount": "信托账户",
+    "medicalTeamUpdates": "医疗团队和更新",
+    "accountBalance": "账户余额",
+    "currentStatus": "当前状态",
+    "caseStatus": "案例状态",
+    "journeyProgressClient": "旅程进度",
+    "completedProgress": "已完成",
+    "inProgressProgress": "进行中",
+    "totalProgress": "总进度",
+    "lastUpdated": "最后更新",
+    "quickActionsClient": "快速操作",
+    "myCases": "我的案例",
+    "surrogateProfile": "代孕母资料",
+    "myJourney": "我的旅程",
+    "documentsClient": "文档",
+    "resourcesSupport": "资源和支持",
+    "supportCenter": "支持中心",
+    "getHelp": "获取帮助",
+    "fileCenter": "文件中心",
+    "manageFiles": "管理文件",
+    "myAccount": "我的账户",
+    "profileSettings": "个人资料设置",
+    "noData": "无数据",
+    "clinicInfo": "诊所信息",
+    "surrogacyTitle": "仪表盘",
+    "surrogacyWelcome": "欢迎来到您的旅程！跟踪您的进度并访问重要信息。",
+    "totalJourneysSurrogacy": "总旅程",
+    "completedSurrogacy": "已完成",
+    "inProgressSurrogacy": "进行中",
+    "surrogateJourneys": "代孕母旅程",
+    "finishedJourneysSurrogacy": "已完成的旅程",
+    "activeJourneysSurrogacy": "活跃旅程",
+    "currentStatusSurrogacy": "当前状态",
+    "caseStatusSurrogacy": "案例状态",
+    "journeyProgressSurrogacy": "旅程进度",
+    "completedProgressSurrogacy": "已完成",
+    "inProgressProgressSurrogacy": "进行中",
+    "totalProgressSurrogacy": "总进度",
+    "lastUpdatedSurrogacy": "最后更新",
+    "quickActionsSurrogacy": "快速操作",
+    "myCasesSurrogacy": "我的案例",
+    "myJourneySurrogacy": "我的旅程",
+    "documentsSurrogacy": "文档",
+    "journalCommunication": "日记和沟通",
+    "ivfClinicSurrogacy": "Ivf 诊所",
+    "medicalTeamUpdatesSurrogacy": "医疗团队和更新",
     "errors": {
       "title": "加载失败",
       "noManagerId": "未找到管理员ID",
@@ -807,55 +852,79 @@
     "view": "查看",
     "suspenseLoading": "加载中...",
     "intendedParentsStages": {
-      "stage1": { "prefix": "阶段一：", "title": "初始设置" },
-      "stage2": { "prefix": "阶段二：", "title": "代孕母匹配与筛选" },
-      "stage3": { "prefix": "阶段三：", "title": "医疗与法律设置" },
-      "stage4": { "prefix": "阶段四：", "title": "胚胎移植准备" },
-      "stage5": { "prefix": "阶段五：", "title": "妊娠监测" },
-      "stage6": { "prefix": "阶段六：", "title": "分娩与交接" },
-      "stage7": { "prefix": "阶段七：", "title": "旅程后支持" },
-      "stage8": { "prefix": "阶段八：", "title": "分娩与产后阶段" }
+      "stage1": {
+        "prefix": "阶段一：",
+        "title": "初始设置"
+      },
+      "stage2": {
+        "prefix": "阶段二：",
+        "title": "代孕母匹配与筛选"
+      },
+      "stage3": {
+        "prefix": "阶段三：",
+        "title": "医疗与法律设置"
+      },
+      "stage4": {
+        "prefix": "阶段四：",
+        "title": "胚胎移植准备"
+      },
+      "stage5": {
+        "prefix": "阶段五：",
+        "title": "妊娠监测"
+      },
+      "stage6": {
+        "prefix": "阶段六：",
+        "title": "分娩与交接"
+      },
+      "stage7": {
+        "prefix": "阶段七：",
+        "title": "旅程后支持"
+      },
+      "stage8": {
+        "prefix": "阶段八：",
+        "title": "分娩与产后阶段"
+      }
     },
     "gestationalCarrierStages": {
       "stage1": {
         "prefix": "阶段一：",
         "title": "申请与初步筛查",
-          "description": "提交代孕申请，填写基本信息并上传家庭照片；签署医疗记录授权表，用于获取以往的怀孕与分娩记录。"
+        "description": "提交代孕申请，填写基本信息并上传家庭照片；签署医疗记录授权表，用于获取以往的怀孕与分娩记录。"
       },
       "stage2": {
         "prefix": "阶段二：",
         "title": "匹配流程",
-          "description": "与预期父母进行匹配会谈，双方确认匹配。"
+        "description": "与预期父母进行匹配会谈，双方确认匹配。"
       },
       "stage3": {
         "prefix": "阶段三：",
         "title": "医学筛查与通过",
-          "description": "前往试管婴儿诊所进行全面体检，并获得医疗合格许可。"
+        "description": "前往试管婴儿诊所进行全面体检，并获得医疗合格许可。"
       },
       "stage4": {
         "prefix": "阶段四：",
         "title": "法律合格确认",
-          "description": "双方签署代孕协议，完成法律合格确认。"
+        "description": "双方签署代孕协议，完成法律合格确认。"
       },
       "stage5": {
         "prefix": "阶段五：",
         "title": "胚胎移植周期",
-          "description": "开始用药准备，进行胚胎移植并等待妊娠结果。"
+        "description": "开始用药准备，进行胚胎移植并等待妊娠结果。"
       },
       "stage6": {
         "prefix": "阶段六：",
         "title": "妊娠监测阶段",
-          "description": "确认怀孕后，完成第一次和第二次B超（确认胎心及排除宫外孕），12周进行无创产检（NIPT），并定期进行产检。"
+        "description": "确认怀孕后，完成第一次和第二次B超（确认胎心及排除宫外孕），12周进行无创产检（NIPT），并定期进行产检。"
       },
       "stage7": {
         "prefix": "阶段七：",
         "title": "产前法律与分娩准备",
-          "description": "产前法律文件（PBO）完成，与预期父母及医院确认生产计划。"
+        "description": "产前法律文件（PBO）完成，与预期父母及医院确认生产计划。"
       },
       "stage8": {
         "prefix": "阶段八：",
         "title": "分娩与产后阶段",
-          "description": "顺利分娩，圆满完成代孕旅程。"
+        "description": "顺利分娩，圆满完成代孕旅程。"
       }
     },
     "addItemPrompt": "请输入要添加的事项内容",
@@ -1334,5 +1403,10 @@
     "inputAria": "输入页码",
     "total": "共",
     "items": "条记录"
-  }
+  },
+  "medications": "药物",
+  "formalProbation": "正式缓刑",
+  "outstandingWarrant": "未执行逮捕令",
+  "childProtectionInvestigation": "儿童保护调查",
+  "seriousPregnancyComplications": "严重怀孕并发症"
 }

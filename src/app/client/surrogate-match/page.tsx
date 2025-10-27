@@ -391,6 +391,14 @@ export default function SurrogateProfileDetailPage() {
                   <span className="text-sage-500">{t('zipCode', '邮政编码')}:</span>
                   <span className="text-sage-800">{ci?.zip_code ? ci.zip_code : t('noData', '暂无数据')}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-sage-500">{t('surrogacyProfile.contactInfo.usCitizenOrVisaStatus')}:</span>
+                  <span className="text-sage-800">{ci?.us_citizen_or_visa_status ? ci.us_citizen_or_visa_status : t('noData', '暂无数据')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sage-500">{t('surrogacyProfile.contactInfo.agreeToReceiveMessages')}:</span>
+                  <span className="text-sage-800">{ci?.is_agree_cell_phone_receive_messages ? t('yes', '是') : t('no', '否')}</span>
+                </div>
               </div>
             </div>
             {/* 身体特征 */}
@@ -467,6 +475,67 @@ export default function SurrogateProfileDetailPage() {
                   <p className="font-medium text-sage-800">{ph?.medications_list ?? t('noData', '暂无数据')}</p>
                 </div>
               )}
+            </div>
+            {ph?.birth_details && (
+              <div className="space-y-1 col-span-2">
+                <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.birthDetails')}:</Label>
+                <p className="font-medium text-sage-800">{ph.birth_details}</p>
+              </div>
+            )}
+            {ph?.closest_hospital && (
+              <div className="space-y-1 col-span-2">
+                <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.closestHospital')}:</Label>
+                <p className="font-medium text-sage-800">{ph.closest_hospital}</p>
+              </div>
+            )}
+            {ph?.closest_nicu_iii && (
+              <div className="space-y-1 col-span-2">
+                <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.closestNICUIII')}:</Label>
+                <p className="font-medium text-sage-800">{ph.closest_nicu_iii}</p>
+              </div>
+            )}
+            {ph?.current_birth_control && (
+              <div className="space-y-1 col-span-2">
+                <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.currentBirthControl')}:</Label>
+                <p className="font-medium text-sage-800">{ph.current_birth_control}</p>
+              </div>
+            )}
+            {/* 背景调查相关字段 */}
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.arrests')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.arrests ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.felonyCharges')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.felony_charges ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.substanceAbuse')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.substance_abuse ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.domesticViolence')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.domestic_violence ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogacyProfile.health.childAbuseNeglect')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.child_abuse_neglect ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.formalProbation', 'Formal Probation')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.formal_probation ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.outstandingWarrant', 'Outstanding Warrant')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.outstanding_warrant ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.childProtectionInvestigation', 'Child Protection Investigation')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.child_protection_investigation ? t('yes', '是') : t('no', '否')}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.seriousPregnancyComplications', 'Serious Pregnancy Complications')}:</Label>
+              <p className="font-medium text-sage-800">{ph?.serious_pregnancy_complications ? t('yes', '是') : t('no', '否')}</p>
             </div>
           </CardContent>
         </Card>
@@ -564,6 +633,12 @@ export default function SurrogateProfileDetailPage() {
                 <span className="text-sage-500 text-sm">{t('contactPreference', '联系偏好')}:</span>
                 <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
                   {interview?.contact_preference ?? t('noData', '暂无数据')}
+                </div>
+              </div>
+              <div>
+                <span className="text-sage-500 text-sm">{t('twinsFeeling', '对双胞胎的感受')}:</span>
+                <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">
+                  {interview?.twins_feeling ?? t('noData', '暂无数据')}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">

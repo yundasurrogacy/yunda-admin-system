@@ -608,6 +608,21 @@ export default function SurrogateProfileDetailPage() {
                       <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.zip_code || ''} onChange={e => handleFieldChange('contact_information', 'zip_code', e.target.value)} placeholder={t('zipCode')} />
                     ) : displayValue(ci?.zip_code)}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-sage-500 capitalize">{t('surrogacyProfile.contactInfo.usCitizenOrVisaStatus')}:</span>
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.us_citizen_or_visa_status || ''} onChange={e => handleFieldChange('contact_information', 'us_citizen_or_visa_status', e.target.value)} placeholder={t('surrogacyProfile.contactInfo.usCitizenOrVisaStatus')} />
+                    ) : displayValue(ci?.us_citizen_or_visa_status)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sage-500 capitalize">{t('surrogacyProfile.contactInfo.agreeToReceiveMessages')}:</span>
+                    <span className="text-sage-800">{editMode ? (
+                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ci?.is_agree_cell_phone_receive_messages ? 'yes' : 'no'} onChange={e => handleFieldChange('contact_information', 'is_agree_cell_phone_receive_messages', e.target.value === 'yes')}>
+                        <option value="yes">{t('yes')}</option>
+                        <option value="no">{t('no')}</option>
+                      </select>
+                    ) : (ci?.is_agree_cell_phone_receive_messages ? t('yes') : t('no'))}</span>
+                  </div>
                 </div>
               </div>
 
@@ -707,6 +722,46 @@ export default function SurrogateProfileDetailPage() {
                   <p className="font-medium text-sage-800">{ph?.has_stillbirth ? t('yes') : t('no')}</p>
                 )}
               </div>
+              {ph?.birth_details && (
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.birthDetails')}:</Label>
+                  {editMode ? (
+                    <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.birth_details || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'birth_details', e.target.value)} placeholder={t('surrogacyProfile.health.birthDetails')} />
+                  ) : (
+                    <p className="font-medium text-sage-800">{displayValue(ph?.birth_details)}</p>
+                  )}
+                </div>
+              )}
+              {ph?.closest_hospital && (
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.closestHospital')}:</Label>
+                  {editMode ? (
+                    <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.closest_hospital || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'closest_hospital', e.target.value)} placeholder={t('surrogacyProfile.health.closestHospital')} />
+                  ) : (
+                    <p className="font-medium text-sage-800">{displayValue(ph?.closest_hospital)}</p>
+                  )}
+                </div>
+              )}
+              {ph?.closest_nicu_iii && (
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.closestNICUIII')}:</Label>
+                  {editMode ? (
+                    <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.closest_nicu_iii || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'closest_nicu_iii', e.target.value)} placeholder={t('surrogacyProfile.health.closestNICUIII')} />
+                  ) : (
+                    <p className="font-medium text-sage-800">{displayValue(ph?.closest_nicu_iii)}</p>
+                  )}
+                </div>
+              )}
+              {ph?.current_birth_control && (
+                <div className="space-y-1 col-span-2">
+                  <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.currentBirthControl')}:</Label>
+                  {editMode ? (
+                    <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.current_birth_control || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'current_birth_control', e.target.value)} placeholder={t('surrogacyProfile.health.currentBirthControl')} />
+                  ) : (
+                    <p className="font-medium text-sage-800">{displayValue(ph?.current_birth_control)}</p>
+                  )}
+                </div>
+              )}
               <div className="space-y-1 col-span-2">
                 <Label className="text-sage-600 text-sm capitalize">{t('medicalConditions')}</Label>
                 {editMode ? (
@@ -734,6 +789,106 @@ export default function SurrogateProfileDetailPage() {
                       <p className="font-medium text-sage-800">{displayValue(ph?.medications_list)}</p>
                     )}
                   </div>
+                )}
+              </div>
+              {/* 背景调查相关字段 */}
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.arrests')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.arrests ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'arrests', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.arrests ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.felonyCharges')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.felony_charges ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'felony_charges', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.felony_charges ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.substanceAbuse')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.substance_abuse ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'substance_abuse', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.substance_abuse ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.domesticViolence')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.domestic_violence ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'domestic_violence', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.domestic_violence ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogacyProfile.health.childAbuseNeglect')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.child_abuse_neglect ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'child_abuse_neglect', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.child_abuse_neglect ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogateProfileDetail.health.formalProbation', 'Formal Probation')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.formal_probation ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'formal_probation', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.formal_probation ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogateProfileDetail.health.outstandingWarrant', 'Outstanding Warrant')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.outstanding_warrant ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'outstanding_warrant', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.outstanding_warrant ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogateProfileDetail.health.childProtectionInvestigation', 'Child Protection Investigation')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.child_protection_investigation ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'child_protection_investigation', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.child_protection_investigation ? t('yes') : t('no')}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sage-600 text-sm capitalize">{t('surrogateProfileDetail.health.seriousPregnancyComplications', 'Serious Pregnancy Complications')}:</Label>
+                {editMode ? (
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.serious_pregnancy_complications ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'serious_pregnancy_complications', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
+                  </select>
+                ) : (
+                  <p className="font-medium text-sage-800">{ph?.serious_pregnancy_complications ? t('yes') : t('no')}</p>
                 )}
               </div>
             </CardContent>
@@ -909,6 +1064,19 @@ export default function SurrogateProfileDetailPage() {
                     />
                   ) : (
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1 capitalize">{displayValue(interview?.contact_preference, t('none', '无'))}</div>
+                  )}
+                </div>
+                <div>
+                  <span className="text-sage-500 text-sm capitalize">{t('twinsFeeling')}:</span>
+                  {editMode ? (
+                    <input
+                      type="text"
+                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400"
+                      value={interview?.twins_feeling || ''}
+                      onChange={e => handleFieldChange('gestational_surrogacy_interview', 'twins_feeling', e.target.value)}
+                    />
+                  ) : (
+                    <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1 capitalize">{displayValue(interview?.twins_feeling, t('none', '无'))}</div>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">

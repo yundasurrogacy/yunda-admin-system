@@ -12,7 +12,7 @@ import type { Application, ApplicationStatus } from '@/types/applications'
 import { useTranslation } from 'react-i18next'
 
 // 简单全屏图片预览组件
-function ImagePreviewModal({ open, images, current, onClose }: { open: boolean, images: {url: string, name?: string}[], current: number, onClose: () => void }) {
+function ImagePreviewModal({ open, images, current, onClose, t }: { open: boolean, images: {url: string, name?: string}[], current: number, onClose: () => void, t: any }) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" onClick={onClose}>
@@ -25,7 +25,7 @@ function ImagePreviewModal({ open, images, current, onClose }: { open: boolean, 
       <button
         className="absolute top-6 right-8 text-white text-3xl font-bold cursor-pointer bg-black bg-opacity-40 rounded-full px-3 py-1 hover:bg-opacity-70"
         onClick={onClose}
-        aria-label="关闭"
+        aria-label={t('close', 'Close')}
       >×</button>
     </div>
   );
@@ -323,6 +323,7 @@ export default function SurrogateApplicationDetailPage() {
                 images={appData.upload_photos}
                 current={previewIndex}
                 onClose={handlePreviewClose}
+                t={t}
               />
             </>
           ) : (
@@ -430,6 +431,14 @@ export default function SurrogateApplicationDetailPage() {
                     <span className="text-sage-500 font-medium">{t('zipCode')}:</span>
                     <span className="text-sage-800 font-semibold">{contactInfo.zip_code || t('notAvailable')}</span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogacyProfile.contactInfo.usCitizenOrVisaStatus')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.us_citizen_or_visa_status || t('notAvailable')}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sage-500 font-medium">{t('surrogacyProfile.contactInfo.agreeToReceiveMessages')}:</span>
+                    <span className="text-sage-800 font-semibold">{contactInfo.is_agree_cell_phone_receive_messages ? t('yes') : t('no')}</span>
+                  </div>
                 </div>
               </div>
 
@@ -487,6 +496,30 @@ export default function SurrogateApplicationDetailPage() {
                 <span className="text-sage-600 text-sm">{t('hasStillbirth')}</span>
                 <p className="font-medium text-sage-800">{pregnancyHealth.has_stillbirth ? t('yes') : t('no')}</p>
               </div>
+              {pregnancyHealth.birth_details && (
+                <div className="space-y-1 col-span-2">
+                  <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.birthDetails')}:</span>
+                  <p className="font-medium text-sage-800">{pregnancyHealth.birth_details}</p>
+                </div>
+              )}
+              {pregnancyHealth.closest_hospital && (
+                <div className="space-y-1 col-span-2">
+                  <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.closestHospital')}:</span>
+                  <p className="font-medium text-sage-800">{pregnancyHealth.closest_hospital}</p>
+                </div>
+              )}
+              {pregnancyHealth.closest_nicu_iii && (
+                <div className="space-y-1 col-span-2">
+                  <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.closestNICUIII')}:</span>
+                  <p className="font-medium text-sage-800">{pregnancyHealth.closest_nicu_iii}</p>
+                </div>
+              )}
+              {pregnancyHealth.current_birth_control && (
+                <div className="space-y-1 col-span-2">
+                  <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.currentBirthControl')}:</span>
+                  <p className="font-medium text-sage-800">{pregnancyHealth.current_birth_control}</p>
+                </div>
+              )}
               <div className="space-y-1 col-span-2">
                 <span className="text-sage-600 text-sm">{t('medicalConditions')}</span>
                 <p className="font-medium text-sage-800">{Array.isArray(pregnancyHealth.medical_conditions) && pregnancyHealth.medical_conditions.length > 0 ? pregnancyHealth.medical_conditions.join(", ") : t('noneValue')}</p>
@@ -500,6 +533,43 @@ export default function SurrogateApplicationDetailPage() {
                     <p className="font-medium text-sage-800">{pregnancyHealth.medications_list}</p>
                   </div>
                 )}
+              </div>
+              {/* 背景调查相关字段 */}
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.arrests')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.arrests ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.felonyCharges')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.felony_charges ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.substanceAbuse')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.substance_abuse ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.domesticViolence')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.domestic_violence ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogacyProfile.health.childAbuseNeglect')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.child_abuse_neglect ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.formalProbation', 'Formal Probation')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.formal_probation ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.outstandingWarrant', 'Outstanding Warrant')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.outstanding_warrant ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.childProtectionInvestigation', 'Child Protection Investigation')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.child_protection_investigation ? t('yes') : t('no')}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-sage-600 text-sm">{t('surrogateProfileDetail.health.seriousPregnancyComplications', 'Serious Pregnancy Complications')}:</span>
+                <p className="font-medium text-sage-800">{pregnancyHealth.serious_pregnancy_complications ? t('yes') : t('no')}</p>
               </div>
             </div>
 
@@ -585,6 +655,10 @@ export default function SurrogateApplicationDetailPage() {
                   <div>
                     <span className="text-sage-500 text-sm">{t('contactPreference')}:</span>
                     <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">{interview.contact_preference || t('notAvailable')}</div>
+                  </div>
+                  <div>
+                    <span className="text-sage-500 text-sm">{t('twinsFeeling')}:</span>
+                    <div className="p-2 bg-sage-50 rounded text-sage-800 text-sm mt-1">{interview.twins_feeling || t('notAvailable')}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex justify-between">

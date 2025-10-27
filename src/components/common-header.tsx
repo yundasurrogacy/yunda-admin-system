@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useAppType } from "@/context/app-type-context"
 import { useRouter } from "next/navigation"
 import { cn } from "../lib/utils"
@@ -20,9 +20,7 @@ interface CommonHeaderProps {
 }
 
 export function CommonHeader({ 
-  onMenuClick, 
   showMenuButton = true, 
-  isLoggedIn: isLoggedInProp,
   theme = "sage",
   type: propType
 }: CommonHeaderProps) {
@@ -38,19 +36,26 @@ export function CommonHeader({
   const { isAuthenticated, user, logout, getLoginPath } = useAuth(authType)
   const { toast } = useToast()
 
-  // 强制重新渲染当认证状态改变时 - 必须在所有useEffect之前
-  const [, setForceUpdate] = useState({})
   // 本地状态追踪登录状态
   const [localIsLoggedIn, setLocalIsLoggedIn] = useState(false)
 
-  // 直接使用认证系统的状态，不依赖外部传入的prop
-  const isLoggedIn = isAuthenticated
+  // 从 cookie 读取登录状态
+  const checkLoginStatus = useCallback(() => {
+    if (typeof document === 'undefined') return false;
+    const cookies = document.cookie.split(';').map(c => c.trim())
+    const roleCookieKey = `userRole_${normalizedType}`
+    const hasRoleCookie = cookies.some(c => c.startsWith(`${roleCookieKey}=`))
+    return hasRoleCookie
+  }, [normalizedType])
+
+  // 同步 cookie 中的登录状态到本地状态
+  useEffect(() => {
+    setLocalIsLoggedIn(checkLoginStatus())
+  }, [checkLoginStatus])
 
   // 只在登录页自动跳转首页，其他页面不自动跳转
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    setLocalIsLoggedIn(isAuthenticated)
-    setForceUpdate({})
     // 只在登录页自动跳转
     const loginPaths: Record<string, string> = {
       admin: '/admin/login',
@@ -60,51 +65,47 @@ export function CommonHeader({
     }
     const currentPath = window.location.pathname
     const isLoginPage = currentPath === loginPaths[normalizedType]
-    if (isLoginPage && isAuthenticated) {
-      const cookies = document.cookie.split(';').map(c => c.trim())
-      const roleCookieKey = `userRole_${normalizedType}`
-      const hasRoleCookie = cookies.some(c => c.startsWith(`${roleCookieKey}=`))
-      if (hasRoleCookie) {
-        let homePath = '/';
-        switch (normalizedType) {
-          case 'admin': homePath = '/admin/dashboard'; break;
-          case 'manager': homePath = '/client-manager/dashboard'; break;
-          case 'client': homePath = '/client/dashboard'; break;
-          case 'surrogacy': homePath = '/surrogacy/dashboard'; break;
-          default: homePath = '/';
-        }
-        router.replace(homePath)
+    
+    // 检查 cookie 中的登录状态
+    const isLoggedIn = checkLoginStatus()
+    
+    if (isLoginPage && isLoggedIn) {
+      let homePath = '/';
+      switch (normalizedType) {
+        case 'admin': homePath = '/admin/dashboard'; break;
+        case 'manager': homePath = '/client-manager/dashboard'; break;
+        case 'client': homePath = '/client/dashboard'; break;
+        case 'surrogacy': homePath = '/surrogacy/dashboard'; break;
+        default: homePath = '/';
       }
+      router.replace(homePath)
     }
-  }, [isAuthenticated, user, normalizedType, router])
+  }, [checkLoginStatus, normalizedType, router])
 
-  // 监听全局认证状态变化事件
+  // 监听全局认证状态变化事件和页面可见性变化
   useEffect(() => {
     const handleAuthChange = () => {
-      try {
-        const sessionKeyMap = {
-          admin: 'admin_user',
-          client: 'client_user',
-          manager: 'manager_user',
-          surrogacy: 'surrogacy_user',
-        }
-        const sessionKey = sessionKeyMap[normalizedType]
-        const raw = localStorage.getItem(sessionKey)
-        setLocalIsLoggedIn(!!raw)
-        setForceUpdate({})
-        console.log(`[CommonHeader] [${normalizedType}] sessionKey: ${sessionKey}, hasSession: ${!!raw}`)
-      } catch (e) {
-        setLocalIsLoggedIn(false)
+      setLocalIsLoggedIn(checkLoginStatus())
+    }
+    
+    // 当用户切换回页面时重新检查登录状态
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setLocalIsLoggedIn(checkLoginStatus())
       }
     }
+    
+    // 监听自定义事件
     window.addEventListener('authStateChanged', handleAuthChange)
+    
+    // 监听页面可见性变化（用户切换标签页回来时）
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
     return () => {
       window.removeEventListener('authStateChanged', handleAuthChange)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [normalizedType])
-
-  // 实际使用的登录状态
-  const actualIsLoggedIn = localIsLoggedIn
+  }, [normalizedType, checkLoginStatus])
 
   const toggleLanguage = () => {
     const currentLang = i18n.language as "en" | "zh-CN"
@@ -168,8 +169,6 @@ export function CommonHeader({
     // 直接登出当前端 session
     logout()
   }
-
-  // ...existing code...
 
   // 根据主题获取对应的颜色类
   const getThemeClasses = () => {
@@ -238,16 +237,16 @@ export function CommonHeader({
             let targetPath = "/";
             switch (normalizedType) {
               case "admin":
-                targetPath = actualIsLoggedIn ? "/admin/dashboard" : "/admin/login";
+                targetPath = localIsLoggedIn ? "/admin/dashboard" : "/admin/login";
                 break;
               case "manager":
-                targetPath = actualIsLoggedIn ? "/client-manager/dashboard" : "/client-manager/login";
+                targetPath = localIsLoggedIn ? "/client-manager/dashboard" : "/client-manager/login";
                 break;
               case "client":
-                targetPath = actualIsLoggedIn ? "/client/dashboard" : "/client/login";
+                targetPath = localIsLoggedIn ? "/client/dashboard" : "/client/login";
                 break;
               case "surrogacy":
-                targetPath = actualIsLoggedIn ? "/surrogacy/dashboard" : "/surrogacy/login";
+                targetPath = localIsLoggedIn ? "/surrogacy/dashboard" : "/surrogacy/login";
                 break;
               default:
                 targetPath = "/";
@@ -264,7 +263,7 @@ export function CommonHeader({
 
       {/* 右侧导航/按钮，桌面自适应，移动端固定宽度 */}
       <div className="flex items-center gap-8 md:gap-8" style={{ minWidth: 40 }}>
-        {actualIsLoggedIn ? (
+        {localIsLoggedIn ? (
           <button
             onClick={handleLogout}
             className="text-lg font-medium text-sage-800 cursor-pointer focus:outline-none focus:ring-0 border-none bg-transparent p-0 m-0 transition-all duration-100 active:scale-95 hover:bg-sage-100 rounded"
