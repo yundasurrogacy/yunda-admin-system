@@ -580,8 +580,8 @@ export default function SurrogateProfileDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('email')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="email" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} placeholder={t('email')} />
+                    <span className="text-sage-800" style={{ textTransform: 'lowercase' }}>{editMode ? (
+                      <input type="email" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" style={{ textTransform: 'lowercase' }} value={ci?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} placeholder={t('email')} />
                     ) : displayValue(ci?.email_address)}</span>
                   </div>
                   <div className="flex justify-between">

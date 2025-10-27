@@ -397,9 +397,9 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('email'))}:</Label>
                 {editMode ? (
-                  <input type="email" className="border rounded px-2 py-1 w-full font-medium text-sage-800" value={contact?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} />
+                  <input type="email" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'lowercase' }} value={contact?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words">{formatValue(contact?.email_address)}</p>
+                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'lowercase' }}>{contact?.email_address || "-"}</p>
                 )}
               </div>
               <div>
