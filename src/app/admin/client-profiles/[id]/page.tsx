@@ -29,10 +29,10 @@ const capitalize = (str: string | undefined): string => {
 };
 
 const formatArray = (arr: string[] | undefined): string => 
-  Array.isArray(arr) && arr.length ? arr.map(capitalize).join(", ") : "-";
+  Array.isArray(arr) && arr.length ? arr.join(", ") : "-";
 
 const formatValue = (val: string | undefined): string => 
-  val ? capitalize(val) : "-";
+  val || "-";
 
 export default function ClientProfileDetailPage() {
   const router = useRouter();
@@ -335,25 +335,25 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('firstName'))} / {capitalize(t('lastName'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={basic?.firstName || ''} onChange={e => handleFieldChange('basic_information', 'firstName', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={basic?.firstName || ''} onChange={e => handleFieldChange('basic_information', 'firstName', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(basic?.firstName)} {formatValue(basic?.lastName)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(basic?.firstName)} {formatValue(basic?.lastName)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('pronouns') || '代词')}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={basic?.pronouns || ''} onChange={e => handleFieldChange('basic_information', 'pronouns', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={basic?.pronouns || ''} onChange={e => handleFieldChange('basic_information', 'pronouns', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(basic?.pronouns)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(basic?.pronouns)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('genderIdentity'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={basic?.gender_identity || ''} onChange={e => handleFieldChange('basic_information', 'gender_identity', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={basic?.gender_identity || ''} onChange={e => handleFieldChange('basic_information', 'gender_identity', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(basic?.gender_identity)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(basic?.gender_identity)}</p>
                 )}
               </div>
               <div>
@@ -367,9 +367,9 @@ export default function ClientProfileDetailPage() {
               <div className="col-span-2">
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('ethnicity'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={basic?.ethnicity || ''} onChange={e => handleFieldChange('basic_information', 'ethnicity', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={basic?.ethnicity || ''} onChange={e => handleFieldChange('basic_information', 'ethnicity', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatArray(basic?.ethnicity?.split(","))}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatArray(basic?.ethnicity?.split(","))}</p>
                 )}
               </div>
             </div>
@@ -397,9 +397,9 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('email'))}:</Label>
                 {editMode ? (
-                  <input type="email" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'lowercase' }} value={contact?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} />
+                  <input type="email" className="border rounded px-2 py-1 w-full font-medium text-sage-800" value={contact?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'lowercase' }}>{contact?.email_address || "-"}</p>
+                  <p className="font-medium text-sage-800 break-words">{contact?.email_address || "-"}</p>
                 )}
               </div>
               <div>
@@ -435,33 +435,33 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('sexualOrientation'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={family?.sexual_orientation || ''} onChange={e => handleFieldChange('family_profile', 'sexual_orientation', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={family?.sexual_orientation || ''} onChange={e => handleFieldChange('family_profile', 'sexual_orientation', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(family?.sexual_orientation)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(family?.sexual_orientation)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('city'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={family?.city || ''} onChange={e => handleFieldChange('family_profile', 'city', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={family?.city || ''} onChange={e => handleFieldChange('family_profile', 'city', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(family?.city)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(family?.city)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('country'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={family?.country || ''} onChange={e => handleFieldChange('family_profile', 'country', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={family?.country || ''} onChange={e => handleFieldChange('family_profile', 'country', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(family?.country)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(family?.country)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('stateOrProvince'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={family?.state_or_province || ''} onChange={e => handleFieldChange('family_profile', 'state_or_province', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={family?.state_or_province || ''} onChange={e => handleFieldChange('family_profile', 'state_or_province', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(family?.state_or_province)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(family?.state_or_province)}</p>
                 )}
               </div>
             </div>
@@ -478,25 +478,25 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('serviceNeeds'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={program?.interested_services || ''} onChange={e => handleFieldChange('program_interests', 'interested_services', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={program?.interested_services || ''} onChange={e => handleFieldChange('program_interests', 'interested_services', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(program?.interested_services)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(program?.interested_services)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('journeyStartTiming'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={program?.journey_start_timing || ''} onChange={e => handleFieldChange('program_interests', 'journey_start_timing', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={program?.journey_start_timing || ''} onChange={e => handleFieldChange('program_interests', 'journey_start_timing', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(program?.journey_start_timing)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(program?.journey_start_timing)}</p>
                 )}
               </div>
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('desiredChildrenCount'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={program?.desired_children_count || ''} onChange={e => handleFieldChange('program_interests', 'desired_children_count', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={program?.desired_children_count || ''} onChange={e => handleFieldChange('program_interests', 'desired_children_count', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(program?.desired_children_count)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(program?.desired_children_count)}</p>
                 )}
               </div>
             </div>
@@ -513,9 +513,9 @@ export default function ClientProfileDetailPage() {
               <div>
                 <Label className="text-sage-600 text-sm font-medium">{capitalize(t('referralSource'))}:</Label>
                 {editMode ? (
-                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800" style={{ textTransform: 'capitalize' }} value={referral?.referral_source || ''} onChange={e => handleFieldChange('referral', 'referral_source', e.target.value)} />
+                  <input type="text" className="border rounded px-2 py-1 w-full font-medium text-sage-800"  value={referral?.referral_source || ''} onChange={e => handleFieldChange('referral', 'referral_source', e.target.value)} />
                 ) : (
-                  <p className="font-medium text-sage-800 break-words" style={{ textTransform: 'capitalize' }}>{formatValue(referral?.referral_source)}</p>
+                  <p className="font-medium text-sage-800 break-words" >{formatValue(referral?.referral_source)}</p>
                 )}
               </div>
               <div>

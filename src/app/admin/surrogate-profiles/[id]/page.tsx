@@ -265,7 +265,7 @@ export default function SurrogateProfileDetailPage() {
               {t('back', '返回')}
             </CustomButton>
         <div className="flex items-center justify-between pt-6 pb-2">
-          <h1 className="text-2xl font-semibold text-sage-800 capitalize">{t('surrogateProfile')}</h1>
+          <h1 className="text-2xl font-semibold text-sage-800">{t('surrogateProfile')}</h1>
           <div className="flex items-center gap-4">
             {!editMode && (
               <CustomButton className="bg-sage-600 text-white font-medium cursor-pointer capitalize" onClick={handleEdit}>{t('edit', '编辑')}</CustomButton>
@@ -461,18 +461,18 @@ export default function SurrogateProfileDetailPage() {
                   <User className="w-8 h-8 text-sage-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-sage-800 capitalize">
+                  <h2 className="text-2xl font-semibold text-sage-800">
                     {editMode ? (
                       <>
-                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-32 mr-2 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.first_name || ''} onChange={e => handleFieldChange('contact_information', 'first_name', e.target.value)} placeholder={t('firstName')} />
-                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.last_name || ''} onChange={e => handleFieldChange('contact_information', 'last_name', e.target.value)} placeholder={t('lastName')} />
+                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-32 mr-2 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.first_name || ''} onChange={e => handleFieldChange('contact_information', 'first_name', e.target.value)} placeholder={t('firstName')} />
+                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.last_name || ''} onChange={e => handleFieldChange('contact_information', 'last_name', e.target.value)} placeholder={t('lastName')} />
                       </>
                     ) : (
                       ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : data.id
                     )}
                   </h2>
                   <p className="text-sage-500 font-normal capitalize">ID: #{data.id} • {editMode ? (
-                    <input type="date" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-36 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.date_of_birth || ''} onChange={e => handleFieldChange('contact_information', 'date_of_birth', e.target.value)} />
+                    <input type="date" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-36 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.date_of_birth || ''} onChange={e => handleFieldChange('contact_information', 'date_of_birth', e.target.value)} />
                   ) : calculateAge(ci?.date_of_birth)}{t('yearsOld')}</p>
                 </div>
               </div>
@@ -490,47 +490,47 @@ export default function SurrogateProfileDetailPage() {
                 <div className="space-y-2 text-sm font-normal">
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('occupation')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.occupation || ''} onChange={e => handleFieldChange('about_you', 'occupation', e.target.value)} placeholder={t('occupation')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.occupation || ''} onChange={e => handleFieldChange('about_you', 'occupation', e.target.value)} placeholder={t('occupation')} />
                     ) : displayValue(ay?.occupation)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('education')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.education_level || ''} onChange={e => handleFieldChange('about_you', 'education_level', e.target.value)} placeholder={t('education')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.education_level || ''} onChange={e => handleFieldChange('about_you', 'education_level', e.target.value)} placeholder={t('education')} />
                     ) : displayValue(ay?.education_level)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('maritalStatus')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.marital_status || ''} onChange={e => handleFieldChange('about_you', 'marital_status', e.target.value)} placeholder={t('maritalStatus')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.marital_status || ''} onChange={e => handleFieldChange('about_you', 'marital_status', e.target.value)} placeholder={t('maritalStatus')} />
                     ) : displayValue(ay?.marital_status)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('partnerSupport')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.partner_support || ''} onChange={e => handleFieldChange('about_you', 'partner_support', e.target.value)} placeholder={t('partnerSupport')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.partner_support || ''} onChange={e => handleFieldChange('about_you', 'partner_support', e.target.value)} placeholder={t('partnerSupport')} />
                     ) : displayValue(ay?.partner_support)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('householdIncome')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.household_income || ''} onChange={e => handleFieldChange('about_you', 'household_income', e.target.value)} placeholder={t('householdIncome')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.household_income || ''} onChange={e => handleFieldChange('about_you', 'household_income', e.target.value)} placeholder={t('householdIncome')} />
                     ) : displayValue(ay?.household_income)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('surrogateProfileDetail.isFormerSurrogate', '是否曾为代孕母')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={typeof ay?.is_former_surrogate === 'boolean' ? (ay.is_former_surrogate ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'is_former_surrogate', e.target.value === 'yes')}>
-                        <option value="yes" className="capitalize">{t('surrogateProfileDetail.yes', '是')}</option>
-                        <option value="no" className="capitalize">{t('surrogateProfileDetail.no', '否')}</option>
+                    <span className="text-sage-800">{editMode ? (
+                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={typeof ay?.is_former_surrogate === 'boolean' ? (ay.is_former_surrogate ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'is_former_surrogate', e.target.value === 'yes')}>
+                        <option value="yes">{t('surrogateProfileDetail.yes', '是')}</option>
+                        <option value="no">{t('surrogateProfileDetail.no', '否')}</option>
                       </select>
                     ) : (typeof ay?.is_former_surrogate === 'boolean' ? (ay.is_former_surrogate ? t('surrogateProfileDetail.yes', '是') : t('surrogateProfileDetail.no', '否')) : t('noData', '暂无数据'))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('surrogateProfileDetail.surrogateExperience', '代孕经历说明')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.surrogate_experience || ''} onChange={e => handleFieldChange('about_you', 'surrogate_experience', e.target.value)} placeholder={t('surrogateProfileDetail.surrogateExperience', '代孕经历说明')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.surrogate_experience || ''} onChange={e => handleFieldChange('about_you', 'surrogate_experience', e.target.value)} placeholder={t('surrogateProfileDetail.surrogateExperience', '代孕经历说明')} />
                     ) : (
                       ay?.surrogate_experience && ay.surrogate_experience.trim() !== ''
                         ? String(t(`surrogateProfileDetail.surrogateExperience.${ay.surrogate_experience}`, ay.surrogate_experience))
@@ -539,17 +539,17 @@ export default function SurrogateProfileDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('surrogateProfileDetail.hasHighSchoolDiploma', '有高中毕业证')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={typeof ay?.has_high_school_diploma === 'boolean' ? (ay.has_high_school_diploma ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'has_high_school_diploma', e.target.value === 'yes')}>
-                        <option value="yes" className="capitalize">{t('surrogateProfileDetail.yes', '是')}</option>
-                        <option value="no" className="capitalize">{t('surrogateProfileDetail.no', '否')}</option>
+                    <span className="text-sage-800">{editMode ? (
+                      <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={typeof ay?.has_high_school_diploma === 'boolean' ? (ay.has_high_school_diploma ? 'yes' : 'no') : ''} onChange={e => handleFieldChange('about_you', 'has_high_school_diploma', e.target.value === 'yes')}>
+                        <option value="yes">{t('surrogateProfileDetail.yes', '是')}</option>
+                        <option value="no">{t('surrogateProfileDetail.no', '否')}</option>
                       </select>
                     ) : (typeof ay?.has_high_school_diploma === 'boolean' ? (ay.has_high_school_diploma ? t('surrogateProfileDetail.yes', '是') : t('surrogateProfileDetail.no', '否')) : t('noData', '暂无数据'))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('surrogateProfileDetail.contactSourceLabel', '联系来源')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ay?.contact_source || ''} onChange={e => handleFieldChange('about_you', 'contact_source', e.target.value)} placeholder={t('surrogateProfileDetail.contactSourceLabel', '联系来源')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ay?.contact_source || ''} onChange={e => handleFieldChange('about_you', 'contact_source', e.target.value)} placeholder={t('surrogateProfileDetail.contactSourceLabel', '联系来源')} />
                     ) : (ay?.contact_source ? String(t(`surrogateProfileDetail.contactSource.${ay.contact_source}`, ay.contact_source)) : t('noData', '暂无数据'))}</span>
                   </div>
                 </div>
@@ -563,16 +563,16 @@ export default function SurrogateProfileDetailPage() {
                 <div className="space-y-2 text-sm font-normal">
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('dateOfBirth')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="date" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.date_of_birth || ''} onChange={e => handleFieldChange('contact_information', 'date_of_birth', e.target.value)} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="date" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.date_of_birth || ''} onChange={e => handleFieldChange('contact_information', 'date_of_birth', e.target.value)} />
                     ) : displayValue(ci?.date_of_birth)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('phone')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
+                    <span className="text-sage-800">{editMode ? (
                       <>
-                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-16 mr-2 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.cell_phone_country_code || ''} onChange={e => handleFieldChange('contact_information', 'cell_phone_country_code', e.target.value)} placeholder="区号" />
-                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.cell_phone || ''} onChange={e => handleFieldChange('contact_information', 'cell_phone', e.target.value)} placeholder={t('phone')} />
+                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-16 mr-2 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.cell_phone_country_code || ''} onChange={e => handleFieldChange('contact_information', 'cell_phone_country_code', e.target.value)} placeholder="区号" />
+                        <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.cell_phone || ''} onChange={e => handleFieldChange('contact_information', 'cell_phone', e.target.value)} placeholder={t('phone')} />
                       </>
                     ) : (
                       (ci?.cell_phone_country_code ? `+${ci.cell_phone_country_code} ` : "") + displayValue(ci?.cell_phone)
@@ -580,32 +580,32 @@ export default function SurrogateProfileDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('email')}:</span>
-                    <span className="text-sage-800" style={{ textTransform: 'lowercase' }}>{editMode ? (
-                      <input type="email" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" style={{ textTransform: 'lowercase' }} value={ci?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} placeholder={t('email')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="email" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.email_address || ''} onChange={e => handleFieldChange('contact_information', 'email_address', e.target.value)} placeholder={t('email')} />
                     ) : displayValue(ci?.email_address)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('city')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.city || ''} onChange={e => handleFieldChange('contact_information', 'city', e.target.value)} placeholder={t('city')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.city || ''} onChange={e => handleFieldChange('contact_information', 'city', e.target.value)} placeholder={t('city')} />
                     ) : displayValue(ci?.city)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('stateOrProvince')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.state_or_province || ''} onChange={e => handleFieldChange('contact_information', 'state_or_province', e.target.value)} placeholder={t('stateOrProvince')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.state_or_province || ''} onChange={e => handleFieldChange('contact_information', 'state_or_province', e.target.value)} placeholder={t('stateOrProvince')} />
                     ) : displayValue(ci?.state_or_province)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('country')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.country || ''} onChange={e => handleFieldChange('contact_information', 'country', e.target.value)} placeholder={t('country')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.country || ''} onChange={e => handleFieldChange('contact_information', 'country', e.target.value)} placeholder={t('country')} />
                     ) : displayValue(ci?.country)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('zipCode')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.zip_code || ''} onChange={e => handleFieldChange('contact_information', 'zip_code', e.target.value)} placeholder={t('zipCode')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.zip_code || ''} onChange={e => handleFieldChange('contact_information', 'zip_code', e.target.value)} placeholder={t('zipCode')} />
                     ) : displayValue(ci?.zip_code)}</span>
                   </div>
                 </div>
@@ -619,32 +619,32 @@ export default function SurrogateProfileDetailPage() {
                 <div className="space-y-2 text-sm font-normal">
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('height')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.height || ''} onChange={e => handleFieldChange('contact_information', 'height', e.target.value)} placeholder={t('height')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.height || ''} onChange={e => handleFieldChange('contact_information', 'height', e.target.value)} placeholder={t('height')} />
                     ) : heightDisplay}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('weight')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.weight || ''} onChange={e => handleFieldChange('contact_information', 'weight', e.target.value)} placeholder={t('weight')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.weight || ''} onChange={e => handleFieldChange('contact_information', 'weight', e.target.value)} placeholder={t('weight')} />
                     ) : (<>{displayValue(ci?.weight)} {t('lbs', '磅')}</>)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('bmi')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.bmi || ''} onChange={e => handleFieldChange('contact_information', 'bmi', e.target.value)} placeholder={t('bmi')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-20 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.bmi || ''} onChange={e => handleFieldChange('contact_information', 'bmi', e.target.value)} placeholder={t('bmi')} />
                     ) : displayValue(ci?.bmi)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('ethnicity')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.ethnicity || ''} onChange={e => handleFieldChange('contact_information', 'ethnicity', e.target.value)} placeholder={t('ethnicity')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.ethnicity || ''} onChange={e => handleFieldChange('contact_information', 'ethnicity', e.target.value)} placeholder={t('ethnicity')} />
                     ) : displayValue(ci?.ethnicity)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500 capitalize">{t('surrogacyExperience')}:</span>
-                    <span className="text-sage-800 capitalize">{editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-16 focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ci?.surrogacy_experience_count || ''} onChange={e => handleFieldChange('contact_information', 'surrogacy_experience_count', e.target.value)} placeholder={t('surrogacyExperience')} />
+                    <span className="text-sage-800">{editMode ? (
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-16 focus:outline-none focus:ring-2 focus:ring-sage-400" value={ci?.surrogacy_experience_count || ''} onChange={e => handleFieldChange('contact_information', 'surrogacy_experience_count', e.target.value)} placeholder={t('surrogacyExperience')} />
                     ) : (<>{displayValue(ci?.surrogacy_experience_count, "0")} {t('times')}</>)}</span>
                   </div>
                 </div>
@@ -666,72 +666,72 @@ export default function SurrogateProfileDetailPage() {
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm capitalize">{t('hasGivenBirth')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={ph?.has_given_birth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_given_birth', e.target.value === 'yes')}>
-                    <option value="yes" className="capitalize">{t('yes')}</option>
-                    <option value="no" className="capitalize">{t('no')}</option>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.has_given_birth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_given_birth', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
                   </select>
                 ) : (
-                  <p className="font-medium text-sage-800 capitalize">{ph?.has_given_birth ? t('yes') : t('no')}</p>
+                  <p className="font-medium text-sage-800">{ph?.has_given_birth ? t('yes') : t('no')}</p>
                 )}
               </div>
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm capitalize">{t('isCurrentlyPregnant')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={ph?.is_currently_pregnant ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_currently_pregnant', e.target.value === 'yes')}>
-                    <option value="yes" className="capitalize">{t('yes')}</option>
-                    <option value="no" className="capitalize">{t('no')}</option>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.is_currently_pregnant ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_currently_pregnant', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
                   </select>
                 ) : (
-                  <p className="font-medium text-sage-800 capitalize">{ph?.is_currently_pregnant ? t('yes') : t('no')}</p>
+                  <p className="font-medium text-sage-800">{ph?.is_currently_pregnant ? t('yes') : t('no')}</p>
                 )}
               </div>
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm capitalize">{t('isBreastfeeding')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={ph?.is_breastfeeding ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_breastfeeding', e.target.value === 'yes')}>
-                    <option value="yes" className="capitalize">{t('yes')}</option>
-                    <option value="no" className="capitalize">{t('no')}</option>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.is_breastfeeding ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_breastfeeding', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
                   </select>
                 ) : (
-                  <p className="font-medium text-sage-800 capitalize">{ph?.is_breastfeeding ? t('yes') : t('no')}</p>
+                  <p className="font-medium text-sage-800">{ph?.is_breastfeeding ? t('yes') : t('no')}</p>
                 )}
               </div>
               <div className="space-y-1">
                 <Label className="text-sage-600 text-sm capitalize">{t('hasStillbirth')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={ph?.has_stillbirth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_stillbirth', e.target.value === 'yes')}>
-                    <option value="yes" className="capitalize">{t('yes')}</option>
-                    <option value="no" className="capitalize">{t('no')}</option>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.has_stillbirth ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'has_stillbirth', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
                   </select>
                 ) : (
-                  <p className="font-medium text-sage-800 capitalize">{ph?.has_stillbirth ? t('yes') : t('no')}</p>
+                  <p className="font-medium text-sage-800">{ph?.has_stillbirth ? t('yes') : t('no')}</p>
                 )}
               </div>
               <div className="space-y-1 col-span-2">
                 <Label className="text-sage-600 text-sm capitalize">{t('medicalConditions')}</Label>
                 {editMode ? (
-                  <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ph?.medical_conditions?.join(',') || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'medical_conditions', e.target.value.split(','))} placeholder={t('medicalConditions')} />
+                  <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.medical_conditions?.join(',') || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'medical_conditions', e.target.value.split(','))} placeholder={t('medicalConditions')} />
                 ) : (
-                  <p className="font-medium text-sage-800 capitalize">{Array.isArray(ph?.medical_conditions) && ph.medical_conditions.length > 0 ? ph.medical_conditions.join(", ") : t('none', '无')}</p>
+                  <p className="font-medium text-sage-800">{Array.isArray(ph?.medical_conditions) && ph.medical_conditions.length > 0 ? ph.medical_conditions.join(", ") : t('none', '无')}</p>
                 )}
               </div>
               <div className="space-y-1 col-span-2">
                 <Label className="text-sage-600 text-sm capitalize">{t('isTakingMedications')}</Label>
                 {editMode ? (
-                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer capitalize" value={ph?.is_taking_medications ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_taking_medications', e.target.value === 'yes')}>
-                    <option value="yes" className="capitalize">{t('yes')}</option>
-                    <option value="no" className="capitalize">{t('no')}</option>
+                  <select className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 cursor-pointer" value={ph?.is_taking_medications ? 'yes' : 'no'} onChange={e => handleFieldChange('pregnancy_and_health', 'is_taking_medications', e.target.value === 'yes')}>
+                    <option value="yes">{t('yes')}</option>
+                    <option value="no">{t('no')}</option>
                   </select>
                 ) : (
-                  <p className="font-medium text-sage-800 capitalize">{ph?.is_taking_medications ? t('yes') : t('no')}</p>
+                  <p className="font-medium text-sage-800">{ph?.is_taking_medications ? t('yes') : t('no')}</p>
                 )}
                 {((editMode && ph?.is_taking_medications) || (!editMode && ph?.is_taking_medications)) && (
                   <div className="mt-2">
                     <Label className="text-sage-600 text-sm capitalize">{t('medications')}</Label>
                     {editMode ? (
-                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ph?.medications_list || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'medications_list', e.target.value)} placeholder={t('medications')} />
+                      <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.medications_list || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'medications_list', e.target.value)} placeholder={t('medications')} />
                     ) : (
-                      <p className="font-medium text-sage-800 capitalize">{displayValue(ph?.medications_list)}</p>
+                      <p className="font-medium text-sage-800">{displayValue(ph?.medications_list)}</p>
                     )}
                   </div>
                 )}
@@ -752,9 +752,9 @@ export default function SurrogateProfileDetailPage() {
                 <div className="space-y-1">
                   <Label className="text-sage-600 text-sm capitalize">{t('backgroundCheckStatus')}</Label>
                   {editMode ? (
-                    <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={ph?.background_check_status || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'background_check_status', e.target.value)} placeholder={t('backgroundCheckStatus')} />
+                    <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={ph?.background_check_status || ''} onChange={e => handleFieldChange('pregnancy_and_health', 'background_check_status', e.target.value)} placeholder={t('backgroundCheckStatus')} />
                   ) : (
-                    <p className="font-medium text-sage-800 capitalize">{displayValue(ph?.background_check_status)}</p>
+                    <p className="font-medium text-sage-800">{displayValue(ph?.background_check_status)}</p>
                   )}
                 </div>
                 
@@ -768,61 +768,61 @@ export default function SurrogateProfileDetailPage() {
                             <div>
                               <span className="text-sage-500 capitalize">{t('deliveryDate')}:</span>
                               {editMode ? (
-                                <input type="date" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={history.delivery_date || ''} onChange={e => {
+                                <input type="date" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={history.delivery_date || ''} onChange={e => {
                                   const newArr = [...ph.pregnancy_histories];
                                   newArr[idx] = { ...history, delivery_date: e.target.value };
                                   handleFieldChange('pregnancy_and_health', 'pregnancy_histories', newArr);
                                 }} />
                               ) : (
-                                <div className="text-sage-800 capitalize">{displayValue(history.delivery_date)}</div>
+                                <div className="text-sage-800">{displayValue(history.delivery_date)}</div>
                               )}
                             </div>
                             <div>
                               <span className="text-sage-500 capitalize">{t('birthWeight')}:</span>
                               {editMode ? (
-                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={history.birth_weight || ''} onChange={e => {
+                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={history.birth_weight || ''} onChange={e => {
                                   const newArr = [...ph.pregnancy_histories];
                                   newArr[idx] = { ...history, birth_weight: e.target.value };
                                   handleFieldChange('pregnancy_and_health', 'pregnancy_histories', newArr);
                                 }} placeholder={t('birthWeight')} />
                               ) : (
-                                <div className="text-sage-800 capitalize">{displayValue(history.birth_weight)} {t('lbs', '磅')}</div>
+                                <div className="text-sage-800">{displayValue(history.birth_weight)} {t('lbs', '磅')}</div>
                               )}
                             </div>
                             <div>
                               <span className="text-sage-500 capitalize">{t('gestationalWeeks')}:</span>
                               {editMode ? (
-                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={history.gestational_weeks || ''} onChange={e => {
+                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={history.gestational_weeks || ''} onChange={e => {
                                   const newArr = [...ph.pregnancy_histories];
                                   newArr[idx] = { ...history, gestational_weeks: e.target.value };
                                   handleFieldChange('pregnancy_and_health', 'pregnancy_histories', newArr);
                                 }} placeholder={t('gestationalWeeks')} />
                               ) : (
-                                <div className="text-sage-800 capitalize">{displayValue(history.gestational_weeks, t('none', '无'))}</div>
+                                <div className="text-sage-800">{displayValue(history.gestational_weeks, t('none', '无'))}</div>
                               )}
                             </div>
                             <div>
                               <span className="text-sage-500 capitalize">{t('numberOfBabies')}:</span>
                               {editMode ? (
-                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={history.number_of_babies || ''} onChange={e => {
+                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={history.number_of_babies || ''} onChange={e => {
                                   const newArr = [...ph.pregnancy_histories];
                                   newArr[idx] = { ...history, number_of_babies: e.target.value };
                                   handleFieldChange('pregnancy_and_health', 'pregnancy_histories', newArr);
                                 }} placeholder={t('numberOfBabies')} />
                               ) : (
-                                <div className="text-sage-800 capitalize">{displayValue(history.number_of_babies)}</div>
+                                <div className="text-sage-800">{displayValue(history.number_of_babies)}</div>
                               )}
                             </div>
                             <div>
                               <span className="text-sage-500 capitalize">{t('deliveryMethod')}:</span>
                               {editMode ? (
-                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize" value={history.delivery_method || ''} onChange={e => {
+                                <input type="text" className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm w-full focus:outline-none focus:ring-2 focus:ring-sage-400" value={history.delivery_method || ''} onChange={e => {
                                   const newArr = [...ph.pregnancy_histories];
                                   newArr[idx] = { ...history, delivery_method: e.target.value };
                                   handleFieldChange('pregnancy_and_health', 'pregnancy_histories', newArr);
                                 }} placeholder={t('deliveryMethod')} />
                               ) : (
-                                <div className="text-sage-800 capitalize">{displayValue(history.delivery_method)}</div>
+                                <div className="text-sage-800">{displayValue(history.delivery_method)}</div>
                               )}
                             </div>
                           </div>
@@ -851,7 +851,7 @@ export default function SurrogateProfileDetailPage() {
                   <span className="text-sage-500 text-sm capitalize">{t('emotionalSupport')}:</span>
                   {editMode ? (
                     <textarea
-                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize"
+                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400"
                       value={interview?.emotional_support || ''}
                       onChange={e => handleFieldChange('gestational_surrogacy_interview', 'emotional_support', e.target.value)}
                     />
@@ -864,7 +864,7 @@ export default function SurrogateProfileDetailPage() {
                   {editMode ? (
                     <input
                       type="text"
-                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize"
+                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400"
                       value={interview?.languages_spoken || ''}
                       onChange={e => handleFieldChange('gestational_surrogacy_interview', 'languages_spoken', e.target.value)}
                     />
@@ -876,7 +876,7 @@ export default function SurrogateProfileDetailPage() {
                   <span className="text-sage-500 text-sm capitalize">{t('motivation')}:</span>
                   {editMode ? (
                     <textarea
-                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize"
+                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400"
                       value={interview?.motivation || ''}
                       onChange={e => handleFieldChange('gestational_surrogacy_interview', 'motivation', e.target.value)}
                     />
@@ -890,7 +890,7 @@ export default function SurrogateProfileDetailPage() {
                   <span className="text-sage-500 text-sm capitalize">{t('selfIntroduction')}:</span>
                   {editMode ? (
                     <textarea
-                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full whitespace-pre-wrap focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize"
+                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full whitespace-pre-wrap focus:outline-none focus:ring-2 focus:ring-sage-400"
                       value={interview?.self_introduction || ''}
                       onChange={e => handleFieldChange('gestational_surrogacy_interview', 'self_introduction', e.target.value)}
                     />
@@ -903,7 +903,7 @@ export default function SurrogateProfileDetailPage() {
                   {editMode ? (
                     <input
                       type="text"
-                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400 capitalize"
+                      className="p-2 bg-white border border-sage-300 rounded text-sage-800 text-sm mt-1 w-full focus:outline-none focus:ring-2 focus:ring-sage-400"
                       value={interview?.contact_preference || ''}
                       onChange={e => handleFieldChange('gestational_surrogacy_interview', 'contact_preference', e.target.value)}
                     />
@@ -920,11 +920,11 @@ export default function SurrogateProfileDetailPage() {
                         value={interview?.hipaa_release_willing ? 'yes' : 'no'}
                         onChange={e => handleFieldChange('gestational_surrogacy_interview', 'hipaa_release_willing', e.target.value === 'yes')}
                       >
-                        <option value="yes" className="capitalize">{t('yes')}</option>
-                        <option value="no" className="capitalize">{t('no')}</option>
+                        <option value="yes">{t('yes')}</option>
+                        <option value="no">{t('no')}</option>
                       </select>
                     ) : (
-                      <span className="text-sage-800 capitalize">{interview?.hipaa_release_willing ? t('yes') : t('no')}</span>
+                      <span className="text-sage-800">{interview?.hipaa_release_willing ? t('yes') : t('no')}</span>
                     )}
                   </div>
                   <div className="flex justify-between">
@@ -935,11 +935,11 @@ export default function SurrogateProfileDetailPage() {
                         value={interview?.multiple_reduction_willing ? 'yes' : 'no'}
                         onChange={e => handleFieldChange('gestational_surrogacy_interview', 'multiple_reduction_willing', e.target.value === 'yes')}
                       >
-                        <option value="yes" className="capitalize">{t('yes')}</option>
-                        <option value="no" className="capitalize">{t('no')}</option>
+                        <option value="yes">{t('yes')}</option>
+                        <option value="no">{t('no')}</option>
                       </select>
                     ) : (
-                      <span className="text-sage-800 capitalize">{interview?.multiple_reduction_willing ? t('yes') : t('no')}</span>
+                      <span className="text-sage-800">{interview?.multiple_reduction_willing ? t('yes') : t('no')}</span>
                     )}
                   </div>
                   <div className="flex justify-between">
@@ -950,11 +950,11 @@ export default function SurrogateProfileDetailPage() {
                         value={interview?.termination_willing ? 'yes' : 'no'}
                         onChange={e => handleFieldChange('gestational_surrogacy_interview', 'termination_willing', e.target.value === 'yes')}
                       >
-                        <option value="yes" className="capitalize">{t('yes')}</option>
-                        <option value="no" className="capitalize">{t('no')}</option>
+                        <option value="yes">{t('yes')}</option>
+                        <option value="no">{t('no')}</option>
                       </select>
                     ) : (
-                      <span className="text-sage-800 capitalize">{interview?.termination_willing ? t('yes') : t('no')}</span>
+                      <span className="text-sage-800">{interview?.termination_willing ? t('yes') : t('no')}</span>
                     )}
                   </div>
                 </div>
@@ -968,11 +968,11 @@ export default function SurrogateProfileDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div className="flex justify-between">
               <span className="text-sage-500 capitalize">{t('created')}:</span>
-              <span className="text-sage-800 capitalize">{surrogate.created_at ? new Date(surrogate.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : 'N/A'}</span>
+              <span className="text-sage-800">{surrogate.created_at ? new Date(surrogate.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : 'N/A'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sage-500 capitalize">{t('updated')}:</span>
-              <span className="text-sage-800 capitalize">{surrogate.updated_at ? new Date(surrogate.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : 'N/A'}</span>
+              <span className="text-sage-800">{surrogate.updated_at ? new Date(surrogate.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : 'N/A'}</span>
             </div>
           </div>
         </div>
