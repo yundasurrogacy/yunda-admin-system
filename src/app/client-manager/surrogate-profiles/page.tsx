@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 // import ManagerLayout from '@/components/manager-layout'
 import { Input } from '@/components/ui/input'
 import { CustomButton } from '@/components/ui/CustomButton'
-import { Search } from 'lucide-react'
+import { Search, User, MapPin, Activity, Calendar } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -24,6 +24,15 @@ interface Surrogate {
   location: string
   country: string
   status: 'Matched' | 'In Progress'
+  age?: string
+  bmi?: string
+  height?: string
+  weight?: string
+  ethnicity?: string
+  education?: string
+  maritalStatus?: string
+  surrogacyExperience?: string
+  updated_at?: string
 }
 
 export default function SurrogateProfiles() {
@@ -82,12 +91,32 @@ export default function SurrogateProfiles() {
           const firstName = detail.contact_information?.first_name || ''
           const lastName = detail.contact_information?.last_name || ''
           const fullName = `${firstName} ${lastName}`.trim() || detail.contact_information?.name || detail.name || ''
+          
+          // 计算年龄
+          const birthDate = detail.contact_information?.date_of_birth
+          let age = ''
+          if (birthDate) {
+            const birth = new Date(birthDate)
+            const now = new Date()
+            const calculatedAge = now.getFullYear() - birth.getFullYear() - (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
+            age = String(calculatedAge)
+          }
+          
           details.push({
             id: detail.id,
             name: fullName,
             location: detail.location || detail.contact_information?.location || '',
             country: detail.contact_information?.country || '',
             status: detail.status || 'Matched',
+            age,
+            bmi: detail.contact_information?.bmi,
+            height: detail.contact_information?.height,
+            weight: detail.contact_information?.weight,
+            ethnicity: detail.contact_information?.ethnicity_selected_key,
+            education: detail.about_you?.education_level_selected_key,
+            maritalStatus: detail.about_you?.marital_status_selected_key,
+            surrogacyExperience: detail.contact_information?.surrogacy_experience_count,
+            updated_at: detail.updated_at,
           })
         }
       }
@@ -269,16 +298,57 @@ export default function SurrogateProfiles() {
                   onMouseEnter={() => handleMouseEnter(surrogate.id)}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg font-semibold text-sage-800">{surrogate.name}</h3>
-                      <p className="text-sm text-sage-800 opacity-60">{surrogate.country || surrogate.location}</p>
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="h-6 w-6 text-sage-600" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-sage-800 truncate">{surrogate.name}</h3>
+                      <p className="text-sm text-sage-600 opacity-60">{t('id')}: {surrogate.id} {surrogate.age ? `• ${t('age')}: ${surrogate.age}` : ''}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm text-sage-700 mb-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-sage-400" />
+                      <span>{surrogate.country || surrogate.location || '-'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {surrogate.bmi && (
+                        <div className="flex items-center gap-1">
+                          <Activity className="w-3 h-3 text-sage-400" />
+                          <span>BMI: {surrogate.bmi}</span>
+                        </div>
+                      )}
+                      {surrogate.height && (
+                        <div><span>{t('height')}: {surrogate.height}</span></div>
+                      )}
+                      {surrogate.weight && (
+                        <div><span>{t('weight')}: {surrogate.weight} {t('lbs')}</span></div>
+                      )}
+                      {surrogate.ethnicity && (
+                        <div><span>{t('ethnicity')}: {surrogate.ethnicity}</span></div>
+                      )}
+                      {surrogate.education && (
+                        <div><span>{t('education')}: {surrogate.education}</span></div>
+                      )}
+                      {surrogate.maritalStatus && (
+                        <div><span>{t('maritalStatus')}: {surrogate.maritalStatus}</span></div>
+                      )}
+                      {surrogate.surrogacyExperience && (
+                        <div className="col-span-2"><span>{t('surrogacyExperience')}: {surrogate.surrogacyExperience} {t('times')}</span></div>
+                      )}
+                    </div>
+                  </div>
+                  <hr className="mb-4 border-sage-100" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-sage-500">
+                      {t('lastUpdate')}: {surrogate.updated_at?.slice(0, 10) || '-'}
+                    </span>
                     <CustomButton
                       className={
                         (hoveredId === surrogate.id
-                          ? "rounded bg-white border border-sage-200 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
-                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none border border-sage-200"
+                          ? "rounded bg-sage-600 text-white font-medium px-4 py-2 text-sm shadow-none"
+                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-2 text-sm shadow-none border border-sage-200"
                         ) + " cursor-pointer"
                       }
                       onClick={() => handleViewProfile(surrogate.id)}
@@ -286,7 +356,6 @@ export default function SurrogateProfiles() {
                       {t('surrogateProfiles.view')}
                     </CustomButton>
                   </div>
-                  <p className="text-sm text-sage-800 opacity-60">{surrogate.status === 'Matched' ? t('surrogateProfiles.role') : surrogate.status}</p>
                 </Card>
               ))}
             </div>

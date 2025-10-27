@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Card } from "@/components/ui/card"
 import { CustomButton } from "@/components/ui/CustomButton"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { Search, Mail, Phone, User, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useDebounce } from "@/hooks/use-debounce"
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client"
@@ -28,6 +28,12 @@ interface ClientProfile {
   status: 'Matched' | 'In Progress'
   created_at: string
   updated_at: string
+  age?: string
+  city?: string
+  state?: string
+  gender?: string
+  ethnicity?: string
+  languages?: string[]
 }
 
 interface Filters {
@@ -119,15 +125,34 @@ export default function ClientProfilesPage() {
         const res = await fetch(`/api/intended-parent-detail?parentId=${parentId}`);
         if (res.ok) {
           const detail = await res.json();
+          const basic = detail.basic_information || {};
+          const family = detail.family_profile || {};
+          const contact = detail.contact_information || {};
+          
+          // 计算年龄
+          let age = '';
+          if (basic.date_of_birth) {
+            const birth = new Date(basic.date_of_birth);
+            const now = new Date();
+            const calculatedAge = now.getFullYear() - birth.getFullYear() - (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+            age = String(calculatedAge);
+          }
+          
           parentDetails.push({
             id: detail.id,
-            name: detail.basic_information?.firstName + ' ' + detail.basic_information?.lastName || detail.name || '',
-            country: detail.family_profile?.country || '',
-            email: detail.contact_information?.email_address || detail.email || '',
-            phone: detail.contact_information?.cell_phone || '',
+            name: `${basic.firstName || ''} ${basic.lastName || ''}`.trim() || detail.name || '',
+            country: family.country || '',
+            email: contact.email_address || detail.email || '',
+            phone: contact.cell_phone || '',
             status: detail.status || 'Matched',
             created_at: detail.created_at || '',
             updated_at: detail.updated_at || '',
+            age,
+            city: family.city,
+            state: family.state_or_province,
+            gender: basic.pronouns || basic.gender_identity,
+            ethnicity: basic.ethnicity,
+            languages: contact.primary_languages_selected_keys || [],
           });
         }
       }
@@ -312,16 +337,54 @@ export default function ClientProfilesPage() {
                   onMouseEnter={() => handleMouseEnter(client.id)}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h3 className="text-lg font-semibold text-sage-800">{client.name}</h3>
-                      <p className="text-sm text-sage-800 opacity-60">{client.country}</p>
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="h-6 w-6 text-sage-600" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-sage-800 truncate">{client.name}</h3>
+                      <p className="text-sm text-sage-600 opacity-60">{t('id')}: {client.id} {client.age ? `• ${t('age')}: ${client.age}` : ''}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm text-sage-700 mb-4">
+                    <div className="flex items-center gap-2 truncate">
+                      <Mail className="w-4 h-4 text-sage-400" />
+                      <span className="truncate">{client.email || '-'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 truncate">
+                      <Phone className="w-4 h-4 text-sage-400" />
+                      <span className="truncate">{client.phone || '-'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 truncate">
+                      <MapPin className="w-4 h-4 text-sage-400" />
+                      <span className="truncate">{[client.city, client.state, client.country].filter(Boolean).join(', ') || '-'}</span>
+                    </div>
+                    {client.gender && (
+                      <div className="text-xs text-sage-600">
+                        {t('genderIdentity')}: {client.gender}
+                      </div>
+                    )}
+                    {client.ethnicity && (
+                      <div className="text-xs text-sage-600">
+                        {t('ethnicity')}: {client.ethnicity}
+                      </div>
+                    )}
+                    {client.languages && client.languages.length > 0 && (
+                      <div className="text-xs text-sage-600">
+                        {t('languages')}: {client.languages.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                  <hr className="mb-4 border-sage-100" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-sage-500">
+                      {t('lastUpdate')}: {client.updated_at?.slice(0, 10) || '-'}
+                    </span>
                     <CustomButton
                       className={
                         (hoveredId === client.id
-                          ? "rounded bg-white border border-sage-200 text-sage-800 font-medium px-4 py-1 text-sm shadow-none"
-                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-1 text-sm shadow-none border border-sage-200"
+                          ? "rounded bg-sage-600 text-white font-medium px-4 py-2 text-sm shadow-none"
+                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-2 text-sm shadow-none border border-sage-200"
                         ) + " cursor-pointer"
                       }
                       onClick={() => handleViewDetails(client.id)}
@@ -329,7 +392,6 @@ export default function ClientProfilesPage() {
                       {t('clientProfiles.view')}
                     </CustomButton>
                   </div>
-                  <p className="text-sm text-sage-800 opacity-60">{client.status === 'Matched' ? t('clientProfiles.clientStatus') : client.status}</p>
                 </Card>
               ))}
             </div>
