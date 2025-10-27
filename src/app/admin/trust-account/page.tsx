@@ -50,7 +50,7 @@ function TrustAccountPageInner() {
   // change_amount 用字符串保存，保证输入负号时受控
   // change_amount 用字符串保存，彻底消除类型警告
   type FormDataType = Omit<Partial<BalanceChange>, 'change_amount'> & { change_amount?: string };
-  const [formData, setFormData] = useState<FormDataType>({ visibility: 'manager', change_type: 'OTHER' });
+  const [formData, setFormData] = useState<FormDataType>({ visibility: 'all', change_type: 'OTHER' });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
@@ -159,7 +159,7 @@ function TrustAccountPageInner() {
       change_amount: '',
       remark: '',
       receiver: '',
-      visibility: 'manager',
+      visibility: 'all',
     });
     setShowForm(true);
   }, [showForm]);
@@ -171,7 +171,7 @@ function TrustAccountPageInner() {
       change_amount: String(item.change_amount ?? ''),
       remark: item.remark,
       receiver: item.receiver,
-      visibility: item.visibility ?? 'manager',
+      visibility: item.visibility ?? 'all',
     });
     setShowForm(true);
   }, []);
@@ -364,7 +364,7 @@ function TrustAccountPageInner() {
         balance_after: newBalance,
         receiver: null,
         remark: t('trustAccount.balanceAdjustment', 'Balance Adjustment'),
-        visibility: 'manager',
+        visibility: 'all',
       };
       
       const res = await fetch('/api/trust-account/change', {

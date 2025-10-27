@@ -50,7 +50,7 @@ function TrustAccountPageInner() {
   // change_amount 用字符串保存，保证输入负号时受控
   // change_amount 用字符串保存，彻底消除类型警告
   type FormDataType = Omit<Partial<BalanceChange>, 'change_amount'> & { change_amount?: string };
-  const [formData, setFormData] = useState<FormDataType>({ visibility: 'manager', change_type: 'OTHER' });
+  const [formData, setFormData] = useState<FormDataType>({ visibility: 'all', change_type: 'OTHER' });
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
@@ -171,7 +171,7 @@ function TrustAccountPageInner() {
       change_amount: '',
       remark: '',
       receiver: '',
-      visibility: 'manager',
+      visibility: 'all',
     });
     setShowForm(true);
   }, [showForm]);
@@ -183,7 +183,7 @@ function TrustAccountPageInner() {
       change_amount: String(item.change_amount ?? ''),
       remark: item.remark,
       receiver: item.receiver,
-      visibility: item.visibility ?? 'manager',
+      visibility: item.visibility ?? 'all',
     });
     setShowForm(true);
   }, []);
@@ -195,11 +195,11 @@ function TrustAccountPageInner() {
       if (!res.ok) throw new Error('删除失败');
       setShowForm(false);
       fetchChanges(); // 删除后刷新数据
-      showToastMessage('记录删除成功', 'success');
+      showToastMessage(t('trustAccount.recordDeletedSuccessfully', 'Record deleted successfully'), 'success');
     } catch (e) {
-      showToastMessage('删除失败', 'error');
+      showToastMessage(t('trustAccount.deleteFailed', 'Delete failed'), 'error');
     }
-  }, [fetchChanges, showToastMessage]);
+  }, [fetchChanges, showToastMessage, t]);
 
   // 使用 useCallback 缓存表单字段变更函数
   // 支持负数和小数输入，change_amount 用字符串保存
@@ -261,13 +261,13 @@ function TrustAccountPageInner() {
       if (!res.ok) throw new Error('保存失败');
       setShowForm(false);
       fetchChanges(); // 新增/编辑后刷新数据
-      showToastMessage(editId ? '记录更新成功' : '记录创建成功', 'success');
+      showToastMessage(editId ? t('trustAccount.recordUpdatedSuccessfully', 'Record updated successfully') : t('trustAccount.recordCreatedSuccessfully', 'Record created successfully'), 'success');
     } catch (e) {
-      showToastMessage('保存失败', 'error');
+      showToastMessage(t('trustAccount.saveFailed', 'Save failed'), 'error');
     } finally {
       setFormSubmitting(false);
     }
-  }, [formSubmitting, caseId, formData, editId, changes, fetchChanges, showToastMessage]);
+  }, [formSubmitting, caseId, formData, editId, changes, fetchChanges, showToastMessage, t]);
 
   // 使用 useCallback 缓存UI事件处理函数
   const handleSortToggle = useCallback(() => {
@@ -332,7 +332,7 @@ function TrustAccountPageInner() {
         balance_after: newBalance,
         receiver: null,
         remark: t('trustAccount.balanceAdjustment', 'Balance Adjustment'),
-        visibility: 'manager',
+        visibility: 'all',
       };
       
       const res = await fetch('/api/trust-account/change', {
@@ -691,7 +691,7 @@ function TrustAccountPageInner() {
                         <td className="py-2 px-4 whitespace-nowrap">
                           {change.visibility === 'all'
                             ? <span className="inline-flex items-center text-green-600 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#22c55e"/><path d="M7 10l2 2 4-4" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityAll', 'All')}</span>
-                            : <span className="inline-flex items-center text-blue-600 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#3b82f6"/><path d="M8 12l-2-2 2-2M12 8l2 2-2 2" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityIntendedParents', 'Intended Parents Only')}</span>
+                            : <span className="inline-flex items-center text-blue-600 font-medium"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" className="mr-1"><circle cx="10" cy="10" r="8" fill="#3b82f6"/><path d="M8 12l-2-2 2-2M12 8l2 2-2 2" stroke="#fff" strokeWidth="2" strokeLinecap="round"/></svg>{t('trustAccount.visibilityManager', 'Manager')}</span>
                           }
                         </td>
                         <td className="py-2 px-4 whitespace-nowrap text-left font-mono" style={{color: change.change_amount > 0 ? '#22c55e' : change.change_amount < 0 ? '#ef4444' : '#222'}}>

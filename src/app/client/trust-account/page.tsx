@@ -342,10 +342,9 @@ function TrustAccountPageInner() {
                             <option value="">{t('trustAccount.allTypes', 'All Types')}</option>
                             {uniqueChangeTypes.map(type => (
                               <option key={type} value={type}>
-                                {type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
-                                {type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
                                 {type === 'OTHER' && t('trustAccount.typeOther', 'Other')}
-                                {!['RECHARGE','CONSUMPTION','OTHER'].includes(type) && t(`trustAccount.type.${type}`, type)}
+                                {type === 'ADJUSTMENT' && t('trustAccount.typeAdjustment', 'Adjustment')}
+                                {!['OTHER','ADJUSTMENT'].includes(type) && t(`trustAccount.type.${type}`, type)}
                               </option>
                             ))}
                           </select>
@@ -387,10 +386,9 @@ function TrustAccountPageInner() {
                       >
                         <td className="py-2 px-4 whitespace-nowrap">{change.created_at.slice(0, 19).replace('T', ' ')}</td>
                         <td className="py-2 px-4 whitespace-nowrap">
-                          {change.change_type === 'RECHARGE' && t('trustAccount.typeRecharge', 'Recharge')}
-                          {change.change_type === 'CONSUMPTION' && t('trustAccount.typeConsumption', 'Consumption')}
                           {change.change_type === 'OTHER' && t('trustAccount.typeOther', 'Other')}
-                          {!['RECHARGE','CONSUMPTION','OTHER'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
+                          {change.change_type === 'ADJUSTMENT' && t('trustAccount.typeAdjustment', 'Adjustment')}
+                          {!['OTHER','ADJUSTMENT'].includes(change.change_type) ? String(t(`trustAccount.type.${change.change_type}`, change.change_type)) : ''}
                         </td>
                         {/* <td className="py-2 px-4 whitespace-nowrap">
                           {change.Visibility === 'true'
