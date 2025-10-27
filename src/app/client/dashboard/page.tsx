@@ -158,6 +158,7 @@ export default function ClientDashboardPage() {
   const [loadingTimeline, setLoadingTimeline] = useState(true);
   const [currentStatus, setCurrentStatus] = useState<string>("");
   const [currentStatusDate, setCurrentStatusDate] = useState<string>("");
+  const [dataLoaded, setDataLoaded] = useState(false);
   // 汇总 about_role 为 intended_parent 的 journey
   const [journeySummary, setJourneySummary] = useState({ total: 0, finished: 0, pending: 0 });
   // IVF CLINIC 和 Trust Balance 数据
@@ -166,6 +167,7 @@ export default function ClientDashboardPage() {
 
   // 获取动态 journey 阶段数据和最新文件/journey
   useEffect(() => {
+    if (dataLoaded) return;
     let ignore = false;
     setLoadingTimeline(true);
     getLatestCaseAndTimeline(t).then(data => {
@@ -214,9 +216,11 @@ export default function ClientDashboardPage() {
         })();
       }
       setLoadingTimeline(false);
+      setDataLoaded(true);
     });
     return () => { ignore = true; };
-  }, [t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 简单的认证检查
   useEffect(() => {

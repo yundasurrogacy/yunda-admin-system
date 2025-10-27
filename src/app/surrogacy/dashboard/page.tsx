@@ -213,6 +213,7 @@ export default function SurrogacyDashboard() {
 
   // 汇总 about_role 为 surrogate_mother 的 journey
   const [journeySummary, setJourneySummary] = useState({ total: 0, finished: 0, pending: 0 });
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -231,7 +232,7 @@ export default function SurrogacyDashboard() {
 
   useEffect(() => {
     // 只在认证后才加载数据
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || dataLoaded) return;
     
     async function fetchData() {
       const surrogateId = getCookie('userId_surrogacy');
@@ -273,9 +274,11 @@ export default function SurrogacyDashboard() {
         });
       }
       setJourneyStages(baseTimeline);
+      setDataLoaded(true);
     }
     fetchData();
-  }, [t, isAuthenticated, gestationalCarrierStages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // caseId变化时获取journal最新更新时间
   useEffect(() => {

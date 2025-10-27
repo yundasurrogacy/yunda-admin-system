@@ -80,6 +80,7 @@ export default function DashboardPage() {
   const [selectedCase, setSelectedCase] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -146,7 +147,9 @@ export default function DashboardPage() {
   }, [cases]);
 
   // 使用 useCallback 缓存获取案例数据函数
-  const fetchCases = useCallback(async () => {
+  const fetchCases = useCallback(async (force: boolean = false) => {
+    if (!force && dataLoaded) return;
+    
     setIsLoading(true);
     setError(null);
     try {
@@ -165,18 +168,19 @@ export default function DashboardPage() {
       const data = await res.json();
       console.log('Cases data:', data);
       setCases(Array.isArray(data) ? data : []);
+      setDataLoaded(true);
     } catch (error: any) {
       console.error('Failed to fetch cases:', error);
       setError(error.message || t('dashboard.errors.unknownError', 'Unknown error occurred'));
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, [t, dataLoaded]);
 
   // 使用 useCallback 缓存刷新数据函数
   const refreshData = useCallback(async () => {
     setIsRefreshing(true)
-    await fetchCases()
+    await fetchCases(true)
     setIsRefreshing(false)
   }, [fetchCases]);
 
@@ -188,10 +192,11 @@ export default function DashboardPage() {
 
   // 只在认证后才加载数据
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchCases()
+    if (isAuthenticated && !dataLoaded) {
+      fetchCases(false)
     }
-  }, [isAuthenticated, fetchCases]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   // 将辅助函数移到组件外部，避免每次渲染重新创建
   const getParentName = useCallback((parent: any) => {

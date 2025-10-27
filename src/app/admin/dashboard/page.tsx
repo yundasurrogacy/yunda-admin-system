@@ -127,6 +127,7 @@ export default function DashboardPage() {
   // 真实案例数据
   const [cases, setCases] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [dataLoaded, setDataLoaded] = useState(false)
   // 申请表统计
   const [surrogateApplications, setSurrogateApplications] = useState<any[]>([])
   const [parentApplications, setParentApplications] = useState<any[]>([])
@@ -152,7 +153,7 @@ export default function DashboardPage() {
 
   // 获取真实案例数据 - 优化：使用 useCallback 避免重复创建函数
   const fetchDashboardData = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || dataLoaded) return;
     
     setLoading(true);
     try {
@@ -170,16 +171,20 @@ export default function DashboardPage() {
       // 使用实际的用户数据而不是申请数据
       setGcTotal(surrogateUsers?.length || 0);
       setIpTotal(parentUsers?.length || 0);
+      setDataLoaded(true);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dataLoaded]);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [fetchDashboardData])
+    if (isAuthenticated && !dataLoaded) {
+      fetchDashboardData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
 
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
   // 阶段统计 - 使用 useMemo 缓存，避免每次渲染重新计算
