@@ -3,27 +3,27 @@ import { getHasuraClient } from '@/config-lib/hasura-graphql-client/hasura-graph
 
 // 新增信托账户变动记录
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { caseId, change_type, change_amount, balance_before, balance_after, remark, receiver, visibility } = body;
-  if (!caseId || !change_type || change_amount === undefined) {
-    return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
-  }
-  const mutation = `
-    mutation InsertChange($object: trust_account_balance_changes_insert_input!) {
-      insert_trust_account_balance_changes_one(object: $object) {
-        id
-        case_cases
-        change_type
-        change_amount
-        balance_before
-        balance_after
-        receiver
-        remark
-        created_at
-      }
-    }
-  `;
   try {
+    const body = await req.json();
+    const { caseId, change_type, change_amount, balance_before, balance_after, remark, receiver, visibility } = body;
+    if (!caseId || !change_type || change_amount === undefined) {
+      return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
+    }
+    const mutation = `
+      mutation InsertChange($object: trust_account_balance_changes_insert_input!) {
+        insert_trust_account_balance_changes_one(object: $object) {
+          id
+          case_cases
+          change_type
+          change_amount
+          balance_before
+          balance_after
+          receiver
+          remark
+          created_at
+        }
+      }
+    `;
     const client = getHasuraClient();
     const res = await client.execute({
       query: mutation,
@@ -42,33 +42,34 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(res.insert_trust_account_balance_changes_one);
   } catch (e) {
+    console.error('Error creating trust account change:', e);
     return NextResponse.json({ error: '新增失败', detail: String(e) }, { status: 500 });
   }
 }
 
 // 修改信托账户变动记录
 export async function PUT(req: NextRequest) {
-  const body = await req.json();
-  const { id, change_type, change_amount, balance_before, balance_after, remark, receiver, visibility } = body;
-  if (!id || !change_type || change_amount === undefined) {
-    return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
-  }
-  const mutation = `
-    mutation UpdateChange($id: bigint!, $changes: trust_account_balance_changes_set_input!) {
-      update_trust_account_balance_changes_by_pk(pk_columns: {id: $id}, _set: $changes) {
-        id
-        case_cases
-        change_type
-        change_amount
-        balance_before
-        balance_after
-        receiver
-        remark
-        created_at
-      }
-    }
-  `;
   try {
+    const body = await req.json();
+    const { id, change_type, change_amount, balance_before, balance_after, remark, receiver, visibility } = body;
+    if (!id || !change_type || change_amount === undefined) {
+      return NextResponse.json({ error: '缺少必要参数' }, { status: 400 });
+    }
+    const mutation = `
+      mutation UpdateChange($id: bigint!, $changes: trust_account_balance_changes_set_input!) {
+        update_trust_account_balance_changes_by_pk(pk_columns: {id: $id}, _set: $changes) {
+          id
+          case_cases
+          change_type
+          change_amount
+          balance_before
+          balance_after
+          receiver
+          remark
+          created_at
+        }
+      }
+    `;
     const client = getHasuraClient();
     const res = await client.execute({
       query: mutation,
@@ -87,27 +88,29 @@ export async function PUT(req: NextRequest) {
     });
     return NextResponse.json(res.update_trust_account_balance_changes_by_pk);
   } catch (e) {
+    console.error('Error updating trust account change:', e);
     return NextResponse.json({ error: '修改失败', detail: String(e) }, { status: 500 });
   }
 }
 
 // 删除信托账户变动记录
 export async function DELETE(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-  if (!id) {
-    return NextResponse.json({ error: '缺少id' }, { status: 400 });
-  }
-  const mutation = `
-    mutation DeleteChange($id: bigint!) {
-      delete_trust_account_balance_changes_by_pk(id: $id) { id }
-    }
-  `;
   try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: '缺少id' }, { status: 400 });
+    }
+    const mutation = `
+      mutation DeleteChange($id: bigint!) {
+        delete_trust_account_balance_changes_by_pk(id: $id) { id }
+      }
+    `;
     const client = getHasuraClient();
     await client.execute({ query: mutation, variables: { id: Number(id) } });
     return NextResponse.json({ success: true });
   } catch (e) {
+    console.error('Error deleting trust account change:', e);
     return NextResponse.json({ error: '删除失败', detail: String(e) }, { status: 500 });
   }
 }

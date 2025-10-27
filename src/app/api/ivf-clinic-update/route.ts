@@ -3,17 +3,17 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 
 // 更新 ivf_clinic
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  // body 应包含 caseId, type, data
-  const { caseId, type, data, aboutRole } = body;
-  
-  if (!caseId || !type || !data) {
-    return NextResponse.json({ error: "缺少必要参数: caseId, type, data" }, { status: 400 });
-  }
-  
-  const client = getHasuraClient();
-  
   try {
+    const body = await req.json();
+    // body 应包含 caseId, type, data
+    const { caseId, type, data, aboutRole } = body;
+    
+    if (!caseId || !type || !data) {
+      return NextResponse.json({ error: "缺少必要参数: caseId, type, data" }, { status: 400 });
+    }
+    
+    const client = getHasuraClient();
+    
     // 构造 GraphQL mutation 来更新数据
     const mutation = `
       mutation UpdateIvfClinic($where: ivf_clinics_bool_exp!, $set: ivf_clinics_set_input!) {
@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
       affected_rows: result.update_ivf_clinics.affected_rows
     });
   } catch (e) {
+    console.error('GraphQL error:', e);
     return NextResponse.json({ error: "更新 ivf_clinic 失败", detail: String(e) }, { status: 500 });
   }
 }

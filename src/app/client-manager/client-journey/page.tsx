@@ -4,7 +4,6 @@ import React, { Suspense, useEffect, useState, useMemo, useCallback } from 'reac
 import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
 // import { AdminLayout } from "../../../components/admin-layout"
-import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -429,7 +428,7 @@ function JourneyInner() {
         </CustomButton>
         <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('journey.Intended Parents Journey')}</h1>
         {/* <p className="text-[#271F18] font-serif mb-8">{t('journey.description')}</p> */}
-        <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
+        <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
             <span className="rounded bg-sage-200 px-4 py-2 text-lg font-bold text-sage-800">
@@ -439,8 +438,8 @@ function JourneyInner() {
           <div className="text-sm text-sage-600">
             {updatedAt ? `${t('journey.updated')} ${updatedAt.slice(0, 10)}` : '-'}
           </div>
-        </Card>
-        <Card className="rounded-xl bg-white p-8 text-sage-800 mb-6 shadow-sm">
+        </div>
+        <div className="rounded-xl bg-white p-8 text-sage-800 mb-6 shadow-sm border border-sage-200">
           <h2 className="text-2xl font-bold text-sage-800 mb-6">{t('journey.statusTimeline')}</h2>
           <div className="relative pl-10">
             {/* 竖线 */}
@@ -453,8 +452,8 @@ function JourneyInner() {
                 : `阶段${zhStages[idx] || idx + 1}：`;
               return (
                 <div key={idx} className="mb-10 relative">
-                  {/* 圆点 */}
-                  <div className="absolute -left-[38px] top-1 w-6 h-6 rounded-full bg-white border-3 border-sage-500 shadow-md" />
+                  {/* 圆点 - 左侧正切竖线 */}
+                  {/* <div className="absolute left-[calc(1.25rem-1.5rem)] top-1 w-6 h-6 rounded-full bg-white border-3 border-sage-500 shadow-md" /> */}
                   <div className="bg-sage-50 rounded-lg p-5 border border-sage-100">
                     <h3 className="text-xl font-bold mb-3 text-sage-800">{stagePrefix}{step.stage}</h3>
                     <div className="mb-4 text-sage-700 text-sm leading-relaxed whitespace-pre-line">{step.description}</div>
@@ -507,7 +506,7 @@ function JourneyInner() {
               );
             })}
           </div>
-        </Card>
+        </div>
       </div>
       {/* 添加 journey 弹窗表单 */}
       {showAddModal && (

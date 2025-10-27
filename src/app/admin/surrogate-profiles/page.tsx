@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, memo } from "react"
 import { getSurrogateMothers, insertSurrogateMother } from "@/lib/graphql/applications"
 import { useRouter } from "next/navigation"
 import type { SurrogateMother } from "@/types/surrogate_mother"
-import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus } from "lucide-react"
+import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus, Mail, Phone } from "lucide-react"
 // import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
@@ -85,95 +85,56 @@ const SurrogateCard = memo(({
   const [showPassword, setShowPassword] = useState(false)
   
   return (
-    <div className="bg-white rounded-lg border border-sage-200 p-6 flex flex-col justify-between shadow-sm w-full text-sage-800 font-medium" style={{minWidth: '0'}}>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center overflow-hidden">
-            {photoUrl ? (
-              <img src={photoUrl} alt="avatar" className="w-12 h-12 object-cover rounded-full" />
-            ) : (
-              <User className="w-6 h-6 text-sage-600" />
-            )}
+    <div className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-hidden">
+      <div className="flex items-center gap-4 mb-2">
+        <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {photoUrl ? (
+            <img src={photoUrl} alt="avatar" className="w-12 h-12 object-cover rounded-full" />
+          ) : (
+            <User className="h-7 w-7 text-sage-400" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-lg text-sage-800 truncate">{ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : surrogate.id}</div>
+          <div className="text-sage-500 text-sm truncate">ID: {surrogate.id}</div>
+          {age !== "-" && (
+            <div className="text-sage-500 text-sm truncate">{age} {t('yearsOld')}</div>
+          )}
+        </div>
+      </div>
+      <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
+        <div className="flex items-center gap-2 truncate">
+          <Mail className="w-4 h-4 text-sage-400" />
+          <span className="truncate">{ci?.email_address || "-"}</span>
+        </div>
+        <div className="flex items-center gap-2 truncate">
+          <Phone className="w-4 h-4 text-sage-400" />
+          <span className="truncate">{ci?.cell_phone_country_code ? `${ci?.cell_phone_country_code} ` : ""}{ci?.cell_phone || "-"}</span>
+        </div>
+        <div className="flex items-center gap-2 truncate">
+          <MapPin className="w-4 h-4 text-sage-400" />
+          <span className="truncate">{ci?.city || "-"}, {ci?.state_or_province || "-"}, {ci?.country || "-"}</span>
+        </div>
+        <div className="flex items-center gap-2 truncate">
+          <Activity className="w-4 h-4 text-sage-400" />
+          <span className="truncate">BMI: {ci?.bmi || '-'} • {t('height')}: {ci?.height || '-'} {typeof ci?.height === 'string' && ci.height.includes("'") ? '' : t('ft')} • {t('weight')}: {ci?.weight || '-'} {t('lbs')}</span>
+        </div>
+        {ci?.surrogacy_experience_count && ci.surrogacy_experience_count > 0 && (
+          <div className="flex items-center gap-2 truncate">
+            <Heart className="w-4 h-4 text-sage-400" />
+            <span className="truncate">{t('surrogacyExperience')}: {ci.surrogacy_experience_count} {t('times')}</span>
           </div>
-          <div>
-            <h3 className="text-sage-800 font-semibold">{ci ? `${ci.first_name || ""} ${ci.last_name || ""}`.trim() : surrogate.id}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-sage-500 font-normal">ID: {surrogate.id}</span>
-              <span className="text-sm text-sage-500 font-normal">•</span>
-              <span className="text-sm text-sage-500 font-normal">{age !== "-" ? t('ageWithUnit', { age }) : t('unknownAge')}</span>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-sage-500 font-normal">{ci?.city || "-"}, {ci?.state_or_province || "-"}, {ci?.country || "-"}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <MapPin className="w-4 h-4 text-sage-500" />
-          <span className="text-sage-600">{t('country')}: {ci?.country || '-'}</span>
-        </div>
-        {/* <div className="flex items-center gap-2 text-sm font-normal">
-          <Heart className="w-4 h-4 text-sage-500" />
-          <span className="text-sage-600">{ph?.has_given_birth ? t('hasBirthHistory') : t('noBirthHistory')}</span>
-        </div> */}
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <Calendar className="w-4 h-4 text-sage-500" />
-          <span className="text-sage-600">{t('lastUpdate')}: {surrogate.updated_at?.slice(0, 10) || '-'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <Activity className="w-4 h-4 text-sage-500" />
-          <span className="text-sage-600">BMI: {ci?.bmi ?? '-'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('height')}: {ci?.height ?? '-'} {typeof ci?.height === 'string' && ci.height.includes("'") ? '' : t('ft')}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('weight')}: {ci?.weight ?? '-'} {t('lbs')}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('ethnicity')}: {ci?.ethnicity_selected_key ?? '-'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('education')}: {surrogate.about_you?.education_level_selected_key ?? '-'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('maritalStatus')}: {surrogate.about_you?.marital_status_selected_key ?? '-'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-normal">
-          <span className="text-sage-600">{t('surrogacyExperience')}: {ci?.surrogacy_experience_count ?? '-'} {t('times')}</span>
-        </div>
-      </div>
-
-      <div className="mb-2 font-normal">
-        <span className="text-sage-600">{t('healthStatus')}: {ph?.medical_conditions_selected_keys?.join(', ') ?? '-'}</span>
-      </div>
-      <div className="mb-2 font-normal">
-        <span className="text-sage-600">{t('backgroundCheck')}: {ph?.background_check_status_selected_key ?? '-'}</span>
-      </div>
-      <div className="mb-2 font-normal">
-        <span className="text-sage-600">{t('birthHistory')}:</span>
-        <ul className="list-disc ml-6">
-          {ph?.pregnancy_histories?.length ? ph.pregnancy_histories.map((h, idx) => (
-            <li key={idx} className="text-sage-600 text-sm font-normal">
-              {h.delivery_date} | {h.delivery_method} | {h.number_of_babies}{t('surrogateProfileDetail.babiesUnit')} | {h.birth_weight}{t('lbs')}
-            </li>
-          )) : <li className="text-sage-600 text-sm font-normal">-</li>}
-        </ul>
-      </div>
-
-      {surrogate.password && (
-        <div className="mb-2 font-normal flex items-center gap-2">
-          <span className="text-sage-600 font-mono text-xs">{t('passwordLabel', 'Password')}:</span>
-          <div className="flex items-center gap-1 flex-1">
-            <span className="font-mono text-sm">
+        )}
+        {surrogate.password && (
+          <div className="flex items-center gap-2 truncate">
+            <span className="font-mono text-xs text-sage-400">{t('passwordLabel')}：</span>
+            <span className="truncate font-medium font-mono">
               {showPassword ? surrogate.password : '••••••••'}
             </span>
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-sage-600 hover:text-sage-800 transition-colors cursor-pointer flex-shrink-0"
+              className="ml-2 text-sage-600 hover:text-sage-800 transition-colors cursor-pointer flex-shrink-0"
               title={showPassword ? t('hidePassword', '隐藏密码') : t('showPassword', '显示密码')}
             >
               {showPassword ? (
@@ -188,22 +149,27 @@ const SurrogateCard = memo(({
               )}
             </button>
           </div>
+        )}
+      </div>
+      <hr className="my-3 border-sage-100" />
+      <div className="flex items-center justify-between text-sage-500 text-sm">
+        <span>
+          {t('lastUpdate')}:<br />{surrogate.updated_at?.slice(0, 10) || "-"}
+        </span>
+        <div className="flex gap-2">
+          <CustomButton
+            className="text-sage-700 px-0 cursor-pointer bg-transparent"
+            onClick={() => onViewProfile(surrogate.id)}
+          >
+            {t('ViewProfile')}
+          </CustomButton>
+          <CustomButton
+            className="text-sage-700 px-2 py-1 border border-sage-300 cursor-pointer bg-white"
+            onClick={() => onResetPassword(surrogate.id)}
+          >
+            {t('resetPassword')}
+          </CustomButton>
         </div>
-      )}
-
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
-        <CustomButton
-          className="text-sage-600 hover:text-sage-800 font-medium cursor-pointer bg-transparent"
-          onClick={() => onViewProfile(surrogate.id)}
-        >
-          {t('ViewProfile')}
-        </CustomButton>
-        <CustomButton
-          className="ml-2 text-sage-600 border border-sage-300 font-medium cursor-pointer bg-white"
-          onClick={() => onResetPassword(surrogate.id)}
-        >
-          {t('resetPassword')}
-        </CustomButton>
       </div>
     </div>
   )

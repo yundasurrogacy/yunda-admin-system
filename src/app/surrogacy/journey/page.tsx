@@ -4,7 +4,6 @@ import React, { Suspense, useEffect, useState, useMemo, useCallback } from 'reac
 import Modal from '@/components/ui/modal';
 // import ManagerLayout from '@/components/manager-layout';
 // import { AdminLayout } from "../../../components/admin-layout"
-import { Card } from '@/components/ui/card'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -129,17 +128,17 @@ const TimelineItem = React.memo(({
 
   return (
     <li className="flex justify-between items-center py-1">
-      <div className="flex flex-col">
-        <span className="text-sage-800">{item.title}</span>
-        {/* 状态只读展示 */}
-        <span className="text-xs text-sage-700 mt-1 border border-sage-200 rounded px-2 py-1 w-fit bg-sage-50 cursor-default">
-          {statusLabel}
-        </span>
-      </div>
-      <CustomButton
-        className="rounded px-4 py-1 text-xs bg-sage-100 text-sage-700 hover:bg-sage-200 transition-colors cursor-pointer"
-        onClick={() => handleViewClick(stageNumber, item.title)}
-      >
+                        <div className="flex flex-col">
+                          <span className="text-sage-800">{item.title}</span>
+                          {/* 状态只读展示 */}
+                          <span className="text-xs text-sage-700 mt-1 border border-sage-200 rounded px-2 py-1 w-fit bg-white cursor-default">
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <CustomButton
+                          className="rounded px-4 py-1 text-xs bg-sage-50 text-sage-700 hover:bg-sage-100 transition-colors cursor-pointer border border-sage-200"
+                          onClick={() => handleViewClick(stageNumber, item.title)}
+                        >
         {t('viewDetails')}
       </CustomButton>
     </li>
@@ -402,7 +401,7 @@ function JourneyInner() {
         {t('back', '返回')}
       </CustomButton> */}
       <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('journey.Gestational Carrier Journey')}</h1>
-      <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
+      <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
           <span className="rounded bg-sage-200 px-4 py-2 text-lg font-bold text-sage-800">
@@ -412,8 +411,8 @@ function JourneyInner() {
         <div className="text-sm text-sage-600">
           {updatedDisplay}
         </div>
-      </Card>
-      <Card className="rounded-xl bg-white p-6 text-sage-800 mb-6">
+      </div>
+      <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
         <h2 className="text-xl text-sage-800 mb-4">{t('journey.statusTimeline')}</h2>
         <div className="relative pl-8">
           {/* 竖线 */}
@@ -427,9 +426,9 @@ function JourneyInner() {
               <div key={idx} className="mb-8 relative">
                 {/* 圆点 */}
                 <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-sage-200" />
-                <h3 className="text-lg mb-2 text-sage-800">{stagePrefix}{step.stage}</h3>
-                <div className="mb-2 text-sage-600 text-sm whitespace-pre-line">{step.description}</div>
-                <ul className="mb-2">
+                <h3 className="text-lg mb-2 text-sage-800 ml-6">{stagePrefix}{step.stage}</h3>
+                <div className="mb-2 text-sage-600 text-sm whitespace-pre-line ml-6">{step.description}</div>
+                <ul className="mb-2 ml-6">
                   {step.items.map((item: { id: any; title: string; process_status?: string }) => (
                     <TimelineItem
                       key={item.id}
@@ -445,7 +444,7 @@ function JourneyInner() {
             );
           })}
         </div>
-      </Card>
+      </div>
 
       {/* Toast 通知组件 */}
       {showToast && (

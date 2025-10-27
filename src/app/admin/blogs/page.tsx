@@ -721,7 +721,7 @@ function AdminBlogsPage() {
       fetchBlogs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchValue, selectedCategory]);
+  }, [page, searchValue, selectedCategory, isAuthenticated]);
 
   // 只加载一次分类列表
   useEffect(() => {

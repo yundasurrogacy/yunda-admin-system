@@ -71,6 +71,7 @@ export async function GET(req: Request) {
     const res = await client.execute({ query, variables: { managerId } });
     return NextResponse.json(res.cases || []);
   } catch (e) {
+    console.error('Error fetching cases by manager:', e);
     return NextResponse.json({ error: "获取经理案例失败", detail: String(e) }, { status: 500 });
   }
 }

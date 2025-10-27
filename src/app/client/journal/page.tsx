@@ -45,12 +45,12 @@ const CommentItem = memo(({
   }, [comment.created_at]);
 
   return (
-    <div className="bg-white rounded px-2 py-2 text-xs border border-[#E6E6E6] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+    <div className="bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2.5 text-sm border border-sage-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
       <div className="flex-1 min-w-0">
-        <span className="font-semibold mr-2 text-sage-800">{displayName}</span>
-        <span>{comment.content}</span>
+        <span className="font-bold mr-2 text-sage-700">{displayName}</span>
+        <span className="text-sage-600">{comment.content}</span>
       </div>
-      <span className="sm:ml-4 text-[11px] text-gray-400 whitespace-nowrap">
+      <span className="sm:ml-4 text-xs text-gray-500 whitespace-nowrap font-medium">
         {formattedDate}
       </span>
     </div>
@@ -262,36 +262,45 @@ function JournalPageInner() {
 
   return (
     <div
-      className="min-h-screen bg-[#FBF0DA40] text-sage-800 px-2 md:px-8 py-6 flex flex-col items-center"
+      className="min-h-screen bg-main-bg text-sage-800 px-4 lg:px-12 py-8"
     >
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-4 md:p-8 flex flex-col gap-6">
+      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-xl p-6 md:p-10 flex flex-col gap-8 mx-auto">
         {/* 标题与描述 */}
-        <h1 className="text-2xl font-medium mb-1 text-sage-800">{t('myCases.surrogateJournalTitle', t('journal.surrogateTitle', 'Surrogate Journal'))}</h1>
-        <p className="mb-6 text-base text-sage-800">{t('journal.surrogateDescription', 'Here you can find the latest updates and photos from your surrogate mother, allowing you to follow her progress in real-time')}</p>
+        <div className="border-b border-sage-200 pb-6">
+          <h1 className="text-3xl font-bold mb-3 text-sage-800">{t('myCases.surrogateJournalTitle', t('journal.surrogateTitle', 'Surrogate Journal'))}</h1>
+          <p className="text-base text-sage-600 leading-relaxed">{t('journal.surrogateDescription', 'Here you can find the latest updates and photos from your surrogate mother, allowing you to follow her progress in real-time')}</p>
+        </div>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* 左侧日志卡片区 */}
-          <div className="flex-1 flex flex-col gap-6 min-w-0">
+          <div className="flex-[3] flex flex-col gap-6 min-w-0">
             {loading ? (
-              <div className="text-center py-8">{t('loadingText', '加载中...')}</div>
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-sage-300 border-t-sage-600"></div>
+                <p className="mt-4 text-sage-600 font-medium">{t('loadingText', '加载中...')}</p>
+              </div>
             ) : (
-              posts.map(post => (
+              posts.map((post, index) => (
                 <div
                   key={post.id}
-                  className="bg-[#FBF0DA] rounded-xl shadow-md p-4 flex flex-col gap-4 min-w-0"
+                  className="bg-gradient-to-br from-[#FBF0DA] to-[#F9ECD8] rounded-2xl shadow-lg p-6 flex flex-col gap-5 min-w-0"
                 >
                   {/* 1. 帖子文字内容 - 最上面 */}
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="text-lg font-medium flex-1 min-w-0 text-sage-800">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
-                    <div className="text-xs text-[#271F18] opacity-60 whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
+                  <div className="flex justify-between items-start gap-3 pb-3 border-b border-sage-200">
+                    <div className="text-lg font-semibold flex-1 min-w-0 text-sage-800 leading-relaxed">{post.title || post.content || t('myCases.publishUpdate', t('journey.stage1.title', 'This week I felt...'))}</div>
+                    <div className="text-xs font-medium text-sage-600 bg-white px-2 py-1 rounded-full whitespace-nowrap">{post.created_at ? new Date(post.created_at).toLocaleDateString() : ""}</div>
                   </div>
 
                   {/* 2. 图片 - 在文字下面 */}
                   {Array.isArray(post.url) && post.url.length > 0 && (
                     <div className="w-full">
-                      <div className={`grid gap-2 ${post.url.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                        {post.url.slice(0, 4).map((url: string, index: number) => (
-                          <div key={index} className="w-full rounded-md overflow-hidden">
-                            <img src={url} alt={`post image ${index + 1}`} className="w-full h-auto max-h-96 object-contain rounded-md mx-auto" />
+                      <div className={`grid gap-3 ${post.url.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        {post.url.slice(0, 4).map((url: string, imgIndex: number) => (
+                          <div key={imgIndex} className="w-full rounded-xl overflow-hidden shadow-md">
+                            <img 
+                              src={url} 
+                              alt={`post image ${imgIndex + 1}`} 
+                              className="w-full h-auto max-h-96 object-contain rounded-xl mx-auto" 
+                            />
                           </div>
                         ))}
                       </div>
@@ -299,25 +308,37 @@ function JournalPageInner() {
                   )}
 
                   {/* 3. 评论区域 - 最下面 */}
-                  <div className="pt-3 border-t border-sage-300">
-                    <div className="mb-2 text-sm font-semibold text-sage-800">{t('comments', '评论：')}</div>
-                    <div className="flex flex-col gap-2 mb-3">
-                      {(comments[post.id] || post.post_comments || []).map((c: any) => (
-                        <CommentItem key={c.id} comment={c} t={t} />
-                      ))}
+                  <div className="pt-4 border-t border-sage-200">
+                    <div className="mb-3 text-sm font-bold text-sage-800 flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" clipRule="evenodd" />
+                      </svg>
+                      {t('comments', '评论：')}
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col gap-3 mb-4">
+                      {(comments[post.id] || post.post_comments || []).length > 0 ? (
+                        (comments[post.id] || post.post_comments || []).map((c: any) => (
+                          <CommentItem key={c.id} comment={c} t={t} />
+                        ))
+                      ) : (
+                        <div className="text-sm text-sage-500 italic py-2">{t('journal.noComments', '暂无评论')}</div>
+                      )}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <input
                         type="text"
-                        className="border border-gray-300 rounded px-2 py-1 text-xs flex-1 min-w-0 focus:outline-none focus:border-sage-400 focus:shadow-sm transition-colors"
+                        className="border border-sage-300 rounded-lg px-4 py-2.5 text-sm flex-1 min-w-0 bg-white focus:outline-none focus:border-sage-400 focus:shadow-sm placeholder:text-sage-400"
                         placeholder={t('ivfClinic.addNewNote', '写评论...')}
                         value={commentTexts[post.id] || ""}
                         onChange={handleCommentTextChange(post.id)}
                       />
                       <button
-                        className="px-3 py-1 bg-[#271F18] text-white rounded text-xs w-full sm:w-auto font-medium focus:outline-none hover:bg-[#1a1a1a] transition cursor-pointer"
+                        className="px-6 py-2.5 bg-sage-700 text-white rounded-lg text-sm w-full sm:w-auto font-semibold focus:outline-none focus:ring-2 focus:ring-sage-300 hover:bg-sage-800 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() => handleComment(post.id)}
-                      >{t('submit', '发表评论')}</button>
+                        disabled={loading || !commentTexts[post.id]?.trim()}
+                      >
+                        {t('submit', '发表评论')}
+                      </button>
                     </div>
                   </div>
                 </div>

@@ -332,26 +332,34 @@ export default function ClientProfilesPage() {
         ) : (
           <>
             <div
-              className="grid grid-cols-3 gap-6"
+              className="grid w-full"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '32px',
+                alignItems: 'stretch',
+              }}
               ref={containerRef}
             >
               {pagedClients.map(client => (
                 <Card 
                   key={client.id} 
-                  className="relative p-6 rounded-xl bg-white hover:shadow-lg transition-shadow text-sage-800 font-medium"
+                  className="bg-white border border-sage-200 rounded-xl shadow-sm p-6 flex flex-col justify-between w-full min-w-0 transition hover:shadow-md overflow-visible relative"
                   onMouseEnter={() => handleMouseEnter(client.id)}
                   onMouseLeave={handleMouseLeave}
                 >
-                  <div className="flex items-start gap-4 mb-4">
+                  <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-6 w-6 text-sage-600" />
+                      <User className="h-7 w-7 text-sage-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-sage-800 truncate">{client.name}</h3>
-                      <p className="text-sm text-sage-600 opacity-60">{t('id')}: {client.id} {client.age ? `• ${t('age')}: ${client.age}` : ''}</p>
+                      <div className="font-semibold text-lg text-sage-800 truncate">{client.name}</div>
+                      <div className="text-sage-500 text-sm truncate">ID: {client.id}</div>
+                      {client.age && (
+                        <div className="text-sage-500 text-sm truncate">{client.age} {t('yearsOld')}</div>
+                      )}
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-sage-700 mb-4">
+                  <div className="mt-2 space-y-1 text-sage-700 text-[15px]">
                     <div className="flex items-center gap-2 truncate">
                       <Mail className="w-4 h-4 text-sage-400" />
                       <span className="truncate">{client.email || '-'}</span>
@@ -364,37 +372,17 @@ export default function ClientProfilesPage() {
                       <MapPin className="w-4 h-4 text-sage-400" />
                       <span className="truncate">{[client.city, client.state, client.country].filter(Boolean).join(', ') || '-'}</span>
                     </div>
-                    {client.gender && (
-                      <div className="text-xs text-sage-600">
-                        {t('genderIdentity')}: {client.gender}
-                      </div>
-                    )}
-                    {client.ethnicity && (
-                      <div className="text-xs text-sage-600">
-                        {t('ethnicity')}: {client.ethnicity}
-                      </div>
-                    )}
-                    {client.languages && client.languages.length > 0 && (
-                      <div className="text-xs text-sage-600">
-                        {t('languages')}: {client.languages.join(', ')}
-                      </div>
-                    )}
                   </div>
-                  <hr className="mb-4 border-sage-100" />
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-sage-500">
-                      {t('lastUpdate')}: {client.updated_at?.slice(0, 10) || '-'}
+                  <hr className="my-3 border-sage-100" />
+                  <div className="flex items-center justify-between text-sage-500 text-sm">
+                    <span>
+                      {t('lastUpdate')}:<br />{client.updated_at?.slice(0, 10) || "-"}
                     </span>
                     <CustomButton
-                      className={
-                        (hoveredId === client.id
-                          ? "rounded bg-sage-600 text-white font-medium px-4 py-2 text-sm shadow-none"
-                          : "rounded bg-sage-100 text-sage-800 font-medium px-4 py-2 text-sm shadow-none border border-sage-200"
-                        ) + " cursor-pointer"
-                      }
+                      className="text-sage-700 px-0 cursor-pointer bg-transparent"
                       onClick={() => handleViewDetails(client.id)}
                     >
-                      {t('clientProfiles.view')}
+                      {t('ViewProfile')}
                     </CustomButton>
                   </div>
                 </Card>

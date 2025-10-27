@@ -52,6 +52,15 @@ function getServiceColor(service: string): string {
   }
 }
 
+// 计算年龄的辅助函数
+function calculateAge(dateOfBirth: string | undefined): string {
+  if (!dateOfBirth) return "";
+  const birth = new Date(dateOfBirth);
+  const now = new Date();
+  const age = now.getFullYear() - birth.getFullYear() - (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+  return String(age);
+}
+
 // 提取客户卡片为独立组件并使用 memo 优化
 const ClientCard = memo(({ 
   client, 
@@ -68,6 +77,7 @@ const ClientCard = memo(({
   const contact = client.contact_information || {}
   const family = client.family_profile || {}
   const service = client.program_interests?.interested_services_selected_keys || "-"
+  const age = calculateAge(basic.date_of_birth)
   const [showPassword, setShowPassword] = useState(false)
   
   return (
@@ -78,7 +88,10 @@ const ClientCard = memo(({
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-lg text-sage-800 truncate">{basic.firstName} {basic.lastName}</div>
-          <div className="text-sage-500 text-sm truncate">{client.id}</div>
+          <div className="text-sage-500 text-sm truncate">ID: {client.id}</div>
+          {age && (
+            <div className="text-sage-500 text-sm truncate">{age} {t('yearsOld')}</div>
+          )}
         </div>
         <div className="flex flex-col gap-2 items-end">
           {/* <span className="bg-sage-100 text-sage-700 px-3 py-1 text-xs rounded-full">{t('active')}</span> */}
@@ -92,12 +105,18 @@ const ClientCard = memo(({
         </div>
         <div className="flex items-center gap-2 truncate">
           <Phone className="w-4 h-4 text-sage-400" />
-          <span className="truncate">{contact.cell_phone_country_code ? `+${contact.cell_phone_country_code} ` : ""}{contact.cell_phone}</span>
+          <span className="truncate">{contact.cell_phone_country_code ? `${contact.cell_phone_country_code} ` : ""}{contact.cell_phone}</span>
         </div>
         <div className="flex items-center gap-2 truncate">
           <MapPin className="w-4 h-4 text-sage-400" />
           <span className="truncate">{family.city}, {family.state_or_province}, {family.country}</span>
         </div>
+        {client.program_interests?.interested_services_selected_keys && (
+          <div className="flex items-center gap-2 truncate">
+            <Search className="w-4 h-4 text-sage-400" />
+            <span className="truncate">{t('interestedServices')}: {client.program_interests?.interested_services_selected_keys || '-'}</span>
+          </div>
+        )}
         {client.password && (
           <div className="flex items-center gap-2 truncate">
             <span className="font-mono text-xs text-sage-400">{t('passwordLabel')}：</span>

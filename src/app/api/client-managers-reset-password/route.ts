@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client";
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { id, password } = body;
-  if (!id || !password) {
-    return NextResponse.json({ error: "Missing id or password" }, { status: 400 });
-  }
-  const client = getHasuraClient();
   try {
+    const body = await req.json();
+    const { id, password } = body;
+    if (!id || !password) {
+      return NextResponse.json({ error: "Missing id or password" }, { status: 400 });
+    }
+    const client = getHasuraClient();
     const mutation = `
       mutation ResetClientManagerPassword($id: bigint!, $password: String!) {
         update_client_managers(
@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to reset password", details: error }, { status: 500 });
+    console.error('Error resetting password:', error);
+    return NextResponse.json({ error: "Failed to reset password", details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

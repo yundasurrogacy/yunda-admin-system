@@ -3,14 +3,14 @@ import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graph
 
 // 新增 journey 并同时新增 cases_files
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  // body 应包含 journey 相关字段和 files 列表
-  const { journey, files } = body;
-  if (!journey) {
-    return NextResponse.json({ error: "缺少 journey 数据" }, { status: 400 });
-  }
-  const client = getHasuraClient();
   try {
+    const body = await req.json();
+    // body 应包含 journey 相关字段和 files 列表
+    const { journey, files } = body;
+    if (!journey) {
+      return NextResponse.json({ error: "缺少 journey 数据" }, { status: 400 });
+    }
+    const client = getHasuraClient();
     // 构造 GraphQL mutation
     const mutation = `
       mutation InsertJourneyWithFiles($case_cases: bigint, $stage: bigint, $title: String, $files: [cases_files_insert_input!]!) {
@@ -31,10 +31,6 @@ export async function POST(req: NextRequest) {
       title: journey.title,
       files: files || []
     };
-    // const variables = {
-    //   journey,
-    //   files: files || []
-    // };
     const result = await client.execute({ query: mutation, variables });
     return NextResponse.json({ journey: result.insert_journeys_one });
   } catch (e) {

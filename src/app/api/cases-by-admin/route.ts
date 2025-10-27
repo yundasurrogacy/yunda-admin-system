@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     });
     return NextResponse.json(res.insert_journeys_one);
   } catch (e) {
+    console.error('Error adding journey:', e);
     return NextResponse.json({ error: "添加失败", detail: String(e) }, { status: 500 });
   }
 }
@@ -81,6 +82,7 @@ export async function GET(req: Request) {
     const res = await client.execute({ query });
     return NextResponse.json(res.cases || []);
   } catch (e) {
+    console.error('Error fetching cases:', e);
     return NextResponse.json({ error: "获取全部案例失败", detail: String(e) }, { status: 500 });
   }
 }

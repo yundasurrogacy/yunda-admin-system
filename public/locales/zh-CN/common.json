@@ -832,6 +832,8 @@
       "reload": "重新加载"
     }
   },
+  "me": "我",
+  "intendedParent": "准父母",
   "journey": {
     "title": "旅程",
     "status": {
@@ -935,7 +937,8 @@
   "journal": {
     "title": "日记",
     "surrogateTitle": "代孕母日记",
-    "surrogateDescription": "这里您可以找到代孕母的最新信息和照片，您可以关注她的实时情况"
+    "surrogateDescription": "这里您可以找到代孕母的最新信息和照片，您可以关注她的实时情况",
+    "noComments": "暂无评论"
   },
   "N/A": "无",
   "loadFailed": "加载失败",

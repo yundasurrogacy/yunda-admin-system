@@ -86,6 +86,8 @@
   "confirmAssign": "Confirm Assign",
   "applicationNumber": "Application Number",
   "yearsOld": " years old",
+  "ageWithUnit": "{{age}} years old",
+  "unknownAge": "Unknown",
   "hello": "Hello, world!",
   "welcome": "Welcome to Yunda Admin System",
   "menu": "MENU",
@@ -565,6 +567,8 @@
   "searchClients": "Search clients...",
   "viewProfile": "View Profile",
   "active": "Active",
+  "me": "Me",
+  "intendedParent": "Intended Parent",
   "ivfClinic": {
     "title": "IVF Clinic",
     "selectFile": "Select File",
@@ -975,7 +979,8 @@
   "journal": {
     "title": "Journal",
     "surrogateTitle": "Surrogate Journal",
-    "surrogateDescription": "Here you can find the latest updates and photos from your surrogate, allowing you to follow her progress in real-time"
+    "surrogateDescription": "Here you can find the latest updates and photos from your surrogate, allowing you to follow her progress in real-time",
+    "noComments": "No comments yet"
   },
   "N/A": "N/A",
   "loadFailed": "Load Failed",
