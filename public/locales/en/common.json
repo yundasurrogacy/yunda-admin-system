@@ -459,14 +459,13 @@
       "journey": "Journey"
     },
     "noDocuments": "No Documents",
-    "noDocumentsDesc": "No documents found under current filter"
+    "noDocumentsDesc": "No documents found under current filters"
   },
   "clientDocuments": {
     "title": "Documents",
     "addDocument": "Add Document",
     "loading": "Loading documents...",
-    "client": "Client",
-    "surrogate": "Surrogate",
+    "search": "Search",
     "filters": {
       "all": "All",
       "embryoDocs": "Embryo Documents",

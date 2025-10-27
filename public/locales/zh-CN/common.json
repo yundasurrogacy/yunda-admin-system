@@ -1059,6 +1059,7 @@
     },
     "errors": {
       "noSurrogateId": "未找到代孕母ID",
+      "noParentId": "未找到准父母ID",
       "fetchFailed": "获取文档失败",
       "unknownError": "发生未知错误"
     },
@@ -1085,8 +1086,7 @@
     "title": "文档",
     "addDocument": "添加文档",
     "loading": "正在加载文档...",
-    "client": "客户",
-    "surrogate": "代孕母",
+    "search": "搜索",
     "filters": {
       "all": "全部",
       "embryoDocs": "胚胎文档",
@@ -1116,9 +1116,7 @@
       "name": "名称",
       "type": "类型",
       "note": "备注"
-    },
-    "noDocuments": "暂无文档",
-    "noDocumentsDesc": "当前筛选条件下没有找到文档"
+    }
   },
   "pageLayout": {
     "searchPlaceholder": "搜索..."
