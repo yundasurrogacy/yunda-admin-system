@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
       {
         source: '/surrogate-journey',
         destination: '/surrogate-process',
-        permanent: true,
+        statusCode: 301,
       },
     ];
   },
