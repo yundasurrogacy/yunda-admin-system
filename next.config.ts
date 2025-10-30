@@ -15,6 +15,17 @@ const nextConfig: NextConfig = {
     domains: ['qiniu-storage.weweknow.com'],
   },
 
+  // 永久 301 跳转：/surrogate-journey -> /surrogate-process
+  async redirects() {
+    return [
+      {
+        source: '/surrogate-journey',
+        destination: '/surrogate-process',
+        permanent: true,
+      },
+    ];
+  },
+
   // 禁用静态资源缓存
   generateEtags: false,
   // 永久 301 跳转：/surrogate-journey -> /surrogate-process
