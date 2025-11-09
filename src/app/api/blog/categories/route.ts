@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const hasuraClient = getHasuraClient();
     const query = `query GetCategories { 
-      blogs { 
+      blogs (distinct_on:category){ 
         category 
       } 
     }`;
