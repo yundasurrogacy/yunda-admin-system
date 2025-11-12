@@ -526,6 +526,12 @@ const MyCasesPage = () => {
                     >
                       {t('myCases.trustAccount')}
                     </CustomButton>
+                  <CustomButton 
+                    className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/client-manager/journal?caseId=${item.id}`)}
+                  >
+                    {t('myCases.journal', 'JOURNAL')}
+                  </CustomButton>
                 </div>
               </div>
             ))}

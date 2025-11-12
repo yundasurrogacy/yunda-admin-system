@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, memo } from "react"
 import { getSurrogateMothers, insertSurrogateMother } from "@/lib/graphql/applications"
 import { useRouter } from "next/navigation"
 import type { SurrogateMother } from "@/types/surrogate_mother"
-import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus, Mail, Phone } from "lucide-react"
+import { Search, Filter, User, Heart, Calendar, MapPin, Activity, Plus, Mail, Phone, Lock } from "lucide-react"
 // import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
@@ -127,6 +127,7 @@ const SurrogateCard = memo(({
         )}
         {surrogate.password && (
           <div className="flex items-center gap-2 truncate">
+            <Lock className="w-4 h-4 text-sage-400" />
             <span className="font-mono text-xs text-sage-400">{t('passwordLabel')}：</span>
             <span className="truncate font-medium font-mono">
               {showPassword ? surrogate.password : '••••••••'}

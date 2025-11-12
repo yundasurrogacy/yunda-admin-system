@@ -574,6 +574,12 @@ export default function AllCasesPage() {
                     >
                       {t('myCases.trustAccount')}
                     </CustomButton>
+                    <CustomButton 
+                      className="px-3 py-1 rounded border border-sage-200 bg-sage-50 text-sage-700 text-xs hover:bg-sage-100 transition-colors cursor-pointer"
+                      onClick={() => router.push(`/admin/journal?caseId=${c.id}`)}
+                    >
+                      {t('myCases.journal', 'JOURNAL')}
+                    </CustomButton>
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-sage-500 text-sm font-medium">{t('createdAt')}{c.created_at ? new Date(c.created_at).toLocaleString() : "-"}</span>

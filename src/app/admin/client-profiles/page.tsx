@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from "react"
 import { useRouter } from "next/navigation"
 import { getIntendedParents, insertIntendedParent } from "@/lib/graphql/applications"
-import { Search, Filter, User, MapPin, Phone, Mail, Plus } from "lucide-react"
+import { Search, Filter, User, MapPin, Phone, Mail, Plus, Lock } from "lucide-react"
 // import { AdminLayout } from "../../../components/admin-layout"
 import { PageHeader, PageContent } from "@/components/ui/page-layout"
 import { CustomButton } from "@/components/ui/CustomButton"
@@ -119,6 +119,7 @@ const ClientCard = memo(({
         )}
         {client.password && (
           <div className="flex items-center gap-2 truncate">
+            <Lock className="w-4 h-4 text-sage-400" />
             <span className="font-mono text-xs text-sage-400">{t('passwordLabel')}：</span>
             <span className="truncate font-medium font-mono">
               {showPassword ? client.password : '••••••••'}

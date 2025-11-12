@@ -268,8 +268,8 @@ export default function ParentsApplicationsPage() {
   const [allApplications, setAllApplications] = useState<Application[]>([])
 
   // 使用 useCallback 缓存数据加载函数
-  const loadApplications = useCallback(async () => {
-    if (dataLoaded) return;
+  const loadApplications = useCallback(async (forceReload = false) => {
+    if (!forceReload && dataLoaded) return;
     
     try {
       setLoading(true)
@@ -295,11 +295,19 @@ export default function ParentsApplicationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
 
+  // 当筛选条件改变时重新加载数据
+  useEffect(() => {
+    if (isAuthenticated && dataLoaded) {
+      loadApplications(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter])
+
   // 使用 useCallback 缓存状态更新函数
   const handleStatusUpdate = useCallback(async (id: number, newStatus: ApplicationStatus) => {
     try {
       await updateApplicationStatus(id, newStatus)
-      await loadApplications() // 重新加载数据
+      await loadApplications(true) // 强制重新加载数据
     } catch (error) {
       console.error('Failed to update status:', error)
     }
