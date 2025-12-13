@@ -160,6 +160,7 @@ export default function ParentsApplicationDetailPage() {
     const familyProfile = appData?.family_profile || {}
     const programInterests = appData?.program_interests || {}
     const referral = appData?.referral || {}
+    const embryoMedicalStatus = appData?.embryo_medical_status || {}
     
     // 格式化多选项
     const languages = Array.isArray(contactInfo.primary_languages) 
@@ -168,6 +169,9 @@ export default function ParentsApplicationDetailPage() {
     const ethnicity = Array.isArray(basicInfo.ethnicity) 
       ? basicInfo.ethnicity.join(', ') 
       : (basicInfo.ethnicity || 'N/A')
+    const preferredContactMethod = contactInfo.preferred_contact_method 
+      ? contactInfo.preferred_contact_method.split(',').join(', ')
+      : 'N/A'
 
     return {
       basicInfo,
@@ -175,8 +179,10 @@ export default function ParentsApplicationDetailPage() {
       familyProfile,
       programInterests,
       referral,
+      embryoMedicalStatus,
       languages,
-      ethnicity
+      ethnicity,
+      preferredContactMethod
     }
   }, [application])
 
@@ -229,7 +235,7 @@ export default function ParentsApplicationDetailPage() {
     )
   }
 
-  const { basicInfo, contactInfo, familyProfile, programInterests, referral, languages, ethnicity } = parsedData
+  const { basicInfo, contactInfo, familyProfile, programInterests, referral, embryoMedicalStatus, languages, ethnicity, preferredContactMethod } = parsedData
 
   return (
       <PageContent>
@@ -335,6 +341,10 @@ export default function ParentsApplicationDetailPage() {
                     <span className="text-sage-500">{t('languages')}:</span>
                     <span className="text-sage-800">{languages}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-sage-500">{t('preferredContactMethod', '首选联系方式')}:</span>
+                    <span className="text-sage-800">{preferredContactMethod}</span>
+                  </div>
                 </div>
               </div>
 
@@ -347,6 +357,10 @@ export default function ParentsApplicationDetailPage() {
                   <div className="flex justify-between">
                     <span className="text-sage-500">{t('sexualOrientation')}:</span>
                     <span className="text-sage-800">{familyProfile.sexual_orientation || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sage-500">{t('relationshipStatus', '关系状态')}:</span>
+                    <span className="text-sage-800">{familyProfile.relationship_status || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sage-500">{t('city')}:</span>
@@ -385,6 +399,48 @@ export default function ParentsApplicationDetailPage() {
                   <span className="text-sage-500">{t('desiredChildrenCount')}:</span>
                   <span className="text-sage-800">{getChildrenCountName(programInterests.desired_children_count || 'N/A')}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 胚胎与医疗情况 */}
+          <div className="bg-white rounded-lg border border-sage-200 p-6">
+            <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2 mb-4">
+              <FileText className="w-5 h-5" />
+              {t('embryoMedicalStatus', '胚胎与医疗情况')}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-sage-500">{t('hasEmbryos', '是否已经有胚胎')}:</span>
+                  <span className="text-sage-800">{embryoMedicalStatus.has_embryos || 'N/A'}</span>
+                </div>
+                {embryoMedicalStatus.has_embryos === 'Yes' && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-sage-500">{t('embryoClinicName', '胚胎所在诊所')}:</span>
+                      <span className="text-sage-800">{embryoMedicalStatus.embryo_clinic_name || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sage-500">{t('embryoCount', '胚胎数量')}:</span>
+                      <span className="text-sage-800">{embryoMedicalStatus.embryo_count || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sage-500">{t('pgtStatus', '是否做过PGT')}:</span>
+                      <span className="text-sage-800">{embryoMedicalStatus.pgt_status || 'N/A'}</span>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-sage-500">{t('hasFertilityClinic', '是否已有美国生殖诊所')}:</span>
+                  <span className="text-sage-800">{embryoMedicalStatus.has_fertility_clinic || 'N/A'}</span>
+                </div>
+                {embryoMedicalStatus.has_fertility_clinic === 'Yes' && (
+                  <div className="flex justify-between">
+                    <span className="text-sage-500">{t('fertilityClinicName', '诊所名称')}:</span>
+                    <span className="text-sage-800">{embryoMedicalStatus.fertility_clinic_name || 'N/A'}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

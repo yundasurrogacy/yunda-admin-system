@@ -111,13 +111,14 @@ export interface ContactInformation {
   email_address: string; //邮箱地址
   primary_languages: string[]; //主要语言(english, mandarin, cantonese, spanish, french, korean, japanese, hindi, vietnamese, russian, arabic, portuguese, tagalog, german, italian, other)
   primary_languages_selected_keys: PrimaryLanguage[]; //主要语言选择键,一般是多语言的key,用于回显
+  preferred_contact_method?: string; //首选联系方式(Phone, Email, Others)
 }
 
 // 家庭资料组合
 export interface FamilyProfile {
   sexual_orientation: string; //性取向(heterosexual, homosexual, bisexual, pansexual, asexual, other)
   sexual_orientation_selected_key: SexualOrientation; //性取向选择键,一般是多语言的key,用于回显
-
+  relationship_status?: string; //关系状态(Married, Single, Partnered)
   city: string; //城市
   country: string; //国家
   country_selected_key: string; //国家选择键,一般是多语言的key,用于回显
@@ -146,6 +147,16 @@ export interface Referral {
   initial_questions: string; //初步问题
 }
 
+// 胚胎与医疗情况组合
+export interface EmbryoMedicalStatus {
+  has_embryos?: string; //是否已经有胚胎(Yes, No)
+  embryo_clinic_name?: string; //胚胎所在诊所
+  embryo_count?: string; //胚胎数量
+  pgt_status?: string; //是否做过PGT(Yes, No)
+  has_fertility_clinic?: string; //是否已有美国生殖诊所(Yes, No)
+  fertility_clinic_name?: string; //诊所名称
+}
+
 // ========== 申请表 application_data 类型 ==========
 
 // 准父母申请数据（用于 applications 表的 application_data 字段）
@@ -158,6 +169,8 @@ export interface IntendedParentApplicationData {
   family_profile?: FamilyProfile;
   // 项目意向
   program_interests?: ProgramInterests;
+  // 胚胎与医疗情况
+  embryo_medical_status?: EmbryoMedicalStatus;
   // 渠道及初步沟通
   referral?: Referral;
 }
@@ -175,5 +188,6 @@ export interface IntendedParent {
   contact_information?: ContactInformation;
   family_profile?: FamilyProfile;
   program_interests?: ProgramInterests;
+  embryo_medical_status?: EmbryoMedicalStatus;
   referral?: Referral;
 }
