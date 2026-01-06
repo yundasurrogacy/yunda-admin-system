@@ -19,7 +19,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching client managers:', error);
     return NextResponse.json(
-      { error: "获取客户经理列表失败", detail: error instanceof Error ? error.message : String(error) },
+      { error: "获取案例经理列表失败", detail: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

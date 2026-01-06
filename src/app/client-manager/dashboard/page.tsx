@@ -362,7 +362,7 @@ export default function DashboardPage() {
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.clientManagerTitle', 'Client Manager Dashboard')}</h1>
+            <h1 className="text-3xl font-bold text-sage-800 mb-2">{t('dashboard.clientManagerTitle', 'Case Manager Dashboard')}</h1>
             <p className="text-sage-600">{t('dashboard.clientManagerWelcome', 'Welcome back! Here\'s your overview of active cases and activities.')}</p>
           </div>
         <CustomButton 

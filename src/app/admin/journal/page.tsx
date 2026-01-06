@@ -23,7 +23,7 @@ const CommentItem = memo(({
       return t('admin', 'Admin');
     }
     if (comment.comment_role === "client_manager") {
-      return t('clientManager', 'Client Manager');
+      return t('clientManager', 'Case Manager');
     }
     if (comment.comment_role === "surrogate_mother") {
       return t('surrogateMother', 'Surrogate Mother');

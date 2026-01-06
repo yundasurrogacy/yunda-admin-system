@@ -450,7 +450,7 @@ export default function DashboardPage() {
                 onClick={navigateToClientManager}
               >
                 <Users className="w-4 h-4 mr-3" />
-                {t("dashboard.clientManagerManagement", "Client Manager Management")}
+                {t("dashboard.clientManagerManagement", "Case Manager Management")}
               </CustomButton>
             </CardContent>
           </Card>

@@ -407,13 +407,13 @@ export default function AllCasesPage() {
               <option key={s.id} value={String(s.id)} className="cursor-pointer">{getFirstName(s.contact_information) || s.contact_informationname || s.email}</option>
             ))}
           </select>
-          {/* 只展示当前案例实际出现过的客户经理 */}
+          {/* 只展示当前案例实际出现过的案例经理 */}
           <select
             value={selectedManager}
             onChange={handleManagerFilterChange}
             className="border border-sage-300 rounded-md p-2 bg-white shadow-sm focus:ring-2 focus:ring-sage-500 focus:border-sage-500 cursor-pointer hover:border-sage-400 transition-colors duration-200"
           >
-            <option value="">{t('allClientManagers', '全部客户经理')}</option>
+            <option value="">{t('allClientManagers', '全部案例经理')}</option>
             {uniqueManagers.map(m => (
               <option key={m.id} value={String(m.id)} className="cursor-pointer">{m.name || m.email}</option>
             ))}
@@ -664,7 +664,7 @@ export default function AllCasesPage() {
             </div>
           </div>
         )}
-        {/* 分配客户经理弹窗（无遮罩，仅内容） */}
+        {/* 分配案例经理弹窗（无遮罩，仅内容） */}
         {showAssignDialog && (
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto">
             <div className="p-6 bg-white rounded-xl shadow-xl w-full max-w-md mx-auto">

@@ -31,6 +31,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ case: result.update_cases_by_pk });
   } catch (e) {
     console.error('Error assigning manager:', e);
-    return NextResponse.json({ error: "分配客户经理失败", detail: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "分配案例经理失败", detail: String(e) }, { status: 500 });
   }
 }

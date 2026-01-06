@@ -255,7 +255,7 @@ export default function ClientManagerPage() {
             </CustomButton>
           }
         />
-        {/* 新增客户经理弹窗（无遮罩，仅内容） */}
+        {/* 新增案例经理弹窗（无遮罩，仅内容） */}
         {addOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto">
             <form onSubmit={handleAdd} className="p-8 bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto flex flex-col gap-6">
@@ -278,7 +278,7 @@ export default function ClientManagerPage() {
         <div className="mb-6 mt-8">
           <Input
             type="text"
-            placeholder={t('searchManagers', { defaultValue: 'Search Client Managers' })}
+            placeholder={t('searchManagers', { defaultValue: 'Search Case Managers' })}
             className="pl-10 bg-white"
             value={searchTerm}
             onChange={handleSearchChange}
@@ -300,7 +300,7 @@ export default function ClientManagerPage() {
                 </svg>
               </div>
               <p className="text-xl text-sage-600 font-medium mb-2">{t('noClientManager')}</p>
-              <p className="text-sm text-sage-400 mb-6">{t('noClientManagerDesc', { defaultValue: '暂无客户经理记录' })}</p>
+              <p className="text-sm text-sage-400 mb-6">{t('noClientManagerDesc', { defaultValue: '暂无案例经理记录' })}</p>
             </div>
           </div>
         ) : (
@@ -320,7 +320,7 @@ export default function ClientManagerPage() {
                 >
                   <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-12 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      {/* 可换成客户经理头像或图标 */}
+                      {/* 可换成案例经理头像或图标 */}
                       <span className="text-sage-400 text-xl font-semibold">{m.email?.[0]?.toUpperCase() || t('managerShort')}</span>
                     </div>
                     <div className="flex-1 min-w-0">

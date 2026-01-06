@@ -143,7 +143,7 @@ export function CommonHeader({
         break;
       case 'manager':
       // case 'client-manager':
-        roleText = t('managerTitle', { defaultValue: '客户经理' });
+        roleText = t('managerTitle', { defaultValue: '案例经理' });
         break;
       case 'surrogacy':
         roleText = t('surrogacyTitle', { defaultValue: '代孕母' });

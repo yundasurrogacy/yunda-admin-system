@@ -446,7 +446,7 @@ export default function SurrogatesApplicationsPage() {
   }, [])
 
   const handleAddNewApplication = useCallback(() => {
-    window.open('https://www.yundasurrogacy.com/be-parents', '_blank')
+    window.open('https://www.yundasurrogacy.com/be-surrogate', '_blank')
   }, [])
 
   const handleViewDetails = useCallback((id: number) => {
