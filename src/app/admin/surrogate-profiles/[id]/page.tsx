@@ -138,24 +138,22 @@ export default function SurrogateProfileDetailPage() {
       let photos = (editData?.upload_photos || []).filter((p: any) => p.url || p.preview);
       // 自动上传有 preview 但无 url 的
       const needUpload = photos.filter((p: any) => !p.url && p.preview);
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
       for (let i = 0; i < needUpload.length; i++) {
-        const file = await fetch(needUpload[i].preview)
-          .then(res => res.blob())
-          .then(blob => new File([blob], needUpload[i].name || `photo-${i+1}.png`, { type: blob.type }));
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('admin_secret', 'admin_secret');
-        const res = await fetch('/api/upload/form', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!res.ok) continue; // 上传失败直接跳过
-        const data = await res.json();
-        photos = photos.map((p: any) =>
-          p === needUpload[i]
-            ? { name: p.name, url: data.url }
-            : p
-        );
+        try {
+          const file = await fetch(needUpload[i].preview)
+            .then(res => res.blob())
+            .then(blob => new File([blob], needUpload[i].name || `photo-${i+1}.png`, { type: blob.type }));
+          const result = await uploadFileToQiniu(file);
+          photos = photos.map((p: any) =>
+            p === needUpload[i]
+              ? { name: p.name, url: result.url }
+              : p
+          );
+        } catch (error) {
+          console.error('Photo upload failed:', error);
+          // 上传失败直接跳过
+        }
       }
       // 只保留 name 和 url 字段，且 url 必须存在
       const cleanPhotos = photos.filter((p: any) => p.url).map((p: any) => ({ name: p.name, url: p.url }));
@@ -354,18 +352,12 @@ export default function SurrogateProfileDetailPage() {
                       ...prev,
                       upload_photos: [...(prev.upload_photos || []), ...previewPhotos],
                     }));
-                    // 上传并替换
+                    // 上传并替换（使用七牛云直传）
                     fileArr.forEach(async (file, i) => {
-                      const formData = new FormData();
-                      formData.append('file', file);
                       try {
-                        const res = await fetch('/api/upload/form', {
-                          method: 'POST',
-                          body: formData,
-                        });
-                        if (!res.ok) throw new Error('上传失败');
-                        const data = await res.json();
-                        const url = data?.data?.url;
+                        const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+                        const result = await uploadFileToQiniu(file);
+                        const url = result.url;
                         if (url) {
                           setEditData((prev: any) => {
                             const newArr = [...(prev.upload_photos || [])];

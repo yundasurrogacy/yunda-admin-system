@@ -279,17 +279,16 @@ function IVFClinicContent() {
     }
   }, [caseId, clinics]);
 
-  // 文件上传（单文件） memoized
+  // 文件上传（单文件） memoized - 使用七牛云直传
   const uploadSingleFile = useCallback(async (file: File): Promise<string> => {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/upload/form', { method: 'POST', body: form });
-    const data = await res.json();
-    if (res.ok && data?.data) {
-      const url = Array.isArray(data.data) ? data.data[0]?.url : data.data?.url;
-      return url || '';
+    try {
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+      const result = await uploadFileToQiniu(file);
+      return result.url;
+    } catch (error) {
+      console.error('File upload failed:', error);
+      return '';
     }
-    return '';
   }, []);
 
   // 使用 useCallback 缓存返回按钮处理函数

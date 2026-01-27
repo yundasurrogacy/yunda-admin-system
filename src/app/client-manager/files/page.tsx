@@ -127,20 +127,15 @@ function FilesPageInner() {
       return;
     }
     setUploading(true);
-    // 1. 上传文件到后端，获取真实url
-    const formData = new FormData();
-    formData.append('file', uploadFile);
-    const uploadRes = await fetch('/api/upload/form', {
-      method: 'POST',
-      body: formData,
-    });
-    const uploadData = await uploadRes.json();
+    // 1. 使用七牛云直传上传文件
     let fileUrl = '';
-    if (uploadRes.ok && uploadData.success) {
-      fileUrl = uploadData.data.url || uploadData.data.path || uploadData.data.fileUrl || uploadData.data;
-    } else {
+    try {
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+      const result = await uploadFileToQiniu(uploadFile);
+      fileUrl = result.url;
+    } catch (error: any) {
       setUploading(false);
-      console.error('File upload failed:', uploadData.message || 'Unknown error');
+      console.error('File upload failed:', error.message || 'Unknown error');
       return;
     }
     // 2. 直接插入 cases_files

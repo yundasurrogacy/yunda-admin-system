@@ -157,15 +157,12 @@ function JournalPageInner() {
     setLoading(true);
     let cover_img_url = "";
     if (photo) {
-      const formData = new FormData();
-      formData.append("file", photo);
-      const uploadRes = await fetch("/api/upload/form", {
-        method: "POST",
-        body: formData,
-      });
-      const uploadData = await uploadRes.json();
-      if (uploadRes.ok && uploadData.success) {
-        cover_img_url = uploadData.data.url || uploadData.data.path || uploadData.data.fileUrl || uploadData.data;
+      try {
+        const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+        const result = await uploadFileToQiniu(photo);
+        cover_img_url = result.url;
+      } catch (error) {
+        console.error('Photo upload failed:', error);
       }
     }
     const res = await fetch("/api/posts", {

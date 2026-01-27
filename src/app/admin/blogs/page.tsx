@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 // import { AdminLayout } from "@/components/admin-layout"
@@ -12,7 +12,6 @@ import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { useSidebar } from "@/context/sidebar-context"
 
 const BLOG_API = '/api/blog';
-const UPLOAD_API = '/api/upload/form';
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -89,26 +88,21 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await fetch(UPLOAD_API, {
-      method: 'POST',
-      body: fd,
-    });
-    const data = await res.json();
-    // console.log('Upload response:', data); // 添加调试信息
-    if (data.success) {
-      const imageUrl = data.data.url || data.data;
-      // console.log('Image URL:', imageUrl); // 添加调试信息
+    try {
+      // 使用七牛云直传
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+      const result = await uploadFileToQiniu(file);
+      const imageUrl = result.url;
       setForm({ ...form, cover_img_url: imageUrl });
       setImageError(false); // 重置错误状态
       console.log(t('blogValidation.imageUploadSuccess'));
-    } else {
-      console.error(t('blogValidation.imageUploadFailed'));
+    } catch (error) {
+      console.error(t('blogValidation.imageUploadFailed'), error);
+    } finally {
+      setUploading(false);
+      // 清空file input的值，以便能重新选择同一个文件
+      e.target.value = '';
     }
-    setUploading(false);
-    // 清空file input的值，以便能重新选择同一个文件
-    e.target.value = '';
   };
 
   const handleRemoveImage = () => {

@@ -161,48 +161,51 @@ export default function SurrogateApplicationDetailPage() {
     setPreviewOpen(false);
   }, []);
 
-  // 使用 useMemo 缓存解析后的应用数据，避免每次渲染重新解析
   const parsedData = useMemo(() => {
     if (!application) return null
-    
     const appData = application.application_data as any
+    const gc = appData?.gc_intake
     const contactInfo = appData?.contact_information || {}
     const aboutYou = appData?.about_you || {}
     const pregnancyHealth = appData?.pregnancy_and_health || {}
     const interview = appData?.gestational_surrogacy_interview || {}
-    const pregnancyHistories = pregnancyHealth.pregnancy_histories || []
-
+    const pregnancyHistories = pregnancyHealth?.pregnancy_histories || []
     return {
       appData,
+      gc,
+      isGcIntake: !!gc,
       contactInfo,
       aboutYou,
       pregnancyHealth,
       interview,
-      pregnancyHistories
+      pregnancyHistories,
     }
   }, [application])
 
-  // 使用 useMemo 缓存格式化的日期和年龄
   const formattedData = useMemo(() => {
     if (!application || !parsedData) return { createdAt: '', updatedAt: '', age: 0 }
-    
+    const dob = parsedData.isGcIntake
+      ? parsedData.gc?.general_info?.dob
+      : parsedData.contactInfo?.date_of_birth
     return {
       createdAt: new Date(application.created_at).toLocaleString('zh-CN'),
       updatedAt: new Date(application.updated_at).toLocaleString('zh-CN'),
-      age: calculateAge(parsedData.contactInfo.date_of_birth)
+      age: calculateAge(dob),
     }
   }, [application, parsedData])
 
-  // 使用 useMemo 缓存身高显示
   const heightDisplay = useMemo(() => {
-    if (!parsedData?.contactInfo?.height) return t('notAvailable');
-    // 处理 "5'5\"" 格式的身高数据
-    if (typeof parsedData.contactInfo.height === 'string' && parsedData.contactInfo.height.includes("'")) {
-      return parsedData.contactInfo.height; // 直接显示 "5'5\"" 格式
+    if (parsedData?.isGcIntake) {
+      const g = parsedData.gc?.general_info
+      if (g?.height_feet != null || g?.height_inches != null)
+        return `${g.height_feet || ''}'${g.height_inches || ''}"`
+      return t('notAvailable')
     }
-    // 如果是纯数字，添加英尺单位
-    return `${parsedData.contactInfo.height} ${t('ft', '英尺')}`;
-  }, [parsedData?.contactInfo?.height, t]);
+    const h = parsedData?.contactInfo?.height
+    if (!h) return t('notAvailable')
+    if (typeof h === 'string' && h.includes("'")) return h
+    return `${h} ${t('ft', '英尺')}`
+  }, [parsedData?.isGcIntake, parsedData?.contactInfo?.height, parsedData?.gc?.general_info, t])
 
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
@@ -257,8 +260,9 @@ export default function SurrogateApplicationDetailPage() {
     )
   }
 
-  const { appData, contactInfo, aboutYou, pregnancyHealth, interview, pregnancyHistories } = parsedData
+  const { appData, contactInfo, aboutYou, pregnancyHealth, interview, pregnancyHistories, gc, isGcIntake } = parsedData
   const { createdAt, updatedAt, age } = formattedData
+  const displayName = isGcIntake ? (gc?.general_info?.full_name || '') : `${contactInfo?.first_name || ''} ${contactInfo?.last_name || ''}`.trim() || '—'
 
   return (
       <PageContent>
@@ -291,27 +295,23 @@ export default function SurrogateApplicationDetailPage() {
             </div>
           }
         />
-        {/* 顶部照片展示区域 */}
         <div className="w-full flex flex-col items-center mb-8">
-          <h3 className="text-lg font-medium text-sage-800 mb-3">
-            {t('applicationPhotos')}
-          </h3>
+          <h3 className="text-lg font-medium text-sage-800 mb-3">{t('applicationPhotos')}</h3>
           {Array.isArray(appData.upload_photos) && appData.upload_photos.length > 0 ? (
             <>
               <div className="flex gap-6 justify-center flex-wrap w-full">
                 {appData.upload_photos.map((photo: any, idx: number) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="w-48 h-48 rounded-xl overflow-hidden border border-sage-200 bg-sage-50 flex items-center justify-center shadow relative cursor-pointer"
                     onClick={() => handlePreviewOpen(idx)}
                   >
                     <img
                       src={photo.url}
-                      alt={photo.name || `photo-${idx+1}`}
+                      alt={photo.name || `photo-${idx + 1}`}
                       className="object-cover w-full h-full transition-transform duration-200 hover:scale-105"
                       loading="lazy"
                     />
-                    {/* 图片序号标签 */}
                     <span className="absolute top-2 left-2 bg-sage-700 text-white text-xs px-2 py-1 rounded shadow font-medium">
                       {t('photoNumber', { number: idx + 1 })}
                     </span>
@@ -332,7 +332,6 @@ export default function SurrogateApplicationDetailPage() {
         </div>
 
         <div className="space-y-6">
-          {/* 状态和基本信息 */}
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
@@ -340,9 +339,7 @@ export default function SurrogateApplicationDetailPage() {
                   <User className="w-8 h-8 text-sage-800" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-sage-800">
-                    {contactInfo.first_name} {contactInfo.last_name}
-                  </h2>
+                  <h2 className="text-2xl font-semibold text-sage-800">{displayName || '—'}</h2>
                   <p className="text-sage-800 font-medium">{t('applicationNumber')}: #{application.id} • {age}{t('yearsOld')}</p>
                 </div>
               </div>
@@ -351,6 +348,7 @@ export default function SurrogateApplicationDetailPage() {
               </span>
             </div>
 
+            {!isGcIntake && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2">
@@ -471,8 +469,45 @@ export default function SurrogateApplicationDetailPage() {
                 </div>
               </div>
             </div>
+            )}
+            {isGcIntake && gc && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-sage-800">I. General Information</h3>
+                {(['full_name','email','phone','dob','state_of_residence','place_of_birth','home_address','height_feet','height_inches','weight','bmi','occupation_type','occupation_specify','marital_status','single_partner_info','us_citizen_or_resident'] as const).map(k => {
+                  const v = (gc.general_info as any)?.[k]
+                  if (v === undefined || v === '') return null
+                  const label = k.replace(/_/g, ' ')
+                  return <div key={k} className="flex justify-between gap-2"><span className="text-sage-500">{label}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>
+                })}
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-sage-800">II–IX. Health & History</h3>
+                {gc.pregnancy_birth_history && Object.entries(gc.pregnancy_birth_history).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`pb-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.pregnancy_medical && Object.entries(gc.pregnancy_medical).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`pm-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.medical_health && Object.entries(gc.medical_health).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`mh-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.mental_health && Object.entries(gc.mental_health).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`mnt-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.substance_use && Object.entries(gc.substance_use).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`su-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.infectious_disease && Object.entries(gc.infectious_disease).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`id-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.other_medical && Object.entries(gc.other_medical).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`om-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-sage-800">X–XII. Preferences, Legal, Notes</h3>
+                {gc.preferences && Object.entries(gc.preferences).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`pref-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.legal_admin && Object.entries(gc.legal_admin).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`la-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {gc.notes && Object.entries(gc.notes).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`notes-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+                {Array.isArray(gc.delivery_history) && gc.delivery_history.length > 0 && (
+                  <div className="mt-2"><span className="text-sage-500">Delivery history:</span>
+                    {gc.delivery_history.map((d: any, i: number) => <div key={i} className="mt-1 p-2 bg-sage-50 rounded text-sage-800">{d.delivery_date} · {d.gender} · {d.birth_weight} · {d.delivery_type} · {d.hospital}</div>)}
+                  </div>
+                )}
+              </div>
+            </div>
+            )}
           </div>
 
+          {!isGcIntake && (
+          <>
           {/* 怀孕与健康 */}
           <div className="bg-white rounded-lg border border-sage-200 p-6">
             <h3 className="text-lg font-medium text-sage-800 flex items-center gap-2 mb-4">
@@ -678,6 +713,8 @@ export default function SurrogateApplicationDetailPage() {
               </div>
             </div>
           </div>
+          </>
+          )}
 
           {/* 时间信息 */}
           <div className="bg-white rounded-lg border border-sage-200 p-6">

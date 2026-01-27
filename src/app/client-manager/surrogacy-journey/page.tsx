@@ -348,17 +348,15 @@ function JourneyInner() {
     if (!caseId || !addStage || !addTitle) return;
     setAddLoading(true);
     try {
-      // 1. 上传所有文件
+      // 1. 上传所有文件（使用七牛云直传）
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
       const uploadedFiles = await Promise.all(addFiles.map(async (f) => {
         if (f.file) {
-          const formData = new FormData();
-          formData.append('file', f.file);
-          const uploadRes = await fetch('/api/upload/form', { method: 'POST', body: formData });
-          const uploadData = await uploadRes.json();
-          if (uploadRes.ok && uploadData.success) {
-            return { ...f, file_url: uploadData.data.url || uploadData.data.path || uploadData.data.fileUrl || uploadData.data };
-          } else {
-            throw new Error(uploadData.message || t('files.uploadFailed'));
+          try {
+            const result = await uploadFileToQiniu(f.file);
+            return { ...f, file_url: result.url };
+          } catch (error: any) {
+            throw new Error(error.message || t('files.uploadFailed'));
           }
         }
         return f;

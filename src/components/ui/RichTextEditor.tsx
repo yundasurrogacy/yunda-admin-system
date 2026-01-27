@@ -1307,18 +1307,12 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
+      // 使用七牛云直传
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+      const result = await uploadFileToQiniu(file);
+      const imageUrl = result.url;
       
-      const res = await fetch(UPLOAD_API, {
-        method: 'POST',
-        body: fd,
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        const imageUrl = data.data.url || data.data;
+      if (imageUrl) {
         // 插入图片到编辑器
         const img = document.createElement('img');
         img.src = imageUrl;
@@ -1372,18 +1366,12 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
 
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
+      // 使用七牛云直传
+      const { uploadFileToQiniu } = await import('@/utils/qiniuDirectUpload');
+      const result = await uploadFileToQiniu(file);
+      const videoUrl = result.url;
       
-      const res = await fetch(UPLOAD_API, {
-        method: 'POST',
-        body: fd,
-      });
-      
-      const data = await res.json();
-      
-      if (data.success) {
-        const videoUrl = data.data.url || data.data;
+      if (videoUrl) {
         // 插入视频到编辑器
         const video = document.createElement('video');
         video.src = videoUrl;

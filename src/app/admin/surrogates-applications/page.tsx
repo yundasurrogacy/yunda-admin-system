@@ -88,23 +88,49 @@ interface SurrogateApplicationCardProps {
 }
 
 const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails, t }: SurrogateApplicationCardProps) => {
-  // 使用 useMemo 缓存数据处理
   const processedData = useMemo(() => {
     const appData = app.application_data as any
+    const gc = appData?.gc_intake
     const contactInfo = appData?.contact_information || {}
     const aboutYou = appData?.about_you || {}
     const pregnancyHealth = appData?.pregnancy_and_health || {}
-    const age = calculateAge(contactInfo.date_of_birth)
-    
-    return {
-      contactInfo,
-      aboutYou,
-      pregnancyHealth,
-      age
-    }
-  }, [app.application_data])
+    const g = gc?.general_info || {}
+    const dob = g?.dob ?? contactInfo?.date_of_birth
+    const age = calculateAge(dob)
+    const isGcIntake = !!gc
 
-  const { contactInfo, aboutYou, pregnancyHealth, age } = processedData
+    const displayName = isGcIntake ? (g?.full_name || '') : `${contactInfo?.first_name || ''} ${contactInfo?.last_name || ''}`.trim() || 'N/A'
+    const email = isGcIntake ? (g?.email ?? '') : (contactInfo?.email_address ?? '')
+    const phone = isGcIntake ? `${g?.country_code || ''} ${g?.phone || ''}`.trim() : `${contactInfo?.cell_phone_country_code || ''} ${contactInfo?.cell_phone || ''}`.trim()
+    const location = isGcIntake ? (g?.state_of_residence ?? g?.home_address ?? '') : `${contactInfo?.city || ''}, ${contactInfo?.state_or_province || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || ''
+    const birthSummary = isGcIntake
+      ? (gc?.pregnancy_birth_history?.total_children != null ? `Children: ${gc.pregnancy_birth_history.total_children}` : '')
+      : (pregnancyHealth?.birth_details ?? '')
+    const bmi = isGcIntake ? (g?.bmi ?? '') : (contactInfo?.bmi ?? '')
+    const occupation = isGcIntake ? (g?.occupation_specify || g?.occupation_type || '') : (aboutYou?.occupation ?? '')
+
+    return {
+      displayName,
+      email,
+      phone,
+      location,
+      birthSummary,
+      bmi,
+      dob,
+      occupation,
+      age,
+      isGcIntake,
+      ethnicity: isGcIntake ? '' : (contactInfo?.ethnicity ?? ''),
+      education: isGcIntake ? '' : (aboutYou?.education_level ?? ''),
+      heightWeight: isGcIntake ? (g?.height_feet ? `${g.height_feet}'${g.height_inches || ''}" / ${g.weight} lbs` : '') : (contactInfo?.height ? `${contactInfo.height} ${contactInfo.weight || ''} lbs` : ''),
+      identity: isGcIntake ? (g?.us_citizen_or_resident === true ? 'Yes' : g?.us_citizen_or_resident === false ? 'No' : '') : (contactInfo?.us_citizen_or_visa_status ?? ''),
+      experienceLabel: isGcIntake ? '' : (aboutYou?.is_former_surrogate ? t('experiencedSurrogate', { defaultValue: '有经验' }) : t('firstTimeSurrogate', { defaultValue: '首次代孕' })),
+      experienceDetail: isGcIntake ? '' : (aboutYou?.surrogate_experience ?? ''),
+      experienceCount: isGcIntake ? 0 : (contactInfo?.surrogacy_experience_count ?? 0),
+    }
+  }, [app.application_data, t])
+
+  const d = processedData
 
   return (
     <div
@@ -116,84 +142,75 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
           <User className="h-7 w-7 text-sage-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-lg text-sage-800 truncate">{contactInfo.first_name} {contactInfo.last_name}</div>
-          <div className="text-sage-800 text-sm font-medium truncate">#{app.id} • {age} years</div>
+          <div className="font-semibold text-lg text-sage-800 truncate">{d.displayName || 'N/A'}</div>
+          <div className="text-sage-800 text-sm font-medium truncate">#{app.id} • {d.age} years</div>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>{t(app.status, { defaultValue: app.status })}</span>
       </div>
       <div className="mt-2 space-y-1 text-sage-800 text-[15px] font-medium">
         <div className="flex items-center gap-2 truncate">
           <Mail className="w-4 h-4 text-sage-400" />
-          <span className="truncate">{contactInfo.email_address || 'N/A'}</span>
+          <span className="truncate">{d.email || 'N/A'}</span>
         </div>
         <div className="flex items-center gap-2 truncate">
           <Phone className="w-4 h-4 text-sage-400" />
-          <span className="truncate">{contactInfo.cell_phone_country_code} {contactInfo.cell_phone || 'N/A'}</span>
+          <span className="truncate">{d.phone || 'N/A'}</span>
         </div>
         <div className="flex items-center gap-2 truncate">
           <MapPin className="w-4 h-4 text-sage-400" />
-          <span className="truncate">{contactInfo.city}, {contactInfo.state_or_province || 'N/A'}</span>
+          <span className="truncate">{d.location || 'N/A'}</span>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <Heart className="w-4 h-4 text-sage-500" />
-          <span className="truncate">{pregnancyHealth.birth_details || 'No births'}</span>
+          <span className="truncate">{d.birthSummary || 'No births'}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <Activity className="w-4 h-4 text-sage-500" />
-          <span className="truncate">BMI: {contactInfo.bmi || 'N/A'}</span>
+          <span className="truncate">BMI: {d.bmi || 'N/A'}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <Calendar className="w-4 h-4 text-sage-500" />
-          <span className="truncate">DOB: {contactInfo.date_of_birth || 'N/A'}</span>
+          <span className="truncate">DOB: {d.dob || 'N/A'}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <User className="w-4 h-4 text-sage-500" />
-          <span className="truncate">{aboutYou.occupation || 'N/A'}</span>
+          <span className="truncate">{d.occupation || 'N/A'}</span>
         </div>
       </div>
+      {!d.isGcIntake && (
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <span>{t('ethnicity', { defaultValue: '种族' })}:</span>
-          <span className="truncate">{contactInfo.ethnicity || t('notAvailable', { defaultValue: 'N/A' })}</span>
+          <span className="truncate">{d.ethnicity || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <span>{t('education', { defaultValue: '教育' })}:</span>
-          <span className="truncate">{aboutYou.education_level || t('notAvailable', { defaultValue: 'N/A' })}</span>
+          <span className="truncate">{d.education || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <span>{t('heightWeight', { defaultValue: '身高体重' })}:</span>
-          <span className="truncate">
-            {contactInfo.height 
-              ? (typeof contactInfo.height === 'string' && contactInfo.height.includes("'") 
-                  ? contactInfo.height 
-                  : `${contactInfo.height} ${t('ft', 'ft')}`)
-              : t('notAvailable', { defaultValue: 'N/A' })
-            } / {contactInfo.weight ? `${contactInfo.weight} ${t('lbs', 'lbs')}` : t('notAvailable', { defaultValue: 'N/A' })}
-          </span>
+          <span className="truncate">{d.heightWeight || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <span>{t('identity', { defaultValue: '身份' })}:</span>
-          <span className="truncate">{contactInfo.us_citizen_or_visa_status || t('notAvailable', { defaultValue: 'N/A' })}</span>
+          <span className="truncate">{d.identity || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
       </div>
+      )}
+      {!d.isGcIntake && (d.experienceLabel || d.experienceDetail || d.experienceCount > 0) && (
       <div className="mb-4 p-3 bg-sage-50 rounded-lg">
         <div className="text-sm font-medium text-sage-800">
           <div className="mb-1">{t('surrogacyExperience', { defaultValue: '代孕经验' })}:</div>
           <div className="truncate">
-            {aboutYou.is_former_surrogate
-              ? t('experiencedSurrogate', { defaultValue: '有经验' })
-              : t('firstTimeSurrogate', { defaultValue: '首次代孕' })}
-            {contactInfo.surrogacy_experience_count > 0 && ` (${contactInfo.surrogacy_experience_count}${t('times', { defaultValue: '次' })})`}
+            {d.experienceLabel}
+            {d.experienceCount > 0 && ` (${d.experienceCount}${t('times', { defaultValue: '次' })})`}
           </div>
-          {aboutYou.surrogate_experience && (
-            <div className="text-xs text-sage-800 mt-1 truncate">
-              {aboutYou.surrogate_experience}
-            </div>
-          )}
+          {d.experienceDetail && <div className="text-xs text-sage-800 mt-1 truncate">{d.experienceDetail}</div>}
         </div>
       </div>
+      )}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-sage-100">
         <span className="text-sm font-medium text-sage-800">
           {t('applicationDate', { defaultValue: '申请时间' })}: {new Date(app.created_at).toLocaleDateString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
@@ -348,11 +365,20 @@ export default function SurrogatesApplicationsPage() {
       }
     }
 
-    // 有搜索词时才进行过滤
     const searchLower = debouncedSearchTerm.toLowerCase().trim()
     const filtered = allApplications.filter(app => {
       const appData = app.application_data as any
+      const gc = appData?.gc_intake
+      const g = gc?.general_info || {}
       const contactInfo = appData?.contact_information || {}
+      if (gc) {
+        return (
+          g.full_name?.toLowerCase().includes(searchLower) ||
+          g.email?.toLowerCase().includes(searchLower) ||
+          (g.phone && String(g.phone).includes(debouncedSearchTerm)) ||
+          (g.country_code && String(g.country_code).includes(debouncedSearchTerm))
+        )
+      }
       return (
         contactInfo.first_name?.toLowerCase().includes(searchLower) ||
         contactInfo.last_name?.toLowerCase().includes(searchLower) ||
