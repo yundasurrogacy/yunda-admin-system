@@ -29,6 +29,8 @@
     "graphql-ormify-client": "^1.0.5",
     "graphql-request": "^7.2.0",
     "i18next": "25.5.2",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.542.0",
     "next": "15.3.8",
@@ -41,7 +43,8 @@
     "recharts": "^3.1.2",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "wechatpay-node-v3": "^2.2.1"
+    "wechatpay-node-v3": "^2.2.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

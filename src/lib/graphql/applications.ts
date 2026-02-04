@@ -293,6 +293,22 @@ export async function updateApplicationStatus(
   }
 }
 
+export async function deleteApplicationById(id: number) {
+  const hasuraClient = getHasuraClient()
+  const mutation = `
+    mutation DeleteApplication($id: bigint!) {
+      delete_applications_by_pk(id: $id) {
+        id
+      }
+    }
+  `
+  const result = await hasuraClient.execute({
+    query: mutation,
+    variables: { id },
+  })
+  return result?.delete_applications_by_pk
+}
+
 // 获取申请详情
 export async function getApplicationById(id: number) {
   const hasuraClient = getHasuraClient()

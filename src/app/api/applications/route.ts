@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { CreateApplicationInput } from "@/types/applications";
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client";
+import { deleteApplicationById } from "@/lib/graphql/applications";
 
 // 提交申请表
 export async function POST(request: NextRequest) {
@@ -97,6 +98,91 @@ export async function POST(request: NextRequest) {
           "Access-Control-Allow-Headers": "Content-Type, Authorization",
         },
       }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const idParam = request.nextUrl.searchParams.get("id");
+  if (!idParam) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "缺少申请 ID",
+      },
+      {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
+    );
+  }
+
+  const id = Number(idParam);
+  if (Number.isNaN(id)) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "无效的申请 ID",
+      },
+      {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
+    );
+  }
+
+  try {
+    const deleted = await deleteApplicationById(id);
+    if (!deleted) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "未找到对应申请或已被删除",
+        },
+        {
+          status: 404,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "申请删除成功",
+      },
+      {
+        status: 200,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
+    );
+  }
+  catch (error) {
+    console.error("删除申请失败:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "删除申请失败",
+      },
+      {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
     );
   }
 }

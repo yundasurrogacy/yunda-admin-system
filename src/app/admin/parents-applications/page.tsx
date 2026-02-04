@@ -47,10 +47,11 @@ interface ApplicationCardProps {
   onApprove: (id: number) => void;
   onReject: (id: number) => void;
   onViewDetails: (id: number) => void;
+  onDelete: (id: number) => void;
   t: any;
 }
 
-const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDetails, t }: ApplicationCardProps) => {
+const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDetails, onDelete, t }: ApplicationCardProps) => {
   // 使用 useMemo 缓存数据处理，避免每次渲染都重新计算
   const processedData = useMemo(() => {
     const appData = app.application_data as any;
@@ -193,6 +194,12 @@ const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDet
             onClick={() => onViewDetails(app.id)}
           >
             {t('viewDetails', { defaultValue: '查看详情' })}
+          </CustomButton>
+          <CustomButton
+            className="text-red-600 hover:bg-red-50 cursor-pointer bg-transparent"
+            onClick={() => onDelete(app.id)}
+          >
+            {t('delete', { defaultValue: 'Delete' })}
           </CustomButton>
         </div>
       </div>
@@ -439,6 +446,23 @@ export default function ParentsApplicationsPage() {
     handleStatusUpdate(id, 'rejected')
   }, [handleStatusUpdate])
 
+  const handleDelete = useCallback(async (id: number) => {
+    const confirmed = window.confirm(t('confirmDeleteApplication', { defaultValue: 'Delete this application?' }))
+    if (!confirmed)
+      return
+    try {
+      const response = await fetch(`/api/applications?id=${id}`, { method: 'DELETE' })
+      if (!response.ok)
+        throw new Error(await response.text())
+      await loadApplications(true)
+      window.alert(t('deleteSuccess', { defaultValue: 'Application deleted successfully.' }))
+    }
+    catch (error) {
+      console.error('Failed to delete application:', error)
+      window.alert(t('deleteFailed', { defaultValue: 'Failed to delete application, please try again.' }))
+    }
+  }, [loadApplications, t])
+
   const handleViewDetails = useCallback((id: number) => {
     router.push(`/admin/parents-applications/${id}`)
   }, [router])
@@ -497,6 +521,18 @@ export default function ParentsApplicationsPage() {
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
               >
                 {t('addNewApplication', { defaultValue: '添加新申请' })}
+              </CustomButton>
+              <CustomButton
+                onClick={() => handleExport('excel')}
+                className="bg-white cursor-pointer border border-sage-300 text-sage-800"
+              >
+                {t('exportExcel')}
+              </CustomButton>
+              <CustomButton
+                onClick={() => handleExport('pdf')}
+                className="bg-white cursor-pointer border border-sage-300 text-sage-800"
+              >
+                {t('exportPdf')}
               </CustomButton>
               <DropdownMenu open={filterMenuOpen} onOpenChange={setFilterMenuOpen}>
                 <DropdownMenuTrigger asChild>
@@ -585,6 +621,7 @@ export default function ParentsApplicationsPage() {
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onViewDetails={handleViewDetails}
+                onDelete={handleDelete}
                 t={t}
               />
             ))}

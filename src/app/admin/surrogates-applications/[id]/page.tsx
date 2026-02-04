@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
 import { useTranslation } from 'react-i18next'
+import { formatBooleanLabel } from '@/lib/utils'
 
 // 简单全屏图片预览组件
 function ImagePreviewModal({ open, images, current, onClose, t }: { open: boolean, images: {url: string, name?: string}[], current: number, onClose: () => void, t: any }) {
@@ -29,6 +30,18 @@ function ImagePreviewModal({ open, images, current, onClose, t }: { open: boolea
       >×</button>
     </div>
   );
+}
+
+interface FieldRow {
+  label: string
+  value: string
+}
+
+interface FieldConfig {
+  key: string
+  label: string
+  type?: 'boolean' | 'text'
+  hideWhenEmpty?: boolean
 }
 
 // 获取 cookie 的辅助函数
@@ -151,6 +164,25 @@ export default function SurrogateApplicationDetailPage() {
     handleStatusUpdate('rejected')
   }, [handleStatusUpdate])
 
+  const handleDelete = useCallback(async () => {
+    if (!application)
+      return
+    const confirmed = window.confirm(t('confirmDeleteApplication', { defaultValue: 'Delete this application?' }))
+    if (!confirmed)
+      return
+    try {
+      const response = await fetch(`/api/applications?id=${application.id}`, { method: 'DELETE' })
+      if (!response.ok)
+        throw new Error(await response.text())
+      window.alert(t('deleteSuccess', { defaultValue: 'Application deleted successfully.' }))
+      router.push('/admin/surrogates-applications')
+    }
+    catch (error) {
+      console.error('Failed to delete application:', error)
+      window.alert(t('deleteFailed', { defaultValue: 'Failed to delete application, please try again.' }))
+    }
+  }, [application, router, t])
+
   // 图片预览处理函数
   const handlePreviewOpen = useCallback((index: number) => {
     setPreviewIndex(index);
@@ -263,6 +295,203 @@ export default function SurrogateApplicationDetailPage() {
   const { appData, contactInfo, aboutYou, pregnancyHealth, interview, pregnancyHistories, gc, isGcIntake } = parsedData
   const { createdAt, updatedAt, age } = formattedData
   const displayName = isGcIntake ? (gc?.general_info?.full_name || '') : `${contactInfo?.first_name || ''} ${contactInfo?.last_name || ''}`.trim() || '—'
+  const fallbackValue = t('notAvailable', { defaultValue: 'N/A' })
+  const yesNo = (value?: boolean | null) => formatBooleanLabel(value ?? null, t)
+  const pushRow = (rows: FieldRow[], label: string, value?: string | number | null, options?: { useFallback?: boolean }) => {
+    const shouldFallback = options?.useFallback ?? false
+    if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+      if (!shouldFallback)
+        return
+      rows.push({ label, value: fallbackValue })
+      return
+    }
+    const formatted = typeof value === 'string' ? value.trim() : String(value)
+    rows.push({ label, value: formatted })
+  }
+  const buildRowsFromConfig = (config: FieldConfig[], source: Record<string, any>) => {
+    const rows: FieldRow[] = []
+    config.forEach(({ key, label, type, hideWhenEmpty }) => {
+      const raw = source?.[key]
+      if (type === 'boolean') {
+        const formatted = yesNo(typeof raw === 'boolean' ? raw : null)
+        pushRow(rows, label, formatted, { useFallback: !hideWhenEmpty })
+      }
+      else {
+        pushRow(rows, label, raw, { useFallback: !hideWhenEmpty })
+      }
+    })
+    return rows
+  }
+  const renderFieldRows = (rows: FieldRow[]) => {
+    if (!rows.length)
+      return <p className="text-sm text-sage-500">{fallbackValue}</p>
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {rows.map(row => (
+          <div key={`${row.label}-${row.value}`} className="rounded-lg border border-sage-100 bg-sage-50/60 p-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-sage-500">{row.label}</div>
+            <div className="text-sage-800 font-medium mt-1 whitespace-pre-wrap break-words">{row.value}</div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  const gcLabel = (key: string, fallback: string) => t(key, { defaultValue: fallback })
+
+  const g = gc?.general_info ?? {}
+  const pb = gc?.pregnancy_birth_history ?? {}
+  const medicalRecordsSourceMap: Record<string, string> = {
+    patient_portal: gcLabel('surrogate.application.gcIntake.medicalRecordsPatientPortal', 'Patient Portal'),
+    clinic: gcLabel('surrogate.application.gcIntake.medicalRecordsClinic', 'Clinic'),
+    other: gcLabel('surrogate.application.gcIntake.medicalRecordsOther', 'Other'),
+  }
+  const occupationMap: Record<string, string> = {
+    employed: gcLabel('surrogate.application.gcIntake.occupationEmployed', 'Employed (please specify)'),
+    stay_at_home: gcLabel('surrogate.application.gcIntake.occupationStayAtHome', 'Stay-at-home parent'),
+    unemployed: gcLabel('surrogate.application.gcIntake.occupationUnemployed', 'Unemployed (please specify financial situation)'),
+  }
+  const maritalMap: Record<string, string> = {
+    married: gcLabel('surrogate.application.gcIntake.maritalMarried', 'Married'),
+    single: gcLabel('surrogate.application.gcIntake.maritalSingle', 'Single'),
+    cohabitating: gcLabel('surrogate.application.gcIntake.maritalCohabitating', 'Cohabitating'),
+    divorced: gcLabel('surrogate.application.gcIntake.maritalDivorced', 'Divorced'),
+  }
+  const gcPhone = [g.country_code, g.phone].filter(Boolean).join(' ').trim()
+  const gcHeight = g.height_feet ? `${g.height_feet}'${g.height_inches || 0}"` : ''
+  const gcWeight = g.weight ? `${g.weight} lbs` : ''
+  const generalInfoRows: FieldRow[] = []
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.fullName', 'Full Name'), g.full_name, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.email', 'Email Address'), g.email, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.phone', 'Phone Number'), gcPhone, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.dob', 'Date of Birth'), g.dob, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.stateOfResidence', 'Current State of Residence'), g.state_of_residence, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.placeOfBirth', 'Place of Birth'), g.place_of_birth, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.homeAddress', 'Home Address'), g.home_address, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.heightWeight', 'Height / Weight'), gcHeight, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.form.weight', 'Weight'), gcWeight, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.bmi', 'BMI'), g.bmi, { useFallback: true })
+  const occupationTypeLabel = g.occupation_type ? (occupationMap[g.occupation_type] || g.occupation_type) : ''
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.occupationSource', 'Occupation or Source of Income'), occupationTypeLabel, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.occupationSource', 'Occupation Detail'), g.occupation_specify)
+  const maritalStatusLabel = g.marital_status ? (maritalMap[g.marital_status] || g.marital_status) : ''
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.maritalStatus', 'Marital Status'), maritalStatusLabel, { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.singlePartnerInfo', 'Single Partner Info'), g.single_partner_info)
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.usCitizenOrResident', 'U.S. Citizen or Resident?'), yesNo(typeof g.us_citizen_or_resident === 'boolean' ? g.us_citizen_or_resident : null), { useFallback: true })
+  pushRow(generalInfoRows, gcLabel('surrogate.application.gcIntake.ethnicity.label', 'Ethnicity'), g.ethnicity, { useFallback: true })
+
+  const pregnancyBirthRows: FieldRow[] = []
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.totalChildren', 'Total number of children'), pb.total_children, { useFallback: true })
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.totalVaginal', 'Total vaginal deliveries'), pb.total_vaginal, { useFallback: true })
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.totalCSections', 'Total C-sections'), pb.total_c_sections, { useFallback: true })
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.miscarriages', 'History of miscarriage(s)?'), yesNo(typeof pb.miscarriages === 'boolean' ? pb.miscarriages : null), { useFallback: true })
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.miscarriagesDetail', 'When and reason(s)'), pb.miscarriages_detail)
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.abortions', 'History of abortion(s)?'), yesNo(typeof pb.abortions === 'boolean' ? pb.abortions : null), { useFallback: true })
+  pushRow(pregnancyBirthRows, gcLabel('surrogate.application.gcIntake.abortionsDetail', 'When and reason(s)'), pb.abortions_detail)
+
+  const pregnancyMedicalConfig: FieldConfig[] = [
+    { key: 'anemia', label: gcLabel('surrogate.application.gcIntake.anemia', 'Anemia?'), type: 'boolean' },
+    { key: 'severe_vomiting_3mo', label: gcLabel('surrogate.application.gcIntake.severeVomiting3mo', 'Severe vomiting lasting more than 3 months?'), type: 'boolean' },
+    { key: 'bp_during_pregnancy', label: gcLabel('surrogate.application.gcIntake.bpDuringPregnancy', 'Usual blood pressure during pregnancy') },
+    { key: 'preeclampsia', label: gcLabel('surrogate.application.gcIntake.preeclampsia', 'Pre-eclampsia?'), type: 'boolean' },
+    { key: 'gestational_diabetes', label: gcLabel('surrogate.application.gcIntake.gestationalDiabetes', 'Gestational diabetes?'), type: 'boolean' },
+    { key: 'hypertension_pregnancy', label: gcLabel('surrogate.application.gcIntake.hypertensionPregnancy', 'Hypertension during pregnancy?'), type: 'boolean' },
+    { key: 'blood_transfusion', label: gcLabel('surrogate.application.gcIntake.bloodTransfusion', 'Blood transfusion during pregnancy?'), type: 'boolean' },
+    { key: 'seizures', label: gcLabel('surrogate.application.gcIntake.seizures', 'Seizures?'), type: 'boolean' },
+  ]
+  const medicalHealthConfig: FieldConfig[] = [
+    { key: 'regular_menstrual_cycles', label: gcLabel('surrogate.application.gcIntake.regularMenstrualCycles', 'Regular menstrual cycles?'), type: 'boolean' },
+    { key: 'birth_control', label: gcLabel('surrogate.application.gcIntake.birthControl', 'Currently using birth control?'), type: 'boolean' },
+    { key: 'birth_control_type', label: gcLabel('surrogate.application.gcIntake.birthControlType', 'Birth control type'), hideWhenEmpty: true },
+    { key: 'taking_medications', label: gcLabel('surrogate.application.gcIntake.takingMedications', 'Taking medications?'), type: 'boolean' },
+    { key: 'medications_list', label: gcLabel('surrogate.application.gcIntake.medicationsList', 'Medications list'), hideWhenEmpty: true },
+    { key: 'last_pap_smear', label: gcLabel('surrogate.application.gcIntake.lastPapSmear', 'Date of last Pap smear') },
+    { key: 'covid_vaccinated', label: gcLabel('surrogate.application.gcIntake.covidVaccinated', 'COVID-19 vaccinated?'), type: 'boolean' },
+    { key: 'hep_b_vaccinated', label: gcLabel('surrogate.application.gcIntake.hepBVaccinated', 'Hepatitis B vaccinated?'), type: 'boolean' },
+    { key: 'varicella_vaccinated', label: gcLabel('surrogate.application.gcIntake.varicellaVaccinated', 'Varicella vaccinated?'), type: 'boolean' },
+    { key: 'ongoing_medical_treatment', label: gcLabel('surrogate.application.gcIntake.ongoingMedicalTreatment', 'Receiving ongoing medical treatment?'), type: 'boolean' },
+    { key: 'surgeries_past_2y', label: gcLabel('surrogate.application.gcIntake.surgeriesPast2y', 'Surgeries in past 2 years?'), type: 'boolean' },
+    { key: 'surgeries_specify', label: gcLabel('surrogate.application.gcIntake.surgeriesSpecify', 'Surgeries (specify)'), hideWhenEmpty: true },
+  ]
+  const mentalHealthConfig: FieldConfig[] = [
+    { key: 'anxiety_depression', label: gcLabel('surrogate.application.gcIntake.anxietyDepression', 'Anxiety or depression?'), type: 'boolean' },
+    { key: 'bipolar_schizo_personality', label: gcLabel('surrogate.application.gcIntake.bipolarSchizoPersonality', 'Bipolar / schizophrenia / personality disorder?'), type: 'boolean' },
+    { key: 'adhd', label: gcLabel('surrogate.application.gcIntake.adhd', 'ADHD?'), type: 'boolean' },
+    { key: 'meds_anxiety_depression', label: gcLabel('surrogate.application.gcIntake.medsAnxietyDepression', 'Taking medication for anxiety/depression?'), type: 'boolean' },
+    { key: 'meds_specify', label: gcLabel('surrogate.application.gcIntake.medsSpecify', 'Medication details'), hideWhenEmpty: true },
+  ]
+  const substanceUseConfig: FieldConfig[] = [
+    { key: 'drug_use_pregnancy', label: gcLabel('surrogate.application.gcIntake.drugUsePregnancy', 'Drug use during pregnancy?'), type: 'boolean' },
+    { key: 'marijuana_current', label: gcLabel('surrogate.application.gcIntake.marijuanaCurrent', 'Currently smoke marijuana?'), type: 'boolean' },
+    { key: 'marijuana_last_use', label: gcLabel('surrogate.application.gcIntake.marijuanaLastUse', 'Date of last marijuana use'), hideWhenEmpty: true },
+    { key: 'smoked_vaped_pregnancy', label: gcLabel('surrogate.application.gcIntake.smokedVapedPregnancy', 'Smoked or vaped during pregnancy?'), type: 'boolean' },
+    { key: 'alcohol', label: gcLabel('surrogate.application.gcIntake.alcohol', 'Drink alcohol?'), type: 'boolean' },
+    { key: 'alcohol_frequency', label: gcLabel('surrogate.application.gcIntake.alcoholFrequency', 'Alcohol frequency'), hideWhenEmpty: true },
+  ]
+  const infectiousConfig: FieldConfig[] = [
+    { key: 'syphilis', label: gcLabel('surrogate.application.gcIntake.syphilis', 'Syphilis'), type: 'boolean' },
+    { key: 'hepatitis_b_c', label: gcLabel('surrogate.application.gcIntake.hepatitisBC', 'Hepatitis B or C'), type: 'boolean' },
+    { key: 'genital_herpes', label: gcLabel('surrogate.application.gcIntake.genitalHerpes', 'Genital herpes'), type: 'boolean' },
+    { key: 'hiv', label: gcLabel('surrogate.application.gcIntake.hiv', 'HIV / AIDS'), type: 'boolean' },
+  ]
+  const otherMedicalConfig: FieldConfig[] = [
+    { key: 'asthma', label: gcLabel('surrogate.application.gcIntake.asthma', 'Asthma?'), type: 'boolean' },
+    { key: 'asthma_inhaler_per_week', label: gcLabel('surrogate.application.gcIntake.asthmaInhaler', 'Inhaler use per week'), hideWhenEmpty: true },
+    { key: 'heart_conditions', label: gcLabel('surrogate.application.gcIntake.heartConditions', 'Heart conditions?'), type: 'boolean' },
+    { key: 'cancer_history', label: gcLabel('surrogate.application.gcIntake.cancerHistory', 'History of cancer?'), type: 'boolean' },
+    { key: 'scoliosis', label: gcLabel('surrogate.application.gcIntake.scoliosis', 'Scoliosis?'), type: 'boolean' },
+    { key: 'endometrial_ablation', label: gcLabel('surrogate.application.gcIntake.endometrialAblation', 'Endometrial ablation history?'), type: 'boolean' },
+  ]
+  const preferencesConfig: FieldConfig[] = [
+    { key: 'availability', label: gcLabel('surrogate.application.gcIntake.availability', 'Availability to proceed') },
+    { key: 'health_insurance', label: gcLabel('surrogate.application.gcIntake.healthInsurance', 'Health insurance coverage') },
+    { key: 'open_twins', label: gcLabel('surrogate.application.gcIntake.openTwins', 'Open to carrying twins?'), type: 'boolean' },
+    { key: 'open_fetal_reduction', label: gcLabel('surrogate.application.gcIntake.openFetalReduction', 'Open to fetal reduction?'), type: 'boolean' },
+    { key: 'open_termination', label: gcLabel('surrogate.application.gcIntake.openTermination', 'Open to termination if medically indicated?'), type: 'boolean' },
+    { key: 'open_amniocentesis_cvs', label: gcLabel('surrogate.application.gcIntake.openAmniocentesisCVS', 'Open to amniocentesis / CVS testing?'), type: 'boolean' },
+    { key: 'open_same_sex_single_ip', label: gcLabel('surrogate.application.gcIntake.openSameSexSingleIP', 'Open to same-sex or single intended parents?'), type: 'boolean' },
+    { key: 'willing_pump_breast_milk', label: gcLabel('surrogate.application.gcIntake.willingPumpBreastMilk', 'Willing to pump breast milk?'), type: 'boolean' },
+    { key: 'open_ip_hiv', label: gcLabel('surrogate.application.gcIntake.openIPHIV', 'Open to intended parents with HIV?'), type: 'boolean' },
+    { key: 'open_ip_hepatitis_b', label: gcLabel('surrogate.application.gcIntake.openIPHepatitisB', 'Open to intended parents with Hepatitis B?'), type: 'boolean' },
+  ]
+  const legalConfig: FieldConfig[] = [
+    { key: 'pending_legal', label: gcLabel('surrogate.application.gcIntake.pendingLegal', 'Pending legal claims or lawsuits?'), type: 'boolean' },
+    { key: 'criminal_record', label: gcLabel('surrogate.application.gcIntake.criminalRecord', 'Criminal record?'), type: 'boolean' },
+    { key: 'emergency_contact', label: gcLabel('surrogate.application.gcIntake.emergencyContact', 'Emergency contact'), hideWhenEmpty: false },
+    { key: 'government_assistance', label: gcLabel('surrogate.application.gcIntake.governmentAssistance', 'Receiving government assistance?'), type: 'boolean' },
+  ]
+
+  const pregnancyMedicalRows = buildRowsFromConfig(pregnancyMedicalConfig, gc?.pregnancy_medical ?? {})
+  const medicalHealthRows = buildRowsFromConfig(medicalHealthConfig, gc?.medical_health ?? {})
+  const mentalHealthRows = buildRowsFromConfig(mentalHealthConfig, gc?.mental_health ?? {})
+  const substanceUseRows = buildRowsFromConfig(substanceUseConfig, gc?.substance_use ?? {})
+  const infectiousRows = buildRowsFromConfig(infectiousConfig, gc?.infectious_disease ?? {})
+  const otherMedicalRows = buildRowsFromConfig(otherMedicalConfig, gc?.other_medical ?? {})
+  const preferencesRows = buildRowsFromConfig(preferencesConfig, gc?.preferences ?? {})
+  const legalRows = buildRowsFromConfig(legalConfig, gc?.legal_admin ?? {})
+  const notesRows: FieldRow[] = []
+  pushRow(notesRows, gcLabel('surrogate.application.gcIntake.referredBy', 'Referred by'), gc?.notes?.referred_by, { useFallback: true })
+  const medicalSourceKey = gc?.notes?.medical_records_source
+  const medicalSourceLabel = medicalSourceKey ? (medicalRecordsSourceMap[medicalSourceKey] || medicalSourceKey) : ''
+  pushRow(notesRows, gcLabel('surrogate.application.gcIntake.medicalRecordsSource', 'Medical records source'), medicalSourceLabel, { useFallback: true })
+
+  const substanceSources = gc?.substance_use || {}
+  if (substanceSources.drug_use_pregnancy) {
+    const drugSelections: string[] = []
+    if (substanceSources.drug_marijuana)
+      drugSelections.push(gcLabel('surrogate.application.gcIntake.drugMarijuana', 'Marijuana'))
+    if (substanceSources.drug_fentanyl)
+      drugSelections.push(gcLabel('surrogate.application.gcIntake.drugFentanyl', 'Fentanyl'))
+    if (substanceSources.drug_methamphetamine)
+      drugSelections.push(gcLabel('surrogate.application.gcIntake.drugMethamphetamine', 'Methamphetamine'))
+    if (substanceSources.drug_mdma)
+      drugSelections.push(gcLabel('surrogate.application.gcIntake.drugMDMA', 'MDMA (Molly)'))
+    if (substanceSources.drug_other)
+      drugSelections.push(substanceSources.drug_other)
+    if (drugSelections.length)
+      pushRow(substanceUseRows, gcLabel('surrogate.application.gcIntake.drugTypes', 'Drug types'), drugSelections.join(', '))
+  }
+
+  const deliveryHistory = Array.isArray(gc?.delivery_history) ? gc.delivery_history : []
 
   return (
       <PageContent>
@@ -275,6 +504,12 @@ export default function SurrogateApplicationDetailPage() {
                 onClick={handleBack}
               >
                 {t('Back To Applications')}
+              </CustomButton>
+              <CustomButton
+                className="text-red-600 border border-red-200 bg-white font-medium cursor-pointer"
+                onClick={handleDelete}
+              >
+                {t('delete', { defaultValue: 'Delete' })}
               </CustomButton>
               {application.status === 'pending' && (
                 <>
@@ -471,36 +706,65 @@ export default function SurrogateApplicationDetailPage() {
             </div>
             )}
             {isGcIntake && gc && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium text-sage-800">I. General Information</h3>
-                {(['full_name','email','phone','dob','state_of_residence','place_of_birth','home_address','height_feet','height_inches','weight','bmi','occupation_type','occupation_specify','marital_status','single_partner_info','us_citizen_or_resident'] as const).map(k => {
-                  const v = (gc.general_info as any)?.[k]
-                  if (v === undefined || v === '') return null
-                  const label = k.replace(/_/g, ' ')
-                  return <div key={k} className="flex justify-between gap-2"><span className="text-sage-500">{label}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>
-                })}
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.generalInfo', 'I. General Information')}</h3>
+                {renderFieldRows(generalInfoRows)}
               </div>
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium text-sage-800">II–IX. Health & History</h3>
-                {gc.pregnancy_birth_history && Object.entries(gc.pregnancy_birth_history).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`pb-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.pregnancy_medical && Object.entries(gc.pregnancy_medical).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`pm-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.medical_health && Object.entries(gc.medical_health).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`mh-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.mental_health && Object.entries(gc.mental_health).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`mnt-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.substance_use && Object.entries(gc.substance_use).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`su-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.infectious_disease && Object.entries(gc.infectious_disease).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`id-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.other_medical && Object.entries(gc.other_medical).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`om-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.pregnancyBirthHistory', 'II. Pregnancy & Birth History')}</h3>
+                {renderFieldRows(pregnancyBirthRows)}
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold text-sage-700">{gcLabel('surrogate.application.gcIntake.sections.deliveryHistory', 'Delivery History')}</h4>
+                  {deliveryHistory.length > 0 ? (
+                    <div className="space-y-3 mt-2">
+                      {deliveryHistory.map((delivery: any, idx: number) => (
+                        <div key={`delivery-${idx}`} className="rounded-lg border border-sage-100 bg-sage-50/60 p-3 text-sm text-sage-800">
+                          <div className="font-semibold text-sage-700 mb-1">{gcLabel('surrogate.application.gcIntake.babyNum', 'Baby #{n}').replace('{n}', String(idx + 1))}</div>
+                          <p className="whitespace-pre-wrap break-words">{[delivery.delivery_date, delivery.gender, delivery.birth_weight, delivery.delivery_type, delivery.hospital].filter(Boolean).join(' • ')}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-sage-500 mt-2">{fallbackValue}</p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium text-sage-800">X–XII. Preferences, Legal, Notes</h3>
-                {gc.preferences && Object.entries(gc.preferences).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`pref-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.legal_admin && Object.entries(gc.legal_admin).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`la-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {gc.notes && Object.entries(gc.notes).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => <div key={`notes-${k}`} className="flex justify-between gap-2"><span className="text-sage-500">{k}:</span><span className="text-sage-800 font-medium">{String(v)}</span></div>)}
-                {Array.isArray(gc.delivery_history) && gc.delivery_history.length > 0 && (
-                  <div className="mt-2"><span className="text-sage-500">Delivery history:</span>
-                    {gc.delivery_history.map((d: any, i: number) => <div key={i} className="mt-1 p-2 bg-sage-50 rounded text-sage-800">{d.delivery_date} · {d.gender} · {d.birth_weight} · {d.delivery_type} · {d.hospital}</div>)}
-                  </div>
-                )}
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.pregnancyMedical', 'IV. Pregnancy-Related Medical History')}</h3>
+                {renderFieldRows(pregnancyMedicalRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.medicalHealth', 'V. Medical & Health History')}</h3>
+                {renderFieldRows(medicalHealthRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.mentalHealth', 'VI. Mental Health History')}</h3>
+                {renderFieldRows(mentalHealthRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.substanceUse', 'VII. Substance Use History')}</h3>
+                {renderFieldRows(substanceUseRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.infectiousDisease', 'VIII. Infectious Disease History')}</h3>
+                {renderFieldRows(infectiousRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.otherMedical', 'IX. Other Medical Conditions')}</h3>
+                {renderFieldRows(otherMedicalRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.preferences', 'X. Preferences & Matching Considerations')}</h3>
+                {renderFieldRows(preferencesRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.legalAdmin', 'XI. Legal & Administrative')}</h3>
+                {renderFieldRows(legalRows)}
+              </div>
+              <div>
+                <h3 className="text-lg font-medium text-sage-800">{gcLabel('surrogate.application.gcIntake.sections.notes', 'XII. Notes')}</h3>
+                {renderFieldRows(notesRows)}
               </div>
             </div>
             )}

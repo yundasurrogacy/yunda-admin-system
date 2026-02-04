@@ -149,6 +149,25 @@ export default function ParentsApplicationDetailPage() {
     handleStatusUpdate('rejected')
   }, [handleStatusUpdate])
 
+  const handleDelete = useCallback(async () => {
+    if (!application)
+      return
+    const confirmed = window.confirm(t('confirmDeleteApplication', { defaultValue: 'Delete this application?' }))
+    if (!confirmed)
+      return
+    try {
+      const response = await fetch(`/api/applications?id=${application.id}`, { method: 'DELETE' })
+      if (!response.ok)
+        throw new Error(await response.text())
+      window.alert(t('deleteSuccess', { defaultValue: 'Application deleted successfully.' }))
+      router.push('/admin/parents-applications')
+    }
+    catch (error) {
+      console.error('Failed to delete application:', error)
+      window.alert(t('deleteFailed', { defaultValue: 'Failed to delete application, please try again.' }))
+    }
+  }, [application, router, t])
+
   // ⚠️ 重要：所有 Hooks 必须在条件返回之前调用，以保持 Hooks 调用顺序一致
   // 使用 useMemo 缓存解析后的应用数据，避免每次渲染重新解析
   const parsedData = useMemo(() => {
@@ -248,6 +267,12 @@ export default function ParentsApplicationDetailPage() {
                 onClick={handleBack}
               >
                 {t('Back To Applications')}
+              </CustomButton>
+              <CustomButton
+                className="text-red-600 border border-red-200 bg-white cursor-pointer"
+                onClick={handleDelete}
+              >
+                {t('delete', { defaultValue: 'Delete' })}
               </CustomButton>
               {application.status === 'pending' && (
                 <>

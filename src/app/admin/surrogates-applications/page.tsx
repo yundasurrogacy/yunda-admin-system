@@ -17,7 +17,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { getSurrogatesApplications, updateApplicationStatus } from '@/lib/graphql/applications'
+import { exportApplicationsToExcel, exportApplicationsToPdf } from '@/lib/exports/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
+import { formatBooleanLabel } from '@/lib/utils'
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -84,10 +86,11 @@ interface SurrogateApplicationCardProps {
   onApprove: (id: number) => void;
   onReject: (id: number) => void;
   onViewDetails: (id: number) => void;
+  onDelete: (id: number) => void;
   t: any;
 }
 
-const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails, t }: SurrogateApplicationCardProps) => {
+const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails, onDelete, t }: SurrogateApplicationCardProps) => {
   const processedData = useMemo(() => {
     const appData = app.application_data as any
     const gc = appData?.gc_intake
@@ -98,16 +101,21 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
     const dob = g?.dob ?? contactInfo?.date_of_birth
     const age = calculateAge(dob)
     const isGcIntake = !!gc
-
     const displayName = isGcIntake ? (g?.full_name || '') : `${contactInfo?.first_name || ''} ${contactInfo?.last_name || ''}`.trim() || 'N/A'
     const email = isGcIntake ? (g?.email ?? '') : (contactInfo?.email_address ?? '')
-    const phone = isGcIntake ? `${g?.country_code || ''} ${g?.phone || ''}`.trim() : `${contactInfo?.cell_phone_country_code || ''} ${contactInfo?.cell_phone || ''}`.trim()
+    const gcPhone = [g?.country_code, g?.phone].filter(Boolean).join(' ').trim()
+    const legacyPhone = [contactInfo?.cell_phone_country_code, contactInfo?.cell_phone].filter(Boolean).join(' ').trim()
+    const phone = isGcIntake ? gcPhone : legacyPhone
     const location = isGcIntake ? (g?.state_of_residence ?? g?.home_address ?? '') : `${contactInfo?.city || ''}, ${contactInfo?.state_or_province || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || ''
     const birthSummary = isGcIntake
       ? (gc?.pregnancy_birth_history?.total_children != null ? `Children: ${gc.pregnancy_birth_history.total_children}` : '')
       : (pregnancyHealth?.birth_details ?? '')
     const bmi = isGcIntake ? (g?.bmi ?? '') : (contactInfo?.bmi ?? '')
     const occupation = isGcIntake ? (g?.occupation_specify || g?.occupation_type || '') : (aboutYou?.occupation ?? '')
+    const ethnicityValue = isGcIntake ? (g?.ethnicity || '') : (contactInfo?.ethnicity ?? '')
+    const identityLabel = isGcIntake
+      ? formatBooleanLabel(typeof g?.us_citizen_or_resident === 'boolean' ? g.us_citizen_or_resident : null, t)
+      : (contactInfo?.us_citizen_or_visa_status ?? '')
 
     return {
       displayName,
@@ -120,10 +128,10 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
       occupation,
       age,
       isGcIntake,
-      ethnicity: isGcIntake ? '' : (contactInfo?.ethnicity ?? ''),
+      ethnicity: ethnicityValue,
       education: isGcIntake ? '' : (aboutYou?.education_level ?? ''),
       heightWeight: isGcIntake ? (g?.height_feet ? `${g.height_feet}'${g.height_inches || ''}" / ${g.weight} lbs` : '') : (contactInfo?.height ? `${contactInfo.height} ${contactInfo.weight || ''} lbs` : ''),
-      identity: isGcIntake ? (g?.us_citizen_or_resident === true ? 'Yes' : g?.us_citizen_or_resident === false ? 'No' : '') : (contactInfo?.us_citizen_or_visa_status ?? ''),
+      identity: identityLabel,
       experienceLabel: isGcIntake ? '' : (aboutYou?.is_former_surrogate ? t('experiencedSurrogate', { defaultValue: '有经验' }) : t('firstTimeSurrogate', { defaultValue: '首次代孕' })),
       experienceDetail: isGcIntake ? '' : (aboutYou?.surrogate_experience ?? ''),
       experienceCount: isGcIntake ? 0 : (contactInfo?.surrogacy_experience_count ?? 0),
@@ -164,41 +172,47 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <Heart className="w-4 h-4 text-sage-500" />
-          <span className="truncate">{d.birthSummary || 'No births'}</span>
+          <span className="truncate">{d.birthSummary || t('noBirthRecords', { defaultValue: 'No birth records yet' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <Activity className="w-4 h-4 text-sage-500" />
-          <span className="truncate">BMI: {d.bmi || 'N/A'}</span>
+          <span className="truncate">BMI: {d.bmi || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <Calendar className="w-4 h-4 text-sage-500" />
-          <span className="truncate">DOB: {d.dob || 'N/A'}</span>
+          <span className="truncate">DOB: {d.dob || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
           <User className="w-4 h-4 text-sage-500" />
-          <span className="truncate">{d.occupation || 'N/A'}</span>
+          <span className="truncate">{d.occupation || t('notAvailable', { defaultValue: 'N/A' })}</span>
         </div>
       </div>
-      {!d.isGcIntake && (
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
-          <span>{t('ethnicity', { defaultValue: '种族' })}:</span>
-          <span className="truncate">{d.ethnicity || t('notAvailable', { defaultValue: 'N/A' })}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
-          <span>{t('education', { defaultValue: '教育' })}:</span>
-          <span className="truncate">{d.education || t('notAvailable', { defaultValue: 'N/A' })}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
-          <span>{t('heightWeight', { defaultValue: '身高体重' })}:</span>
-          <span className="truncate">{d.heightWeight || t('notAvailable', { defaultValue: 'N/A' })}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
-          <span>{t('identity', { defaultValue: '身份' })}:</span>
-          <span className="truncate">{d.identity || t('notAvailable', { defaultValue: 'N/A' })}</span>
-        </div>
+        {d.ethnicity && (
+          <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+            <span>{t('ethnicity', { defaultValue: '种族' })}:</span>
+            <span className="truncate">{d.ethnicity}</span>
+          </div>
+        )}
+        {!d.isGcIntake && d.education && (
+          <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+            <span>{t('education', { defaultValue: '教育' })}:</span>
+            <span className="truncate">{d.education}</span>
+          </div>
+        )}
+        {d.heightWeight && (
+          <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+            <span>{t('heightWeight', { defaultValue: '身高体重' })}:</span>
+            <span className="truncate">{d.heightWeight}</span>
+          </div>
+        )}
+        {d.identity && (
+          <div className="flex items-center gap-2 text-sm font-medium text-sage-800">
+            <span>{t('identity', { defaultValue: '身份' })}:</span>
+            <span className="truncate">{d.identity}</span>
+          </div>
+        )}
       </div>
-      )}
       {!d.isGcIntake && (d.experienceLabel || d.experienceDetail || d.experienceCount > 0) && (
       <div className="mb-4 p-3 bg-sage-50 rounded-lg">
         <div className="text-sm font-medium text-sage-800">
@@ -237,6 +251,12 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
             onClick={() => onViewDetails(app.id)}
           >
             {t('viewDetails', { defaultValue: '查看详情' })}
+          </CustomButton>
+          <CustomButton
+            className="text-red-600 hover:bg-red-50 font-medium cursor-pointer bg-transparent"
+            onClick={() => onDelete(app.id)}
+          >
+            {t('delete', { defaultValue: 'Delete' })}
           </CustomButton>
         </div>
       </div>
@@ -487,6 +507,37 @@ export default function SurrogatesApplicationsPage() {
     handleStatusUpdate(id, 'rejected')
   }, [handleStatusUpdate])
 
+  const handleExport = useCallback((format: 'excel' | 'pdf') => {
+    if (!filteredApplications.length) {
+      window.alert(t('noApplications', { defaultValue: 'No applications found.' }))
+      return
+    }
+    const dateStamp = new Date().toISOString().split('T')[0]
+    const baseName = `surrogates-applications-${dateStamp}`
+    if (format === 'excel')
+      exportApplicationsToExcel(filteredApplications, `${baseName}.xlsx`)
+    else
+      exportApplicationsToPdf(filteredApplications, `${baseName}.pdf`)
+  }, [filteredApplications, t])
+
+  const handleDelete = useCallback(async (id: number) => {
+    const confirmed = window.confirm(t('confirmDeleteApplication', { defaultValue: 'Delete this application?' }))
+    if (!confirmed)
+      return
+    try {
+      const response = await fetch(`/api/applications?id=${id}`, { method: 'DELETE' })
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+      await loadApplications(true)
+      window.alert(t('deleteSuccess', { defaultValue: 'Application deleted successfully.' }))
+    }
+    catch (error) {
+      console.error('Failed to delete application:', error)
+      window.alert(t('deleteFailed', { defaultValue: 'Failed to delete application, please try again.' }))
+    }
+  }, [loadApplications, t])
+
   // 认证检查 loading
   if (isAuthenticated === null) {
     return (
@@ -527,6 +578,18 @@ export default function SurrogatesApplicationsPage() {
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer"
               >
                 {t('addNewApplication')}
+              </CustomButton>
+              <CustomButton
+                onClick={() => handleExport('excel')}
+                className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800"
+              >
+                {t('exportExcel')}
+              </CustomButton>
+              <CustomButton
+                onClick={() => handleExport('pdf')}
+                className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800"
+              >
+                {t('exportPdf')}
               </CustomButton>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -626,6 +689,7 @@ export default function SurrogatesApplicationsPage() {
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onViewDetails={handleViewDetails}
+                onDelete={handleDelete}
                 t={t}
               />
             ))}
