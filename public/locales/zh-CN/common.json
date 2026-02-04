@@ -375,6 +375,20 @@
   "surrogatesApplications": "代孕母申请表",
   "exportExcel": "导出 Excel",
   "exportPdf": "导出 PDF",
+  "timing": {
+    "immediately": "立即开始",
+    "within3Months": "3个月内",
+    "within6Months": "6个月内",
+    "within1Year": "1年内",
+    "flexible": "灵活安排"
+  },
+  "childrenCount": {
+    "one": "1个",
+    "two": "2个",
+    "three": "3个",
+    "four": "4个",
+    "open": "开放"
+  },
   "hasGivenBirth": "曾经分娩",
   "isCurrentlyPregnant": "目前怀孕",
   "isBreastfeeding": "正在哺乳",

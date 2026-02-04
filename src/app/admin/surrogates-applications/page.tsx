@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { getSurrogatesApplications, updateApplicationStatus } from '@/lib/graphql/applications'
-import { exportApplicationsToExcel, exportApplicationsToPdf } from '@/lib/exports/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
 import { formatBooleanLabel } from '@/lib/utils'
 
@@ -507,19 +506,6 @@ export default function SurrogatesApplicationsPage() {
     handleStatusUpdate(id, 'rejected')
   }, [handleStatusUpdate])
 
-  const handleExport = useCallback((format: 'excel' | 'pdf') => {
-    if (!filteredApplications.length) {
-      window.alert(t('noApplications', { defaultValue: 'No applications found.' }))
-      return
-    }
-    const dateStamp = new Date().toISOString().split('T')[0]
-    const baseName = `surrogates-applications-${dateStamp}`
-    if (format === 'excel')
-      exportApplicationsToExcel(filteredApplications, `${baseName}.xlsx`)
-    else
-      exportApplicationsToPdf(filteredApplications, `${baseName}.pdf`)
-  }, [filteredApplications, t])
-
   const handleDelete = useCallback(async (id: number) => {
     const confirmed = window.confirm(t('confirmDeleteApplication', { defaultValue: 'Delete this application?' }))
     if (!confirmed)
@@ -578,18 +564,6 @@ export default function SurrogatesApplicationsPage() {
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer"
               >
                 {t('addNewApplication')}
-              </CustomButton>
-              <CustomButton
-                onClick={() => handleExport('excel')}
-                className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800"
-              >
-                {t('exportExcel')}
-              </CustomButton>
-              <CustomButton
-                onClick={() => handleExport('pdf')}
-                className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800"
-              >
-                {t('exportPdf')}
               </CustomButton>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

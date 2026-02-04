@@ -363,6 +363,20 @@
   "surrogatesApplications": "Surrogates Applications",
   "exportExcel": "Export Excel",
   "exportPdf": "Export PDF",
+  "timing": {
+    "immediately": "Immediately",
+    "within3Months": "Within 3 months",
+    "within6Months": "Within 6 months",
+    "within1Year": "Within 1 year",
+    "flexible": "Flexible"
+  },
+  "childrenCount": {
+    "one": "1",
+    "two": "2",
+    "three": "3",
+    "four": "4",
+    "open": "Open"
+  },
   "basicInformation": "Basic Information",
   "familyProfile": "Family Profile",
   "programInterests": "Program Interests",

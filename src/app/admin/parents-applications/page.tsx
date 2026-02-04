@@ -378,6 +378,7 @@ export default function ParentsApplicationsPage() {
     }
   }, [allApplications, debouncedSearchTerm, page, pageSize])
 
+
   // 搜索防抖处理
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -521,18 +522,6 @@ export default function ParentsApplicationsPage() {
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
               >
                 {t('addNewApplication', { defaultValue: '添加新申请' })}
-              </CustomButton>
-              <CustomButton
-                onClick={() => handleExport('excel')}
-                className="bg-white cursor-pointer border border-sage-300 text-sage-800"
-              >
-                {t('exportExcel')}
-              </CustomButton>
-              <CustomButton
-                onClick={() => handleExport('pdf')}
-                className="bg-white cursor-pointer border border-sage-300 text-sage-800"
-              >
-                {t('exportPdf')}
               </CustomButton>
               <DropdownMenu open={filterMenuOpen} onOpenChange={setFilterMenuOpen}>
                 <DropdownMenuTrigger asChild>
