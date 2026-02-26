@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react'
 import { useTranslation } from "react-i18next"
 // import i18n from '@/i18n'
 import i18n from '@/i18n'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, User, Mail, Phone, MapPin, Calendar } from 'lucide-react'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
 import { CustomButton } from '@/components/ui/CustomButton'
@@ -226,10 +226,42 @@ export default function ParentsApplicationsPage() {
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
   const [filterMenuOpen, setFilterMenuOpen] = useState(false)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  // 分页相关
-  const [page, setPage] = useState(1)
-  const [pageInput, setPageInput] = useState('1')
-  const [pageSize, setPageSize] = useState(10)
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const pageSize = 12 // 每页 12 条（2、3、4 的公倍数）
+
+  const LIST_RETURN_PAGE_KEY = 'parents-list-return-page'
+  const pageFromUrl = searchParams.get('page') || '1'
+  const pageFromUrlNum = Math.max(1, parseInt(pageFromUrl, 10) || 1)
+  const [restoredPage, setRestoredPage] = useState<number | null>(null)
+  const justRestoredRef = useRef(false)
+  const currentPage = restoredPage ?? pageFromUrlNum
+  const [pageInput, setPageInput] = useState(String(currentPage))
+
+  // 挂载时：若 sessionStorage 有“从详情返回”的页码，先恢复 URL 并用于展示（解决 router.push 后 searchParams 不更新）
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const saved = sessionStorage.getItem(LIST_RETURN_PAGE_KEY)
+    if (saved) {
+      sessionStorage.removeItem(LIST_RETURN_PAGE_KEY)
+      const p = Math.max(1, parseInt(saved, 10) || 1)
+      justRestoredRef.current = true
+      setRestoredPage(p)
+      setPageInput(String(p))
+      router.replace(`${pathname}?page=${p}`, { scroll: false })
+    }
+  }, [pathname, router])
+
+  // URL 变化后：若并非“刚恢复”且 URL 与 restoredPage 不一致，则以 URL 为准并清掉 restoredPage
+  useEffect(() => {
+    if (restoredPage !== null && pageFromUrlNum === restoredPage) {
+      justRestoredRef.current = false
+    }
+    if (restoredPage !== null && pageFromUrlNum !== restoredPage && !justRestoredRef.current) {
+      setRestoredPage(null)
+    }
+    setPageInput(String(currentPage))
+  }, [pageFromUrlNum, currentPage, restoredPage])
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -246,21 +278,6 @@ export default function ParentsApplicationsPage() {
     }
   }, [router])
 
-  // 自适应每页条数，始终两行，宽度自适应
-  useEffect(() => {
-    function calcPageSize() {
-      // 卡片宽度约340px+gap，左右padding 32px
-      const containerWidth = window.innerWidth - 64
-      const cardWidth = 340 + 32
-      const rowCount = Math.max(1, Math.floor(containerWidth / cardWidth))
-      const colCount = 2 // 固定两行
-      const newPageSize = rowCount * colCount
-      setPageSize(newPageSize)
-    }
-    calcPageSize()
-    window.addEventListener('resize', calcPageSize)
-    return () => window.removeEventListener('resize', calcPageSize)
-  }, [])
   useEffect(() => {
     console.log('页面 i18n.language:', i18n.language)
     const handleLangChange = () => {
@@ -320,13 +337,13 @@ export default function ParentsApplicationsPage() {
     }
   }, [loadApplications])
 
-  // 使用 useMemo 缓存过滤和分页计算，优化搜索性能
+  // 使用 useMemo 缓存过滤和分页计算（页码用 currentPage，来自 URL）
   const { filteredApplications, total, totalPages, pagedApplications } = useMemo(() => {
     // 如果没有搜索词，直接返回所有数据
     if (!debouncedSearchTerm.trim()) {
       const totalCount = allApplications.length
       const pages = Math.max(1, Math.ceil(totalCount / pageSize))
-      const paged = allApplications.slice((page - 1) * pageSize, page * pageSize)
+      const paged = allApplications.slice((currentPage - 1) * pageSize, currentPage * pageSize)
       
       return {
         filteredApplications: allApplications,
@@ -368,7 +385,7 @@ export default function ParentsApplicationsPage() {
     // 分页计算
     const totalCount = filtered.length
     const pages = Math.max(1, Math.ceil(totalCount / pageSize))
-    const paged = filtered.slice((page - 1) * pageSize, page * pageSize)
+    const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
     return {
       filteredApplications: filtered,
@@ -376,7 +393,7 @@ export default function ParentsApplicationsPage() {
       totalPages: pages,
       pagedApplications: paged
     }
-  }, [allApplications, debouncedSearchTerm, page, pageSize])
+  }, [allApplications, debouncedSearchTerm, currentPage, pageSize])
 
 
   // 搜索防抖处理
@@ -395,25 +412,51 @@ export default function ParentsApplicationsPage() {
       }
     }
   }, [searchTerm])
+  // 页码自动调整：仅在数据已加载时执行，避免从详情返回时因数据未加载导致 totalPages=1 而误改成 page=1
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages)
+    if (!dataLoaded) return
+    if (totalPages >= 1 && currentPage > totalPages) {
       setPageInput(String(totalPages))
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('page', String(totalPages))
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }
-  }, [totalPages, page])
+  }, [dataLoaded, currentPage, totalPages, pathname, router, searchParams])
 
-  // 使用 useCallback 缓存分页处理函数
-  const handlePrevPage = useCallback(() => {
-    const newPage = Math.max(1, page - 1)
-    setPage(newPage)
+  // 同步页码到 URL，便于从详情返回时保持页码
+  const syncPageToUrl = useCallback((newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('page', String(newPage))
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [pathname, router, searchParams])
+
+  // 使用 useCallback 缓存分页处理函数（改 URL 并设 restoredPage，避免 searchParams 滞后）
+  const handleFirstPage = useCallback(() => {
+    setPageInput('1')
+    setRestoredPage(1)
+    syncPageToUrl(1)
+  }, [syncPageToUrl])
+
+  const handleLastPage = useCallback(() => {
+    const newPage = totalPages
     setPageInput(String(newPage))
-  }, [page])
+    setRestoredPage(newPage)
+    syncPageToUrl(newPage)
+  }, [totalPages, syncPageToUrl])
+
+  const handlePrevPage = useCallback(() => {
+    const newPage = Math.max(1, currentPage - 1)
+    setPageInput(String(newPage))
+    setRestoredPage(newPage)
+    syncPageToUrl(newPage)
+  }, [currentPage, syncPageToUrl])
 
   const handleNextPage = useCallback(() => {
-    const newPage = Math.min(totalPages, page + 1)
-    setPage(newPage)
+    const newPage = Math.min(totalPages, currentPage + 1)
     setPageInput(String(newPage))
-  }, [page, totalPages])
+    setRestoredPage(newPage)
+    syncPageToUrl(newPage)
+  }, [currentPage, totalPages, syncPageToUrl])
 
   const handlePageInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '')
@@ -424,19 +467,21 @@ export default function ParentsApplicationsPage() {
     let val = Number(e.target.value)
     if (isNaN(val) || val < 1) val = 1
     if (val > totalPages) val = totalPages
-    setPage(val)
     setPageInput(String(val))
-  }, [totalPages])
+    setRestoredPage(val)
+    syncPageToUrl(val)
+  }, [totalPages, syncPageToUrl])
 
   const handlePageInputKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       let val = Number((e.target as HTMLInputElement).value)
       if (isNaN(val) || val < 1) val = 1
       if (val > totalPages) val = totalPages
-      setPage(val)
       setPageInput(String(val))
+      setRestoredPage(val)
+      syncPageToUrl(val)
     }
-  }, [totalPages])
+  }, [totalPages, syncPageToUrl])
 
   // 使用 useCallback 缓存卡片操作函数
   const handleApprove = useCallback((id: number) => {
@@ -465,8 +510,13 @@ export default function ParentsApplicationsPage() {
   }, [loadApplications, t])
 
   const handleViewDetails = useCallback((id: number) => {
-    router.push(`/admin/parents-applications/${id}`)
-  }, [router])
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(LIST_RETURN_PAGE_KEY, String(currentPage))
+    }
+    const params = new URLSearchParams()
+    params.set('fromPage', String(currentPage))
+    router.push(`/admin/parents-applications/${id}?${params.toString()}`)
+  }, [router, currentPage])
 
   const handleAddNewApplication = useCallback(() => {
     window.open('https://www.yundasurrogacy.com/be-parents', '_blank')
@@ -621,7 +671,14 @@ export default function ParentsApplicationsPage() {
           <div className="flex flex-wrap justify-center items-center mt-8 gap-4 pt-4 border-t border-sage-100">
           <CustomButton
             className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-            disabled={page === 1}
+            disabled={currentPage === 1}
+            onClick={handleFirstPage}
+          >
+            {t('pagination.firstPage', { defaultValue: '首页' })}
+          </CustomButton>
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
+            disabled={currentPage === 1}
             onClick={handlePrevPage}
           >
             {t('pagination.prevPage', { defaultValue: '上一页' })}
@@ -643,10 +700,17 @@ export default function ParentsApplicationsPage() {
           </span>
           <CustomButton
             className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
-            disabled={page >= totalPages}
+            disabled={currentPage >= totalPages}
             onClick={handleNextPage}
           >
             {t('pagination.nextPage', { defaultValue: '下一页' })}
+          </CustomButton>
+          <CustomButton
+            className="cursor-pointer border border-sage-300 bg-white text-sage-800 px-3 py-1 text-sm rounded"
+            disabled={currentPage >= totalPages || totalPages <= 0}
+            onClick={handleLastPage}
+          >
+            {t('pagination.lastPage', { defaultValue: '末页' })}
           </CustomButton>
           </div>
         </div>

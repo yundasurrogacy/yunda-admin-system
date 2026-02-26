@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Heart, FileText, CheckCircle, XCircle, Clock } from 'lucide-react'
 // import { AdminLayout } from '../../../../components/admin-layout'
 import { PageHeader, PageContent } from '@/components/ui/page-layout'
@@ -137,10 +137,21 @@ export default function ParentsApplicationDetailPage() {
     }
   }, [application, loadApplication])
 
-  // 使用 useCallback 缓存导航函数
+  const searchParams = useSearchParams()
+  const fromPage = searchParams.get('fromPage') || '1'
+  const getReturnPage = useCallback(() => {
+    if (typeof window === 'undefined') return fromPage
+    const saved = sessionStorage.getItem('parents-list-return-page')
+    if (saved) return saved
+    return fromPage
+  }, [fromPage])
+  const listUrlWithPage = `/admin/parents-applications?page=${getReturnPage()}`
+
+  // 使用 useCallback 缓存导航函数（返回时带上原列表页码，优先 sessionStorage）
   const handleBack = useCallback(() => {
-    router.back()
-  }, [router])
+    const page = getReturnPage()
+    router.push(`/admin/parents-applications?page=${page}`)
+  }, [router, getReturnPage])
 
   const handleApprove = useCallback(() => {
     handleStatusUpdate('approved')
@@ -161,13 +172,13 @@ export default function ParentsApplicationDetailPage() {
       if (!response.ok)
         throw new Error(await response.text())
       window.alert(t('deleteSuccess', { defaultValue: 'Application deleted successfully.' }))
-      router.push('/admin/parents-applications')
+      router.push(`/admin/parents-applications?page=${getReturnPage()}`)
     }
     catch (error) {
       console.error('Failed to delete application:', error)
       window.alert(t('deleteFailed', { defaultValue: 'Failed to delete application, please try again.' }))
     }
-  }, [application, router, t])
+  }, [application, router, t, getReturnPage])
 
   const formatYesNoValue = useCallback((value: unknown) => {
     if (value === true || value === 'Yes' || value === 'yes')

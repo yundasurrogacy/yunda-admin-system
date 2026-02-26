@@ -1431,6 +1431,8 @@
   "clearAll": "Clear All",
   "search": "Search",
   "pagination": {
+    "firstPage": "First",
+    "lastPage": "Last",
     "prevPage": "Previous",
     "nextPage": "Next",
     "page": "Page",
