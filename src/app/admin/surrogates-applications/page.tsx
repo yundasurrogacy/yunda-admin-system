@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo, useRef, Suspense } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslation } from "react-i18next"
 import i18n from '@/i18n'
@@ -268,7 +268,7 @@ const SurrogateApplicationCard = memo(({ app, onApprove, onReject, onViewDetails
 
 SurrogateApplicationCard.displayName = 'SurrogateApplicationCard'
 
-export default function SurrogatesApplicationsPage() {
+function SurrogatesApplicationsContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -844,5 +844,21 @@ export default function SurrogatesApplicationsPage() {
           </div>
       </PageContent>
     </div>
+  )
+}
+
+export default function SurrogatesApplicationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageContent>
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-sage-700">Loading...</div>
+          </div>
+        </PageContent>
+      }
+    >
+      <SurrogatesApplicationsContent />
+    </Suspense>
   )
 }

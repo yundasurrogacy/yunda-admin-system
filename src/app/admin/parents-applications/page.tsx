@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo, useRef, Suspense } from 'react'
 import { useTranslation } from "react-i18next"
 // import i18n from '@/i18n'
 import i18n from '@/i18n'
@@ -211,7 +211,7 @@ const ApplicationCard = memo(({ app, currentLang, onApprove, onReject, onViewDet
 });
 ApplicationCard.displayName = 'ApplicationCard';
 
-export default function ParentsApplicationsPage() {
+function ParentsApplicationsContent() {
   const router = useRouter()
   const [lang, setLang] = useState(i18n.language)
   // 每次lang变化都重新获取t
@@ -794,5 +794,21 @@ export default function ParentsApplicationsPage() {
         </div>
       </PageContent>
     </div>
+  )
+}
+
+export default function ParentsApplicationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageContent>
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-sage-700">Loading...</div>
+          </div>
+        </PageContent>
+      }
+    >
+      <ParentsApplicationsContent />
+    </Suspense>
   )
 }
