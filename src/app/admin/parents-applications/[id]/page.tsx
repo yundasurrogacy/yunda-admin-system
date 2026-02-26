@@ -8,7 +8,8 @@ import { PageHeader, PageContent } from '@/components/ui/page-layout'
 import { CustomButton } from '@/components/ui/CustomButton'
 import { Badge } from '@/components/ui/badge'
 import { getApplicationById, updateApplicationStatus } from '@/lib/graphql/applications'
-import { exportDetailToExcel, exportDetailToPdf, type DetailExportRow } from '@/lib/exports/applications'
+import { exportDetailToExcel, exportDetailToPdf, exportParentsDetailFixedToExcel, type DetailExportRow } from '@/lib/exports/applications'
+import { buildParentsDetailFixedRow, type ParentsParsedData } from '@/lib/exports/parents-fixed-rows'
 import type { Application, ApplicationStatus } from '@/types/applications'
 import { useTranslation } from 'react-i18next'
 
@@ -291,20 +292,35 @@ export default function ParentsApplicationDetailPage() {
     return rows
   }, [application, parsedData, t, formattedDates, formatYesNoValue])
 
+  const fixedExportData = useMemo(() => {
+    if (!application || !parsedData) return null
+    return buildParentsDetailFixedRow(application, parsedData as ParentsParsedData, t, formattedDates)
+  }, [application, parsedData, t, formattedDates, i18n.language])
+
   const handleExportDetail = useCallback((format: 'excel' | 'pdf') => {
-    const rows = buildExportRows()
-    if (!rows.length) {
-      window.alert(t('noRecords', { defaultValue: 'No records' }))
-      return
-    }
     const dateStamp = new Date().toISOString().split('T')[0]
     const baseName = `parent-application-${application?.id || 'detail'}-${dateStamp}`
     const title = `${t('parentsApplications')} #${application?.id || ''}`
-    if (format === 'excel')
-      exportDetailToExcel(rows, `${baseName}.xlsx`)
-    else
+    if (format === 'excel') {
+      if (fixedExportData) {
+        exportParentsDetailFixedToExcel(fixedExportData.headers, [fixedExportData.row], `${baseName}.xlsx`)
+      } else {
+        const rows = buildExportRows()
+        if (!rows.length) {
+          window.alert(t('noRecords', { defaultValue: 'No records' }))
+          return
+        }
+        exportDetailToExcel(rows, `${baseName}.xlsx`)
+      }
+    } else {
+      const rows = buildExportRows()
+      if (!rows.length) {
+        window.alert(t('noRecords', { defaultValue: 'No records' }))
+        return
+      }
       exportDetailToPdf(title, rows, `${baseName}.pdf`)
-  }, [application?.id, buildExportRows, t])
+    }
+  }, [application?.id, buildExportRows, fixedExportData, t])
 
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 

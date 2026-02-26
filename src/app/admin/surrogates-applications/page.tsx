@@ -19,6 +19,9 @@ import {
 import { getSurrogatesApplications, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
 import { formatBooleanLabel } from '@/lib/utils'
+import { exportSurrogateDetailFixedToExcel } from '@/lib/exports/applications'
+import { parseSurrogateApplicationData, buildSurrogateDetailFixedRow } from '@/lib/exports/surrogate-fixed-rows'
+import { Dialog } from '@/components/ui/dialog'
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -285,6 +288,15 @@ export default function SurrogatesApplicationsPage() {
   const pageSize = 12 // 每页 12 条（2、3、4 的公倍数）
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // 批量导出：按创建时间筛选
+  const [batchExportOpen, setBatchExportOpen] = useState(false)
+  const [exportDateStart, setExportDateStart] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 30)
+    return d.toISOString().slice(0, 10)
+  })
+  const [exportDateEnd, setExportDateEnd] = useState(() => new Date().toISOString().slice(0, 10))
+
   const LIST_RETURN_PAGE_KEY = 'surrogates-list-return-page'
   const pageFromUrl = searchParams.get('page') || '1'
   const pageFromUrlNum = Math.max(1, parseInt(pageFromUrl, 10) || 1)
@@ -539,6 +551,32 @@ export default function SurrogatesApplicationsPage() {
     window.open('https://www.yundasurrogacy.com/be-surrogate', '_blank')
   }, [])
 
+  const handleBatchExport = useCallback(() => {
+    const start = new Date(exportDateStart)
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(exportDateEnd)
+    end.setHours(23, 59, 59, 999)
+    const inRange = allApplications.filter((app) => {
+      const created = new Date(app.created_at)
+      return created >= start && created <= end
+    })
+    if (inRange.length === 0) {
+      window.alert(t('exportNoData', { defaultValue: '该时间区间内无申请记录' }))
+      return
+    }
+    let headers: string[] = []
+    const rows: Record<string, string>[] = []
+    inRange.forEach((app, i) => {
+      const parsed = parseSurrogateApplicationData(app)
+      const { headers: h, row: r } = buildSurrogateDetailFixedRow(app, parsed, t)
+      if (i === 0) headers = h
+      rows.push(r)
+    })
+    const dateStamp = new Date().toISOString().split('T')[0]
+    exportSurrogateDetailFixedToExcel(headers, rows, `surrogates-batch-${exportDateStart}-${exportDateEnd}-${dateStamp}.xlsx`)
+    setBatchExportOpen(false)
+  }, [allApplications, exportDateStart, exportDateEnd, t])
+
   const handleViewDetails = useCallback((id: number) => {
     if (typeof window !== 'undefined') {
       sessionStorage.setItem(LIST_RETURN_PAGE_KEY, String(currentPage))
@@ -609,6 +647,12 @@ export default function SurrogatesApplicationsPage() {
           title={t('surrogatesApplications')}
           rightContent={
             <div className="flex items-center gap-4">
+              <CustomButton
+                onClick={() => setBatchExportOpen(true)}
+                className="bg-white font-medium cursor-pointer border border-sage-300 text-sage-800"
+              >
+                {t('batchExportExcel', { defaultValue: '批量导出 Excel' })}
+              </CustomButton>
               <CustomButton
                 onClick={handleAddNewApplication}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 font-medium cursor-pointer"
@@ -766,6 +810,37 @@ export default function SurrogatesApplicationsPage() {
             {t('pagination.lastPage', { defaultValue: '末页' })}
           </CustomButton>
         </div>
+
+        <Dialog open={batchExportOpen} onOpenChange={setBatchExportOpen}>
+          <h3 className="text-lg font-semibold text-sage-800 mb-4">{t('batchExportExcel', { defaultValue: '批量导出 Excel' })}</h3>
+          <p className="text-sm text-sage-600 mb-3">{t('exportDateRange', { defaultValue: '按创建时间筛选' })}</p>
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 text-sm text-sage-700">
+              {t('startDate', { defaultValue: '开始日期' })}
+              <input
+                type="date"
+                value={exportDateStart}
+                onChange={(e) => setExportDateStart(e.target.value)}
+                className="border border-sage-200 rounded px-2 py-1"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-sage-700">
+              {t('endDate', { defaultValue: '结束日期' })}
+              <input
+                type="date"
+                value={exportDateEnd}
+                onChange={(e) => setExportDateEnd(e.target.value)}
+                className="border border-sage-200 rounded px-2 py-1"
+              />
+            </label>
+          </div>
+          <CustomButton
+            onClick={handleBatchExport}
+            className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
+          >
+            {t('doExport', { defaultValue: '导出' })}
+          </CustomButton>
+        </Dialog>
           </div>
       </PageContent>
     </div>

@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { getParentsApplications, updateApplicationStatus } from '@/lib/graphql/applications'
 import type { Application, ApplicationStatus } from '@/types/applications'
+import { exportParentsDetailFixedToExcel } from '@/lib/exports/applications'
+import { parseParentsApplicationData, buildParentsDetailFixedRow } from '@/lib/exports/parents-fixed-rows'
+import { Dialog } from '@/components/ui/dialog'
 
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
@@ -229,6 +232,14 @@ export default function ParentsApplicationsPage() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const pageSize = 12 // 每页 12 条（2、3、4 的公倍数）
+
+  const [batchExportOpen, setBatchExportOpen] = useState(false)
+  const [exportDateStart, setExportDateStart] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() - 30)
+    return d.toISOString().slice(0, 10)
+  })
+  const [exportDateEnd, setExportDateEnd] = useState(() => new Date().toISOString().slice(0, 10))
 
   const LIST_RETURN_PAGE_KEY = 'parents-list-return-page'
   const pageFromUrl = searchParams.get('page') || '1'
@@ -522,6 +533,36 @@ export default function ParentsApplicationsPage() {
     window.open('https://www.yundasurrogacy.com/be-parents', '_blank')
   }, [])
 
+  const handleBatchExport = useCallback(() => {
+    const start = new Date(exportDateStart)
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(exportDateEnd)
+    end.setHours(23, 59, 59, 999)
+    const inRange = allApplications.filter((app) => {
+      const created = new Date(app.created_at)
+      return created >= start && created <= end
+    })
+    if (inRange.length === 0) {
+      window.alert(t('exportNoData', { defaultValue: '该时间区间内无申请记录' }))
+      return
+    }
+    let headers: string[] = []
+    const rows: Record<string, string>[] = []
+    inRange.forEach((app, i) => {
+      const parsed = parseParentsApplicationData(app)
+      const formattedDates = {
+        createdAt: new Date(app.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US'),
+        updatedAt: new Date(app.updated_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US'),
+      }
+      const { headers: h, row: r } = buildParentsDetailFixedRow(app, parsed, t, formattedDates)
+      if (i === 0) headers = h
+      rows.push(r)
+    })
+    const dateStamp = new Date().toISOString().split('T')[0]
+    exportParentsDetailFixedToExcel(headers, rows, `parents-batch-${exportDateStart}-${exportDateEnd}-${dateStamp}.xlsx`)
+    setBatchExportOpen(false)
+  }, [allApplications, exportDateStart, exportDateEnd, t, i18n.language])
+
   const handleFilterChange = useCallback((key: ApplicationStatus | 'all') => {
     setStatusFilter(key)
     setFilterMenuOpen(false)
@@ -567,6 +608,12 @@ export default function ParentsApplicationsPage() {
           title={t('parentsApplications', { defaultValue: '意向父母申请表' })}
           rightContent={
             <div className="flex items-center gap-4">
+              <CustomButton
+                onClick={() => setBatchExportOpen(true)}
+                className="bg-white cursor-pointer border border-sage-300 text-sage-800"
+              >
+                {t('batchExportExcel', { defaultValue: '批量导出 Excel' })}
+              </CustomButton>
               <CustomButton
                 onClick={handleAddNewApplication}
                 className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
@@ -713,6 +760,37 @@ export default function ParentsApplicationsPage() {
             {t('pagination.lastPage', { defaultValue: '末页' })}
           </CustomButton>
           </div>
+
+        <Dialog open={batchExportOpen} onOpenChange={setBatchExportOpen}>
+          <h3 className="text-lg font-semibold text-sage-800 mb-4">{t('batchExportExcel', { defaultValue: '批量导出 Excel' })}</h3>
+          <p className="text-sm text-sage-600 mb-3">{t('exportDateRange', { defaultValue: '按创建时间筛选' })}</p>
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 text-sm text-sage-700">
+              {t('startDate', { defaultValue: '开始日期' })}
+              <input
+                type="date"
+                value={exportDateStart}
+                onChange={(e) => setExportDateStart(e.target.value)}
+                className="border border-sage-200 rounded px-2 py-1"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-sage-700">
+              {t('endDate', { defaultValue: '结束日期' })}
+              <input
+                type="date"
+                value={exportDateEnd}
+                onChange={(e) => setExportDateEnd(e.target.value)}
+                className="border border-sage-200 rounded px-2 py-1"
+              />
+            </label>
+          </div>
+          <CustomButton
+            onClick={handleBatchExport}
+            className="bg-sage-200 text-sage-800 hover:bg-sage-250 cursor-pointer"
+          >
+            {t('doExport', { defaultValue: '导出' })}
+          </CustomButton>
+        </Dialog>
         </div>
       </PageContent>
     </div>

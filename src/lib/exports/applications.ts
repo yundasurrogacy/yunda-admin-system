@@ -152,6 +152,19 @@ export function exportSurrogateDetailFixedToExcel(
   XLSX.writeFile(workbook, filename)
 }
 
+/** 固定列导出：表头顺序与 row 键顺序一致，一行一个准父母，便于批量导出与合并 */
+export function exportParentsDetailFixedToExcel(
+  headers: string[],
+  rows: Record<string, string>[],
+  filename: string = 'parents-detail-fixed.xlsx',
+) {
+  const data = rows.map((row) => headers.map((h) => row[h] ?? ''))
+  const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data])
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, '准父母详情')
+  XLSX.writeFile(workbook, filename)
+}
+
 export function exportDetailToPdf(title: string, rows: DetailExportRow[], filename: string = 'application-detail.pdf') {
   const doc = new jsPDF({
     orientation: 'portrait',

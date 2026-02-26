@@ -363,6 +363,12 @@
   "surrogatesApplications": "Surrogates Applications",
   "exportExcel": "Export Excel",
   "exportPdf": "Export PDF",
+  "batchExportExcel": "Batch Export Excel",
+  "exportDateRange": "Filter by creation date",
+  "startDate": "Start date",
+  "endDate": "End date",
+  "doExport": "Export",
+  "exportNoData": "No applications in this date range",
   "timing": {
     "immediately": "Immediately",
     "within3Months": "Within 3 months",
