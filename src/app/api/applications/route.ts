@@ -58,13 +58,14 @@ export async function POST(request: NextRequest) {
       }
     `;
 
+    const status = (body as { status?: string }).status === "draft" ? "draft" : "pending";
     const result = await hasuraClient.execute({
       query: mutation,
       variables: {
         object: {
           application_type: body.application_type,
           application_data: body.application_data,
-          status: "pending",
+          status,
         },
       },
     });
@@ -189,7 +190,7 @@ export async function DELETE(request: NextRequest) {
 
 
 // 处理预检请求（OPTIONS 方法）
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, {
     status: 204,
     headers: {

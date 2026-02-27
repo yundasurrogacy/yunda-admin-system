@@ -1,7 +1,7 @@
 
 
 import { getHasuraClient } from '@/config-lib/hasura-graphql-client/hasura-graphql-client'
-import type { Application, ApplicationStatus } from '@/types/applications'
+import type { ApplicationStatus } from '@/types/applications'
 
 // 获取单个准父母详情
 export async function getIntendedParentById(id: number) {
@@ -334,6 +334,32 @@ export async function getApplicationById(id: number) {
   return result?.applications_by_pk
 }
 
+/** 更新申请数据（草稿分步保存：仅更新 application_data 和/或 status，不触发插入用户表） */
+export async function updateApplicationById(
+  id: number,
+  updates: { application_data?: Record<string, unknown>; status?: string }
+) {
+  const hasuraClient = getHasuraClient()
+  const set: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (updates.application_data !== undefined) set.application_data = updates.application_data
+  if (updates.status !== undefined) set.status = updates.status
+
+  const mutation = `
+    mutation UpdateApplication($id: bigint!, $set: applications_set_input!) {
+      update_applications_by_pk(pk_columns: { id: $id }, _set: $set) {
+        id
+        status
+        application_data
+        updated_at
+      }
+    }
+  `
+  const result = await hasuraClient.execute({
+    query: mutation,
+    variables: { id, set },
+  })
+  return result?.update_applications_by_pk
+}
 
 // 创建新的准父母用户（直接插入 intended_parents 表）
 export async function insertIntendedParent(data: {
