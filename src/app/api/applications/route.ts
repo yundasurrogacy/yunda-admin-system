@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { CreateApplicationInput } from "@/types/applications";
+import type { Application, CreateApplicationInput } from "@/types/applications";
 import { getHasuraClient } from "@/config-lib/hasura-graphql-client/hasura-graphql-client";
 import { deleteApplicationById } from "@/lib/graphql/applications";
+import { pushSurrogateApplicationToGoogleSheet } from "@/lib/google-sheet-push";
 
 // 提交申请表
 export async function POST(request: NextRequest) {
@@ -70,7 +71,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // return new NextResponse(
+    const inserted = result?.insert_applications_one as Application | undefined;
+    if (inserted && body.application_type === "surrogate_mother" && status === "pending") {
+      pushSurrogateApplicationToGoogleSheet(inserted).then((r) => {
+        if (!r.ok) console.warn("[Google Sheet] push failed:", r.error);
+      });
+    }
+
     return NextResponse.json(
       {
         success: true,

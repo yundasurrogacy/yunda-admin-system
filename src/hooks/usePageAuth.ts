@@ -16,27 +16,15 @@ export function useRequireAuth(requiredRole?: 'admin' | 'client' | 'manager' | '
     // 如果还在加载，等待
     if (isLoading) return
 
-    // 如果未认证，重定向到登录页
+    // 如果未认证，重定向到统一登录页
     if (!isAuthenticated) {
-      let loginPath = '/client/login'
-      
-      if (requiredRole) {
-        switch (requiredRole) {
-          case 'admin':
-            loginPath = '/admin/login'
-            break
-          case 'manager':
-            loginPath = '/client-manager/login'
-            break
-          case 'client':
-            loginPath = '/client/login'
-            break
-          case 'surrogacy':
-            loginPath = '/surrogacy/login'
-            break
-        }
+      const loginPaths: Record<string, string> = {
+        admin: '/?role=admin',
+        manager: '/?role=manager',
+        client: '/?role=client',
+        surrogacy: '/?role=surrogacy',
       }
-      
+      const loginPath = requiredRole ? loginPaths[requiredRole] : '/'
       router.push(loginPath)
       return
     }

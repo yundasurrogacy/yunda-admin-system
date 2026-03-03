@@ -65,9 +65,13 @@ export function usePageAuth(requiredRole?: 'admin' | 'client' | 'manager' | 'sur
     }
 
     if (!isAuthenticated) {
-      const loginPath = requiredRole ? 
-        (requiredRole === 'manager' ? '/client-manager/login' : `/${requiredRole}/login`) :
-        '/client/login'
+      const loginPaths: Record<string, string> = {
+        admin: '/?role=admin',
+        manager: '/?role=manager',
+        client: '/?role=client',
+        surrogacy: '/?role=surrogacy',
+      }
+      const loginPath = requiredRole ? loginPaths[requiredRole] : '/'
       router.push(loginPath)
       return
     }

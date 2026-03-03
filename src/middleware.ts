@@ -9,12 +9,12 @@ const protectedPaths = {
   surrogacy: ['/surrogacy/dashboard', '/surrogacy/journal', '/surrogacy/profile']
 }
 
-// 定义登录页面路径
+// 统一登录页，通过 role 参数预选端
 const loginPaths = {
-  admin: '/admin/login',
-  client: '/client/login', 
-  manager: '/client-manager/login',
-  surrogacy: '/surrogacy/login'
+  admin: '/?role=admin',
+  client: '/?role=client',
+  manager: '/?role=manager',
+  surrogacy: '/?role=surrogacy',
 }
 
 export function middleware(request: NextRequest) {
@@ -72,16 +72,22 @@ export function middleware(request: NextRequest) {
   const userEmail = request.cookies.get(keys.email)?.value
   const userId = request.cookies.get(keys.id)?.value
 
-  // 如果未认证，重定向到对应的登录页面
+  // 如果未认证，重定向到统一登录页并预选端
   if (!userRole || !userEmail || !userId) {
-    const loginPath = loginPaths[requiredRole as keyof typeof loginPaths] || '/client/login'
+    const loginPath = loginPaths[requiredRole as keyof typeof loginPaths] || '/'
     return NextResponse.redirect(new URL(loginPath, request.url))
   }
 
-  // 检查角色权限
+  // 检查角色权限，角色不匹配时跳转到用户对应端的首页（由前端处理）
   if (userRole !== requiredRole) {
-    const userLoginPath = loginPaths[userRole as keyof typeof loginPaths] || '/client/login'
-    return NextResponse.redirect(new URL(userLoginPath, request.url))
+    const homePaths: Record<string, string> = {
+      admin: '/admin/dashboard',
+      client: '/client/dashboard',
+      manager: '/client-manager/dashboard',
+      surrogacy: '/surrogacy/dashboard',
+    }
+    const homePath = homePaths[userRole] || '/'
+    return NextResponse.redirect(new URL(homePath, request.url))
   }
 
   // 认证通过，允许访问

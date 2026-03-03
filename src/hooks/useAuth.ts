@@ -110,14 +110,14 @@ export function useAuth(type: User['role'] = 'client') {
     return true
   }, [authState])
 
-  // 获取登录路径
+  // 获取登录路径（统一登录页 + role 参数）
   const getLoginPath = useCallback((role?: User['role']) => {
     switch (role || type) {
-      case 'admin': return '/admin/login'
-      case 'manager': return '/client-manager/login'
-      case 'client': return '/client/login'
-      case 'surrogacy': return '/surrogacy/login'
-      default: return '/client/login'
+      case 'admin': return '/?role=admin'
+      case 'manager': return '/?role=manager'
+      case 'client': return '/?role=client'
+      case 'surrogacy': return '/?role=surrogacy'
+      default: return '/'
     }
   }, [type])
 

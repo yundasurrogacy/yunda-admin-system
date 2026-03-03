@@ -15,16 +15,15 @@ const nextConfig: NextConfig = {
     domains: ['qiniu-storage.weweknow.com'],
   },
 
-  // // 永久 301 跳转：/surrogate-journey -> /surrogate-process
-  // async redirects() {
-  //   return [
-  //     {
-  //       source: '/surrogate-journey',
-  //       destination: '/surrogate-process',
-  //       statusCode: 301,
-  //     },
-  //   ];
-  // },
+  // 旧登录页重定向到统一登录页
+  async redirects() {
+    return [
+      { source: '/admin/login', destination: '/?role=admin', statusCode: 301 },
+      { source: '/client/login', destination: '/?role=client', statusCode: 301 },
+      { source: '/client-manager/login', destination: '/?role=manager', statusCode: 301 },
+      { source: '/surrogacy/login', destination: '/?role=surrogacy', statusCode: 301 },
+    ];
+  },
 
   // 禁用静态资源缓存
   generateEtags: false,
