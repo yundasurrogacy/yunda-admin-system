@@ -27,7 +27,12 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/useAuth"
-import {getSurrogatesApplications, getParentsApplications, getIntendedParents, getSurrogateMothers } from '@/lib/graphql/applications'
+import {
+  getSurrogateApplicationsStats,
+  getParentApplicationsStats,
+  getSurrogateMothersCount,
+  getIntendedParentsCount,
+} from '@/lib/graphql/applications'
 
 // 将 getCookie 函数移到组件外部，避免每次渲染重新创建
 function getCookie(name: string) {
@@ -129,8 +134,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   // 申请表统计
-  const [surrogateApplications, setSurrogateApplications] = useState<any[]>([])
-  const [parentApplications, setParentApplications] = useState<any[]>([])
+  const [surrogateStats, setSurrogateStats] = useState({ total: 0, approved: 0, rejected: 0, pending: 0 })
+  const [parentStats, setParentStats] = useState({ total: 0, approved: 0, rejected: 0, pending: 0 })
   // GC/IP 总数
   const [gcTotal, setGcTotal] = useState(0)
   const [ipTotal, setIpTotal] = useState(0)
@@ -157,20 +162,19 @@ export default function DashboardPage() {
     
     setLoading(true);
     try {
-      const [casesData, surrogates, parents, surrogateUsers, parentUsers] = await Promise.all([
+      const [casesData, surrogateStatsRes, parentStatsRes, gcCount, ipCount] = await Promise.all([
         fetch("/api/cases-list").then(r => r.json()),
-        getSurrogatesApplications(10000, 0),
-        getParentsApplications(10000, 0),
-        getSurrogateMothers(10000, 0),
-        getIntendedParents(10000, 0)
+        getSurrogateApplicationsStats(),
+        getParentApplicationsStats(),
+        getSurrogateMothersCount(),
+        getIntendedParentsCount(),
       ]);
       
       setCases(Array.isArray(casesData) ? casesData : casesData.data || []);
-      setSurrogateApplications(surrogates || []);
-      setParentApplications(parents || []);
-      // 使用实际的用户数据而不是申请数据
-      setGcTotal(surrogateUsers?.length || 0);
-      setIpTotal(parentUsers?.length || 0);
+      setSurrogateStats(surrogateStatsRes);
+      setParentStats(parentStatsRes);
+      setGcTotal(gcCount);
+      setIpTotal(ipCount);
       setDataLoaded(true);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -219,21 +223,7 @@ export default function DashboardPage() {
     };
   }, [cases, stageMap]);
 
-  // 代孕母申请表统计 - 使用 useMemo 缓存
-  const surrogateStats = useMemo(() => ({
-    total: surrogateApplications.length,
-    approved: surrogateApplications.filter((a: any) => a.status === 'approved').length,
-    rejected: surrogateApplications.filter((a: any) => a.status === 'rejected').length,
-    pending: surrogateApplications.filter((a: any) => a.status === 'pending').length,
-  }), [surrogateApplications]);
-
-  // 准父母申请表统计 - 使用 useMemo 缓存
-  const parentStats = useMemo(() => ({
-    total: parentApplications.length,
-    approved: parentApplications.filter((a: any) => a.status === 'approved').length,
-    rejected: parentApplications.filter((a: any) => a.status === 'rejected').length,
-    pending: parentApplications.filter((a: any) => a.status === 'pending').length,
-  }), [parentApplications]);
+  // 代孕母/准父母申请表统计（已由 aggregate 接口返回，直接使用）
 
   // 客户经理活跃案例统计 - 使用 useMemo 缓存
   const activeCases = useMemo(() => {

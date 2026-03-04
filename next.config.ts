@@ -4,7 +4,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // i18n,
   /* config options here */
-  
+
+  // 增加 API 路由超时容忍，减少部署环境偶发超时
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '4mb',
+    },
+  },
+
   // 在构建过程中完全禁用ESLint
   eslint: {
     ignoreDuringBuilds: true,

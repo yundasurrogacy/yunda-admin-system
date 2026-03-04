@@ -4,8 +4,10 @@
  */
 import type { Application } from '@/types/applications'
 import { buildSurrogateDetailFixedRow, parseSurrogateApplicationData } from '@/lib/exports/surrogate-fixed-rows'
+import { fetchWithTimeout } from '@/lib/fetch-with-timeout'
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzm5c5coyW1uu1hBjr0d3inYkUoxhESrztSyC63OxdE364u6Keo8R6xQSR-eVJoItdZdw/exec'
+const PUSH_TIMEOUT_MS = 15000
 
 /** 简单翻译：返回 fallback（API 环境无 i18n，使用英文） */
 function simpleT(key: string, opts?: { defaultValue?: string }) {
@@ -25,11 +27,15 @@ export async function pushSurrogateApplicationToGoogleSheet(
       parsedData,
       simpleT as any,
     )
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ headers, row }),
-    })
+    const res = await fetchWithTimeout(
+      GOOGLE_SCRIPT_URL,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headers, row }),
+      },
+      PUSH_TIMEOUT_MS,
+    )
     if (!res.ok) {
       return { ok: false, error: `HTTP ${res.status}` }
     }

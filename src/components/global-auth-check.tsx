@@ -43,9 +43,6 @@ const getHomePath = (role: 'admin' | 'client' | 'manager' | 'surrogacy') => {
 export function GlobalAuthCheck({ children }: GlobalAuthCheckProps) {
   // 暂时禁用全局认证检查，避免与登录页面的重定向冲突
   // 让每个页面自己处理认证逻辑
-  
-  console.log(`[GlobalAuth] Global auth check temporarily disabled to prevent redirect loops`)
-  
   return <>{children}</>
 }
 

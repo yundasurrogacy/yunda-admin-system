@@ -115,6 +115,76 @@ export async function getSurrogateMothers(
   })
   return result?.surrogate_mothers || []
 }
+
+/** 获取代孕母总数（轻量 aggregate，避免 limit 10000 超时） */
+export async function getSurrogateMothersCount(): Promise<number> {
+  const hasuraClient = getHasuraClient()
+  const query = `
+    query GetSurrogateMothersCount {
+      surrogate_mothers_aggregate {
+        aggregate { count }
+      }
+    }
+  `
+  const result = await hasuraClient.execute({ query })
+  return result?.surrogate_mothers_aggregate?.aggregate?.count ?? 0
+}
+
+/** 获取准父母总数（轻量 aggregate，避免 limit 10000 超时） */
+export async function getIntendedParentsCount(): Promise<number> {
+  const hasuraClient = getHasuraClient()
+  const query = `
+    query GetIntendedParentsCount {
+      intended_parents_aggregate {
+        aggregate { count }
+      }
+    }
+  `
+  const result = await hasuraClient.execute({ query })
+  return result?.intended_parents_aggregate?.aggregate?.count ?? 0
+}
+
+/** 代孕母/准父母申请表统计（轻量 aggregate，避免 limit 10000 超时） */
+export async function getSurrogateApplicationsStats(): Promise<{ total: number; approved: number; rejected: number; pending: number }> {
+  const hasuraClient = getHasuraClient()
+  const baseWhere = 'application_type: { _eq: "surrogate_mother" }'
+  const query = `
+    query GetSurrogateApplicationsStats {
+      total: applications_aggregate(where: { ${baseWhere} }) { aggregate { count } }
+      approved: applications_aggregate(where: { ${baseWhere}, status: { _eq: "approved" } }) { aggregate { count } }
+      rejected: applications_aggregate(where: { ${baseWhere}, status: { _eq: "rejected" } }) { aggregate { count } }
+      pending: applications_aggregate(where: { ${baseWhere}, status: { _eq: "pending" } }) { aggregate { count } }
+    }
+  `
+  const result = await hasuraClient.execute({ query }) as any
+  return {
+    total: result?.total?.aggregate?.count ?? 0,
+    approved: result?.approved?.aggregate?.count ?? 0,
+    rejected: result?.rejected?.aggregate?.count ?? 0,
+    pending: result?.pending?.aggregate?.count ?? 0,
+  }
+}
+
+export async function getParentApplicationsStats(): Promise<{ total: number; approved: number; rejected: number; pending: number }> {
+  const hasuraClient = getHasuraClient()
+  const baseWhere = 'application_type: { _eq: "intended_parent" }'
+  const query = `
+    query GetParentApplicationsStats {
+      total: applications_aggregate(where: { ${baseWhere} }) { aggregate { count } }
+      approved: applications_aggregate(where: { ${baseWhere}, status: { _eq: "approved" } }) { aggregate { count } }
+      rejected: applications_aggregate(where: { ${baseWhere}, status: { _eq: "rejected" } }) { aggregate { count } }
+      pending: applications_aggregate(where: { ${baseWhere}, status: { _eq: "pending" } }) { aggregate { count } }
+    }
+  `
+  const result = await hasuraClient.execute({ query }) as any
+  return {
+    total: result?.total?.aggregate?.count ?? 0,
+    approved: result?.approved?.aggregate?.count ?? 0,
+    rejected: result?.rejected?.aggregate?.count ?? 0,
+    pending: result?.pending?.aggregate?.count ?? 0,
+  }
+}
+
 // 获取意向父母申请列表
 export async function getParentsApplications(
   limit: number = 10,
