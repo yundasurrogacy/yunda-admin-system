@@ -1,6 +1,6 @@
 "use client";
 import React, { Suspense, useState, useEffect, useMemo, useCallback, memo } from "react";
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 // 获取 cookie 的辅助函数

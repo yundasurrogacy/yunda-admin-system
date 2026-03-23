@@ -261,7 +261,7 @@ function JourneyInner() {
       const baseTimeline = staticTimelineData().map((stage, idx) => ({
         stage: lang.startsWith('en') ? stage.en.stage : stage.zh.stage,
         description: lang.startsWith('en') ? stage.en.description : stage.zh.description,
-        items: [] as { id: any; title: string; process_status?: string }[],
+        items: [] as { id: any; title: string; process_status?: string; updated_at?: string; cases_files?: any }[],
         stageNumber: idx + 1,
       }));
       try {

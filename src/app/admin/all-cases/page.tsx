@@ -359,7 +359,7 @@ export default function AllCasesPage() {
 
   // 未认证，等待重定向
   if (!isAuthenticated) {
-    return null
+    return <></>
   }
 
   // 数据加载中 - 只在首次加载时显示全屏加载

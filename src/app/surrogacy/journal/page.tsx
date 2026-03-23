@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CustomButton } from '@/components/ui/CustomButton';
 
