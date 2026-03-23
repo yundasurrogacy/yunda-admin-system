@@ -164,6 +164,11 @@ export default function ClientDashboardPage() {
   // IVF CLINIC 和 Trust Balance 数据
   const [ivfClinicData, setIvfClinicData] = useState<any>(null);
   const [trustBalance, setTrustBalance] = useState<number>(0);
+  // Next Action（1-3项）和 Reminder Cards
+  const [nextActions, setNextActions] = useState<{ id: string; title: string; dueDate?: string; status: string; linkTo: string }[]>([]);
+  const [reminders, setReminders] = useState<{ id: string; title: string; desc: string; severity: 'high' | 'medium' | 'low'; linkTo: string }[]>([]);
+  const [caseId, setCaseId] = useState<string | null>(null);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<{ id: string; date: string; time?: string; location: string; type: string }[]>([]);
 
   // 获取动态 journey 阶段数据和最新文件/journey
   useEffect(() => {
@@ -194,24 +199,88 @@ export default function ClientDashboardPage() {
           });
           latestCase = sortedCases[0];
           if (latestCase) {
+            setCaseId(latestCase.id?.toString() || null);
             setCurrentStatus(latestCase.process_status || "Matching");
             setCurrentStatusDate(latestCase.updated_at || "");
-            // 汇总 about_role 为 intended_parent 的 journey
             const journeys = Array.isArray(latestCase.journeys) ? latestCase.journeys : [];
-            // console.log('[Dashboard] journeys:', journeys);
             const intendedJourneys = journeys.filter((j: any) => !j.about_role || j.about_role === 'intended_parent');
             const total = intendedJourneys.length;
             const finished = intendedJourneys.filter((j: { process_status?: string }) => j.process_status === 'finished').length;
             const pending = total - finished;
             setJourneySummary({ total, finished, pending });
-            
-            // 获取 IVF CLINIC 数据
+
+            const bal = latestCase.trust_account_balance_changes?.[0]?.balance_after ?? latestCase.trust_account_balance ?? 0;
+            const balNum = typeof bal === 'number' ? bal : 0;
+            setTrustBalance(balNum);
+
             if (Array.isArray(latestCase.ivf_clinics) && latestCase.ivf_clinics.length > 0) {
               setIvfClinicData(latestCase.ivf_clinics[0]);
             }
-            
-            // 获取 Trust Balance
-            setTrustBalance(latestCase.trust_account_balance || 0);
+
+            const now = new Date();
+            const nextList = intendedJourneys
+              .filter((j: any) => j.process_status !== 'finished')
+              .slice(0, 3)
+              .map((j: any) => {
+                const dueStr = j.updated_at || j.created_at;
+                const dueDate = dueStr ? new Date(dueStr) : null;
+                let status = 'To Do';
+                if (j.process_status === 'finished') status = 'Completed';
+                else if (dueDate) {
+                  const daysLeft = Math.ceil((dueDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+                  if (daysLeft < 0) status = 'Overdue';
+                  else if (daysLeft <= 3) status = 'Awaiting';
+                }
+                return {
+                  id: String(j.id),
+                  title: j.title || 'Task',
+                  dueDate: dueStr,
+                  status,
+                  linkTo: '/client/journey',
+                };
+              });
+            setNextActions(nextList);
+
+            const remList: { id: string; title: string; desc: string; severity: 'high' | 'medium' | 'low'; linkTo: string }[] = [];
+            const pendingDocs = intendedJourneys.filter((j: any) => j.process_status !== 'finished');
+            if (pendingDocs.length > 0) {
+              remList.push({ id: 'doc', title: t('dashboard.reminderMissingDocs', 'Missing Documents'), desc: `${pendingDocs.length} items`, severity: 'high', linkTo: '/client/documents' });
+            }
+            if (balNum < 5000 && balNum >= 0) {
+              remList.push({ id: 'trust', title: t('dashboard.reminderTrustBalance', 'Trust Balance Warning'), desc: `$${balNum}`, severity: 'medium', linkTo: '/client/trust-account' });
+            }
+            remList.push({ id: 'contract', title: t('dashboard.reminderContractSign', 'Contract Pending'), desc: '', severity: 'low', linkTo: '/client/documents' });
+            setReminders(remList);
+
+            if (latestCase.id) {
+              fetch(`/api/ivf-clinic-get?caseId=${latestCase.id}`)
+                .then((res) => res.json())
+                .then((ivfRes) => {
+                  const clinics = ivfRes.ivf_clinics || [];
+                  const apptClinic = clinics.find((c: any) => c.type === 'SurrogateAppointments');
+                  const apptData = Array.isArray(apptClinic?.data) ? apptClinic.data : [];
+                  const now = new Date();
+                  const in14Days = new Date();
+                  in14Days.setDate(in14Days.getDate() + 14);
+                  const apptList = apptData
+                    .filter((a: any) => {
+                      if (!a?.date) return false;
+                      const d = new Date(a.date);
+                      return d >= now && d <= in14Days;
+                    })
+                    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    .slice(0, 5)
+                    .map((a: any, i: number) => ({
+                      id: `appt-${i}`,
+                      date: a.date ? new Date(a.date).toLocaleDateString() : '',
+                      time: a.type || '',
+                      location: a.doctor ? `${a.doctor}` : 'Online',
+                      type: a.type || t('ivfClinic.surrogateAppointments', 'Appointment'),
+                    }));
+                  setUpcomingAppointments(apptList);
+                })
+                .catch(() => {});
+            }
           }
         })();
       }
@@ -316,6 +385,116 @@ export default function ClientDashboardPage() {
             {t('refresh', 'Refresh')}
           </CustomButton>
         </div>
+
+        {/* Next Action + Reminder Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Activity className="w-5 h-5" />
+                {t('dashboard.ipNextAction', 'Next Action')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {nextActions.length === 0 ? (
+                <p className="text-sm text-sage-500">{t('dashboard.no_updates', 'No updates needed.')}</p>
+              ) : (
+                nextActions.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => router.push(item.linkTo)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-sage-800 truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          item.status === 'Overdue' ? 'bg-red-100 text-red-700' :
+                          item.status === 'Awaiting' ? 'bg-amber-100 text-amber-700' :
+                          item.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-sage-200 text-sage-700'
+                        }`}>
+                          {item.status === 'To Do' ? t('dashboard.ipTaskToDo') :
+                           item.status === 'In Progress' ? t('dashboard.ipTaskInProgress') :
+                           item.status === 'Awaiting' ? t('dashboard.ipTaskAwaiting') :
+                           item.status === 'Overdue' ? t('dashboard.ipTaskOverdue') : t('dashboard.ipTaskCompleted')}
+                        </span>
+                        {item.dueDate && <span className="text-xs text-sage-500">{new Date(item.dueDate).toLocaleDateString()}</span>}
+                      </div>
+                    </div>
+                    <CustomButton className="ml-2 px-3 py-1 text-xs bg-sage-600 text-white rounded" onClick={(e) => { e.stopPropagation(); router.push(item.linkTo); }}>
+                      {t('dashboard.view_details', 'View')}
+                    </CustomButton>
+                  </div>
+                ))
+              )}
+              <CustomButton className="w-full justify-center mt-2 bg-sage-100 text-sage-800 hover:bg-sage-200 text-sm" onClick={handleNavigateToJourney}>
+                {t('dashboard.myJourney', 'My Journey')}
+              </CustomButton>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <FileText className="w-5 h-5" />
+                {t('dashboard.notifications', 'Reminders')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {reminders.map((r) => (
+                <div
+                  key={r.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                    r.severity === 'high' ? 'bg-red-50 border-red-100 hover:bg-red-100' :
+                    r.severity === 'medium' ? 'bg-amber-50 border-amber-100 hover:bg-amber-100' :
+                    'bg-sage-50 border-sage-200 hover:bg-sage-100'
+                  }`}
+                  onClick={() => router.push(r.linkTo)}
+                >
+                  <p className="font-medium text-sage-800">{r.title}</p>
+                  <p className="text-xs text-sage-600 mt-1">{r.desc}</p>
+                  <CustomButton className="mt-2 px-3 py-1 text-xs" onClick={(e) => { e.stopPropagation(); router.push(r.linkTo); }}>
+                    {t('dashboard.view_details', 'View')}
+                  </CustomButton>
+                </div>
+              ))}
+              {reminders.length === 0 && <p className="text-sm text-sage-500">{t('dashboard.no_updates')}</p>}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Upcoming Appointments */}
+        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sage-800">
+              <CalendarDays className="w-5 h-5" />
+              {t('dashboard.upcomingAppointmentsTitle', 'Upcoming Appointments')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {upcomingAppointments.length === 0 ? (
+              <p className="text-sm text-sage-500">{t('dashboard.noUpcomingAppointments', 'No upcoming appointments')}</p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingAppointments.map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 cursor-pointer"
+                    onClick={handleNavigateToIvfClinic}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-sage-800">{apt.date} {apt.time}</p>
+                      <p className="text-xs text-sage-600">{apt.location} · {apt.type}</p>
+                    </div>
+                    <span className="text-xs text-sage-500">{t('dashboard.viewAppointmentDetail', 'View detail')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <CustomButton className="w-full justify-center mt-2 bg-sage-100 text-sage-800 hover:bg-sage-200 text-sm" onClick={handleNavigateToIvfClinic}>
+              {t('dashboard.viewAllAppointments', 'View all')}
+            </CustomButton>
+          </CardContent>
+        </Card>
 
         {/* Journey Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

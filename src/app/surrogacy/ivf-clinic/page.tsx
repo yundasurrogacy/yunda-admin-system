@@ -1,12 +1,29 @@
 "use client"
 import React, { useState, Suspense, useMemo, useCallback } from 'react'
 import { useEffect } from 'react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { FileText, Upload, CheckCircle, AlertCircle } from 'lucide-react'
 import { CustomButton } from '../../../components/ui/CustomButton'
-// import ManagerLayout from '@/components/manager-layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { memo } from 'react';
+
+// 文件工作流状态
+type FileWorkflowStatus = 'pending_submit' | 'submitted' | 'under_review' | 'need_supplement' | 'approved' | 'resubmitting';
+
+interface FileWorkflowItem {
+  id: string;
+  name: string;
+  status: FileWorkflowStatus;
+  requirement?: string;
+  format?: string;
+  dueDate?: string;
+  uploads: { time: string; version: string }[];
+  reviewStatus?: string;
+  reviewFeedback?: string;
+  reviewTime?: string;
+  linkToJourney?: number;
+}
 
 // 空状态组件
 const EmptyState = memo(({ 
@@ -49,6 +66,10 @@ function IVFClinicContent() {
   const [error, setError] = useState<string | null>(null);
   const [clinics, setClinics] = useState<any[]>([]);
   const [actualCaseId, setActualCaseId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'clinic' | 'workflow'>('clinic');
+  const [workflowFilter, setWorkflowFilter] = useState<FileWorkflowStatus | 'all'>('all');
+  const [selectedWorkflowItem, setSelectedWorkflowItem] = useState<FileWorkflowItem | null>(null);
+  const [fileWorkflowItems, setFileWorkflowItems] = useState<FileWorkflowItem[]>([]);
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -129,6 +150,28 @@ function IVFClinicContent() {
         console.log('获取到的IVF诊所数据:', ivfData);
         setClinics(ivfData.ivf_clinics || []);
         setActualCaseId(targetCaseId);
+
+        // 获取 journey 数据用于文件工作流
+        const journeyRes = await fetch(`/api/journey-get?caseId=${targetCaseId}&about_role=surrogate_mother`);
+        const journeyData = await journeyRes.json();
+        const journeys = journeyData.journeys || [];
+        const items: FileWorkflowItem[] = journeys.map((j: any) => {
+          const files = j.cases_files || [];
+          const hasFile = files.some((f: any) => f.file_url);
+          const status: FileWorkflowStatus = hasFile ? 'submitted' : 'pending_submit';
+          return {
+            id: String(j.id),
+            name: j.title || `Task ${j.stage}`,
+            status,
+            format: 'PDF, JPG, PNG',
+            uploads: files.filter((f: any) => f.file_url).map((f: any) => ({
+              time: f.created_at ? new Date(f.created_at).toLocaleString() : '',
+              version: 'v1',
+            })),
+            linkToJourney: j.stage,
+          };
+        });
+        setFileWorkflowItems(items);
         
       } catch (err) {
         console.error('获取数据失败:', err);
@@ -270,8 +313,176 @@ function IVFClinicContent() {
           {t('back', '返回')}
         </CustomButton> */}
       <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('ivfClinic.title')}</h1>
-      <p className="text-sage-800 mb-8 font-medium">{t('ivfClinic.description')}</p>
-      
+      <p className="text-sage-800 mb-6 font-medium">{t('ivfClinic.description')}</p>
+
+      {/* Tab 切换：诊所信息 | 文件工作流 */}
+      <div className="flex gap-2 mb-6 border-b border-sage-200">
+        <button
+          className={`px-4 py-2 font-medium border-b-2 transition-colors -mb-px ${
+            activeTab === 'clinic' ? 'border-sage-600 text-sage-800' : 'border-transparent text-sage-500 hover:text-sage-700'
+          }`}
+          onClick={() => setActiveTab('clinic')}
+        >
+          {t('dashboard.clinicInfo', 'Clinic Info')}
+        </button>
+        <button
+          className={`px-4 py-2 font-medium border-b-2 transition-colors -mb-px ${
+            activeTab === 'workflow' ? 'border-sage-600 text-sage-800' : 'border-transparent text-sage-500 hover:text-sage-700'
+          }`}
+          onClick={() => setActiveTab('workflow')}
+        >
+          {t('dashboard.clinicFileWorkflow', 'Clinic File Workflow')}
+        </button>
+      </div>
+
+      {/* 文件工作流 Tab 内容 */}
+      {activeTab === 'workflow' && (
+        <div className="mb-8 space-y-4">
+          {/* 状态筛选 */}
+          <div className="flex flex-wrap gap-2">
+            {(['all', 'pending_submit', 'submitted', 'under_review', 'need_supplement', 'approved'] as const).map((key) => (
+              <button
+                key={key}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  workflowFilter === key ? 'bg-sage-600 text-white' : 'bg-sage-100 text-sage-700 hover:bg-sage-200'
+                }`}
+                onClick={() => setWorkflowFilter(key)}
+              >
+                {key === 'all' ? t('dashboard.filterAll', 'All') :
+                 key === 'pending_submit' ? t('dashboard.filterPendingSubmit', 'Pending Submit') :
+                 key === 'submitted' ? t('dashboard.filterSubmitted', 'Submitted') :
+                 key === 'under_review' ? t('dashboard.filterUnderReview', 'Under Review') :
+                 key === 'need_supplement' ? t('dashboard.filterNeedSupplement', 'Need Supplement') :
+                 t('dashboard.filterApproved', 'Approved')}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 文件任务列表 */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  {t('dashboard.pendingDocumentsTitle', 'File Tasks')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {fileWorkflowItems
+                  .filter((item) => workflowFilter === 'all' || item.status === workflowFilter)
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-4 rounded-lg border cursor-pointer transition-colors ${
+                        selectedWorkflowItem?.id === item.id ? 'border-sage-600 bg-sage-50' : 'border-sage-200 hover:bg-sage-50'
+                      }`}
+                      onClick={() => setSelectedWorkflowItem(item)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-sage-800">{item.name}</p>
+                          <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
+                            item.status === 'pending_submit' ? 'bg-amber-100 text-amber-800' :
+                            item.status === 'submitted' || item.status === 'under_review' ? 'bg-blue-100 text-blue-800' :
+                            item.status === 'need_supplement' ? 'bg-orange-100 text-orange-800' :
+                            item.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-sage-200 text-sage-700'
+                          }`}>
+                            {item.status === 'pending_submit' ? t('dashboard.filterPendingSubmit') :
+                             item.status === 'submitted' ? t('dashboard.filterSubmitted') :
+                             item.status === 'under_review' ? t('dashboard.filterUnderReview') :
+                             item.status === 'need_supplement' ? t('dashboard.filterNeedSupplement') :
+                             item.status === 'approved' ? t('dashboard.filterApproved') : item.status}
+                          </span>
+                        </div>
+                        {item.linkToJourney && (
+                          <CustomButton
+                            className="text-xs"
+                            onClick={(e) => { e.stopPropagation(); router.push('/surrogacy/journey'); }}
+                          >
+                            {t('dashboard.goToJourney', 'Journey')}
+                          </CustomButton>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                {fileWorkflowItems.filter((item) => workflowFilter === 'all' || item.status === workflowFilter).length === 0 && (
+                  <p className="text-sm text-sage-500 py-4">{t('dashboard.noPendingDocuments', 'No items')}</p>
+                )}
+              </CardContent>
+            </Card>
+            {/* 文件详情区 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  {t('dashboard.fileRequirement', 'Details')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedWorkflowItem ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.pendingDocumentsTitle')}</p>
+                      <p className="font-medium text-sage-800">{selectedWorkflowItem.name}</p>
+                    </div>
+                    {selectedWorkflowItem.requirement && (
+                      <div>
+                        <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.fileRequirement')}</p>
+                        <p className="text-sm text-sage-700">{selectedWorkflowItem.requirement}</p>
+                      </div>
+                    )}
+                    {selectedWorkflowItem.format && (
+                      <div>
+                        <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.requiredFormat')}</p>
+                        <p className="text-sm text-sage-700">{selectedWorkflowItem.format}</p>
+                      </div>
+                    )}
+                    {selectedWorkflowItem.uploads.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium text-sage-600 mb-2">{t('dashboard.uploadHistory')}</p>
+                        <ul className="space-y-1 text-sm text-sage-700">
+                          {selectedWorkflowItem.uploads.map((u, i) => (
+                            <li key={i}>{u.time} - {u.version}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {selectedWorkflowItem.reviewFeedback && (
+                      <div>
+                        <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.reviewResult')}</p>
+                        <p className="text-sm text-sage-700">{selectedWorkflowItem.reviewFeedback}</p>
+                      </div>
+                    )}
+                    <div className="flex gap-2 pt-2">
+                      {selectedWorkflowItem.status === 'pending_submit' && (
+                        <CustomButton onClick={() => router.push('/surrogacy/documents')}>
+                          <Upload className="w-4 h-4 mr-2" />
+                          {t('dashboard.uploadNow')}
+                        </CustomButton>
+                      )}
+                      {selectedWorkflowItem.status === 'need_supplement' && (
+                        <CustomButton onClick={() => router.push('/surrogacy/documents')}>
+                          {t('dashboard.reupload')}
+                        </CustomButton>
+                      )}
+                      {selectedWorkflowItem.linkToJourney && (
+                        <CustomButton className="bg-sage-100 text-sage-800 border border-sage-300" onClick={() => router.push('/surrogacy/journey')}>
+                          {t('dashboard.goToJourney')}
+                        </CustomButton>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-sage-500">{t('dashboard.noPendingDocuments')}</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* 诊所信息 Tab 内容 */}
+      {activeTab === 'clinic' && (
+        <>
       {/* 调试信息 - 开发环境显示 */}
       {/* {process.env.NODE_ENV === 'development' && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm">
@@ -522,6 +733,8 @@ function IVFClinicContent() {
            </div>
          )}
       </div>
+        </>
+      )}
     </div>
   )
 }

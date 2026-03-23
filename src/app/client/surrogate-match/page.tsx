@@ -35,7 +35,7 @@ import { useParams } from "next/navigation"
 import "../../../i18n"
 import { getSurrogateMotherById } from "@/lib/graphql/applications"
 import type { SurrogateMother } from "@/types/surrogate_mother"
-import { ChevronRight, User, MessageSquare, FileText, Calendar, Activity, ArrowLeft } from "lucide-react"
+import { ChevronRight, User, MessageSquare, FileText, Calendar, Activity, ArrowLeft, Phone, Save, CheckCircle } from "lucide-react"
 import { CustomButton } from "../../../components/ui/CustomButton"
 import { Label } from "../../../components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card"
@@ -52,6 +52,7 @@ export default function SurrogateProfileDetailPage() {
   const params = useParams<{ id: string }>();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [surrogate, setSurrogate] = useState<SurrogateMother | null>(null);
+  const [targetCase, setTargetCase] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -121,7 +122,7 @@ export default function SurrogateProfileDetailPage() {
           return;
         }
 
-        // 获取代孕母详细信息
+        setTargetCase(targetCase);
         const surrogateId = targetCase.surrogate_mother.id;
         const surrogateData = await getSurrogateMotherById(surrogateId);
         setSurrogate(surrogateData);
@@ -249,6 +250,124 @@ export default function SurrogateProfileDetailPage() {
         <div className="flex items-center gap-4">
         </div>
       </div>
+
+      {/* 顶部固定决策条 */}
+      <div className="sticky top-0 z-40 -mx-4 lg:-mx-12 px-4 lg:px-12 py-3 bg-white border-b border-sage-200 shadow-sm mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="font-medium text-sage-800">{t('Surrogate Profile')}</span>
+          <div className="flex flex-wrap gap-2">
+            <CustomButton className="px-4 py-2 text-sm bg-sage-100 text-sage-800" onClick={() => router.push('/client/messages')}>
+              <MessageSquare className="w-4 h-4 mr-2 inline" />
+              {t('dashboard.decisionBarMessage', 'Message')}
+            </CustomButton>
+            <CustomButton className="px-4 py-2 text-sm bg-sage-100 text-sage-800" onClick={() => router.push('/client/my-case')}>
+              <Phone className="w-4 h-4 mr-2 inline" />
+              {t('dashboard.decisionBarScheduleCall', 'Schedule Match Call')}
+            </CustomButton>
+            <CustomButton className="px-4 py-2 text-sm bg-sage-100 text-sage-800">
+              <Save className="w-4 h-4 mr-2 inline" />
+              {t('dashboard.decisionBarSave', 'Save')}
+            </CustomButton>
+            <CustomButton className="px-4 py-2 text-sm bg-sage-600 text-white">
+              <CheckCircle className="w-4 h-4 mr-2 inline" />
+              {t('dashboard.decisionBarApprove', 'Approve Match')}
+            </CustomButton>
+          </div>
+        </div>
+      </div>
+
+      {/* 匹配摘要 */}
+      <Card className="border-sage-200">
+        <CardHeader>
+          <CardTitle className="text-lg">{t('dashboard.matchSummary', 'Match Summary')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.matchFitPoints', 'Fit Points')}</p>
+            <ul className="text-sm text-sage-700 list-disc list-inside space-y-1">
+              <li>{experienceBadge} · {age} {t('yearsOld', '岁')}</li>
+              <li>{ay?.occupation || t('noData')}</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-sage-600 mb-1">{t('dashboard.suggestedAction', 'Suggested Action')}</p>
+            <p className="text-sm text-sage-700">{t('dashboard.decisionBarScheduleCall', 'Schedule Match Call')}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 筛查状态区 */}
+      <Card className="border-sage-200">
+        <CardHeader>
+          <CardTitle className="text-lg">{t('dashboard.screeningStatus', 'Screening Status')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { key: 'psychological', label: t('dashboard.screeningPsychological'), status: 'in_progress' },
+              { key: 'medical', label: t('dashboard.screeningMedical'), status: 'not_started' },
+              { key: 'background', label: t('dashboard.screeningBackground'), status: 'not_started' },
+              { key: 'legal', label: t('dashboard.screeningLegal'), status: 'not_started' },
+              { key: 'clinic', label: t('dashboard.screeningClinic'), status: 'not_started' },
+            ].map((s) => (
+              <div key={s.key} className="p-3 rounded-lg border border-sage-200 hover:bg-sage-50 cursor-pointer">
+                <p className="text-sm font-medium text-sage-800">{s.label}</p>
+                <Badge variant="outline" className={`mt-1 ${s.status === 'in_progress' ? 'bg-amber-100 text-amber-800' : 'bg-sage-100 text-sage-700'}`}>
+                  {s.status === 'in_progress' ? t('dashboard.screeningInProgress') : t('dashboard.screeningNotStarted')}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Next Steps */}
+      <Card className="border-sage-200">
+        <CardHeader>
+          <CardTitle className="text-lg">Next Steps</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {[
+            { id: '1', title: 'Review screening note', due: 'Jan 18', action: 'View', linkTo: '/client/journey' },
+            { id: '2', title: 'Confirm match call schedule', due: 'Jan 20', action: 'Confirm', linkTo: '/client/my-case' },
+            { id: '3', title: 'Upload required consent form', due: 'Jan 22', action: 'Upload', linkTo: '/client/documents' },
+          ].map((step) => (
+            <div key={step.id} className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium text-sage-800">{step.title}</p>
+                <p className="text-xs text-sage-500">Due {step.due}</p>
+              </div>
+              <CustomButton className="text-xs" onClick={() => router.push(step.linkTo)}>
+                {step.action}
+              </CustomButton>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* 文件与沟通联动 */}
+      <Card className="border-sage-200">
+        <CardHeader>
+          <CardTitle className="text-lg">{t('dashboard.filesAndCommunication', 'Files & Communication')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-sage-600 mb-2">{t('dashboard.filesNeedReview', 'Files needing your review')}</p>
+          <div
+            className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 cursor-pointer"
+            onClick={() => router.push('/client/documents')}
+          >
+            <span className="text-sm text-sage-800">{t('dashboard.newScreeningSummary', 'New screening summary uploaded')}</span>
+            <ChevronRight className="w-4 h-4 text-sage-500" />
+          </div>
+          <div
+            className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 cursor-pointer"
+            onClick={() => router.push('/client/messages')}
+          >
+            <span className="text-sm text-sage-800">{t('dashboard.reviewRequestedForm', 'Review requested form')}</span>
+            <ChevronRight className="w-4 h-4 text-sage-500" />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 顶部照片展示区域 */}
       <div className="w-full flex flex-col items-center mb-6">

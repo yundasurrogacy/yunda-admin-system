@@ -179,6 +179,39 @@ interface CaseRaw {
   updated_at: string
   journeys?: JourneyRaw[]
   process_status?: string
+  ivf_clinics?: { id: string; type: string; data?: unknown }[]
+}
+
+// Next Action 任务状态
+type TaskStatus = 'pending' | 'dueSoon' | 'overdue' | 'completed'
+
+interface NextActionItem {
+  id: string
+  title: string
+  dueDate?: string
+  status: TaskStatus
+  linkTo?: string
+  linkLabel?: string
+}
+
+// 待提交材料（来自诊所工作流，暂无 API 时用 journey 推导占位）
+interface PendingDocItem {
+  id: string
+  name: string
+  requirement?: string
+  format?: string
+  status: string
+  linkTo: string
+}
+
+// 预约项
+interface AppointmentItem {
+  id: string
+  date: string
+  time?: string
+  location: string
+  type: string
+  related?: string
 }
 
 export default function SurrogacyDashboard() {
@@ -214,6 +247,11 @@ export default function SurrogacyDashboard() {
   // 汇总 about_role 为 surrogate_mother 的 journey
   const [journeySummary, setJourneySummary] = useState({ total: 0, finished: 0, pending: 0 });
   const [dataLoaded, setDataLoaded] = useState(false);
+  // Next Action、待提交材料、未来预约
+  const [nextActions, setNextActions] = useState<NextActionItem[]>([]);
+  const [pendingDocs, setPendingDocs] = useState<PendingDocItem[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<AppointmentItem[]>([]);
+  const [latestCaseRaw, setLatestCaseRaw] = useState<CaseRaw | null>(null);
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -248,18 +286,58 @@ export default function SurrogacyDashboard() {
         return bTime - aTime;
       });
       const latestCase = sortedCases[0];
+      setLatestCaseRaw(latestCase);
       setCurrentStatus(latestCase.process_status || "Matching");
       setCurrentStatusDate(latestCase.updated_at || "");
       setCaseId(latestCase.id?.toString() || "");
       let journeys: JourneyRaw[] = latestCase.journeys || [];
       // 汇总 about_role 为 surrogate_mother 的 journey
-      // 这里假设 journeyRaw 里有 about_role 字段，若无则全部统计
       const surrogateJourneys = journeys.filter((j: any) => !j.about_role || j.about_role === 'surrogate_mother');
       const total = surrogateJourneys.length;
       const finished = surrogateJourneys.filter(j => j.process_status === 'finished').length;
       const pending = total - finished;
       setJourneySummary({ total, finished, pending });
-      // 国际化阶段渲染，直接从 i18n gestationalCarrierStages 获取
+
+      // Next Action: 从未完成的 journey 推导，按优先级取前几条
+      const pendingJourneys = surrogateJourneys.filter((j: any) => j.process_status !== 'finished');
+      const now = new Date();
+      const nextActionList: NextActionItem[] = pendingJourneys.slice(0, 5).map((j: any, idx: number) => {
+        const dueStr = j.updated_at || j.created_at;
+        const dueDate = dueStr ? new Date(dueStr) : null;
+        let status: TaskStatus = 'pending';
+        if (j.process_status === 'finished') status = 'completed';
+        else if (dueDate) {
+          const daysLeft = Math.ceil((dueDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+          if (daysLeft < 0) status = 'overdue';
+          else if (daysLeft <= 3) status = 'dueSoon';
+        }
+        return {
+          id: String(j.id),
+          title: j.title || t('dashboard.nextActionTitle', 'Next Action'),
+          dueDate: dueStr,
+          status,
+          linkTo: '/surrogacy/journey',
+          linkLabel: t('dashboard.view_details', 'View'),
+        };
+      });
+      setNextActions(nextActionList);
+
+      // Pending Documents: 暂无专属 API，从 journey 中带「上传」「材料」等关键词的项推导占位
+      const docKeywords = ['心理评估', '体检', '报告', '上传', 'psych', 'screening', 'report', 'upload'];
+      const docJourneys = surrogateJourneys.filter((j: any) =>
+        docKeywords.some(kw => (j.title || '').toLowerCase().includes(kw.toLowerCase()))
+      );
+      const pendingDocList: PendingDocItem[] = docJourneys.slice(0, 3).map((j: any) => ({
+        id: String(j.id),
+        name: j.title || t('dashboard.pendingDocumentsTitle', 'Pending Documents'),
+        requirement: '',
+        format: 'PDF, JPG, PNG',
+        status: '待提交',
+        linkTo: '/surrogacy/ivf-clinic',
+      }));
+      setPendingDocs(pendingDocList);
+
+      // 国际化阶段渲染
       const baseTimeline: JourneyStage[] = (gestationalCarrierStages || []).map((stage, idx) => ({
         stage,
         items: [],
@@ -275,6 +353,38 @@ export default function SurrogacyDashboard() {
       }
       setJourneyStages(baseTimeline);
       setDataLoaded(true);
+
+      // 异步获取预约数据
+      const caseIdStr = latestCase.id?.toString();
+      if (caseIdStr) {
+        fetch(`/api/ivf-clinic-get?caseId=${caseIdStr}&aboutRole=surrogate_mother`)
+          .then(res => res.json())
+          .then(ivfRes => {
+            const clinics = ivfRes.ivf_clinics || [];
+            const apptClinic = clinics.find((c: any) => c.type === 'SurrogateAppointments');
+            const apptData = Array.isArray(apptClinic?.data) ? apptClinic.data : [];
+            const in14Days = new Date();
+            in14Days.setDate(in14Days.getDate() + 14);
+            const apptList: AppointmentItem[] = apptData
+              .filter((a: any) => {
+                if (!a?.date) return false;
+                const d = new Date(a.date);
+                return d >= now && d <= in14Days;
+              })
+              .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+              .slice(0, 5)
+              .map((a: any, i: number) => ({
+                id: `appt-${i}`,
+                date: a.date ? new Date(a.date).toLocaleDateString() : '',
+                time: a.type || '',
+                location: a.doctor ? `${a.doctor}` : 'Online',
+                type: a.type || t('ivfClinic.surrogateAppointments', 'Appointment'),
+                related: a.medication || '',
+              }));
+            setUpcomingAppointments(apptList);
+          })
+          .catch(() => {});
+      }
     }
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -358,8 +468,12 @@ export default function SurrogacyDashboard() {
   }, [router]);
 
   const handleNavigateToIvfClinic = useCallback(() => {
-    router.push('/surrogacy/ivf-clinic');
-  }, [router]);
+    router.push(caseId ? `/surrogacy/ivf-clinic?caseId=${caseId}` : '/surrogacy/ivf-clinic');
+  }, [router, caseId]);
+
+  const handleNavigateToAppointments = useCallback(() => {
+    router.push(caseId ? `/surrogacy/ivf-clinic?caseId=${caseId}#appointments` : '/surrogacy/ivf-clinic');
+  }, [router, caseId]);
 
   const handleRefresh = useCallback(() => {
     window.location.reload();
@@ -367,6 +481,13 @@ export default function SurrogacyDashboard() {
 
   // 使用 useMemo 缓存当前状态的索引
   const currentStatusIdx = useMemo(() => STATUS_STAGE_MAP[currentStatus], [currentStatus]);
+
+  const taskStatusLabel = useCallback((s: TaskStatus) => {
+    if (s === 'pending') return t('dashboard.taskStatusPending', 'Pending');
+    if (s === 'dueSoon') return t('dashboard.taskStatusDueSoon', 'Due Soon');
+    if (s === 'overdue') return t('dashboard.taskStatusOverdue', 'Overdue');
+    return t('dashboard.taskStatusCompleted', 'Completed');
+  }, [t]);
 
   // 使用 useMemo 缓存格式化的更新时间
   const lastUpdatedDisplay = useMemo(() => {
@@ -405,6 +526,139 @@ export default function SurrogacyDashboard() {
             <RefreshCw className="w-4 h-4" />
             {t('refresh', 'Refresh')}
           </CustomButton>
+        </div>
+
+        {/* Next Action + Pending Documents + Upcoming Appointments */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Next Action */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <Activity className="w-5 h-5" />
+                {t('dashboard.nextAction', 'Next Action')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {nextActions.length === 0 ? (
+                <p className="text-sm text-sage-500">{t('dashboard.no_updates', 'No updates needed.')}</p>
+              ) : (
+                nextActions.slice(0, 3).map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={() => item.linkTo && router.push(item.linkTo)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-sage-800 truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          item.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                          item.status === 'dueSoon' ? 'bg-amber-100 text-amber-700' :
+                          item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                          'bg-sage-200 text-sage-700'
+                        }`}>
+                          {taskStatusLabel(item.status)}
+                        </span>
+                        {item.dueDate && (
+                          <span className="text-xs text-sage-500">
+                            {new Date(item.dueDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <CustomButton
+                      className="ml-2 px-3 py-1 text-xs bg-sage-600 text-white rounded hover:bg-sage-700"
+                      onClick={(e) => { e.stopPropagation(); item.linkTo && router.push(item.linkTo); }}
+                    >
+                      {item.linkLabel || t('dashboard.view_details', 'View')}
+                    </CustomButton>
+                  </div>
+                ))
+              )}
+              <CustomButton
+                className="w-full justify-center mt-2 bg-sage-100 text-sage-800 hover:bg-sage-200 text-sm"
+                onClick={handleNavigateToJourney}
+              >
+                {t('dashboard.goToJourney', 'My Journey')}
+              </CustomButton>
+            </CardContent>
+          </Card>
+
+          {/* Pending Documents */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <FileText className="w-5 h-5" />
+                {t('dashboard.pendingDocumentsTitle', 'Pending Documents')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {pendingDocs.length === 0 ? (
+                <p className="text-sm text-sage-500">{t('dashboard.noPendingDocuments', 'No pending documents')}</p>
+              ) : (
+                pendingDocs.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="p-3 bg-amber-50 rounded-lg border border-amber-100"
+                  >
+                    <p className="text-sm font-medium text-sage-800">{doc.name}</p>
+                    {doc.requirement && <p className="text-xs text-sage-600 mt-1">{doc.requirement}</p>}
+                    {doc.format && (
+                      <p className="text-xs text-sage-500 mt-1">{t('dashboard.requiredFormat', 'Accepted formats')}: {doc.format}</p>
+                    )}
+                    <CustomButton
+                      className="mt-2 px-3 py-1 text-xs bg-sage-600 text-white rounded hover:bg-sage-700"
+                      onClick={() => router.push(doc.linkTo)}
+                    >
+                      {t('dashboard.uploadNow', 'Upload')}
+                    </CustomButton>
+                  </div>
+                ))
+              )}
+              <CustomButton
+                className="w-full justify-center mt-2 bg-sage-100 text-sage-800 hover:bg-sage-200 text-sm"
+                onClick={handleNavigateToIvfClinic}
+              >
+                {t('dashboard.goToClinicWorkflow', 'Clinic Workflow')}
+              </CustomButton>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Appointments */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sage-800">
+                <CalendarDays className="w-5 h-5" />
+                {t('dashboard.upcomingAppointmentsTitle', 'Upcoming Appointments')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {upcomingAppointments.length === 0 ? (
+                <p className="text-sm text-sage-500">{t('dashboard.noUpcomingAppointments', 'No upcoming appointments')}</p>
+              ) : (
+                upcomingAppointments.map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
+                    onClick={handleNavigateToAppointments}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-sage-800">{apt.date} {apt.time}</p>
+                      <p className="text-xs text-sage-600">{apt.location} · {apt.type}</p>
+                      {apt.related && <p className="text-xs text-sage-500 mt-1">{apt.related}</p>}
+                    </div>
+                    <span className="text-xs text-sage-500">{t('dashboard.viewAppointmentDetail', 'View detail')}</span>
+                  </div>
+                ))
+              )}
+              <CustomButton
+                className="w-full justify-center mt-2 bg-sage-100 text-sage-800 hover:bg-sage-200 text-sm"
+                onClick={handleNavigateToAppointments}
+              >
+                {t('dashboard.viewAllAppointments', 'View all')}
+              </CustomButton>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Journey Summary Cards */}
@@ -493,7 +747,7 @@ export default function SurrogacyDashboard() {
             </CardContent>
           </Card>
 
-          {/* Journey Progress */}
+          {/* Journey Progress - 完整 8 阶段进度条 */}
           <Card 
             className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
             onClick={handleNavigateToJourney}
@@ -501,50 +755,54 @@ export default function SurrogacyDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sage-800">
                 <BarChart3 className="w-5 h-5" />
-{t('dashboard.journeyProgressSurrogacy', 'Journey Progress')}
+                {t('dashboard.journeyProgressSurrogacy', 'Journey Progress')}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgressSurrogacy', 'Completed')}</span>
-                    <span className="text-sm text-sage-600">{journeySummary.finished} ({completionPercentage}%)</span>
-                  </div>
-                  <div className="relative">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-500 bg-green-500"
-                        style={{ width: `${completionPercentage}%` }}
-                      ></div>
-                    </div>
+              {/* 8 阶段横向进度条 */}
+              <div className="mb-4">
+                <div className="flex gap-1">
+                  {journeyStages.map((s, idx) => {
+                    const hasItems = s.items.length > 0;
+                    const firstEmptyIdx = journeyStages.findIndex(st => st.items.length === 0);
+                    const isCurrent = firstEmptyIdx >= 0 ? idx === firstEmptyIdx : idx === journeyStages.length - 1;
+                    const isPast = firstEmptyIdx >= 0 ? idx < firstEmptyIdx : idx < journeyStages.length;
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex-1 h-2 rounded-full transition-colors ${
+                          isPast ? 'bg-green-500' : isCurrent ? 'bg-sage-500' : 'bg-sage-200'
+                        }`}
+                        title={s.stage}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between mt-2 text-xs text-sage-500">
+                  <span>{journeyStages[0]?.stage?.slice(0, 6)}</span>
+                  <span>{journeyStages[journeyStages.length - 1]?.stage?.slice(-6)}</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgressSurrogacy', 'Completed')}</span>
+                  <span className="text-sm text-sage-600">{journeySummary.finished} ({completionPercentage}%)</span>
+                </div>
+                <div className="relative">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="h-2 rounded-full transition-all duration-500 bg-green-500"
+                      style={{ width: `${completionPercentage}%` }}
+                    />
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-sage-700">{t('dashboard.inProgressProgressSurrogacy', 'In Progress')}</span>
-                    <span className="text-sm text-sage-600">{journeySummary.pending} ({progressPercentage}%)</span>
-                  </div>
-                  <div className="relative">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-500 bg-orange-500"
-                        style={{ width: `${progressPercentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-                
                 <div className="pt-4 border-t">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-sage-600">{t('dashboard.totalProgressSurrogacy', 'Total Progress')}</span>
-                    <span className="font-medium text-sage-800">
-                      {totalProgressPercentage}%
-                    </span>
-            </div>
-          </div>
-        </div>
+                    <span className="font-medium text-sage-800">{totalProgressPercentage}%</span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

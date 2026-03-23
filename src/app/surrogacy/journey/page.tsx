@@ -122,9 +122,7 @@ const TimelineItem = React.memo(({
   handleViewClick: (stageNumber: number, itemTitle: string) => void;
   t: (key: string) => string;
 }) => {
-  const statusLabel = item.process_status 
-    ? statusOptions.find(opt => opt.value === item.process_status)?.label || item.process_status 
-    : statusOptions[0].label;
+  const statusLabel = item.process_status === 'finished' ? t('journey.taskStatusFinished') : t('journey.taskStatusPending');
 
   return (
     <li className="flex justify-between items-center py-1">
@@ -160,7 +158,9 @@ function JourneyInner() {
   const [updatedAt, setUpdatedAt] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [timeline, setTimeline] = useState<any[]>([]);
-  const [actualCaseId, setActualCaseId] = useState<string | null>(caseId); // 实际的 caseId
+  const [actualCaseId, setActualCaseId] = useState<string | null>(caseId);
+  const [keyActions, setKeyActions] = useState<{ date: string; action: string; operator?: string; result?: string }[]>([]);
+  const [caseWithFiles, setCaseWithFiles] = useState<any>(null); // 实际的 caseId
 
   // Toast 通知状态
   const [showToast, setShowToast] = useState(false);
@@ -277,7 +277,6 @@ function JourneyInner() {
             setProcessStatus(currentCase.process_status || '');
             setUpdatedAt(currentCase.updated_at || '');
             if (currentCase.journeys && currentCase.journeys.length > 0) {
-              // 只显示 about_role 为 surrogate_mother 的 journey，并渲染 process_status
               const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'surrogate_mother');
               filteredJourneys.forEach((journey: any) => {
                 const stageIndex = journey.stage - 1;
@@ -286,10 +285,24 @@ function JourneyInner() {
                     id: journey.id,
                     title: journey.title,
                     process_status: journey.process_status,
+                    updated_at: journey.updated_at,
+                    cases_files: journey.cases_files,
                   });
                 }
               });
+              const actions: { date: string; action: string; operator?: string; result?: string }[] = [];
+              filteredJourneys.forEach((j: any) => {
+                if (j.process_status === 'finished' && j.updated_at) {
+                  actions.push({ date: j.updated_at.slice(0, 10), action: j.title || '', result: '已完成' });
+                }
+                (j.cases_files || []).forEach((f: any) => {
+                  if (f.created_at) actions.push({ date: f.created_at.slice(0, 10), action: `上传${f.category || f.file_type || '文件'}`, result: '已上传' });
+                });
+              });
+              actions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+              setKeyActions(actions.slice(0, 10));
             }
+            setCaseWithFiles(currentCase);
             setTimeline(baseTimeline);
             setIsLoading(false);
             return;
@@ -327,10 +340,24 @@ function JourneyInner() {
                   id: journey.id,
                   title: journey.title,
                   process_status: journey.process_status,
+                  updated_at: journey.updated_at,
+                  cases_files: journey.cases_files,
                 });
               }
             });
+            const actions: { date: string; action: string; operator?: string; result?: string }[] = [];
+            filteredJourneys.forEach((j: any) => {
+              if (j.process_status === 'finished' && j.updated_at) {
+                actions.push({ date: j.updated_at.slice(0, 10), action: j.title || '', result: '已完成' });
+              }
+              (j.cases_files || []).forEach((f: any) => {
+                if (f.created_at) actions.push({ date: f.created_at.slice(0, 10), action: `上传${f.category || f.file_type || '文件'}`, result: '已上传' });
+              });
+            });
+            actions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setKeyActions(actions.slice(0, 10));
           }
+          setCaseWithFiles(currentCase);
           setTimeline(baseTimeline);
         } else {
           setProcessStatus('');
@@ -372,6 +399,23 @@ function JourneyInner() {
     return updatedAt ? `${t('journey.updated')} ${updatedAt.slice(0, 10)}` : '-';
   }, [updatedAt, t]);
 
+  // 阶段状态：未开始/进行中/已完成/阻塞中
+  const stageStatuses = useMemo(() => {
+    return timeline.map((step: any) => {
+      const items = step.items || [];
+      if (items.length === 0) return 'not_started';
+      const finished = items.filter((i: any) => i.process_status === 'finished').length;
+      if (finished === items.length) return 'completed';
+      if (finished > 0) return 'in_progress';
+      return 'in_progress';
+    });
+  }, [timeline]);
+
+  const currentStageIdx = useMemo(() => {
+    const idx = stageStatuses.findIndex((s: string) => s !== 'completed');
+    return idx >= 0 ? idx : 7;
+  }, [stageStatuses]);
+
   // ✅ 所有 Hooks 调用完毕，现在可以安全地进行条件渲染
 
   // 认证检查 loading
@@ -412,7 +456,72 @@ function JourneyInner() {
           {updatedDisplay}
         </div>
       </div>
+
+      {/* 顶部阶段状态条 - 横向 8 阶段 */}
       <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
+        <h2 className="text-xl text-sage-800 mb-4">{t('journey.stageStatusBar', 'Stage Progress')}</h2>
+        <div className="overflow-x-auto">
+          <div className="flex gap-2 min-w-max">
+            {timeline.map((step, idx) => {
+              const status = stageStatuses[idx] || 'not_started';
+              const isCurrent = idx === currentStageIdx;
+              return (
+                <div
+                  key={idx}
+                  className={`flex flex-col items-center min-w-[80px] p-2 rounded-lg border-2 transition-colors cursor-pointer ${
+                    status === 'completed' ? 'bg-green-50 border-green-200' :
+                    isCurrent ? 'bg-sage-100 border-sage-600' :
+                    status === 'in_progress' ? 'bg-amber-50 border-amber-200' :
+                    'bg-sage-50 border-sage-200'
+                  }`}
+                  onClick={() => document.getElementById(`stage-${idx}`)?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  <span className="text-xs font-medium text-sage-600">{idx + 1}</span>
+                  <span className="text-xs text-sage-700 truncate w-full text-center mt-1">
+                    {status === 'completed' ? t('journey.stageCompleted') :
+                     isCurrent ? t('journey.stageInProgress') :
+                     status === 'not_started' ? t('journey.stageNotStarted') : t('journey.stageInProgress')}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 关键动作时间轴 */}
+      {keyActions.length > 0 && (
+        <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
+          <h2 className="text-xl text-sage-800 mb-4">{t('journey.keyActionsTimeline', 'Key Actions')}</h2>
+          <div className="space-y-2">
+            {keyActions.map((a, i) => (
+              <div key={i} className="flex items-center gap-4 py-2 border-b border-sage-100 last:border-0">
+                <span className="text-sm font-medium text-sage-600 w-24">{a.date}</span>
+                <span className="flex-1 text-sage-800">{a.action}</span>
+                <span className="text-xs text-sage-500">{a.result}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 已完成内容展示区 */}
+      {timeline.some((s: any) => (s.items || []).some((i: any) => i.process_status === 'finished')) && (
+        <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
+          <h2 className="text-xl text-sage-800 mb-4">{t('journey.completedContent', 'Completed Content')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {timeline.flatMap((s: any) => (s.items || []).filter((i: any) => i.process_status === 'finished').map((i: any) => (
+              <div key={i.id} className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+                <span className="text-green-600">✓</span>
+                <span className="text-sage-800">{i.title}</span>
+                {i.updated_at && <span className="text-xs text-sage-500">{i.updated_at.slice(0, 10)}</span>}
+              </div>
+            )))}
+          </div>
+        </div>
+      )}
+
+      <div id="stage-timeline" className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
         <h2 className="text-xl text-sage-800 mb-4">{t('journey.statusTimeline')}</h2>
         <div className="relative pl-8">
           {/* 竖线 */}
@@ -423,7 +532,7 @@ function JourneyInner() {
               ? `Stage ${idx + 1}: `
               : `阶段${zhStages[idx] || idx + 1}：`;
             return (
-              <div key={idx} className="mb-8 relative">
+              <div key={idx} id={`stage-${idx}`} className="mb-8 relative">
                 {/* 圆点 */}
                 <div className="absolute -left-4 top-2 w-4 h-4 rounded-full bg-white border-2 border-sage-200" />
                 <h3 className="text-lg mb-2 text-sage-800 ml-6">{stagePrefix}{step.stage}</h3>
