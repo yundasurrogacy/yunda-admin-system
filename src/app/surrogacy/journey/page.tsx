@@ -154,12 +154,9 @@ function JourneyInner() {
   // 认证相关状态
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  const [processStatus, setProcessStatus] = useState<string>('');
-  const [updatedAt, setUpdatedAt] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [timeline, setTimeline] = useState<any[]>([]);
   const [actualCaseId, setActualCaseId] = useState<string | null>(caseId);
-  const [keyActions, setKeyActions] = useState<{ date: string; action: string; operator?: string; result?: string }[]>([]);
   const [caseWithFiles, setCaseWithFiles] = useState<any>(null); // 实际的 caseId
 
   // Toast 通知状态
@@ -202,15 +199,6 @@ function JourneyInner() {
     { value: 'pending', label: t('journey.status.pending', '待完成') },
     { value: 'finished', label: t('journey.status.finished', '已完成') },
   ], [t]);
-
-  // 使用 useMemo 缓存状态映射
-  const statusKeyMap = useMemo(() => ({
-    'Matching': 'Matching',
-    'LegalStage': 'Legal',
-    'CyclePrep': 'Medical',
-    'Pregnant': 'Pregnancy',
-    'Transferred': 'Post-delivery',
-  }), []);
 
   // 使用 useCallback 缓存切换状态函数
   const handleStatusClick = useCallback(async (item: { id: any; process_status?: string }) => {
@@ -265,51 +253,7 @@ function JourneyInner() {
         stageNumber: idx + 1,
       }));
       try {
-        // 优先 caseId 查询
-        if (caseId) {
-          const res = await fetch(`/api/cases-list?caseId=${caseId}`);
-          const data = await res.json();
-          // data 总是一个数组，需要根据 caseId 查找匹配的 case
-          const casesArray = Array.isArray(data) ? data : [];
-          const currentCase = casesArray.find((c: any) => c.id?.toString() === caseId?.toString());
-          if (currentCase) {
-            setActualCaseId(currentCase.id?.toString() || caseId); // 保存实际的 caseId
-            setProcessStatus(currentCase.process_status || '');
-            setUpdatedAt(currentCase.updated_at || '');
-            if (currentCase.journeys && currentCase.journeys.length > 0) {
-              const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'surrogate_mother');
-              filteredJourneys.forEach((journey: any) => {
-                const stageIndex = journey.stage - 1;
-                if (stageIndex >= 0 && stageIndex < 8) {
-                  baseTimeline[stageIndex].items.push({
-                    id: journey.id,
-                    title: journey.title,
-                    process_status: journey.process_status,
-                    updated_at: journey.updated_at,
-                    cases_files: journey.cases_files,
-                  });
-                }
-              });
-              const actions: { date: string; action: string; operator?: string; result?: string }[] = [];
-              filteredJourneys.forEach((j: any) => {
-                if (j.process_status === 'finished' && j.updated_at) {
-                  actions.push({ date: j.updated_at.slice(0, 10), action: j.title || '', result: '已完成' });
-                }
-                (j.cases_files || []).forEach((f: any) => {
-                  if (f.created_at) actions.push({ date: f.created_at.slice(0, 10), action: `上传${f.category || f.file_type || '文件'}`, result: '已上传' });
-                });
-              });
-              actions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-              setKeyActions(actions.slice(0, 10));
-            }
-            setCaseWithFiles(currentCase);
-            setTimeline(baseTimeline);
-            setIsLoading(false);
-            return;
-          }
-        }
-        // 没有 caseId 或 caseId 查不到时，使用 managerId 查询
-        // const managerId = typeof document !== 'undefined' ? getCookie('userId_manager') : null;
+        // GC 端始终用 cases-by-surrogate，与仪表盘、诊所页数据源一致（与 admin 案例同步）
         const surrogacyId = typeof document !== 'undefined' ? getCookie('userId_surrogacy') : null;
         if (!surrogacyId) {
           setIsLoading(false);
@@ -318,21 +262,26 @@ function JourneyInner() {
         }
         const res = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogacyId}`);
         const data = await res.json();
-        // const casesArr = Array.isArray(data) ? data : (data.cases || data.data || []);
-        // const currentCase = casesArr.find((c: any) => c.id?.toString() === caseId?.toString());
         const casesArr = Array.isArray(data) ? data : (data.cases || data.data || []);
-        let currentCase = casesArr.find((c: any) => c.id?.toString() === caseId?.toString());
-        // 如果没查到，自动 fallback 到第一个有数据的 case
-        if (!currentCase && casesArr.length > 0) {
-          currentCase = casesArr[0];
+        const sortedCases = casesArr.slice().sort((a: any, b: any) => {
+          const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+          const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+          return bTime - aTime;
+        });
+        let currentCase = caseId
+          ? sortedCases.find((c: any) => c.id?.toString() === caseId.toString())
+          : null;
+        if (!currentCase && sortedCases.length > 0) {
+          currentCase = sortedCases[0];
         }
-        // console.log('currentCase', currentCase);
+
+        const surrogateJourneyFilter = (j: any) =>
+          !j.about_role || j.about_role === 'surrogate_mother';
+
         if (currentCase) {
-          setActualCaseId(currentCase.id?.toString() || null); // 保存实际的 caseId
-          setProcessStatus(currentCase.process_status || '');
-          setUpdatedAt(currentCase.updated_at || '');
+          setActualCaseId(currentCase.id?.toString() || null);
           if (currentCase.journeys && currentCase.journeys.length > 0) {
-            const filteredJourneys = currentCase.journeys.filter((journey: any) => journey.about_role === 'surrogate_mother');
+            const filteredJourneys = currentCase.journeys.filter(surrogateJourneyFilter);
             filteredJourneys.forEach((journey: any) => {
               const stageIndex = journey.stage - 1;
               if (stageIndex >= 0 && stageIndex < 8) {
@@ -345,29 +294,14 @@ function JourneyInner() {
                 });
               }
             });
-            const actions: { date: string; action: string; operator?: string; result?: string }[] = [];
-            filteredJourneys.forEach((j: any) => {
-              if (j.process_status === 'finished' && j.updated_at) {
-                actions.push({ date: j.updated_at.slice(0, 10), action: j.title || '', result: '已完成' });
-              }
-              (j.cases_files || []).forEach((f: any) => {
-                if (f.created_at) actions.push({ date: f.created_at.slice(0, 10), action: `上传${f.category || f.file_type || '文件'}`, result: '已上传' });
-              });
-            });
-            actions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            setKeyActions(actions.slice(0, 10));
           }
           setCaseWithFiles(currentCase);
           setTimeline(baseTimeline);
         } else {
-          setProcessStatus('');
-          setUpdatedAt('');
           setTimeline(baseTimeline);
         }
       } catch (error) {
         showToastMessage(t('journey.fetchDataError') || '获取数据失败', 'error');
-        setProcessStatus('');
-        setUpdatedAt('');
         setTimeline(baseTimeline);
       } finally {
         setIsLoading(false);
@@ -384,20 +318,6 @@ function JourneyInner() {
 
   // 使用 useMemo 缓存是否为英文
   const isEnglish = useMemo(() => currentLang.startsWith('en'), [currentLang]);
-
-  // 使用 useMemo 缓存当前状态显示
-  const currentStatusDisplay = useMemo(() => {
-    if (isLoading) return t('loadingText');
-    if (processStatus) {
-      return t(`statusMapping.${(statusKeyMap as any)[processStatus] || processStatus}`, { defaultValue: processStatus });
-    }
-    return t('journey.noStatus');
-  }, [isLoading, processStatus, statusKeyMap, t]);
-
-  // 使用 useMemo 缓存更新时间显示
-  const updatedDisplay = useMemo(() => {
-    return updatedAt ? `${t('journey.updated')} ${updatedAt.slice(0, 10)}` : '-';
-  }, [updatedAt, t]);
 
   // 阶段状态：未开始/进行中/已完成/阻塞中
   const stageStatuses = useMemo(() => {
@@ -445,18 +365,6 @@ function JourneyInner() {
         {t('back', '返回')}
       </CustomButton> */}
       <h1 className="text-2xl font-semibold text-sage-800 mb-2">{t('journey.Gestational Carrier Journey')}</h1>
-      <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-sage-800">{t('journey.currentStatus')}</h2>
-          <span className="rounded bg-sage-200 px-4 py-2 text-lg font-bold text-sage-800">
-            {currentStatusDisplay}
-          </span>
-        </div>
-        <div className="text-sm text-sage-600">
-          {updatedDisplay}
-        </div>
-      </div>
-
       {/* 顶部阶段状态条 - 横向 8 阶段 */}
       <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
         <h2 className="text-xl text-sage-800 mb-4">{t('journey.stageStatusBar', 'Stage Progress')}</h2>
@@ -488,22 +396,6 @@ function JourneyInner() {
           </div>
         </div>
       </div>
-
-      {/* 关键动作时间轴 */}
-      {keyActions.length > 0 && (
-        <div className="rounded-xl bg-white p-6 text-sage-800 mb-6 border border-sage-200">
-          <h2 className="text-xl text-sage-800 mb-4">{t('journey.keyActionsTimeline', 'Key Actions')}</h2>
-          <div className="space-y-2">
-            {keyActions.map((a, i) => (
-              <div key={i} className="flex items-center gap-4 py-2 border-b border-sage-100 last:border-0">
-                <span className="text-sm font-medium text-sage-600 w-24">{a.date}</span>
-                <span className="flex-1 text-sage-800">{a.action}</span>
-                <span className="text-xs text-sage-500">{a.result}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* 已完成内容展示区 */}
       {timeline.some((s: any) => (s.items || []).some((i: any) => i.process_status === 'finished')) && (

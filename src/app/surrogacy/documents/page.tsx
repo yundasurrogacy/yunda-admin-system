@@ -75,6 +75,7 @@ export default function DocumentsPage() {
   const [loading, setLoading] = useState(false)
   const [dataLoaded, setDataLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [latestCaseId, setLatestCaseId] = useState<string | null>(null)
 
   // 认证检查和 cookie 读取
   useEffect(() => {
@@ -128,13 +129,18 @@ export default function DocumentsPage() {
         return res.json()
       })
       .then((cases) => {
-        // console.log(cases)
+        const list = Array.isArray(cases) ? cases : (cases.cases || cases.data || [])
+        const sorted = list.slice().sort((a: any, b: any) => {
+          const ta = a.updated_at ? new Date(a.updated_at).getTime() : 0
+          const tb = b.updated_at ? new Date(b.updated_at).getTime() : 0
+          return tb - ta
+        })
+        if (sorted[0]?.id) setLatestCaseId(String(sorted[0].id))
         let docs: any[] = []
-        cases.forEach((c: any) => {
-          // Only keep cases_files where about_role is surrogate_mother
+        sorted.forEach((c: any) => {
           if (Array.isArray(c.cases_files)) {
             c.cases_files.forEach((f: any) => {
-              if (f.about_role === "surrogate_mother") {
+              if (!f.about_role || f.about_role === 'surrogate_mother') {
                 const mappedType = mapDocType(f.category, t)
                 docs.push({
                   name: f.file_url ? f.file_url.split("/").pop() : (f.category || f.file_url),
@@ -206,15 +212,18 @@ export default function DocumentsPage() {
         <PageHeader 
           title={t('documents.title', 'Documents')} 
           showSearch
-          // rightContent={
-          //   <Button
-          //     onClick={() => {}}
-          //     className="flex items-center gap-2 bg-sage-200 text-sage-800 hover:bg-sage-250"
-          //   >
-          //     <Plus className="w-4 h-4" />
-          //     {t('documents.addDocument', 'Add Document')}
-          //   </Button>
-          // }
+          rightContent={
+            <Button
+              onClick={() => {
+                const id = latestCaseId
+                router.push(id ? `/surrogacy/files?caseId=${encodeURIComponent(id)}` : '/surrogacy/files')
+              }}
+              className="flex items-center gap-2 bg-sage-200 text-sage-800 hover:bg-sage-250"
+            >
+              <Plus className="w-4 h-4" />
+              {t('documents.uploadFiles', '上传文件')}
+            </Button>
+          }
         />
 
 

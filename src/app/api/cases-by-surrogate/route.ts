@@ -61,12 +61,9 @@ export async function GET(req: Request) {
           id
           type
           created_at
-          data(path: "name")
-        }
-        journeys {
-          id
-          stage
-          title
+          updated_at
+          about_role
+          data
         }
       }
     }

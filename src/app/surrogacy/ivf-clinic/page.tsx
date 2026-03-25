@@ -98,63 +98,45 @@ function IVFClinicContent() {
       try {
         let targetCaseId = caseId;
         
-        // 优先 caseId 查询
+        const surrogacyId = getCookie('userId_surrogacy');
+        if (!surrogacyId) {
+          setError('缺少代母登录信息');
+          return;
+        }
+        const resCases = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogacyId}`);
+        const casesPayload = await resCases.json();
+        const cases = Array.isArray(casesPayload)
+          ? casesPayload
+          : (casesPayload.cases || casesPayload.data || []);
+        const sorted = cases.slice().sort((a: any, b: any) => {
+          const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+          const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+          return bTime - aTime;
+        });
+        if (sorted.length === 0) {
+          setError('未找到相关案例');
+          return;
+        }
         if (caseId) {
-          console.log('使用URL中的caseId:', caseId);
-          const res = await fetch(`/api/cases-list?caseId=${caseId}`);
-          const data = await res.json();
-          const currentCase = Array.isArray(data) ? data[0] : (data.cases?.[0] || data.data?.[0] || null);
-          if (currentCase) {
-            // 使用现有的 caseId
-            targetCaseId = caseId;
-            console.log('找到案例，使用caseId:', caseId);
-          } else {
-            console.log('未找到案例，将尝试使用代母ID');
-          }
+          const match = sorted.find((c: any) => c.id?.toString() === caseId);
+          targetCaseId = match ? match.id : sorted[0].id;
+        } else {
+          targetCaseId = sorted[0].id;
         }
         
-        // 没有 caseId 或 caseId 查不到时，使用 surrogacyId 查询
-        if (!targetCaseId) {
-          console.log('尝试使用代母ID查询案例');
-          const surrogacyId = getCookie('userId_surrogacy');
-          
-          console.log('获取到的代母ID:', surrogacyId);
-          
-          if (!surrogacyId) {
-            setError('缺少案例ID或代母ID参数');
-            return;
-          }
-          
-          const res = await fetch(`/api/cases-by-surrogate?surrogateId=${surrogacyId}`);
-          const data = await res.json();
-          const cases = Array.isArray(data) ? data : (data.cases || data.data || []);
-          
-          console.log('通过代母ID找到的案例数量:', cases.length);
-          
-          if (cases.length > 0) {
-            // 使用第一个案例的ID
-            targetCaseId = cases[0].id;
-            console.log('使用第一个案例ID:', targetCaseId);
-          } else {
-            setError('未找到相关案例');
-            return;
-          }
-        }
-        
-        // 使用获取到的 caseId 获取 IVF 诊所数据
-        console.log('最终使用的caseId:', targetCaseId);
         const ivfRes = await fetch(`/api/ivf-clinic-get?caseId=${targetCaseId}&aboutRole=surrogate_mother`);
         if (!ivfRes.ok) throw new Error('获取代母数据失败');
-        
-        const ivfData = await ivfRes.json();
-        console.log('获取到的IVF诊所数据:', ivfData);
-        setClinics(ivfData.ivf_clinics || []);
-        setActualCaseId(targetCaseId);
 
-        // 获取 journey 数据用于文件工作流
-        const journeyRes = await fetch(`/api/journey-get?caseId=${targetCaseId}&about_role=surrogate_mother`);
+        const ivfData = await ivfRes.json();
+        setClinics(ivfData.ivf_clinics || []);
+        setActualCaseId(String(targetCaseId));
+
+        // 与案例旅程一致：含 about_role 为空的历史数据
+        const journeyRes = await fetch(`/api/journey-get?caseId=${targetCaseId}`);
         const journeyData = await journeyRes.json();
-        const journeys = journeyData.journeys || [];
+        const journeys = (journeyData.journeys || []).filter(
+          (j: any) => !j.about_role || j.about_role === 'surrogate_mother'
+        );
         const items: FileWorkflowItem[] = journeys.map((j: any) => {
           const files = j.cases_files || [];
           const hasFile = files.some((f: any) => f.file_url);

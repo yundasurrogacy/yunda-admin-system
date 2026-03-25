@@ -10,122 +10,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { 
   Users, 
   FileText, 
-  Calendar, 
-  TrendingUp, 
-  CheckCircle, 
-  Clock,
-  BarChart3,
   Activity,
-  UserCheck,
-  FileCheck,
   CalendarDays,
   RefreshCw,
-  Heart,
-  Baby,
-  Home,
   Settings,
-  MessageCircle,
   Shield,
   BookOpen,
-  Camera,
-  Mail
+  ChevronRight,
+  Route
 } from "lucide-react"
-
-// 状态阶段映射（移到组件外部，避免每次渲染重新创建）
-const STATUS_STAGE_MAP: Record<string, number> = {
-  Matching: 0,
-  LegalStage: 1,
-  CyclePrep: 2,
-  Pregnant: 3,
-  Transferred: 4,
-};
-
-// 状态列表（移到组件外部）
-const STATUS_LIST = ['Matching', 'LegalStage', 'CyclePrep', 'Pregnant', 'Transferred'] as const;
-
-// 优化的进度步骤组件
-const ProgressStep = memo(({ 
-  status, 
-  idx, 
-  isActive, 
-  isCurrent, 
-  statusLabel
-}: { 
-  status: string; 
-  idx: number; 
-  isActive: boolean; 
-  isCurrent: boolean; 
-  statusLabel: string;
-}) => (
-  <div className="flex items-center gap-3">
-    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-      isActive ? 'bg-sage-600 text-white' : 'bg-sage-200 text-sage-600'
-    }`}>
-      {idx + 1}
-    </div>
-    <div className="flex-1">
-      <div className={`text-sm font-medium ${
-        isCurrent ? 'text-sage-800' : isActive ? 'text-sage-700' : 'text-sage-500'
-      }`}>
-        {statusLabel}
-      </div>
-    </div>
-    {isCurrent && (
-      <Clock className="w-4 h-4 text-sage-600" />
-    )}
-    {isActive && !isCurrent && (
-      <CheckCircle className="w-4 h-4 text-green-500" />
-    )}
-  </div>
-));
-
-ProgressStep.displayName = 'ProgressStep';
-
-// 优化的统计卡片组件
-const StatCard = memo(({ 
-  title, 
-  value, 
-  IconComponent, 
-  iconBgColor, 
-  iconColor,
-  subtitle,
-  SubtitleIcon,
-  onClick 
-}: { 
-  title: string; 
-  value: number; 
-  IconComponent: React.ComponentType<{ className?: string }>; 
-  iconBgColor: string;
-  iconColor: string;
-  subtitle: string;
-  SubtitleIcon: React.ComponentType<{ className?: string }>;
-  onClick: () => void;
-}) => (
-  <Card 
-    className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-    onClick={onClick}
-  >
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-sage-600 mb-1">{title}</p>
-          <p className="text-3xl font-bold text-sage-800">{value}</p>
-        </div>
-        <div className={`w-12 h-12 ${iconBgColor} rounded-lg flex items-center justify-center`}>
-          <IconComponent className={`w-6 h-6 ${iconColor}`} />
-        </div>
-      </div>
-      <div className="mt-4">
-        <div className="flex items-center text-sm text-sage-600">
-          <SubtitleIcon className="w-4 h-4 mr-1" />
-          {subtitle}
-        </div>
-      </div>
-    </CardContent>
-  </Card>
-));
-
-StatCard.displayName = 'StatCard';
 
 // 优化的快速操作按钮组件
 const QuickActionButton = memo(({ 
@@ -179,7 +72,8 @@ interface CaseRaw {
   updated_at: string
   journeys?: JourneyRaw[]
   process_status?: string
-  ivf_clinics?: { id: string; type: string; data?: unknown }[]
+  ivf_clinics?: { id: string; type: string; data?: unknown; about_role?: string }[]
+  surrogate_mother?: { contact_information?: string }
 }
 
 // Next Action 任务状态
@@ -301,7 +195,7 @@ export default function SurrogacyDashboard() {
       // Next Action: 从未完成的 journey 推导，按优先级取前几条
       const pendingJourneys = surrogateJourneys.filter((j: any) => j.process_status !== 'finished');
       const now = new Date();
-      const nextActionList: NextActionItem[] = pendingJourneys.slice(0, 5).map((j: any, idx: number) => {
+      let nextActionList: NextActionItem[] = pendingJourneys.slice(0, 5).map((j: any) => {
         const dueStr = j.updated_at || j.created_at;
         const dueDate = dueStr ? new Date(dueStr) : null;
         let status: TaskStatus = 'pending';
@@ -316,26 +210,79 @@ export default function SurrogacyDashboard() {
           title: j.title || t('dashboard.nextActionTitle', 'Next Action'),
           dueDate: dueStr,
           status,
-          linkTo: '/surrogacy/journey',
+          linkTo: `/surrogacy/journey?caseId=${latestCase.id}`,
           linkLabel: t('dashboard.view_details', 'View'),
         };
       });
+      if (nextActionList.length === 0) {
+        const done = surrogateJourneys
+          .filter((j: any) => j.process_status === 'finished')
+          .slice()
+          .sort((a: any, b: any) => {
+            const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+            const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+            return tb - ta;
+          })
+          .slice(0, 3);
+        nextActionList = done.map((j: any) => ({
+          id: `done-${j.id}`,
+          title: j.title || t('dashboard.recentProgress', '最近完成'),
+          dueDate: j.updated_at || j.created_at,
+          status: 'completed' as TaskStatus,
+          linkTo: `/surrogacy/journey?caseId=${latestCase.id}`,
+          linkLabel: t('dashboard.viewJourney', '查看'),
+        }));
+      }
       setNextActions(nextActionList);
 
-      // Pending Documents: 暂无专属 API，从 journey 中带「上传」「材料」等关键词的项推导占位
+      const cliPath = (id: string) =>
+        `/surrogacy/ivf-clinic?caseId=${encodeURIComponent(id)}`;
+
+      // Pending Documents：优先 API（缺文件或未完成的旅程任务），并辅关键词匹配
       const docKeywords = ['心理评估', '体检', '报告', '上传', 'psych', 'screening', 'report', 'upload'];
-      const docJourneys = surrogateJourneys.filter((j: any) =>
-        docKeywords.some(kw => (j.title || '').toLowerCase().includes(kw.toLowerCase()))
-      );
-      const pendingDocList: PendingDocItem[] = docJourneys.slice(0, 3).map((j: any) => ({
-        id: String(j.id),
-        name: j.title || t('dashboard.pendingDocumentsTitle', 'Pending Documents'),
-        requirement: '',
-        format: 'PDF, JPG, PNG',
-        status: '待提交',
-        linkTo: '/surrogacy/ivf-clinic',
-      }));
-      setPendingDocs(pendingDocList);
+      let pendingDocList: PendingDocItem[] = [];
+      try {
+        const jr = await fetch(`/api/journey-get?caseId=${latestCase.id}`);
+        const jd = await jr.json();
+        const jList = (jd.journeys || []).filter(
+          (j: any) => !j.about_role || j.about_role === 'surrogate_mother'
+        );
+        pendingDocList = jList
+          .filter((j: any) => {
+            if (j.process_status === 'finished') return false;
+            const files = j.cases_files || [];
+            return !files.some((f: any) => f.file_url);
+          })
+          .slice(0, 6)
+          .map((j: any) => ({
+            id: String(j.id),
+            name: j.title || t('dashboard.pendingDocTask', '待提交材料'),
+            requirement: j.stage ? `${t('journey.stage', '阶段')} ${j.stage}` : '',
+            format: 'PDF, JPG, PNG',
+            status: t('dashboard.pendingSubmit', '待提交'),
+            linkTo: cliPath(String(latestCase.id)),
+          }));
+      } catch {
+        /* ignore */
+      }
+      if (pendingDocList.length < 3) {
+        const docJourneys = surrogateJourneys.filter((j: any) =>
+          docKeywords.some(kw => (j.title || '').toLowerCase().includes(kw.toLowerCase()))
+        );
+        const extra = docJourneys
+          .filter((j: any) => !pendingDocList.some((p) => p.id === String(j.id)))
+          .slice(0, 3 - pendingDocList.length)
+          .map((j: any) => ({
+            id: String(j.id),
+            name: j.title || t('dashboard.pendingDocumentsTitle', 'Pending Documents'),
+            requirement: '',
+            format: 'PDF, JPG, PNG',
+            status: '待提交',
+            linkTo: cliPath(String(latestCase.id)),
+          }));
+        pendingDocList = [...pendingDocList, ...extra];
+      }
+      setPendingDocs(pendingDocList.slice(0, 3));
 
       // 国际化阶段渲染
       const baseTimeline: JourneyStage[] = (gestationalCarrierStages || []).map((stage, idx) => ({
@@ -363,16 +310,16 @@ export default function SurrogacyDashboard() {
             const clinics = ivfRes.ivf_clinics || [];
             const apptClinic = clinics.find((c: any) => c.type === 'SurrogateAppointments');
             const apptData = Array.isArray(apptClinic?.data) ? apptClinic.data : [];
-            const in14Days = new Date();
-            in14Days.setDate(in14Days.getDate() + 14);
+            const horizon = new Date();
+            horizon.setDate(horizon.getDate() + 365);
             const apptList: AppointmentItem[] = apptData
               .filter((a: any) => {
                 if (!a?.date) return false;
                 const d = new Date(a.date);
-                return d >= now && d <= in14Days;
+                return d >= now && d <= horizon;
               })
               .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .slice(0, 5)
+              .slice(0, 3)
               .map((a: any, i: number) => ({
                 id: `appt-${i}`,
                 date: a.date ? new Date(a.date).toLocaleDateString() : '',
@@ -431,7 +378,7 @@ export default function SurrogacyDashboard() {
     Transferred: t('statusMapping.Transferred', 'Transferred'),
   }), [t]);
 
-  // 使用 useMemo 缓存完成百分比计算
+  // 使用 useMemo 缓存完成百分比计算（与旅程页任务完成度一致）
   const completionPercentage = useMemo(() => {
     return journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(1) : '0';
   }, [journeySummary.finished, journeySummary.total]);
@@ -444,15 +391,18 @@ export default function SurrogacyDashboard() {
     return journeySummary.total > 0 ? ((journeySummary.finished / journeySummary.total) * 100).toFixed(0) : '0';
   }, [journeySummary.finished, journeySummary.total]);
 
+  const displayName = useMemo(() => {
+    const fromCase = latestCaseRaw?.surrogate_mother?.contact_information;
+    if (fromCase && String(fromCase).trim()) return String(fromCase).trim();
+    if (typeof document === 'undefined') return '';
+    const email = getCookie('userEmail_surrogacy');
+    if (email) return email.split('@')[0];
+    return '';
+  }, [latestCaseRaw]);
+
   // 使用 useCallback 缓存导航函数
   const handleNavigateToJourney = useCallback(() => {
-    router.push('/surrogacy/journey');
-  }, [router]);
-
-  const handleNavigateToMyCase = useCallback(() => {
-    if (caseId) {
-      router.push('/surrogacy/my-case');
-    }
+    router.push(caseId ? `/surrogacy/journey?caseId=${encodeURIComponent(caseId)}` : '/surrogacy/journey');
   }, [router, caseId]);
 
   const handleNavigateToClientProfile = useCallback(() => {
@@ -480,8 +430,6 @@ export default function SurrogacyDashboard() {
   }, []);
 
   // 使用 useMemo 缓存当前状态的索引
-  const currentStatusIdx = useMemo(() => STATUS_STAGE_MAP[currentStatus], [currentStatus]);
-
   const taskStatusLabel = useCallback((s: TaskStatus) => {
     if (s === 'pending') return t('dashboard.taskStatusPending', 'Pending');
     if (s === 'dueSoon') return t('dashboard.taskStatusDueSoon', 'Due Soon');
@@ -528,7 +476,109 @@ export default function SurrogacyDashboard() {
           </CustomButton>
         </div>
 
-        {/* Next Action + Pending Documents + Upcoming Appointments */}
+        {/* 顶部旅程总览 — 取代原「统计卡 + 双卡片」，数据与案例 / 旅程 / 诊所同源 */}
+        <div className="rounded-2xl border border-sage-200/80 bg-white p-6 shadow-md">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0 flex-1 space-y-3">
+              <h2 className="text-2xl font-bold tracking-tight text-sage-900">
+                {t('dashboard.welcomeBackName', '欢迎回来')}
+                {displayName ? `, ${displayName}` : ''}
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 text-sage-800">
+                <span className="text-sm font-medium text-sage-600">
+                  {t('dashboard.currentStageLabel', '当前阶段')}:
+                </span>
+                <span className="rounded-full bg-sage-100 px-3 py-1 text-sm font-semibold text-sage-900">
+                  {statusMap[currentStatus] || statusMap.Matching}
+                </span>
+              </div>
+              <div className="flex max-w-xl flex-col gap-2 sm:flex-row sm:items-center">
+                <Progress value={Number(totalProgressPercentage)} className="h-2.5 flex-1" />
+                <span className="text-sm font-semibold text-sage-800 tabular-nums whitespace-nowrap">
+                  {totalProgressPercentage}% {t('dashboard.completed', '已完成')}
+                </span>
+              </div>
+              {currentStatusDate && (
+                <p className="text-xs text-sage-500">
+                  {t('dashboard.lastUpdatedSurrogacy', '最后更新')}: {lastUpdatedDisplay}
+                </p>
+              )}
+            </div>
+            <CustomButton
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-sage-700 bg-white px-5 py-2.5 text-sage-900 hover:bg-sage-50"
+              onClick={handleNavigateToJourney}
+            >
+              {t('dashboard.viewJourneyCta', '查看旅程')}
+              <ChevronRight className="h-4 w-4" />
+            </CustomButton>
+          </div>
+          <div className="mt-6 border-t border-sage-100 pt-5">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-sage-800">
+              <Route className="h-4 w-4 text-green-700" />
+              {t('dashboard.journeyProgressSurrogacy', '旅程进度')}
+            </div>
+            <div className="flex gap-1 overflow-x-auto pb-1">
+              {journeyStages.map((s, idx) => {
+                const firstIncomplete = journeyStages.findIndex((st) => {
+                  if (st.items.length === 0) return true;
+                  const titles = st.items;
+                  return titles.some((title) => {
+                    const j = (latestCaseRaw?.journeys || []).find(
+                      (x) =>
+                        (!x.about_role || x.about_role === 'surrogate_mother') &&
+                        (x.title === title || String(x.title) === String(title))
+                    );
+                    return j && j.process_status !== 'finished';
+                  });
+                });
+                const activeIdx = firstIncomplete >= 0 ? firstIncomplete : journeyStages.length - 1;
+                const isPast = idx < activeIdx;
+                const isCurrent = idx === activeIdx;
+                return (
+                  <div
+                    key={idx}
+                    className="flex min-w-[4.5rem] flex-col items-center gap-1"
+                    title={s.stage}
+                  >
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${
+                        isPast
+                          ? 'border-green-600 bg-green-600 text-white'
+                          : isCurrent
+                            ? 'border-green-600 bg-white text-green-700 ring-2 ring-green-200'
+                            : 'border-sage-200 bg-sage-100 text-sage-400'
+                      }`}
+                    >
+                      {idx + 1}
+                    </div>
+                    <span
+                      className={`max-w-[5.5rem] truncate text-center text-[10px] leading-tight ${
+                        isCurrent ? 'font-semibold text-sage-900' : 'text-sage-500'
+                      }`}
+                    >
+                      {s.stage}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-4 text-xs text-sage-600">
+              <span>
+                {t('dashboard.tasksCompletedLabel', '任务完成')}:{' '}
+                <strong className="text-sage-900">
+                  {journeySummary.finished}/{Math.max(1, journeySummary.total)}
+                </strong>
+              </span>
+              {pendingDocs.length > 0 && (
+                <span className="text-amber-800">
+                  {t('dashboard.pendingDocsShort', '待交文件')}: {pendingDocs.length}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Next Action + Pending Documents + Upcoming Appointments：各展示前 3 条 */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Next Action */}
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
@@ -596,7 +646,7 @@ export default function SurrogacyDashboard() {
               {pendingDocs.length === 0 ? (
                 <p className="text-sm text-sage-500">{t('dashboard.noPendingDocuments', 'No pending documents')}</p>
               ) : (
-                pendingDocs.map((doc) => (
+                pendingDocs.slice(0, 3).map((doc) => (
                   <div
                     key={doc.id}
                     className="p-3 bg-amber-50 rounded-lg border border-amber-100"
@@ -636,7 +686,7 @@ export default function SurrogacyDashboard() {
               {upcomingAppointments.length === 0 ? (
                 <p className="text-sm text-sage-500">{t('dashboard.noUpcomingAppointments', 'No upcoming appointments')}</p>
               ) : (
-                upcomingAppointments.map((apt) => (
+                upcomingAppointments.slice(0, 3).map((apt) => (
                   <div
                     key={apt.id}
                     className="flex items-center justify-between p-3 bg-sage-50 rounded-lg hover:bg-sage-100 transition-colors cursor-pointer"
@@ -657,152 +707,6 @@ export default function SurrogacyDashboard() {
               >
                 {t('dashboard.viewAllAppointments', 'View all')}
               </CustomButton>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Journey Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard 
-            title={t('dashboard.totalJourneysSurrogacy', 'Total Journeys')}
-            value={journeySummary.total}
-            IconComponent={Activity}
-            iconBgColor="bg-pink-100"
-            iconColor="text-pink-600"
-            subtitle={t('dashboard.surrogateJourneys', 'Surrogate journeys')}
-            SubtitleIcon={TrendingUp}
-            onClick={handleNavigateToJourney}
-          />
-          
-          <StatCard 
-            title={t('dashboard.completedSurrogacy', 'Completed')}
-            value={journeySummary.finished}
-            IconComponent={CheckCircle}
-            iconBgColor="bg-green-100"
-            iconColor="text-green-600"
-            subtitle={t('dashboard.finishedJourneysSurrogacy', 'Finished journeys')}
-            SubtitleIcon={CheckCircle}
-            onClick={handleNavigateToJourney}
-          />
-          
-          <StatCard 
-            title={t('dashboard.inProgressSurrogacy', 'In Progress')}
-            value={journeySummary.pending}
-            IconComponent={Clock}
-            iconBgColor="bg-orange-100"
-            iconColor="text-orange-600"
-            subtitle={t('dashboard.activeJourneysSurrogacy', 'Active journeys')}
-            SubtitleIcon={Clock}
-            onClick={handleNavigateToJourney}
-          />
-        </div>
-
-        {/* Current Status & Progress */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Current Status */}
-          <Card 
-            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={handleNavigateToMyCase}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sage-800">
-                <Baby className="w-5 h-5" />
-{t('dashboard.currentStatusSurrogacy', 'Current Status')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-sage-700">{t('dashboard.caseStatusSurrogacy', 'Case Status')}</span>
-                  <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">
-                    {statusMap[currentStatus] || statusMap.Matching}
-                  </span>
-        </div>
-                
-                {/* Progress Steps */}
-                <div className="space-y-3">
-                  {STATUS_LIST.map((status, idx) => {
-                    const isActive = typeof currentStatusIdx === 'number' && idx <= currentStatusIdx;
-                    const isCurrent = idx === currentStatusIdx;
-                    
-                    return (
-                      <ProgressStep
-                        key={status}
-                        status={status}
-                        idx={idx}
-                        isActive={isActive}
-                        isCurrent={isCurrent}
-                        statusLabel={t(`statusMapping.${status}`, status)}
-                      />
-                    );
-                  })}
-        </div>
-                
-                {currentStatusDate && (
-                  <div className="text-xs text-sage-500 pt-2 border-t">
-                    {t('dashboard.lastUpdatedSurrogacy', 'Last updated')}: {lastUpdatedDisplay}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Journey Progress - 完整 8 阶段进度条 */}
-          <Card 
-            className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105"
-            onClick={handleNavigateToJourney}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sage-800">
-                <BarChart3 className="w-5 h-5" />
-                {t('dashboard.journeyProgressSurrogacy', 'Journey Progress')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* 8 阶段横向进度条 */}
-              <div className="mb-4">
-                <div className="flex gap-1">
-                  {journeyStages.map((s, idx) => {
-                    const hasItems = s.items.length > 0;
-                    const firstEmptyIdx = journeyStages.findIndex(st => st.items.length === 0);
-                    const isCurrent = firstEmptyIdx >= 0 ? idx === firstEmptyIdx : idx === journeyStages.length - 1;
-                    const isPast = firstEmptyIdx >= 0 ? idx < firstEmptyIdx : idx < journeyStages.length;
-                    return (
-                      <div
-                        key={idx}
-                        className={`flex-1 h-2 rounded-full transition-colors ${
-                          isPast ? 'bg-green-500' : isCurrent ? 'bg-sage-500' : 'bg-sage-200'
-                        }`}
-                        title={s.stage}
-                      />
-                    );
-                  })}
-                </div>
-                <div className="flex justify-between mt-2 text-xs text-sage-500">
-                  <span>{journeyStages[0]?.stage?.slice(0, 6)}</span>
-                  <span>{journeyStages[journeyStages.length - 1]?.stage?.slice(-6)}</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-sage-700">{t('dashboard.completedProgressSurrogacy', 'Completed')}</span>
-                  <span className="text-sm text-sage-600">{journeySummary.finished} ({completionPercentage}%)</span>
-                </div>
-                <div className="relative">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="h-2 rounded-full transition-all duration-500 bg-green-500"
-                      style={{ width: `${completionPercentage}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-sage-600">{t('dashboard.totalProgressSurrogacy', 'Total Progress')}</span>
-                    <span className="font-medium text-sage-800">{totalProgressPercentage}%</span>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>

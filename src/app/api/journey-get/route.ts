@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
           stage
           title
           about_role
+          process_status
+          created_at
+          updated_at
           cases_files {
             id
             file_url
