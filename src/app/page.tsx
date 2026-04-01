@@ -31,6 +31,29 @@ const SUCCESS_KEYS: Record<RoleType, string> = {
   surrogacy: "surrogacyLoginSuccess",
 }
 
+/** 读取 cookie 值（仅客户端） */
+function readCookie(name: string): string | undefined {
+  if (typeof document === "undefined")
+    return undefined
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
+  if (!match)
+    return undefined
+  try {
+    return decodeURIComponent(match[1].trim())
+  }
+  catch {
+    return match[1].trim()
+  }
+}
+
+/** 某一端是否具备完整登录态（与 middleware 一致，三者缺一不可） */
+function hasFullSessionForRole(role: RoleType): boolean {
+  const r = readCookie(`userRole_${role}`)
+  const e = readCookie(`userEmail_${role}`)
+  const id = readCookie(`userId_${role}`)
+  return !!(r && e && id && r === role)
+}
+
 function UnifiedLoginContent() {
   const { t } = useTranslation("common")
   const router = useRouter()
@@ -64,25 +87,14 @@ function UnifiedLoginContent() {
     return () => window.removeEventListener("resize", updateHeaderHeight)
   }, [])
 
-  // 已登录任意端则跳转到对应 dashboard
+  // 仅当用户已明确选择某一端（含 URL ?role= 预选的端），且该端具备完整会话时才进后台；不在进入页时根据「任意端已登录」自动跳转
   useEffect(() => {
-    if (typeof document === "undefined") return
-    const cookieKeyMap: Record<RoleType, string> = {
-      admin: "userRole_admin",
-      client: "userRole_client",
-      manager: "userRole_manager",
-      surrogacy: "userRole_surrogacy",
+    if (typeof document === "undefined" || !selectedRole)
+      return
+    if (hasFullSessionForRole(selectedRole)) {
+      router.replace(DASHBOARD_PATHS[selectedRole])
     }
-    for (const [role, key] of Object.entries(cookieKeyMap)) {
-      const hasCookie = document.cookie
-        .split(";")
-        .some((c) => c.trim().startsWith(`${key}=`))
-      if (hasCookie) {
-        router.replace(DASHBOARD_PATHS[role as RoleType])
-        return
-      }
-    }
-  }, [router])
+  }, [router, selectedRole])
 
   const handleLogin = async (username: string, password: string) => {
     if (!selectedRole) return
