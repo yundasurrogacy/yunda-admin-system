@@ -635,7 +635,8 @@ function AdminBlogsPage() {
       // 构建查询参数
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: pageSize.toString()
+        limit: pageSize.toString(),
+        includeContent: 'true'
       });
       
       if (searchValue.trim()) {
