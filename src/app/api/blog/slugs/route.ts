@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHasuraClient } from '@/config-lib/hasura-graphql-client/hasura-graphql-client';
 
+export const runtime = 'nodejs';
+export const preferredRegion = 'hnd1';
+export const maxDuration = 30;
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',

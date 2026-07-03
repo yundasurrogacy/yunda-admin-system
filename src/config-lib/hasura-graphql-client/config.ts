@@ -5,11 +5,15 @@ export const graphqlOrmifyClientConfig: GraphQLClientConfig = {
   headers: config.headers,
   debug:false
 };  
+const shouldLogGraphqlRequests = process.env.NODE_ENV !== "production";
+
 export const graphqlOrmifyClientRequestListener: RequestListener = {
   onRequest: (info: RequestLifecycle) => {
+    if (!shouldLogGraphqlRequests) return;
     console.log("request-start", {id:info?.id,query: info?.config?.data?.query, variables: info?.config?.data?.variables});
   },
   onResponse: (info: RequestLifecycle) => {
+    if (!shouldLogGraphqlRequests) return;
     console.log("response-end", {id:info?.id,data: info?.response});
   },
 };
