@@ -39,6 +39,10 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     content: '',
     en_title: '',
     en_content: '',
+    seo_title: '',
+    seo_description: '',
+    en_seo_title: '',
+    en_seo_description: '',
     category: '',
     cover_img_url: '',
     reference_author: '',
@@ -71,6 +75,10 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       content: '',
       en_title: '',
       en_content: '',
+      seo_title: '',
+      seo_description: '',
+      en_seo_title: '',
+      en_seo_description: '',
       category: '',
       cover_img_url: '',
       reference_author: '',
@@ -363,6 +371,67 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
             </div>
 
           {/* 4. 英文标题 */}
+          <div className="rounded-xl border border-sage-200 bg-white/80 p-4 sm:p-5 space-y-4">
+            <div>
+              <h3 className="text-base sm:text-lg font-semibold text-sage-800">SEO</h3>
+              <p className="mt-1 text-xs sm:text-sm text-sage-500">
+                {t('seoFieldsDescription', 'Optional search title and description. If empty, the public site will use the article title and excerpt.')}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('englishSeoTitle', 'English SEO Title')}</Label>
+                <Input
+                  name="en_seo_title"
+                  value={form.en_seo_title}
+                  onChange={handleChange}
+                  maxLength={120}
+                  className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 sm:py-1 text-sm sm:text-[16px]"
+                  placeholder={t('pleaseEnterEnglishSeoTitle', 'Enter English SEO title')}
+                />
+                <div className="text-xs text-sage-400 text-right">{form.en_seo_title.length}/120</div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('chineseSeoTitle', 'Chinese SEO Title')}</Label>
+                <Input
+                  name="seo_title"
+                  value={form.seo_title}
+                  onChange={handleChange}
+                  maxLength={120}
+                  className="w-full border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 sm:py-1 text-sm sm:text-[16px]"
+                  placeholder={t('pleaseEnterChineseSeoTitle', 'Enter Chinese SEO title')}
+                />
+                <div className="text-xs text-sage-400 text-right">{form.seo_title.length}/120</div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('englishSeoDescription', 'English SEO Description')}</Label>
+                <textarea
+                  name="en_seo_description"
+                  value={form.en_seo_description}
+                  onChange={handleChange}
+                  maxLength={220}
+                  rows={3}
+                  className="w-full resize-y border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 text-sm sm:text-[16px] outline-none"
+                  placeholder={t('pleaseEnterEnglishSeoDescription', 'Enter English SEO description')}
+                />
+                <div className="text-xs text-sage-400 text-right">{form.en_seo_description.length}/220</div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('chineseSeoDescription', 'Chinese SEO Description')}</Label>
+                <textarea
+                  name="seo_description"
+                  value={form.seo_description}
+                  onChange={handleChange}
+                  maxLength={220}
+                  rows={3}
+                  className="w-full resize-y border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 px-3 sm:px-4 py-2 text-sm sm:text-[16px] outline-none"
+                  placeholder={t('pleaseEnterChineseSeoDescription', 'Enter Chinese SEO description')}
+                />
+                <div className="text-xs text-sage-400 text-right">{form.seo_description.length}/220</div>
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label className="text-sm sm:text-base font-semibold text-sage-700">{t('englishTitle')} <span className="text-red-500">*</span></Label>
             <Input 

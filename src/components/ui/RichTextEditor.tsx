@@ -773,15 +773,75 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
         const text = e.clipboardData.getData('text/plain');
         if (!html) return; // 纯文本保持默认
         e.preventDefault();
-        const allowedTags = new Set(['a','strong','b','em','i','u','s','p','br','h1','h2','h3','ul','ol','li','img','video','span','table','thead','tbody','tr','th','td']);
+        const allowedTags = new Set([
+          'a','strong','b','em','i','u','s','sub','sup','mark','small',
+          'p','br','div','span','blockquote','pre','code','hr',
+          'h1','h2','h3','h4','h5','h6',
+          'ul','ol','li',
+          'img','video','source',
+          'figure','figcaption',
+          'table','caption','colgroup','col','thead','tbody','tfoot','tr','th','td',
+        ]);
+        const blockAliases: Record<string, string> = {
+          article: 'div',
+          aside: 'div',
+          main: 'div',
+          section: 'div',
+          header: 'div',
+          footer: 'div',
+        };
+        const allowedTextStyleProps = new Set([
+          'text-align','font-weight','font-style','text-decoration','color','background-color',
+          'vertical-align','white-space',
+        ]);
+        const allowedTableStyleProps = new Set([
+          ...allowedTextStyleProps,
+          'border','border-top','border-right','border-bottom','border-left','border-collapse',
+          'padding','padding-top','padding-right','padding-bottom','padding-left',
+          'width','height',
+        ]);
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
+
+        const isSafeUrl = (url: string) => {
+          const trimmed = url.trim();
+          return /^(https?:|mailto:|tel:|\/|#)/i.test(trimmed);
+        };
+
+        const sanitizeStyle = (style: string, tag: string) => {
+          const allowedStyleProps = ['table','caption','col','th','td'].includes(tag)
+            ? allowedTableStyleProps
+            : allowedTextStyleProps;
+          return style
+            .split(';')
+            .map(rule => rule.trim())
+            .filter(Boolean)
+            .map(rule => {
+              const [rawProp, ...rawValue] = rule.split(':');
+              const prop = rawProp?.trim().toLowerCase();
+              const value = rawValue.join(':').trim();
+              if (!prop || !value || !allowedStyleProps.has(prop)) return '';
+              if (/expression\s*\(|javascript:|vbscript:|data:/i.test(value)) return '';
+              return `${prop}: ${value}`;
+            })
+            .filter(Boolean)
+            .join('; ');
+        };
+
+        const copyAttribute = (source: HTMLElement, target: HTMLElement, name: string) => {
+          const value = source.getAttribute(name);
+          if (value) target.setAttribute(name, value);
+        };
 
         const sanitizeNode = (node: Node): Node | null => {
           if (node.nodeType === Node.TEXT_NODE) return node.cloneNode() as Node;
           if (node.nodeType !== Node.ELEMENT_NODE) return null;
           const el = node as HTMLElement;
-          const tag = el.tagName.toLowerCase();
+          const sourceTag = el.tagName.toLowerCase();
+          const tag = blockAliases[sourceTag] || sourceTag;
+          if (['script','style','meta','link','iframe','object','embed'].includes(sourceTag)) {
+            return null;
+          }
           if (!allowedTags.has(tag)) {
             const frag = document.createDocumentFragment();
             el.childNodes.forEach(child => {
@@ -791,27 +851,41 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
             return frag;
           }
           const cleanEl = document.createElement(tag);
+          const cleanStyle = sanitizeStyle(el.getAttribute('style') || '', tag);
+          if (cleanStyle) cleanEl.setAttribute('style', cleanStyle);
           if (tag === 'a') {
-            const href = el.getAttribute('href') || '#';
+            const rawHref = el.getAttribute('href') || '#';
+            const href = isSafeUrl(rawHref) ? rawHref.trim() : '#';
             cleanEl.setAttribute('href', href);
             cleanEl.setAttribute('target', '_blank');
             cleanEl.setAttribute('rel', 'noopener noreferrer');
           } else if (tag === 'img') {
             const src = el.getAttribute('src');
-            if (src) cleanEl.setAttribute('src', src);
+            if (src && isSafeUrl(src)) cleanEl.setAttribute('src', src.trim());
+            copyAttribute(el, cleanEl, 'alt');
+            copyAttribute(el, cleanEl, 'title');
+            copyAttribute(el, cleanEl, 'width');
+            copyAttribute(el, cleanEl, 'height');
           } else if (tag === 'video') {
             const src = el.getAttribute('src');
-            if (src) cleanEl.setAttribute('src', src);
+            if (src && isSafeUrl(src)) cleanEl.setAttribute('src', src.trim());
+            copyAttribute(el, cleanEl, 'poster');
+            copyAttribute(el, cleanEl, 'width');
+            copyAttribute(el, cleanEl, 'height');
             (cleanEl as HTMLVideoElement).controls = true;
+          } else if (tag === 'source') {
+            const src = el.getAttribute('src');
+            if (src && isSafeUrl(src)) cleanEl.setAttribute('src', src.trim());
+            copyAttribute(el, cleanEl, 'type');
           } else if (tag === 'span' && el.classList.contains('route-id-marker')) {
             cleanEl.className = 'route-id-marker';
             const rid = el.getAttribute('data-route-id');
             if (rid) cleanEl.setAttribute('data-route-id', rid);
-          } else if (['table','th','td'].includes(tag)) {
-            const colspan = el.getAttribute('colspan');
-            const rowspan = el.getAttribute('rowspan');
-            if ((tag === 'th' || tag === 'td') && colspan) cleanEl.setAttribute('colspan', colspan);
-            if ((tag === 'th' || tag === 'td') && rowspan) cleanEl.setAttribute('rowspan', rowspan);
+          } else if (['table','col','th','td'].includes(tag)) {
+            ['colspan','rowspan','span','width','height','align','valign'].forEach(attr => copyAttribute(el, cleanEl, attr));
+            if (tag === 'table') {
+              ['border','cellpadding','cellspacing'].forEach(attr => copyAttribute(el, cleanEl, attr));
+            }
           }
           el.childNodes.forEach(child => {
             const cleanChild = sanitizeNode(child);
@@ -1365,6 +1439,50 @@ export function RichTextEditor({ value, onChange, placeholder, className, minHei
           margin: 12px 0 !important;
           line-height: 1.6 !important;
           display: block !important;
+        }
+        [contentEditable] blockquote {
+          margin: 16px 0 !important;
+          padding: 12px 16px !important;
+          border-left: 4px solid #C2A87A !important;
+          background: rgba(194, 168, 122, 0.12) !important;
+          color: #4b5563 !important;
+        }
+        [contentEditable] pre {
+          margin: 16px 0 !important;
+          padding: 12px 14px !important;
+          border: 1px solid #e5e7eb !important;
+          border-radius: 8px !important;
+          background: #f9fafb !important;
+          overflow-x: auto !important;
+          white-space: pre-wrap !important;
+        }
+        [contentEditable] code {
+          padding: 2px 5px !important;
+          border-radius: 4px !important;
+          background: #f3f4f6 !important;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+          font-size: 0.92em !important;
+        }
+        [contentEditable] pre code {
+          padding: 0 !important;
+          background: transparent !important;
+          border-radius: 0 !important;
+        }
+        [contentEditable] figure {
+          margin: 16px 0 !important;
+        }
+        [contentEditable] figcaption,
+        [contentEditable] caption {
+          color: #6b7280 !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+          margin-top: 8px !important;
+          text-align: center !important;
+        }
+        [contentEditable] hr {
+          margin: 24px 0 !important;
+          border: 0 !important;
+          border-top: 1px solid #e5e7eb !important;
         }
         /* 列表样式 - 最高优先级 */
         [contentEditable] ul {

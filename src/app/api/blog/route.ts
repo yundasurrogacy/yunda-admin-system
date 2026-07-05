@@ -23,6 +23,10 @@ type BlogRecord = {
   content?: string | null;
   en_title?: string | null;
   en_content?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  en_seo_title?: string | null;
+  en_seo_description?: string | null;
   category?: string | null;
   cover_img_url?: string | null;
   tags?: string | null;
@@ -33,7 +37,7 @@ type BlogRecord = {
 
 type BlogLanguage = 'en' | 'zh' | null;
 
-const BLOG_BASE_FIELDS = 'id route_id title en_title category cover_img_url tags reference_author created_at updated_at';
+const BLOG_BASE_FIELDS = 'id route_id title en_title seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at';
 const BLOG_FULL_FIELDS = `${BLOG_BASE_FIELDS} content en_content`;
 
 function getBlogDetailFields(lang: BlogLanguage) {
@@ -78,12 +82,18 @@ function createExcerpt(value?: string | null, maxLength = 180) {
 function toBlogListItem(blog: BlogRecord) {
   const excerpt = createExcerpt(blog.content);
   const enExcerpt = createExcerpt(blog.en_content);
+  const metaDescription = blog.seo_description || excerpt;
+  const enMetaDescription = blog.en_seo_description || enExcerpt;
 
   return {
     id: blog.id,
     route_id: blog.route_id,
     title: blog.title,
     en_title: blog.en_title,
+    seo_title: blog.seo_title,
+    seo_description: blog.seo_description,
+    en_seo_title: blog.en_seo_title,
+    en_seo_description: blog.en_seo_description,
     category: blog.category,
     cover_img_url: blog.cover_img_url,
     tags: blog.tags,
@@ -92,8 +102,8 @@ function toBlogListItem(blog: BlogRecord) {
     updated_at: blog.updated_at,
     excerpt,
     en_excerpt: enExcerpt,
-    meta_description: excerpt,
-    en_meta_description: enExcerpt,
+    meta_description: metaDescription,
+    en_meta_description: enMetaDescription,
   };
 }
 
@@ -246,7 +256,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const hasuraClient = getHasuraClient();
   const body = await request.json();
-  const query = `mutation InsertBlog($object: blogs_insert_input!) { insert_blogs_one(object: $object) { id route_id title content en_title en_content category cover_img_url tags reference_author created_at updated_at } }`;
+  const query = `mutation InsertBlog($object: blogs_insert_input!) { insert_blogs_one(object: $object) { id route_id title content en_title en_content seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at } }`;
   const variables = { object: body };
   const result = await hasuraClient.execute({ query, variables });
   return NextResponse.json(result?.insert_blogs_one, { headers: corsHeaders });
@@ -257,7 +267,7 @@ export async function PUT(request: NextRequest) {
   const body = await request.json();
   const { id, ...fields } = body;
   if (!id) return NextResponse.json({ error: '缺少id' }, { status: 400, headers: corsHeaders });
-  const query = `mutation UpdateBlog($id: bigint!, $fields: blogs_set_input!) { update_blogs_by_pk(pk_columns: {id: $id}, _set: $fields) { id route_id title content en_title en_content category cover_img_url tags reference_author created_at updated_at } }`;
+  const query = `mutation UpdateBlog($id: bigint!, $fields: blogs_set_input!) { update_blogs_by_pk(pk_columns: {id: $id}, _set: $fields) { id route_id title content en_title en_content seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at } }`;
   const variables = { id, fields };
   const result = await hasuraClient.execute({ query, variables });
   return NextResponse.json(result?.update_blogs_by_pk, { headers: corsHeaders });
