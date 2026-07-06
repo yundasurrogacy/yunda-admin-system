@@ -107,6 +107,18 @@ function toBlogListItem(blog: BlogRecord) {
   };
 }
 
+function toBlogResponseItem(blog: BlogRecord, includeContent = false) {
+  const item = toBlogListItem(blog);
+
+  if (!includeContent) return item;
+
+  return {
+    ...item,
+    content: blog.content,
+    en_content: blog.en_content,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const hasuraClient = getHasuraClient();
@@ -222,9 +234,10 @@ export async function GET(request: NextRequest) {
       // 处理单个博客查询结果
       if (route_id) {
         const blog = result?.blogs?.[0];
-        return NextResponse.json(blog, { headers: publicCacheHeaders });
+        return NextResponse.json(blog ? toBlogResponseItem(blog, true) : null, { headers: publicCacheHeaders });
       } else {
-        return NextResponse.json(result?.blogs_by_pk, { headers: publicCacheHeaders });
+        const blog = result?.blogs_by_pk;
+        return NextResponse.json(blog ? toBlogResponseItem(blog, true) : null, { headers: publicCacheHeaders });
       }
     }
 
@@ -234,7 +247,7 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      blogs: includeContent ? blogs : blogs.map(toBlogListItem),
+      blogs: includeContent ? blogs.map(blog => toBlogResponseItem(blog, true)) : blogs.map(toBlogListItem),
       pagination: {
         currentPage: page,
         totalPages,
