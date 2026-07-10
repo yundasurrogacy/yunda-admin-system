@@ -13,6 +13,49 @@ import { useSidebar } from "@/context/sidebar-context"
 
 const BLOG_API = '/api/blog';
 
+const BLOG_FORM_FIELDS = [
+  'route_id',
+  'title',
+  'content',
+  'en_title',
+  'en_content',
+  'seo_title',
+  'seo_description',
+  'en_seo_title',
+  'en_seo_description',
+  'category',
+  'cover_img_url',
+  'reference_author',
+  'tags',
+] as const;
+
+type BlogFormField = (typeof BLOG_FORM_FIELDS)[number];
+type BlogFormValues = Partial<Record<BlogFormField, string>> & { id?: string | number };
+
+function getBlogFormValues(values: any): BlogFormValues {
+  if (!values || typeof values !== 'object') return {};
+
+  const formValues: BlogFormValues = {};
+  if (values.id !== undefined && values.id !== null) formValues.id = values.id;
+
+  BLOG_FORM_FIELDS.forEach((field) => {
+    if (values[field] !== undefined) {
+      formValues[field] = values[field] === null ? '' : String(values[field]);
+    }
+  });
+
+  return formValues;
+}
+
+async function getBlogApiError(response: Response, fallback: string) {
+  try {
+    const data = await response.json();
+    return data.details || data.error || `${fallback} (${response.status})`;
+  } catch {
+    return `${fallback} (${response.status})`;
+  }
+}
+
 // 获取 cookie 的辅助函数
 function getCookie(name: string) {
   if (typeof document === 'undefined') return undefined;
@@ -24,16 +67,6 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
   const { t } = useTranslation("common")
   const { sidebarOpen } = useSidebar()
   
-  // 确保所有表单值都是字符串，避免 null 值
-  const sanitizeFormValues = (values: any) => {
-    if (!values) return {};
-    const sanitized: any = {};
-    Object.keys(values).forEach(key => {
-      sanitized[key] = values[key] === null || values[key] === undefined ? '' : String(values[key]);
-    });
-    return sanitized;
-  };
-
   const [form, setForm] = useState({
     title: '',
     content: '',
@@ -48,7 +81,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
     reference_author: '',
     tags: '',
     route_id: '',
-    ...sanitizeFormValues(initialValues),
+    ...getBlogFormValues(initialValues),
   });
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -84,7 +117,7 @@ function BlogForm({ open, onOpenChange, onSubmit, initialValues }: any) {
       reference_author: '',
       tags: '',
       route_id: '',
-      ...sanitizeFormValues(initialValues),
+      ...getBlogFormValues(initialValues),
     })
   }, [initialValues, open])
 
@@ -852,31 +885,33 @@ function AdminBlogsPage() {
 
   const handleSubmit = useCallback(async (form: any) => {
     try {
+      const payload = getBlogFormValues(form);
+
       if (form.id) {
         const res = await fetch(BLOG_API, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         });
         if (res.ok) {
           showToastMessage(t('blogValidation.blogEditedSuccess'), 'success');
           setAddOpen(false);
           fetchBlogs();
         } else {
-          showToastMessage(t('blogValidation.blogEditedFailed'), 'error');
+          showToastMessage(await getBlogApiError(res, t('blogValidation.blogEditedFailed')), 'error');
         }
       } else {
         const res = await fetch(BLOG_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         });
         if (res.ok) {
           showToastMessage(t('blogValidation.blogAddedSuccess'), 'success');
           setAddOpen(false);
           fetchBlogs();
         } else {
-          showToastMessage(t('blogValidation.blogAddedFailed'), 'error');
+          showToastMessage(await getBlogApiError(res, t('blogValidation.blogAddedFailed')), 'error');
         }
       }
     } catch (error) {

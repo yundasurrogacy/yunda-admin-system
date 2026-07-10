@@ -40,6 +40,41 @@ type BlogLanguage = 'en' | 'zh' | null;
 const BLOG_BASE_FIELDS = 'id route_id title en_title seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at';
 const BLOG_FULL_FIELDS = `${BLOG_BASE_FIELDS} content en_content`;
 
+// The admin list response includes derived fields such as excerpt and
+// meta_description.  They are useful to render the list, but they are not
+// columns in the blogs table and must never be passed to Hasura mutations.
+const BLOG_MUTABLE_FIELDS = [
+  'route_id',
+  'title',
+  'content',
+  'en_title',
+  'en_content',
+  'seo_title',
+  'seo_description',
+  'en_seo_title',
+  'en_seo_description',
+  'category',
+  'cover_img_url',
+  'tags',
+  'reference_author',
+] as const;
+
+type BlogMutableField = (typeof BLOG_MUTABLE_FIELDS)[number];
+type BlogMutationFields = Partial<Pick<BlogRecord, BlogMutableField>>;
+
+function getBlogMutationFields(body: unknown): BlogMutationFields {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return {};
+
+  const input = body as Record<string, unknown>;
+  return BLOG_MUTABLE_FIELDS.reduce<BlogMutationFields>((fields, field) => {
+    const value = input[field];
+    if (value !== undefined) {
+      fields[field] = value === null ? null : String(value);
+    }
+    return fields;
+  }, {});
+}
+
 function getBlogDetailFields(lang: BlogLanguage) {
   if (lang === 'zh') return `${BLOG_BASE_FIELDS} content`;
   if (lang === 'en') return `${BLOG_BASE_FIELDS} en_content`;
@@ -267,23 +302,43 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const hasuraClient = getHasuraClient();
-  const body = await request.json();
-  const query = `mutation InsertBlog($object: blogs_insert_input!) { insert_blogs_one(object: $object) { id route_id title content en_title en_content seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at } }`;
-  const variables = { object: body };
-  const result = await hasuraClient.execute({ query, variables });
-  return NextResponse.json(result?.insert_blogs_one, { headers: corsHeaders });
+  try {
+    const hasuraClient = getHasuraClient();
+    const fields = getBlogMutationFields(await request.json());
+    const query = `mutation InsertBlog($object: blogs_insert_input!) { insert_blogs_one(object: $object) { id route_id title content en_title en_content seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at } }`;
+    const result = await hasuraClient.execute({ query, variables: { object: fields } });
+    return NextResponse.json(result?.insert_blogs_one, { headers: corsHeaders });
+  } catch (error) {
+    console.error('Error in POST /api/blog:', error);
+    return NextResponse.json(
+      { error: 'Failed to create blog', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500, headers: corsHeaders },
+    );
+  }
 }
 
 export async function PUT(request: NextRequest) {
-  const hasuraClient = getHasuraClient();
-  const body = await request.json();
-  const { id, ...fields } = body;
-  if (!id) return NextResponse.json({ error: '缺少id' }, { status: 400, headers: corsHeaders });
-  const query = `mutation UpdateBlog($id: bigint!, $fields: blogs_set_input!) { update_blogs_by_pk(pk_columns: {id: $id}, _set: $fields) { id route_id title content en_title en_content seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at } }`;
-  const variables = { id, fields };
-  const result = await hasuraClient.execute({ query, variables });
-  return NextResponse.json(result?.update_blogs_by_pk, { headers: corsHeaders });
+  try {
+    const body = await request.json();
+    const id = body?.id;
+    if (!id) return NextResponse.json({ error: '缺少id' }, { status: 400, headers: corsHeaders });
+
+    const fields = getBlogMutationFields(body);
+    if (Object.keys(fields).length === 0) {
+      return NextResponse.json({ error: '没有可更新的博客字段' }, { status: 400, headers: corsHeaders });
+    }
+
+    const hasuraClient = getHasuraClient();
+    const query = `mutation UpdateBlog($id: bigint!, $fields: blogs_set_input!) { update_blogs_by_pk(pk_columns: {id: $id}, _set: $fields) { id route_id title content en_title en_content seo_title seo_description en_seo_title en_seo_description category cover_img_url tags reference_author created_at updated_at } }`;
+    const result = await hasuraClient.execute({ query, variables: { id, fields } });
+    return NextResponse.json(result?.update_blogs_by_pk, { headers: corsHeaders });
+  } catch (error) {
+    console.error('Error in PUT /api/blog:', error);
+    return NextResponse.json(
+      { error: 'Failed to update blog', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500, headers: corsHeaders },
+    );
+  }
 }
 
 export async function DELETE(request: NextRequest) {
